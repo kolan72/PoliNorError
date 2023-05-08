@@ -1,7 +1,7 @@
 # PoliNorError
 ![alt text](https://github.com/kolan72/kolan72.github.io/blob/master/images/PoliNorError.png?raw=true)
 PoliNorError is a library that provides error handling capabilities through Retry and Fallback policies. The library has a specific focus on handling potential exceptions within the catch block and offers various configuration options.
-Heavily inspired by  [Polly](https://github.com/App-vNext/Polly) .
+Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 
 ## Key Features
 - Implements two commonly used resiliency patterns - Retry and Fallback
@@ -29,22 +29,22 @@ A policy is a wrapper for the policy processor that adapts it to the `IPolicyBas
 For retries using default retry policy processor:
 ```csharp
 var result = RetryProcessor
-							.CreateDefault()
-							.WithWait(TimeSpan.FromMilliseconds(300))
-							.Retry(() => DoSomethingRepeatedly()), 5);
+			.CreateDefault()
+			.WithWait(TimeSpan.FromMilliseconds(300))
+			.Retry(() => DoSomethingRepeatedly()), 5);
 ```
 With [`RetryPolicy`](#retrypolicy), more complex case:
 ```csharp
 var result = await new RetryPolicy(5)
-	                        .ExcludeError<DbEntityValidationException>()
-							.WithWait((retryAttempt) => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-							.WithPolicyResultHandler((pr) =>
-							                           { 
-							                                if (pr.IsCanceled) 
-							                                    logger.Error("The operation was canceled.");
-							                           }
-							                        )
-							.HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
+	                 .ExcludeError<DbEntityValidationException>()
+			 .WithWait((retryAttempt) => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+			 .WithPolicyResultHandler((pr) =>
+							{ 
+								if (pr.IsCanceled) 
+									logger.Error("The operation was canceled.");
+							}
+						 )
+			.HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
 ```
 For fallback using default fallback policy processor:
 ```csharp
@@ -183,7 +183,7 @@ If an exception occurs during the calling of the fallback delegate, the `IsFaile
 ### Wrapping policy
 For wrap policy by other policy use `WrapPolicy` method, for example:
 ```csharp
-		    var wrapppedPolicy = new RetryPolicy(3).ExcludeError<BrokerUnreachableException>();
+	    var wrapppedPolicy = new RetryPolicy(3).ExcludeError<BrokerUnreachableException>();
             var fallBackPolicy = new FallbackPolicy()
                                             .WithFallbackFunc(() => connectionFactory2.CreateConnection());
             fallBackPolicy.WrapPolicy(wrapppedPolicy);
@@ -275,8 +275,8 @@ If you want to use cancellation possibility for not cancelable error processor m
 
 ```csharp
           Action action = () => SendEmail("someuser@somedomain.com");
-	      Action<Exception> actionError = (ex) => logger.Error(ex.Message));
-		  action.InvokeWithRetry(retryCount, 
+	  Action<Exception> actionError = (ex) => logger.Error(ex.Message));
+	  action.InvokeWithRetry(retryCount, 
 			                     RetryErrorProcessor.From(actionError, 
 			                                              ConvertToCancelableFuncType.Cancelable)
 			                     );
