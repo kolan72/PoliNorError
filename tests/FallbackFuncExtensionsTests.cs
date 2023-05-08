@@ -1,0 +1,228 @@
+﻿using NUnit.Framework;
+using System;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace PoliNorError.Tests
+{
+	internal class FallbackFuncExtensionsTests
+    {
+        [Test]
+        public void Should_HandleAsFallback_ForAction_ConvertedFromAsync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            var action = (Func<CancellationToken, Task>)(async (ct) => await Task.Delay(1, ct));
+            var funcRes = action.ToSyncFunc().HandleAsFallback(cancelTokenSource.Token);
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public void Should_HandleAsFallback_ForAction_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            Action<CancellationToken> act = (ctx) => ctx.ThrowIfCancellationRequested();
+            var funcRes = act.HandleAsFallback(cancelTokenSource.Token);
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public void Should_HandleAsFallback_ForAction_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body_And_Token_Is_Other()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            Action<CancellationToken> act = (_) => cancelTokenSource.Token.ThrowIfCancellationRequested();
+            var funcRes = act.HandleAsFallback(default);
+            Assert.IsFalse(funcRes.IsCanceled);
+            Assert.IsNotNull(funcRes.Error);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public void Should_HandleAsFallback_ForAction_ForSuccess_Work()
+        {
+            Action<CancellationToken> act = (_) => { };
+            var funcRes = act.HandleAsFallback(default);
+            Assert.IsTrue(funcRes.IsSuccess);
+        }
+
+        [Test]
+        public void Should_HandleAsFallback_ForFunc_ConvertedFromAsync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            Func<CancellationToken, Task<int>> func = async (ct) => { await Task.Delay(1, ct); return 1; };
+            var funcRes = func.ToSyncFunc().HandleAsFallback(cancelTokenSource.Token);
+
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public void Should_HandleAsFallback_ForFunc_ConvertedFromAsync_If_Cancel_And_CancelToken_Is_Not_Native_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+
+            Func<CancellationToken, Task<int>> func = async (ct) => { var cancelTokenS1 = new CancellationTokenSource(); cancelTokenS1.Cancel(); cancelTokenS1.Token.ThrowIfCancellationRequested(); await Task.Delay(1, ct); return 1; };
+            var funcRes = func.ToSyncFunc().HandleAsFallback(cancelTokenSource.Token);
+
+            Assert.IsFalse(funcRes.IsCanceled);
+            Assert.IsNotNull(funcRes.Error);
+            Assert.IsFalse(funcRes.IsSuccess);
+
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public void Should_HandleAsFallback_ForFunc_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            Func<CancellationToken, int> func = (ctx) => { ctx.ThrowIfCancellationRequested(); return 1; };
+            var funcRes = func.HandleAsFallback(cancelTokenSource.Token);
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public void Should_HandleAsFallback_ForFunc_ForSuccess_Work()
+        {
+            Func<CancellationToken, int> func = (_) => 1;
+            var funcRes = func.HandleAsFallback(default);
+            Assert.IsTrue(funcRes.IsSuccess);
+            Assert.AreEqual(1, funcRes.Result);
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForNoGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            var action = (Action<CancellationToken>)((_) => Expression.Empty());
+            var func = action.ToAsyncFunc();
+
+            var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForNoGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_Not_Native_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+
+            var action = (Action<CancellationToken>)((_) => { var cancelTokenS1 = new CancellationTokenSource(); cancelTokenS1.Cancel(); cancelTokenS1.Token.ThrowIfCancellationRequested(); });
+            var func = action.ToAsyncFunc();
+
+            var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+
+            Assert.IsFalse(funcRes.IsCanceled);
+            Assert.IsNotNull(funcRes.Error);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForNoGenericFunc_If_Cancel_And_CancelToken_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            var func = (Func<CancellationToken, Task>)(async(ct) => { await Task.Delay(1); ct.ThrowIfCancellationRequested();});
+
+            var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForNoGenericFunc_ForSuccess_Work()
+        {
+            Func<CancellationToken, Task> func = async (_) => await Task.Delay(1);
+            var funcRes = await func.HandleAsFallbackAsync(false, default);
+            Assert.IsTrue(funcRes.IsSuccess);
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            var action = (Func<CancellationToken, int>)((_) => 1);
+            var func = action.ToAsyncFunc();
+
+            var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_Not_Native_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+
+            var action = (Func<CancellationToken, int>)((_) => { var cancelTokenS1 = new CancellationTokenSource(); cancelTokenS1.Cancel(); cancelTokenS1.Token.ThrowIfCancellationRequested(); return 1; });
+            var func = action.ToAsyncFunc();
+
+            var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+
+            Assert.IsFalse(funcRes.IsCanceled);
+            Assert.IsNotNull(funcRes.Error);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForGenericFunc_If_Cancel_And_CancelToken_In_FallbackMethod_Body()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+
+            var func = (Func<CancellationToken, Task<int>>)(async (ct) => { await Task.Delay(1); ct.ThrowIfCancellationRequested(); return 1; });
+
+            var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+
+            Assert.IsTrue(funcRes.IsCanceled);
+            Assert.IsTrue(funcRes.Error is null);
+            Assert.IsFalse(funcRes.IsSuccess);
+            cancelTokenSource.Dispose();
+        }
+
+        [Test]
+        public async Task Should_HandleAsFallbackAsync_ForGenericFunc_ForSuccess_Work()
+        {
+            Func<CancellationToken, Task<int>> func = async (_) => { await Task.Delay(1); return 1; };
+            var funcRes = await func.HandleAsFallbackAsync(false, default);
+            Assert.IsTrue(funcRes.IsSuccess);
+        }
+    }
+}

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Andrey Kolesnichenko</Authors>
+    <Copyright>Copyright 2023 Andrey Kolesnichenko</Copyright>
+    <PackageTags>Exception Handling Policy Retry Fallback Resilience</PackageTags>
+    <PackageIcon>PoliNorError.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/kolan72/PoliNorError</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kolan72/PoliNorError</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="HandlerRunners\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\PoliNorError.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

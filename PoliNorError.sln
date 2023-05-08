@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31129.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoliNorError", "src\PoliNorError.csproj", "{451211DE-755D-44C2-9FA7-A30EF1A0C827}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliNorError.Tests", "tests\PoliNorError.Tests.csproj", "{D3865051-ED26-46E4-94DC-27B47736545B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{451211DE-755D-44C2-9FA7-A30EF1A0C827}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{451211DE-755D-44C2-9FA7-A30EF1A0C827}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{451211DE-755D-44C2-9FA7-A30EF1A0C827}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{451211DE-755D-44C2-9FA7-A30EF1A0C827}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3865051-ED26-46E4-94DC-27B47736545B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3865051-ED26-46E4-94DC-27B47736545B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3865051-ED26-46E4-94DC-27B47736545B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3865051-ED26-46E4-94DC-27B47736545B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9160C95D-E9CC-4276-BE59-1452BC73C565}
+	EndGlobalSection
+EndGlobal
