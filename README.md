@@ -25,7 +25,7 @@ The types of delegates that can be handled include:
 - `Func<CancellationToken, Task<T>>`
 
 Handling delegate is carried out by policy processors, which are classes that implement the `IPolicyProcessor` interface. 
-A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling delegates.
+A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling delegates.  
 For retries using default retry policy processor:
 ```csharp
 var result = RetryProcessor
@@ -62,10 +62,10 @@ var result = new FallbackPolicy()
                              .WithFallbackFunc<Email>(() => UserManager.GetGuestEmail())
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
-Error handling within the policy processor's catch block can be extended by using [error processors](#error-processors), which are classes that implement the `IErrorProcessor` interface. For example, one of such classes - `DelayErrorProcessor` specify amount of delay time before continuing with the handling process. 
-Errors handling allows for further specification through the use of [exceptions filters](#exceptions-filters). 
-The results of handling are stored in the [PolicyResult](#policyresult) class.
-A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection) and handled sequentially.
+Error handling within the policy processor's catch block can be extended by using [error processors](#error-processors), which are classes that implement the `IErrorProcessor` interface. For example, one of such classes - `DelayErrorProcessor` specify amount of delay time before continuing with the handling process.  
+Errors handling allows for further specification through the use of [exceptions filters](#exceptions-filters).  
+The results of handling are stored in the [PolicyResult](#policyresult) class.  
+A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection) and handled sequentially.  
 The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
 
 ### Error processors
@@ -203,7 +203,7 @@ var result = policyDelegate.Handle();
 ```
 
 ### PolicyDelegateCollection
-You can create `PolicyDelegateCollection(<T>)` by using `Create` method. Having policy delegates or even policies only - by using `FromPolicyDelegates`, `FromPolicies` methods respectevly. 
+You can create `PolicyDelegateCollection(<T>)` by using `Create` method. Having policy delegates or even policies only - by using `FromPolicyDelegates`, `FromPolicies` methods respectevly.  
 With these methods
 - `WithPolicy`
 - `WithPolicyDelagate`
