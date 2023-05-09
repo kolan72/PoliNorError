@@ -70,6 +70,7 @@ A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelega
 The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
 
 ### Error processors
+You can add an error processor to any policy or policyprocessor class by using the `WithErrorProcessor` or `WithErrorProcessorOf` methods.  
 In the common case, an error processor is a class that implements the `IErrorProcessor` interface. You can create an error processor from delegates with the argument of the `Exception` type by using overloads of the `WithErrorProcessorOf` method.  
 The whole list of such error processor delegates:
 - `Action<Exception>`
