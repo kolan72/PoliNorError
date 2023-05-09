@@ -60,6 +60,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_HandleResultError_NotAffect_IsOk()
+		{
+			void action(PolicyResult _) { throw new Exception(); }
+			var retryPolicy = new RetryPolicy(1).WithPolicyResultHandler(action);
+			var res = retryPolicy.Handle(() => { });
+			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
+		}
+
+		[Test]
 		public void Should_HandlerRunnersCollection_Work_If_Both_Empty()
 		{
 			Assert.AreEqual(HandlerRunnerSyncType.None, HandlerRunnersCollection.FromSyncAndNotSync(new List<IHandlerRunner>(), new List<IHandlerRunner>()).MapToSyncType());
