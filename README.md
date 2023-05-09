@@ -152,7 +152,7 @@ To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
 These methods create the `DelayErrorProcessor` object behind the scene.  
 The `WithWait` method also has overload that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.  
 Faulted retries errors saving is configuring by `Action<PolicyResult, Exception>` parameter of one of the constructors and by default save errors in 'PolicyResult.Errors' collection. For huge numbers of retries, memory-related exceptions may occur, and the handling process will be interrupted. You can pass your own delegate to avoid this.  
-For testing purposes there is a `RetryPolicy` constructor that has `Action<RetryCountInfoOptions>` parameter.
+For testing purposes there is a `RetryPolicy` constructor that has `Action<RetryCountInfoOptions>` parameter.  
 
 ### FallbackPolicy
 `FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.
