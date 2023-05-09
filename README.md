@@ -81,21 +81,19 @@ The whole list of such error processor delegates:
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.
 
 ### PolicyResult
-If an exception occurs during the execution of the delegate, it will be stored in the `Errors` property.
-When the `IsFailed` property equals `true`, it indicates that the delegate was not able to be handled. 
+Handling begins when an exception occurs during the execution of the delegate. At first, exception will be stored in the `Errors` property (for retry-related classes, this is by default and can be customized).  
+Later on, the policy processor will try to handle delegate and store results in the `PolicyResult` properties.  
+The most crucial property is the `IsFailed` property. If it equals `true`, the delegate was not able to be handled.  
 It can happen due to these reasons:
- - Cancellation occurs after the first call of the delegate you handle.
- - The error filter conditions are not satisfied.
- - A critical error has occurred within the catch block, specifically related to the calling of the saving error delegate for `RetryPolicy` or calling the fallback delegate for `FallbackPolicy`.
+-   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
+-   Policy-specific conditions failed (for example, the number of permitted retries is exceeded for retry processor).
+-   A critical error has occurred within the catch block, specifically related to the calling of the saving error delegate for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
+ -   Cancellation occurs after the first call of the delegate you handle.
 
-In case the `CancellationToken` is canceled, the `IsCanceled` property will be set to `true`. 
-If cancellation occurs before the first call of the delegate you handle, the `IsCanceled` property has been set to `true`, but the `IsFailed` property is `false`.
-To ensure that the policy or policy processor has handled delegate successfully, check the `IsSuccess` property, that equals `true` only if the `IsFailed` and  `IsCanceled` properties are both `false`.
-The `ErrorFilterUnsatisfied` property will be set to `true` if the error filter conditions are not satisfied.
-If an error occurs within the catch block, it will be stored in the `CatchBlockErrors` property that is collection of `CatchBlockException` objects. If the error is deemed critical for handling by policy and requires `IsFailed` to be set to `true`, the `IsCritical` property of the `CatchBlockException` object will also be set to `true`.
-If any error occurs in the `PolicyResult` handlers, it will be stored in the `HandleResultErrors` property.
-For generic delegates, a return value will be stored in the `Result` property if handling was successful.
-Check the `IsOk` property to ensure that there were no errors at all.
+In case the  `CancellationToken` passed as a parameter in handling method is canceled, the  `IsCanceled`  property will be set to  `true`. But  cancellation may occur before the first call of the delegate. However, the `IsFailed` property still equals `false` because no delegate was executed.  To ensure that the policy or policy processor has handled  executed delegate successfully, check the  `IsSuccess`  property, that equals  `true`  only if the  `IsFailed`  and  `IsCanceled`  properties are both  `false`.  
+Check the  `IsOk`  property to ensure that there were no errors in handling delegate at all. But an error may still happen in `PolicyResult` handlers. In this case it will be stored in the `HandleResultErrors` property, but it will not affect the`IsOk` or other `PolicyResult` properties.  
+If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
+For generic delegates, a return value will be stored in the  `Result`  property if handling was successful. 
 
 ### Exceptions filters
 You can specify error filter for policy or policy processor:
