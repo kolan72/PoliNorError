@@ -223,18 +223,24 @@ With these methods
 - `WithFallback`
 
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
-Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scene, which calls delegates in sync or async manner or in the miscellaneous way.
-The process of handling Policy delegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).
-Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyHandledResult>` interface. 
-You can find out how the last policy handled the delegate by calling the `GetStatus()` method.
-The `PolicyHandledResult(<T>)` class in turn is just a wrapper around `PolicyResult` that contains `PolicyHandledInfo` class with information about Policy and `MethodInfo` of delegate.
-This is an example of how to add retry policies and delegates:
+Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scene, which calls delegates in sync or async manner or in the miscellaneous way.  
+
+You can establish a common `PolicyResult` handler for the entire collection by using either the `WithCommonResultHandler` or `WithCommonResultErrorsHandler` method. 
+These methods require the same delegates types as `PolicyResult` handlers.  
+
+This is an example of how to add retry policies and delegates with common `PolicyResult` handler:
 ```csharp
 var result = PolicyDelegateCollection.Create()
                         .WithWaitAndRetry(3, TimeSpan.FromSeconds(2))
                         .AndDelegate(() => connectionFactory1.CreateConnection())
                         .WithRetry(5)
                         .AndDelegate(() => connectionFactory2.CreateConnection())
+                        .WithCommonResultHandler((pr) =>
+							{ 
+								if (pr.IsCanceled) 
+									logger.Error("The operation was canceled.");
+							}
+						 )
                         .HandleAll();
 ```
 You can use ExcludeError and ForError methods to set filters on the entire collection:
@@ -246,10 +252,15 @@ var polBuilder = PolicyDelegateCollection<int>.Create()
                          .ForError<SqlException>((ex) => ex.Number == 1205)
                          .HandleAll();
 ```
-You can establish a common `PolicyResult` handler for the entire collection by using either the `WithCommonResultHandler` or `WithCommonResultErrorsHandler` method. 
-These methods require the same delegates types as `PolicyResult` handlers.
-In order to determine which policies were not called check  the`PolicyDelegatesUnused` property of  the`PolicyDelegateCollectionResult` object.
-Use the method `WithThrowOnLastFailed` to  throw a special `PolicyDelegateCollectionHandleException` exception if the last policy in the collection fails. 
+The process of handling Policy delegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
+
+Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyHandledResult>` interface. The `PolicyHandledResult(<T>)` class in turn is just a wrapper around `PolicyResult` that contains `PolicyHandledInfo` class with information about policy and `MethodInfo` of delegate.  
+
+In order to determine which policies were not called check  the`PolicyDelegatesUnused` property of  the`PolicyDelegateCollectionResult` object.  
+
+You can find out how the last policy handled the delegate by calling the `GetStatus()` method.
+
+For some purpurses  throw a special `PolicyDelegateCollectionHandleException` exception if the last policy in the collection fails may be useful. You can do it with the  `WithThrowOnLastFailed` method.
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow delegates to be called in a resilient manner.
@@ -296,7 +307,7 @@ Full list of extensions methods:
 
 
 ### Usage recommendations
-For simple use cases, you could use policy processors. If your case involves more complexity and requires wrapping other policy or handling of policy results, consider using a suitable policy or packing policy with a delegate in the `PolicyDelegate` class.
+For simple use cases, you could use policy processors. If your case involves more complexity and requires wrapping other policy or handling of policy results, consider using a suitable policy or packing policy with a delegate in the `PolicyDelegate` object.
 In certain scenarios, for example, where a large number of retries are required, the `PolicyDelegateCollection` may be useful.
 
 ### Nuances of using the library
