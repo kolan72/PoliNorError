@@ -130,8 +130,8 @@ var result = await new RetryPolicy(5)
 The  `PolicyResult` handler can't change the `Result` property of `PolicyResult<T>`.
 
 ### RetryPolicy
-`RetryPolicy` can be customized of your implementation of `IRetryProcessor` interface.
-The most crucial parameter for `RetryPolicy` setup is the count of retries.
+`RetryPolicy` can be customized of your implementation of `IRetryProcessor` interface.  
+The most crucial parameter for `RetryPolicy` setup is the count of retries.  
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
 ```csharp
             var policy = new RetryPolicy(5)
@@ -149,8 +149,9 @@ To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
                                     .HandleAsync(async (ct) => 
                                                     await DoSomethingNearlyImpossibleAsync(ct), token);
 ```
-These methods create the `DelayErrorProcessor` object behind the scene. The `WithWait` method also has overloads that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.
-Faulted retries errors saving is configuring by `Action<PolicyResult, Exception>` parameter of one of the constructors and by default save errors in collection. For huge numbers of retries, where memory-related exceptions may occur, the `IsFailed` property will be set to `true` and the handling process will be interrupted. You can pass your own delegate to avoid this.
+These methods create the `DelayErrorProcessor` object behind the scene.  
+The `WithWait` method also has overload that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.  
+Faulted retries errors saving is configuring by `Action<PolicyResult, Exception>` parameter of one of the constructors and by default save errors in 'PolicyResult.Errors' collection. For huge numbers of retries, memory-related exceptions may occur, and the handling process will be interrupted. You can pass your own delegate to avoid this.  
 For testing purposes there is a `RetryPolicy` constructor that has `Action<RetryCountInfoOptions>` parameter.
 
 ### FallbackPolicy
