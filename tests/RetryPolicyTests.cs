@@ -398,6 +398,31 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_NotCritical_CatchBlockError_NotAffect_IsFailed()
+		{
+			void errorProcessorFunc(Exception ex) => throw ex;
+			var retryPolTest = new RetryPolicy(1);
+			int i = 0;
+			void action()
+			{
+				if (i == 0)
+				{
+					i++;
+					throw new Exception("Test2");
+				}
+				else
+				{
+					i++;
+				}
+			}
+			retryPolTest.WithErrorProcessorOf(errorProcessorFunc);
+			var polRes = retryPolTest.Handle(action);
+			Assert.IsFalse(polRes.IsFailed);
+			Assert.IsTrue(polRes.CatchBlockErrors.Count() == 1);
+			Assert.IsFalse(polRes.CatchBlockErrors.FirstOrDefault().IsCritical);
+		}
+
+		[Test]
 		public void Should_CatchBlockError_Handled_For_Handle_WithFailedErrorSaver()
 		{
 			void saveAsync() => throw new Exception();
