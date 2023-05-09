@@ -111,7 +111,7 @@ If filter conditions are unsatisfied, error handling break and set both the `IsF
 ### PolicyResult handlers
 
 When handling delegate by policy you can add so called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` or `WithCommonResultErrorsHandler`.
- These methods accept delegate as a parameter and can extra handle `PolicyResult` errors collection (after policy processor processing):
+ These methods accept delegate as a parameter and can extra handle `PolicyResult`:
 
 - `Action<PolicyResult>`
 - `Action<PolicyResult, CancellationToken>`
@@ -122,6 +122,7 @@ When handling delegate by policy you can add so called `PolicyResult` handlers u
 - `Func<IEnumerable<Exception>, Task>`
 - `Func<IEnumerable<Exception>, CancellationToken, Task>`
 
+For example:
 ```csharp
 var result = await new RetryPolicy(5)
                             .WithPolicyResultHandler((pr) => { if (pr.IsOk) logger.Info("There were no errors.");})
