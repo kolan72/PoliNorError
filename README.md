@@ -151,11 +151,13 @@ To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
 ```
 These methods create the `DelayErrorProcessor` object behind the scene.  
 The `WithWait` method also has overload that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.  
-Faulted retries errors saving is configuring by `Action<PolicyResult, Exception>` parameter of one of the constructors and by default save errors in 'PolicyResult.Errors' collection. For huge numbers of retries, memory-related exceptions may occur, and the handling process will be interrupted. You can pass your own delegate to avoid this.  
+
+Faulted retries errors saving is configuring by `Action<PolicyResult, Exception>` parameter of one of the constructors and by default save errors in `PolicyResult.Errors` collection. For huge numbers of retries, memory-related exceptions may occur, and the handling process will be interrupted. You can pass your own delegate to avoid this.  
+
 For testing purposes there is a `RetryPolicy` constructor that has `Action<RetryCountInfoOptions>` parameter.  
 
 ### FallbackPolicy
-`FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.
+`FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
 You can setup this policy for different return types:
 ```csharp
   var userFallbackPolicy = new FallbackPolicy()
@@ -179,6 +181,7 @@ The whole list of methods, accepting fallback delegate as an argument:
 -    `WithAsyncFallbackFunc<T>`
 
 If you try to handle a generic delegate without a corresponding fallback delegate being set, the default value will be returned.
+
 If an exception occurs during the calling of the fallback delegate, the `IsFailed` property of the `PolicyResult` object will be set to `true` and this exception will be wrapped in the `CatchBlockException` exception with  the `IsCritical` property  equal to `true`.
 
 ### Wrapping policy
@@ -257,7 +260,7 @@ For example, with error processor from `Func<Exception, CancellationToken, Task>
         Func<Exception, CancellationToken, Task> errorSaveFunc =  async(ex, ct) 
                                                                             => await errorSaver.SaveAsync(ex, ct);
         Task<PolicyResult<string>> GetUserEmailWithFallbackAsync(
-                                                                Func<CancellationToken, Task<string>> emailFunc,              CancellationToken token)
+                                                                Func<CancellationToken, Task<string>> emailFunc, CancellationToken token)
         {
             return emailFunc.InvokeWithFallbackAsync(async(ct) => 
                                                                 await UserManager.GetFallbackEmailAsync(ct), 
@@ -298,8 +301,10 @@ In certain scenarios, for example, where a large number of retries are required,
 
 ### Nuances of using the library
 All default policy processor classes that implement `IPolicyProcessor`  will handle the `OperationCanceledException` exception in a policy-specific way if the token is different from the one passed as argument. Otherwise, only the `PolicyResult`s properties `IsFailed` and `IsCanceled` will be set to `true` and handling will exit.  
+
 Some library methods accept delegate argument that are not cancelable, but can still be canceled. Such methods also have an extra `ConvertToCancelableFuncType` argument type that shows how cancellation will be performed.
 The default value of `ConvertToCancelableFuncType` as a method argument is the `Precancelable`, means that the delegate will not be executed if the token has already been canceled. If its equals `Cancelable`, a new task that supports cancellation will be used.  
+
 For very large retry count memory-related error may occur. You can set "n-Time infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
 
 ```csharp
