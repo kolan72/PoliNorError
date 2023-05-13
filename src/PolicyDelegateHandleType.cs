@@ -1,9 +1,9 @@
 ﻿namespace PoliNorError
 {
 	internal enum PolicyDelegateHandleType
-    {
-        Sync,
-        Async,
-        Misc
-    }
+	{
+		Sync,
+		Async,
+		Misc
+	}
 }

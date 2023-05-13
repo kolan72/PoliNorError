@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-    public static class EnumerablePolicyDelegateInfosExtensions
+	public static class EnumerablePolicyDelegateInfosExtensions
 	{
 		public static T WithCommonResultHandler<T>(this T policyDelegateCollection, Action<PolicyResult, CancellationToken> act) where T: IEnumerable<PolicyDelegateBase>
 		{

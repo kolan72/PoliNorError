@@ -10,7 +10,7 @@ namespace PoliNorError
 {
 	public sealed class PolicyDelegateCollection<T> : IEnumerable<PolicyDelegate<T>>
 	{
-        private readonly List<PolicyDelegate<T>> _syncInfos = new List<PolicyDelegate<T>>();
+		private readonly List<PolicyDelegate<T>> _syncInfos = new List<PolicyDelegate<T>>();
 
 		public static PolicyDelegateCollection<T> Create() => new PolicyDelegateCollection<T>();
 
@@ -188,7 +188,7 @@ namespace PoliNorError
 		}
 		public IEnumerable<IPolicyBase> Policies => _syncInfos.GetPolicies();
 
-        public IEnumerator<PolicyDelegate<T>> GetEnumerator() => _syncInfos.GetEnumerator();
+		public IEnumerator<PolicyDelegate<T>> GetEnumerator() => _syncInfos.GetEnumerator();
 
 		public bool ThrowOnLastFailed => _terminated;
 

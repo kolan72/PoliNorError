@@ -2,12 +2,12 @@
 
 namespace PoliNorError
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
-    public class HandlePolicyResultException : Exception
-    {
-        public HandlePolicyResultException(Exception handleResultException, IHandlerRunner handlerRunner) : base("Error in handling policy result.", handleResultException) => HandlerRunner = handlerRunner;
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
+	public class HandlePolicyResultException : Exception
+	{
+		public HandlePolicyResultException(Exception handleResultException, IHandlerRunner handlerRunner) : base("Error in handling policy result.", handleResultException) => HandlerRunner = handlerRunner;
 
-        public IHandlerRunner HandlerRunner { get; }
-    }
+		public IHandlerRunner HandlerRunner { get; }
+	}
 }

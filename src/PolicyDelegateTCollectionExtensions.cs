@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +11,10 @@ namespace PoliNorError
 			return policyDelegateCollection.WithPolicy(func());
 		}
 
-        public static PolicyDelegateCollection<T> WithRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, int retryCount, RetryErrorProcessor policyParams = null)
-        {
-            return policyDelegateCollection.WithPolicy(policyParams.ToRetryPolicy(retryCount));
-        }
+		public static PolicyDelegateCollection<T> WithRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, int retryCount, RetryErrorProcessor policyParams = null)
+		{
+			return policyDelegateCollection.WithPolicy(policyParams.ToRetryPolicy(retryCount));
+		}
 
 		public static PolicyDelegateCollection<T> WithWaitAndRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, int retryCount, TimeSpan delay, RetryErrorProcessor policyParams = null)
 		{

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-    public static class PolicyResultExtensions
+	public static class PolicyResultExtensions
 	{
 		internal static void AddBulkProcessorErrors(this PolicyResult policyResult, BulkErrorProcessor.BulkProcessResult bulkProcessResult)
 		{
@@ -57,21 +57,21 @@ namespace PoliNorError
 			var curRes = policyRetryResult;
 			foreach (var handler in handlerRunners)
 			{
-                try
-                {
-                    if (handler.UseSync)
-                    {
-                        handler.Run(curRes, token);
-                    }
-                    else
-                    {
-                       await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
-                    }
-                }
-                catch (Exception ex)
-                {
+				try
+				{
+					if (handler.UseSync)
+					{
+						handler.Run(curRes, token);
+					}
+					else
+					{
+					   await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
+					}
+				}
+				catch (Exception ex)
+				{
 					curRes.AddWrappedHandleResultError(ex, handler);
-                }
+				}
 			}
 			return curRes;
 		}
@@ -81,19 +81,19 @@ namespace PoliNorError
 			var curRes = policyRetryResult;
 			foreach (var handler in handlerRunners)
 			{
-                try
-                {
-                    if (handler.UseSync)
-                    {
-                        handler.Run(curRes, token);
-                    }
-                    else
-                    {
-                        await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
-                    }
-                }
-                catch (Exception ex)
-                {
+				try
+				{
+					if (handler.UseSync)
+					{
+						handler.Run(curRes, token);
+					}
+					else
+					{
+						await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
+					}
+				}
+				catch (Exception ex)
+				{
 					curRes.AddWrappedHandleResultError(ex, handler);
 				}
 			}
@@ -105,12 +105,12 @@ namespace PoliNorError
 			var curRes = policyRetryResult;
 			foreach (var handler in handlerRunners)
 			{
-                try
-                {
-                    await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
-                }
-                catch (Exception ex)
-                {
+				try
+				{
+					await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
+				}
+				catch (Exception ex)
+				{
 					curRes.AddWrappedHandleResultError(ex, handler);
 				}
 			}
@@ -156,17 +156,17 @@ namespace PoliNorError
 			var curRes = policyRetryResult;
 			foreach (var handler in handlerRunners)
 			{
-                try
-                {
-                    if (handler.UseSync)
-                    {
-                       handler.Run(curRes, token);
-                    }
-                    else
-                    {
-                        Task.Run(() => handler.RunAsync(curRes, token), token).Wait(token);
+				try
+				{
+					if (handler.UseSync)
+					{
+					   handler.Run(curRes, token);
 					}
-                }
+					else
+					{
+						Task.Run(() => handler.RunAsync(curRes, token), token).Wait(token);
+					}
+				}
 				catch (AggregateException ae)
 				{
 					if (ae.HasCanceledException(token))
@@ -175,7 +175,7 @@ namespace PoliNorError
 					}
 				}
 				catch (Exception ex)
-                {
+				{
 					curRes.AddWrappedHandleResultError(ex, handler);
 				}
 			}

@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	internal sealed class SingleDelegateContainer : SingleDelegateContainerBase
-    {
-        private SingleDelegateContainer(){}
+	{
+		private SingleDelegateContainer(){}
 
 		public static SingleDelegateContainer FromSync(Action execute) => new SingleDelegateContainer
 		{
@@ -21,19 +21,19 @@ namespace PoliNorError
 		};
 
 		public void ClearDelegate()
-        {
-            if (UseSync == SyncPolicyDelegateType.Async)
-            {
-                ExecuteAsync = null;
-            }
-            else
-            {
-                Execute = null;
-            }
-            UseSync = SyncPolicyDelegateType.None;
-        }
+		{
+			if (UseSync == SyncPolicyDelegateType.Async)
+			{
+				ExecuteAsync = null;
+			}
+			else
+			{
+				Execute = null;
+			}
+			UseSync = SyncPolicyDelegateType.None;
+		}
 
-        public Func<CancellationToken, Task> ExecuteAsync { get; private set; }
-        public Action Execute { get; private set; }
-    }
+		public Func<CancellationToken, Task> ExecuteAsync { get; private set; }
+		public Action Execute { get; private set; }
+	}
 }

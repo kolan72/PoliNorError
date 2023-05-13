@@ -267,5 +267,5 @@ namespace PoliNorError
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
+	}
 }

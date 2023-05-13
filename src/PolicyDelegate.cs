@@ -36,9 +36,9 @@ namespace PoliNorError
 		internal Func<CancellationToken, Task> ExecuteAsync => _delegateContainer?.ExecuteAsync;
 		internal Action Execute =>  _delegateContainer?.Execute;
 
-        protected override SyncPolicyDelegateType GetSyncType() => (_delegateContainer?.UseSync) ?? SyncPolicyDelegateType.None;
+		protected override SyncPolicyDelegateType GetSyncType() => (_delegateContainer?.UseSync) ?? SyncPolicyDelegateType.None;
 
-        public override bool DelegateExists => _delegateContainer?.DelegateExists == true;
+		public override bool DelegateExists => _delegateContainer?.DelegateExists == true;
 	}
 
 	public sealed class PolicyDelegate<T> : PolicyDelegateBase

@@ -2,8 +2,8 @@
 {
 	public class PolicyHandledResult
 	{
-        public PolicyHandledResult(PolicyHandledInfo policyHandledInfo, PolicyResult result)
-        {
+		public PolicyHandledResult(PolicyHandledInfo policyHandledInfo, PolicyResult result)
+		{
 			PolicyInfo = policyHandledInfo;
 			Result = result;
 		}

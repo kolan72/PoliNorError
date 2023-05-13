@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	public static class HandleErrorPolicyBaseExtensions
-    {
+	{
 		public static T WithPolicyResultHandler<T>(this T errorPolicyBase, Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
 		{
 			return errorPolicyBase.WithPolicyResultHandler(action.ToCancelableAction(convertType));

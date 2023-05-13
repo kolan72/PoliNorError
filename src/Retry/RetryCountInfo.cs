@@ -31,8 +31,8 @@ namespace PoliNorError
 		{
 			bool func(int nr) { return (nr - startTryCount) < retryCount && nr < REAL_INFINITE_RETRY_COUNT; }
 
-            return canRetryInner ?? func;
-        }
+			return canRetryInner ?? func;
+		}
 
 		public static RetryCountInfo Limited(int retryCount, Action<RetryCountInfoOptions> action = null)
 		{

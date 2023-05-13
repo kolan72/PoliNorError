@@ -16,6 +16,6 @@ namespace PoliNorError
 
 		public InconsistencyPolicyException() : base(MSG){}
 
-        public InconsistencyPolicyException(string msg) : base(msg) {}
+		public InconsistencyPolicyException(string msg) : base(msg) {}
 	}
 }
