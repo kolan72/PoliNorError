@@ -63,22 +63,11 @@ var result = new FallbackPolicy()
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
 Error handling within the policy processor's catch block can be extended by using [error processors](#error-processors), which are classes that implement the `IErrorProcessor` interface. For example, one of such classes - `DelayErrorProcessor` specify amount of delay time before continuing with the handling process.  
-Errors handling allows for further specification through the use of [exceptions filters](#exceptions-filters).  
+Errors handling allows for further specification through the use of [error filters](#error-filters).  
 The results of handling are stored in the [PolicyResult](#policyresult) class.  
 Using policy, you can extra handle `PolicyResult` by [`PolicyResult` handlers](#policyresult-handlers) after policy processor processing.  
 A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection) and handled sequentially.  
 The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
-
-### Error processors
-You can add an error processor to any policy or policyprocessor class by using the `WithErrorProcessor` or `WithErrorProcessorOf` methods.  
-In the common case, an error processor is a class that implements the `IErrorProcessor` interface. You can create an error processor from delegates with the argument of the `Exception` type by using overloads of the `WithErrorProcessorOf` method.  
-The whole list of such error processor delegates:
-- `Action<Exception>`
-- `Action<Exception, CancellationToken>`
-- `Func<Exception, Task>`
-- `Func<Exception, CancellationToken, Task>`
-
-Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.
 
 ### PolicyResult
 Handling begins when an exception occurs during the execution of the delegate. At first, exception will be stored in the `Errors` property (for retry-related classes, this is by default and can be customized).  
@@ -95,7 +84,18 @@ Check the  `IsOk`  property to ensure that there were no errors in handling dele
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
 For generic delegates, a return value will be stored in the  `Result`  property if handling was successful. 
 
-### Exceptions filters
+### Error processors
+You can add an error processor to any policy or policyprocessor class by using the `WithErrorProcessor` or `WithErrorProcessorOf` methods.  
+In the common case, an error processor is a class that implements the `IErrorProcessor` interface. You can create an error processor from delegates with the argument of the `Exception` type by using overloads of the `WithErrorProcessorOf` method.  
+The whole list of such error processor delegates:
+- `Action<Exception>`
+- `Action<Exception, CancellationToken>`
+- `Func<Exception, Task>`
+- `Func<Exception, CancellationToken, Task>`
+
+Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.
+
+### Error filters
 You can specify error filter for policy or policy processor:
 ```csharp
  var result = new FallbackPolicy()
@@ -110,7 +110,7 @@ If filter conditions are unsatisfied, error handling break and set both the `IsF
 
 ### PolicyResult handlers
 
-When handling delegate by policy you can add so called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` or `WithCommonResultErrorsHandler`.
+When handling delegate by policy you can add so-called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` or `WithCommonResultErrorsHandler`.
  These methods accept delegate as a parameter and can extra handle `PolicyResult`:
 
 - `Action<PolicyResult>`
