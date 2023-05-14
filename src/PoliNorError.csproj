@@ -13,6 +13,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/kolan72/PoliNorError</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kolan72/PoliNorError</RepositoryUrl>
+    <Version>1.0.3</Version>
+    <Description>PoliNorError is a library that provides error handling capabilities through Retry and Fallback policies. The library has a specific focus on handling potential exceptions within the catch block and offers various configuration options.</Description>
   </PropertyGroup>
 
   <ItemGroup>
