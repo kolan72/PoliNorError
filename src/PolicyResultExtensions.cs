@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -173,6 +174,10 @@ namespace PoliNorError
 					{
 						curRes.AddWrappedHandleResultError(new OperationCanceledException(token), handler);
 					}
+					else
+					{
+						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions, handler);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -185,6 +190,12 @@ namespace PoliNorError
 		internal static void AddWrappedHandleResultError(this PolicyResult policyResult, Exception ex, IHandlerRunner handler)
 		{
 			policyResult.AddHandleResultError(new HandlePolicyResultException(ex, handler));
+		}
+
+		internal static void AddWrappedHandleResultErrors(this PolicyResult policyResult, IEnumerable<Exception> exs, IHandlerRunner handler)
+		{
+			var handlePolicyResultErrors = exs.Select((ex) => new HandlePolicyResultException(ex, handler));
+			policyResult.AddHandleResultErrors(handlePolicyResultErrors);
 		}
 	}
 }

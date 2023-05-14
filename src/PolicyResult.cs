@@ -58,19 +58,24 @@ namespace PoliNorError
 			_errors = (FlexSyncEnumerable<Exception>)exceptions;
 		}
 
-		internal void AddCatchBlockErrors(IEnumerable<CatchBlockException> catchBlockExceptions)
-		{
-			_catchBlockErrors.AddRange(catchBlockExceptions);
-		}
-
 		internal void AddCatchBlockError(CatchBlockException catchBlockException)
 		{
 			_catchBlockErrors.Add(catchBlockException);
 		}
 
+		internal void AddCatchBlockErrors(IEnumerable<CatchBlockException> catchBlockExceptions)
+		{
+			_catchBlockErrors.AddRange(catchBlockExceptions);
+		}
+
 		internal void AddHandleResultError(HandlePolicyResultException handlePolicyResultException)
 		{
 			_handleResultErrors.Add(handlePolicyResultException);
+		}
+
+		internal void AddHandleResultErrors(IEnumerable<HandlePolicyResultException> handlePolicyResultExceptions)
+		{
+			_handleResultErrors.AddRange(handlePolicyResultExceptions);
 		}
 
 		internal void SetOk()
