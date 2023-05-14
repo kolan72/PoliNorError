@@ -70,6 +70,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_HandleResult_HasError_For_AggregateException()
+		{
+			var retryPolicy = new RetryPolicy(1).WithPolicyResultHandler((pr) => Task.FromException(new Exception()));
+			var res = retryPolicy.Handle(() => { });
+			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
+		}
+
+		[Test]
 		public void Should_HandlerRunnersCollection_Work_If_Both_Empty()
 		{
 			Assert.AreEqual(HandlerRunnerSyncType.None, HandlerRunnersCollection.FromSyncAndNotSync(new List<IHandlerRunner>(), new List<IHandlerRunner>()).MapToSyncType());
