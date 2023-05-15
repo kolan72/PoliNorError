@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace PoliNorError
 {
-	public sealed class BoxingSafeConverter<TIn, TOut>
+	internal sealed class BoxingSafeConverter<TIn, TOut>
 	{
 		public static readonly BoxingSafeConverter<TIn, TOut> Instance = new BoxingSafeConverter<TIn, TOut>();
 

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace PoliNorError
 {
-	public static class PredicateBuilder
+	internal static class PredicateBuilder
 	{
 		public static Expression<Func<T, bool>> True<T>() { return _ => true; }
 

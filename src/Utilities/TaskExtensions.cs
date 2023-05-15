@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class TaskExtensions
+	internal static class TaskExtensions
 	{
 		public static Task WithCancellation(this Task task, CancellationToken cancelToken)
 		{

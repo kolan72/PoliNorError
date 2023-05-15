@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class FallbackFuncExtensions
+	internal static class FallbackFuncExtensions
 	{
 		public static FuncExecWithTokenResult HandleAsFallback(this Action<CancellationToken> fallback, CancellationToken token)
 		{

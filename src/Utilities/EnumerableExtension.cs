@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace PoliNorError
 {
-	public static class EnumerableExtension
+	internal static class EnumerableExtension
 	{
 		public static bool IsEmpty<T>(this IEnumerable<T> source)
 		{

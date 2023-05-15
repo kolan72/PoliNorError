@@ -11,7 +11,7 @@ namespace PoliNorError
 
 	public interface IErrorsToStringAggregator : IErrorsAggregator<string> { }
 
-	public class DefaultErrorsToStringAggregator : IErrorsToStringAggregator
+	internal class DefaultErrorsToStringAggregator : IErrorsToStringAggregator
 	{
 		private readonly string _delimiter;
 

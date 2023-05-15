@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class PolicyResultExtensions
+	internal static class PolicyResultExtensions
 	{
 		internal static void AddBulkProcessorErrors(this PolicyResult policyResult, BulkErrorProcessor.BulkProcessResult bulkProcessResult)
 		{

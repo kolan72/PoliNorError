@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace PoliNorError
 {
-	public static class ExpressionExtensions
+	internal static class ExpressionExtensions
 	{
 		public static Expression<Func<T, bool>> GetOrCombined<T>(this IEnumerable<Expression<Func<T, bool>>> expressCollection)
 		{

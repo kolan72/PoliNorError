@@ -2,7 +2,7 @@
 
 namespace PoliNorError
 {
-	public static class CollectionExtensions
+	internal static class CollectionExtensions
 	{
 		public static void RemoveLast<T>(this IList<T> collection)
 		{

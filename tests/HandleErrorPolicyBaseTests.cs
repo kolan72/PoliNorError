@@ -72,7 +72,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_HandleResult_HasError_For_AggregateException()
 		{
-			var retryPolicy = new RetryPolicy(1).WithPolicyResultHandler((pr) => Task.FromException(new Exception()));
+			var retryPolicy = new RetryPolicy(1).WithPolicyResultHandler((_) => Task.FromException(new Exception()));
 			var res = retryPolicy.Handle(() => { });
 			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
 		}
