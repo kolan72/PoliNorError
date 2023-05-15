@@ -2,7 +2,7 @@
 
 namespace PoliNorError
 {
-	public static class FuncExecWithTokenResultExtensions
+	internal static class FuncExecWithTokenResultExtensions
 	{
 		internal static void ChangePolicyResult(this FuncExecWithTokenResult funcExecResult, PolicyResult policyResult, Exception ex)
 		{

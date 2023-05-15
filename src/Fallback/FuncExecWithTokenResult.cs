@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace PoliNorError
 {
-	public sealed class FuncExecWithTokenResult<T> : FuncExecWithTokenResult
+	internal sealed class FuncExecWithTokenResult<T> : FuncExecWithTokenResult
 	{
 		private FuncExecWithTokenResult() { }
 
@@ -24,7 +24,7 @@ namespace PoliNorError
 		public T Result { get; private set; }
 	}
 
-	public class FuncExecWithTokenResult
+	internal class FuncExecWithTokenResult
 	{
 		protected FuncExecWithTokenResult() { }
 

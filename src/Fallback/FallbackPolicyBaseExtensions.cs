@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class FallbackPolicyBaseExtensions
+	internal static class FallbackPolicyBaseExtensions
 	{
 		internal static TFallback WithFallbackFunc<TFallback, T>(this TFallback fallback, Func<T> fallbackFunc, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where TFallback : FallbackPolicyBase
 		{

@@ -10,28 +10,28 @@ namespace PoliNorError
 
 		public FallbackPolicy(IFallbackProcessor processor) : base(processor){}
 
-		public FallbackPolicyA WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
+		public FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
 		{
-			return new FallbackPolicyA(_fallbackProcessor) { _fallbackAsync = fallbackAsync };
+			return new FallbackPolicyWithAsyncFunc(_fallbackProcessor) { _fallbackAsync = fallbackAsync };
 		}
 
-		public FallbackPolicyA WithAsyncFallbackFunc(Func<Task> fallbackAsync, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc(Func<Task> fallbackAsync, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return new FallbackPolicyA(_fallbackProcessor) { _fallbackAsync = fallbackAsync.ToCancelableFunc(convertType) };
+			return new FallbackPolicyWithAsyncFunc(_fallbackProcessor) { _fallbackAsync = fallbackAsync.ToCancelableFunc(convertType) };
 		}
 
 		public new FallbackPolicy WithAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) => this.WithAsyncFallbackFunc<FallbackPolicy, T>(fallbackAsync, convertType);
 
 		public new FallbackPolicy WithAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicy, T>(fallbackAsync);
 
-		public FallbackPolicyF WithFallbackAction(Action<CancellationToken> fallback)
+		public FallbackPolicyWithAction WithFallbackAction(Action<CancellationToken> fallback)
 		{
-			return new FallbackPolicyF(_fallbackProcessor) { _fallback = fallback };
+			return new FallbackPolicyWithAction(_fallbackProcessor) { _fallback = fallback };
 		}
 
-		public FallbackPolicyF WithFallbackAction(Action fallback, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public FallbackPolicyWithAction WithFallbackAction(Action fallback, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return new FallbackPolicyF(_fallbackProcessor) { _fallback = fallback.ToCancelableAction(convertType) };
+			return new FallbackPolicyWithAction(_fallbackProcessor) { _fallback = fallback.ToCancelableAction(convertType) };
 		}
 
 		public new FallbackPolicy WithFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicy, T>(fallbackFunc);

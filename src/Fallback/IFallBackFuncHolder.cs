@@ -3,12 +3,12 @@ using System.Threading;
 
 namespace PoliNorError
 {
-	public interface IFallBackFuncHolder
+	internal interface IFallBackFuncHolder
 	{
 		Func<CancellationToken, T> GetFallbackFunc<T>();
 	}
 
-	public class FallBackFuncHolder<U> : IFallBackFuncHolder
+	internal class FallBackFuncHolder<U> : IFallBackFuncHolder
 	{
 		private readonly Func<CancellationToken, U> _func;
 

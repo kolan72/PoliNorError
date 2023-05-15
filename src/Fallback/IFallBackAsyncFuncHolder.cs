@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public interface IFallBackAsyncFuncHolder
+	internal interface IFallBackAsyncFuncHolder
 	{
 		Func<CancellationToken, Task<T>> GetFallbackAsyncFunc<T>();
 	}
 
-	public class FallBackAsyncFuncHolder<U> : IFallBackAsyncFuncHolder
+	internal class FallBackAsyncFuncHolder<U> : IFallBackAsyncFuncHolder
 	{
 		private readonly Func<CancellationToken, Task<U>> _func;
 
