@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace PoliNorError
 {
-	public static class PolicyHandledResultBaseCollectionExtensions
+	internal static class PolicyHandledResultBaseCollectionExtensions
 	{
 		public static PolicyDelegateCollectionResultStatus GetStatus(this IEnumerable<PolicyHandledResult> policyHandledResultBaseCollection)
 		{
