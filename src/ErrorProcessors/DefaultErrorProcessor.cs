@@ -6,7 +6,7 @@ namespace PoliNorError
 {
 	public class DefaultErrorProcessor : IErrorProcessor
 	{
-		protected ExceptionDelegatesHelper _exceptionDelegatesHelper;
+		private readonly ExceptionDelegatesHelper _exceptionDelegatesHelper;
 
 		public DefaultErrorProcessor() : this(null, null){}
 

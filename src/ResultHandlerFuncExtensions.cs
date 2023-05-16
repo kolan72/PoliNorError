@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class ResultHandlerFuncExtensions
+	internal static class ResultHandlerFuncExtensions
 	{
 		public static Action<PolicyResult, CancellationToken> ToPolicyResultHandlerAction(this Action<IEnumerable<Exception>, CancellationToken> action)
 		{

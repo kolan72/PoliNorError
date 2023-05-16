@@ -2,7 +2,7 @@
 
 namespace PoliNorError
 {
-	public static class PolicyResultHandleErrorDelegates
+	internal static class PolicyResultHandleErrorDelegates
 	{
 		public static readonly Action<PolicyResult, Exception> DefaultErrorSaver = GetWrappedErrorSaver(GetDefaultErrorSaver());
 

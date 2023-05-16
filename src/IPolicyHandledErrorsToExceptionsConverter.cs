@@ -9,7 +9,7 @@ namespace PoliNorError
 		IEnumerable<Exception> Convert(IEnumerable<PolicyHandledErrors> policyHandledErrors);
 	}
 
-	public class DefaultPolicyHandledErrorsConverter : IPolicyHandledErrorsToExceptionsConverter
+	internal class DefaultPolicyHandledErrorsConverter : IPolicyHandledErrorsToExceptionsConverter
 	{
 		public IEnumerable<Exception> Convert(IEnumerable<PolicyHandledErrors> policyHandledErrors)
 		{

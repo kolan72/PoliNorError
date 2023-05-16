@@ -2,7 +2,7 @@
 
 namespace PoliNorError
 {
-	public enum SettingPolicyDelegateResult
+	internal enum SettingPolicyDelegateResult
 	{
 		None = 0,
 		Success,
@@ -10,7 +10,7 @@ namespace PoliNorError
 		AlreadySet
 	}
 
-	public static class SettingPolicyDelegateResultExtensions
+	internal static class SettingPolicyDelegateResultExtensions
 	{
 		public static void ThrowErrorByResult(this SettingPolicyDelegateResult res)
 		{

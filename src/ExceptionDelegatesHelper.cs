@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public class ExceptionDelegatesHelper
+	internal class ExceptionDelegatesHelper
 	{
 		private readonly Action<Exception, CancellationToken> _onBeforeProcessError;
 		private readonly Func<Exception, CancellationToken, Task> _onBeforeProcessErrorAsync;
