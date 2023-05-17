@@ -51,34 +51,6 @@ namespace PoliNorError
 			return errorPolicyBase.WithPolicyResultErrorsHandler(func.ToCancelableFunc(convertType));
 		}
 
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
-		{
-			return WithErrorProcessorOf(errorPolicyBase, func.ToCancelableFunc(convertType));
-		}
-
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
-		{
-			return WithErrorProcessorOf(errorPolicyBase, action.ToCancelableAction(convertType));
-		}
-
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception, CancellationToken> onBeforeProcessError) where T : HandleErrorPolicyBase => WithErrorProcessorOf(errorPolicyBase, onBeforeProcessError, null);
-
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : HandleErrorPolicyBase => WithErrorProcessorOf(errorPolicyBase, null, onBeforeProcessErrorAsync);
-
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : HandleErrorPolicyBase
-		{
-			return WithErrorProcessor(errorPolicyBase, errorPolicyBase.GetDefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync));
-		}
-
-		public static T WithErrorProcessor<T>(this T errorPolicyBase, IErrorProcessor errorProcessor) where T : HandleErrorPolicyBase
-		{
-			if (errorProcessor == null)
-				throw new ArgumentNullException(nameof(errorProcessor));
-
-			errorPolicyBase.PolicyProcessor.WithErrorProcessor(errorProcessor);
-			return errorPolicyBase;
-		}
-
 		public static T WrapPolicy<T>(this T errorPolicyBase, IPolicyBase wrappedPolicy) where T : HandleErrorPolicyBase
 		{
 			if (errorPolicyBase._wrappedPolicy != null)

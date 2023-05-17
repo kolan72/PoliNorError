@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public abstract class InvokePolicyParams<T> where T : HandleErrorPolicyBase
+	public abstract class InvokePolicyParams<T> where T : IPolicyBase
 	{
 		protected Func<T, T> _configureFunc = fb => fb;
 

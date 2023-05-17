@@ -53,5 +53,33 @@ namespace PoliNorError
 		{
 			return new PolicyDelegate<T>(errorPolicy);
 		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IPolicyBase
+		{
+			return WithErrorProcessorOf(errorPolicyBase, func.ToCancelableFunc(convertType));
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IPolicyBase
+		{
+			return WithErrorProcessorOf(errorPolicyBase, action.ToCancelableAction(convertType));
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception, CancellationToken> onBeforeProcessError) where T : IPolicyBase => WithErrorProcessorOf(errorPolicyBase, onBeforeProcessError, null);
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyBase => WithErrorProcessorOf(errorPolicyBase, null, onBeforeProcessErrorAsync);
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyBase
+		{
+			return WithErrorProcessor(errorPolicyBase, new DefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync));
+		}
+
+		public static T WithErrorProcessor<T>(this T errorPolicyBase, IErrorProcessor errorProcessor) where T : IPolicyBase
+		{
+			if (errorProcessor == null)
+				throw new ArgumentNullException(nameof(errorProcessor));
+
+			errorPolicyBase.PolicyProcessor.WithErrorProcessor(errorProcessor);
+			return errorPolicyBase;
+		}
 	}
 }
