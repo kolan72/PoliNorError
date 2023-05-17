@@ -249,7 +249,7 @@ var result = PolicyDelegateCollection.Create()
 ```
 You can use ExcludeError and ForError methods to set filters on the entire collection:
 ```csharp
-var polBuilder = PolicyDelegateCollection<int>.Create()
+var result = PolicyDelegateCollection<int>.Create()
                          .WithRetry(5)
                          .WithFallback(() => cmd2.ExecuteNonQuery())
                          .WithCommonDelegate(() => cmd1.ExecuteNonQuery())
