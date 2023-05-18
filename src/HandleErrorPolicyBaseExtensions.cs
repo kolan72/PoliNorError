@@ -61,15 +61,21 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
-		public static T ExcludeError<T, TException>(this T errorPolicy, Func<TException, bool> func = null) where T : HandleErrorPolicyBase where TException : Exception
+		public static T WithPolicyName<T>(this T errorPolicyBase, string policyName) where T : HandleErrorPolicyBase
 		{
-			errorPolicy.PolicyProcessor.AddExcludedErrorFilter(func);
-			return errorPolicy;
+			errorPolicyBase.PolicyName = policyName;
+			return errorPolicyBase;
 		}
 
 		public static T ExcludeError<T>(this T errorPolicy, Expression<Func<Exception, bool>> handledErrorFilter) where T : HandleErrorPolicyBase
 		{
 			errorPolicy.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
+			return errorPolicy;
+		}
+
+		internal static T ExcludeError<T, TException>(this T errorPolicy, Func<TException, bool> func = null) where T : HandleErrorPolicyBase where TException : Exception
+		{
+			errorPolicy.PolicyProcessor.AddExcludedErrorFilter(func);
 			return errorPolicy;
 		}
 
@@ -79,16 +85,11 @@ namespace PoliNorError
 			return errorPolicy;
 		}
 
-		public static T ForError<T, TException>(this T errorPolicy, Func<TException, bool> func = null) where T : HandleErrorPolicyBase where TException : Exception
+		internal static T ForError<T, TException>(this T errorPolicy, Func<TException, bool> func = null) where T : HandleErrorPolicyBase where TException : Exception
 		{
 			errorPolicy.PolicyProcessor.AddIncludedErrorFilter(func);
 			return errorPolicy;
 		}
 
-		public static T WithPolicyName<T>(this T errorPolicyBase,  string policyName) where T : HandleErrorPolicyBase
-		{
-			errorPolicyBase.PolicyName =  policyName;
-			return errorPolicyBase;
-		}
 	}
 }
