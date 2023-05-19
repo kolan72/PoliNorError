@@ -227,7 +227,8 @@ namespace PoliNorError.Tests
 		public void Should_AndDelegate_Work_For_Async_When_Can_BeSet()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection.FromPolicies(new RetryPolicy(1));
-			policyDelegateCollection.AndDelegate(async () => await Task.Delay(1));
+			Assert.False(policyDelegateCollection.FirstOrDefault().DelegateExists);
+			policyDelegateCollection.AndDelegate(async (_) => await Task.Delay(1));
 
 			Assert.AreEqual(1, policyDelegateCollection.Count());
 			Assert.True(policyDelegateCollection.FirstOrDefault().DelegateExists);

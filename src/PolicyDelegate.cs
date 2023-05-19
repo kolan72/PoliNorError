@@ -14,11 +14,13 @@ namespace PoliNorError
 		internal void SetDelegate(Func<CancellationToken, Task> executeAsync)
 		{
 			_delegateContainer = SingleDelegateContainer.FromNotSync(executeAsync);
+			DelegateContainer = _delegateContainer;
 		}
 
 		internal void SetDelegate(Action execute)
 		{
 			_delegateContainer = SingleDelegateContainer.FromSync(execute);
+			DelegateContainer = _delegateContainer;
 		}
 
 		internal MethodInfo GetMethodInfo()
@@ -37,8 +39,6 @@ namespace PoliNorError
 		internal Action Execute =>  _delegateContainer?.Execute;
 
 		protected override SyncPolicyDelegateType GetSyncType() => (_delegateContainer?.UseSync) ?? SyncPolicyDelegateType.None;
-
-		public override bool DelegateExists => _delegateContainer?.DelegateExists == true;
 	}
 
 	public sealed class PolicyDelegate<T> : PolicyDelegateBase
@@ -49,11 +49,13 @@ namespace PoliNorError
 		internal void SetDelegate(Func<CancellationToken, Task<T>> executeAsync)
 		{
 			_delegateContainer = SingleDelegateContainer<T>.FromNotSync(executeAsync);
+			DelegateContainer = _delegateContainer;
 		}
 
 		internal void SetDelegate(Func<T> execute)
 		{
 			_delegateContainer = SingleDelegateContainer<T>.FromSync(execute);
+			DelegateContainer = _delegateContainer;
 		}
 
 		internal MethodInfo GetMethodInfo()
@@ -72,8 +74,6 @@ namespace PoliNorError
 		internal Func<T> Execute => _delegateContainer?.Execute;
 
 		protected override SyncPolicyDelegateType GetSyncType() => (_delegateContainer?.UseSync) ?? SyncPolicyDelegateType.None;
-
-		public override bool DelegateExists => _delegateContainer?.DelegateExists == true;
 	}
 
 	public enum SyncPolicyDelegateType

@@ -294,6 +294,7 @@ namespace PoliNorError.Tests
 		public void Should_AndDelegate_Work_For_Sync_When_Can_BeSet()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.FromPolicies(new RetryPolicy(1));
+			Assert.False(policyDelegateCollection.FirstOrDefault().DelegateExists);
 			policyDelegateCollection.AndDelegate(() => 1);
 			Assert.AreEqual(1, policyDelegateCollection.Count());
 			Assert.True(policyDelegateCollection.FirstOrDefault().DelegateExists);

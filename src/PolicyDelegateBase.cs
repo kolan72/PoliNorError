@@ -7,9 +7,11 @@
 			Policy = policy;
 		}
 
+		internal SingleDelegateContainerBase DelegateContainer { get; set; }
+
 		public IPolicyBase Policy { get; }
 
-		public abstract bool DelegateExists { get; }
+		public virtual bool DelegateExists => DelegateContainer?.DelegateExists == true;
 
 		public SyncPolicyDelegateType UseSync => GetSyncType();
 
