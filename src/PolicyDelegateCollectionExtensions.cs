@@ -6,11 +6,6 @@ namespace PoliNorError
 {
 	public static class PolicyDelegateCollectionExtensions
 	{
-		public static PolicyDelegateCollection WithPolicy(this PolicyDelegateCollection policyDelegateCollection, Func<IPolicyBase> func)
-		{
-			return policyDelegateCollection.WithPolicy(func());
-		}
-
 		public static PolicyDelegateCollection WithRetry(this PolicyDelegateCollection policyDelegateCollection, int retryCount, RetryErrorProcessor policyParams = null)
 		{
 			return policyDelegateCollection.WithPolicy(policyParams.ToRetryPolicy(retryCount));

@@ -99,6 +99,8 @@ namespace PoliNorError
 
 		public PolicyDelegateCollection WithPolicyAndDelegate(IPolicyBase errorPolicy, Action action) => WithPolicyDelegate(errorPolicy.ToPolicyDelegate(action));
 
+		public PolicyDelegateCollection WithPolicy(Func<IPolicyBase> func) => WithPolicy(func());
+
 		public PolicyDelegateCollection WithPolicy(IPolicyBase errorPolicy)
 		{
 			return WithPolicyDelegate(errorPolicy.ToPolicyDelegate());
