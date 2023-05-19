@@ -406,6 +406,17 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_Result_And_Status_Be_Correct_When_All_Policies_Failed()
+		{
+			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithRetry(1);
+			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+
+			var res = await polDelegates.HandleAllAsync();
+			Assert.AreEqual(0, res.Result);
+			Assert.AreEqual(PolicyDelegateCollectionResultStatus.Faulted, res.Status);
+		}
+
+		[Test]
 		public async Task Should_WithPolicyAsyncResultHandler_For_Func_Work()
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);
