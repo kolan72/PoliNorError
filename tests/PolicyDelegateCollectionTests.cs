@@ -544,6 +544,25 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_WithCommonResultHandler_Set_Handler_For_Only_Elements_Have_Already_Been_Added()
+		{
+			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithRetry(1);
+			int i = 0;
+			void action1(PolicyResult _) { i++; }
+			polDelegates.WithCommonResultHandler(action1);
+
+			polDelegates.WithRetry(1).WithRetry(1);
+			int m = 0;
+			void action2(PolicyResult _) { m++; }
+			polDelegates.WithCommonResultHandler(action2);
+			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+
+			await polDelegates.HandleAllAsync();
+			Assert.AreEqual(2, i);
+			Assert.AreEqual(4, m);
+		}
+
+		[Test]
 		public async Task Should_WithCommonResultErrorsHandler_For_ActionWithExceptionsParam_Work()
 		{
 			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => { });
