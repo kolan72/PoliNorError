@@ -157,6 +157,22 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_WithCommonDelegate_Set_Handler_For_Only_Elements_Have_Already_Been_Added()
+		{
+			var policyDelegateCollection = PolicyDelegateCollection.FromPolicies(new RetryPolicy(1)).WithRetry(1);
+			int i = 0;
+			async Task<int> funcCommon(CancellationToken _) { i++; await Task.Delay(1); throw new Exception("Test"); }
+
+			policyDelegateCollection.WithCommonDelegate(funcCommon);
+			int m = 0;
+			policyDelegateCollection.WithRetry(1).AndDelegate(async (ct) => { m++; await Task.Delay(1); throw new Exception("Test2"); });
+			policyDelegateCollection.HandleAll();
+
+			Assert.AreEqual(4, i);
+			Assert.AreEqual(2, m);
+		}
+
+		[Test]
 		public async Task Should_WithCommonDelegate_Work_ForAsyncFunc()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection.FromPolicies(new RetryPolicy(2)).WithRetry(1);
