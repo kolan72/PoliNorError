@@ -188,7 +188,7 @@ If you try to handle a generic delegate without a corresponding fallback delegat
 
 If an exception occurs during the calling of the fallback delegate, the `IsFailed` property of the `PolicyResult` object will be set to `true` and this exception will be wrapped in the `CatchBlockException` exception with  the `IsCritical` property  equal to `true`.
 
-### Wrapping policy
+### Policy wrap
 For wrap policy by other policy use `WrapPolicy` method, for example:
 ```csharp
 	    var wrapppedPolicy = new RetryPolicy(3).ExcludeError<BrokerUnreachableException>();
