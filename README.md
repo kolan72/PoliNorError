@@ -113,7 +113,7 @@ If filter conditions are unsatisfied, error handling break and set both the `IsF
 
 ### PolicyResult handlers
 
-When handling delegate by policy you can add so-called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` or `WithCommonResultErrorsHandler`.
+When handling delegate by policy you can add so-called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` or `WithPolicyResultErrorsHandler`.
  These methods accept delegate as a parameter and can extra handle `PolicyResult`:
 
 - `Action<PolicyResult>`
