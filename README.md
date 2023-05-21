@@ -184,7 +184,7 @@ The whole list of methods, accepting fallback delegate as an argument:
 -    `WithFallbackFunc<T>`
 -    `WithAsyncFallbackFunc<T>`
 
-If you try to handle a generic delegate without a corresponding fallback delegate being set, the default value will be returned.
+If you try to handle a generic func delegate without a corresponding fallback delegate being set, the default value of type will be returned.
 
 If an exception occurs during the calling of the fallback delegate, the `IsFailed` property of the `PolicyResult` object will be set to `true` and this exception will be wrapped in the `CatchBlockException` exception with  the `IsCritical` property  equal to `true`.
 
