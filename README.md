@@ -256,13 +256,13 @@ var result = PolicyDelegateCollection<int>.Create()
                          .ForError<SqlException>((ex) => ex.Number == 1205)
                          .HandleAll();
 ```
-The process of handling Policy delegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
+The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
 
-Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyHandledResult>` interface. The `PolicyHandledResult(<T>)` class in turn is just a wrapper around `PolicyResult` that contains `PolicyHandledInfo` class with information about policy and `MethodInfo` of delegate.  
+Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyHandledResult(<T>)>` interface. The `PolicyHandledResult(<T>)` class in turn is just a wrapper around `PolicyResult` that contains `PolicyHandledInfo` class with information about policy and `MethodInfo` of delegate.  
 
-In order to determine which policies were not called check  the`PolicyDelegatesUnused` property of  the`PolicyDelegateCollectionResult` object.  
+The `PolicyDelegatesUnused` property contains a collection of policydelegates that were not handled due to the reasons described above.  
 
-You can find out how the last policy handled the delegate by calling the `GetStatus()` method.
+Check the `Status` property to find out how the last used policy handled the delegate.
 
 For some purpurses  throw a special `PolicyDelegateCollectionHandleException` exception if the last policy in the collection fails may be useful. You can do it with the  `WithThrowOnLastFailed` method.
 
