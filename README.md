@@ -69,7 +69,7 @@ Error handling within the policy processor's catch block can be extended by usin
 Errors handling allows for further specification through the use of [error filters](#error-filters).  
 The results of handling are stored in the [PolicyResult](#policyresult) class.  
 Using policy, you can extra handle `PolicyResult` by [`PolicyResult` handlers](#policyresult-handlers) after policy processor processing.  
-A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection) and handled sequentially.  
+A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection). In this case, each delegate will be handled according to its policy.  
 The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
 
 ### PolicyResult
