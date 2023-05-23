@@ -202,6 +202,15 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_ClearDelegates_Work()
+		{
+			var policyDelegateCollection = PolicyDelegateCollection.FromPolicies(new RetryPolicy(2)).WithRetry(1).WithCommonDelegate(() => Expression.Empty());
+			Assert.IsFalse(policyDelegateCollection.Any(pd => !pd.DelegateExists));
+			policyDelegateCollection.ClearDelegates();
+			Assert.AreEqual(policyDelegateCollection.Count(), policyDelegateCollection.Count(pd => !pd.DelegateExists));
+		}
+
+		[Test]
 		public void Should_AndDelegate_Work_For_Sync_When_Can_Not_BeSet()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection.Create();
