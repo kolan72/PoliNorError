@@ -10,12 +10,12 @@ namespace PoliNorError
 			PolicyMethodInfo = methodInfo;
 		}
 
-		public static PolicyHandledInfo FromPolicyDelegate(PolicyDelegate policyDelegateInfo)
+		internal static PolicyHandledInfo FromPolicyDelegate(PolicyDelegate policyDelegateInfo)
 		{
 			return new PolicyHandledInfo(policyDelegateInfo.Policy, policyDelegateInfo.GetMethodInfo());
 		}
 
-		public static PolicyHandledInfo FromPolicyDelegate<T>(PolicyDelegate<T> policyDelegateInfo)
+		internal static PolicyHandledInfo FromPolicyDelegate<T>(PolicyDelegate<T> policyDelegateInfo)
 		{
 			return new PolicyHandledInfo(policyDelegateInfo.Policy, policyDelegateInfo.GetMethodInfo());
 		}
