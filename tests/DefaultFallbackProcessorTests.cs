@@ -121,6 +121,22 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_No_ErrorProcessor_Process_When_ErrorFilterUnsatisfied()
+		{
+			const int init_value = 1;
+			int i = init_value;
+			void save(Exception _, CancellationToken __) { i++; }
+
+			var processor = new DefaultFallbackProcessor();
+			processor.ForError<Exception>((ane) => ane.Message == "Test2")
+					  .WithErrorProcessorOf(save);
+			void saveWithInclude() => throw new Exception("Test");
+			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
+			Assert.IsTrue(tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			Assert.AreEqual(init_value, i);
+		}
+
+		[Test]
 		[TestCase("Test2", false, "Test")]
 		[TestCase("Test", true, "Test")]
 		public void Should_Generic_ExcludeError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
