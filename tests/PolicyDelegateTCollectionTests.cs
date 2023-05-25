@@ -233,6 +233,15 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_ClearDelegates_Work()
+		{
+			var policyDelegateCollection = PolicyDelegateCollection<int>.FromPolicies(new RetryPolicy(2)).WithFallback(() => 1).WithCommonDelegate(async(ct) => { await Task.Delay(1); throw new Exception(); });
+			Assert.IsFalse(policyDelegateCollection.Any(pd => !pd.DelegateExists));
+			policyDelegateCollection.ClearDelegates();
+			Assert.AreEqual(policyDelegateCollection.Count(), policyDelegateCollection.Count(pd => !pd.DelegateExists));
+		}
+
+		[Test]
 		public async Task Should_WithCommonDelegate_Work_ForFunc()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.Create();
