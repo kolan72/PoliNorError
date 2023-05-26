@@ -1,6 +1,6 @@
 ﻿namespace PoliNorError
 {
-	internal class SingleDelegateContainerBase
+	internal abstract class SingleDelegateContainerBase
 	{
 		public SyncPolicyDelegateType UseSync { get; protected set; } = SyncPolicyDelegateType.None;
 
