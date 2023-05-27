@@ -56,7 +56,7 @@ var result = FallbackProcessor
                            .ForError<ObjectDisposedException>()
                            .WithErrorProcessorOf((ex) => logger.Error(ex.Message))
                            .Fallback(someDisposableObj.SomeMethod, 
-                                     (_) => new SomeDisposableClass().SomeMethod());
+                                    (_) => new SomeFallbackObj().SomeFallbackMethod());
 ```
 With [`FallbackPolicy`](#fallbackpolicy):
 ```csharp
