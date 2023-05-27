@@ -213,7 +213,7 @@ var result = policyDelegate.Handle();
 ### PolicyDelegateCollection
 You can create `PolicyDelegateCollection(<T>)` by using `Create` method. Having policy delegates or even policies only - by using `FromPolicyDelegates`, `FromPolicies` methods respectevly.  
 With these methods
-- `WithPolicy`
+- `WithPolicy` (create the `PolicyDelegate` with a policy but without a delegate)
 - `WithPolicyDelagate`
 - `WithPolicyAndDelegate`
 - `AndDelegate` (set delegate to last `PolicyDelegate` object in the collection)
