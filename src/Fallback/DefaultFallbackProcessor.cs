@@ -190,12 +190,5 @@ namespace PoliNorError
 			}
 		}
 
-		private HandleCatchBlockResult CanHandle(Exception exception)
-		{
-			if (!GetCanHandle()(exception))
-				return HandleCatchBlockResult.FailedByErrorFilter;
-			else
-				return HandleCatchBlockResult.Success;
-		}
 	}
 }

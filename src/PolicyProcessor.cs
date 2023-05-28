@@ -37,6 +37,14 @@ namespace PoliNorError
 
 		public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => _excludedErrorFilters;
 
+		internal HandleCatchBlockResult CanHandle(Exception exception)
+		{
+			if (!GetCanHandle()(exception))
+				return HandleCatchBlockResult.FailedByErrorFilter;
+			else
+				return HandleCatchBlockResult.Success;
+		}
+
 		protected Func<Exception, bool> GetCanHandle()
 		{
 			return CanHandleHolder.Create(_includedErrorFilters, _excludedErrorFilters).GetCanHandle();
