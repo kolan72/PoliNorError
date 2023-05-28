@@ -17,5 +17,10 @@
 		{
 			return new CatchBlockProcessErrorInfo() { Info = info };
 		}
+
+		public static CatchBlockProcessErrorInfo FromSimple(string info = nameof(FromSimple))
+		{
+			return new CatchBlockProcessErrorInfo() { Info = info };
+		}
 	}
 }
