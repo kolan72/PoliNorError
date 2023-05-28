@@ -34,7 +34,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, token);
+				HandleCatchBlockAndChangeResult(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token);
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -70,7 +70,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, token);
+				HandleCatchBlockAndChangeResult(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token);
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -101,7 +101,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
@@ -133,61 +133,13 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
 				}
 			}
 			return result;
-		}
-
-		private void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, CancellationToken token)
-		{
-			result.ChangeByHandleCatchBlockResult(CanHandleCatchBlock());
-
-			HandleCatchBlockResult CanHandleCatchBlock()
-			{
-				if (token.IsCancellationRequested)
-				{
-					return HandleCatchBlockResult.Canceled;
-				}
-				var checkFallbackResult = CanHandle(ex);
-				if (checkFallbackResult == HandleCatchBlockResult.Success)
-				{
-					var bulkProcessResult = _bulkErrorProcessor.Process(CatchBlockProcessErrorInfo.FromFallback(), ex, token);
-					result.AddBulkProcessorErrors(bulkProcessResult);
-					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkFallbackResult;
-				}
-				else
-				{
-					return checkFallbackResult;
-				}
-			}
-		}
-
-		private async Task HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, CancellationToken token, bool configAwait)
-		{
-			result.ChangeByHandleCatchBlockResult(await CanHandleCatchBlockAsync().ConfigureAwait(configAwait));
-
-			async Task<HandleCatchBlockResult> CanHandleCatchBlockAsync()
-			{
-				if (token.IsCancellationRequested)
-				{
-					return HandleCatchBlockResult.Canceled;
-				}
-				var checkFallbackResult = CanHandle(ex);
-				if (checkFallbackResult == HandleCatchBlockResult.Success)
-				{
-					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(CatchBlockProcessErrorInfo.FromFallback(), ex, configAwait, token).ConfigureAwait(configAwait);
-					result.AddBulkProcessorErrors(bulkProcessResult);
-					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkFallbackResult;
-				}
-				else
-				{
-					return checkFallbackResult;
-				}
-			}
 		}
 
 	}
