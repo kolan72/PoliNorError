@@ -88,5 +88,32 @@ namespace PoliNorError.Tests
 			var res = await retryPolTest.ExecuteAsync(saveAsync);
 			Assert.IsTrue(res.IsOk);
 		}
+
+		[Test]
+		[TestCase(true, 1, 0)]
+		[TestCase(false, 0, 1)]
+		public async Task Should_CatchBlockError_Handled_For_AsyncHandleT(bool throwError, int CatchBlockErrorsCount, int k)
+		{
+			async Task<int> saveAsync(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
+
+			int i = 0;
+			void errorProcessorFunc(Exception ex) { if (throwError) throw ex; else ++i; }
+			var retryPolTest = new SimplePolicyProcessor().WithErrorProcessorOf(errorProcessorFunc);
+			var res = await retryPolTest.ExecuteAsync(saveAsync);
+			Assert.IsTrue(res.Errors.Count() == 1);
+
+			Assert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
+			Assert.AreEqual(k, i);
+		}
+
+		[Test]
+		public async Task Should_HandleTAsync_If_NoError_Work()
+		{
+			async Task<int> saveAsync(CancellationToken _) { await Task.Delay(1); return 1; }
+			var retryPolTest = new SimplePolicyProcessor();
+			var res = await retryPolTest.ExecuteAsync(saveAsync);
+			Assert.IsTrue(res.IsOk);
+			Assert.AreEqual(1, res.Result);
+		}
 	}
 }

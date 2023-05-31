@@ -95,5 +95,34 @@ namespace PoliNorError
 			}
 			return result;
 		}
+
+		public async Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
+		{
+			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
+			try
+			{
+				var resAction = await func(token).ConfigureAwait(configureAwait);
+				result.SetResult(resAction);
+				result.SetOk();
+			}
+			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			{
+				result.SetFailedAndCanceled();
+			}
+			catch (Exception ex)
+			{
+				result.AddError(ex);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, CatchBlockProcessErrorInfo.FromSimple(), token, configureAwait).ConfigureAwait(configureAwait);
+			}
+			return result;
+		}
+
 	}
 }
