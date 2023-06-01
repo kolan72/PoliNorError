@@ -4,8 +4,12 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal class SimplePolicyProcessor : PolicyProcessor
+	internal class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor
 	{
+		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(bulkErrorProcessor) { }
+
+		public static ISimplePolicyProcessor CreateDefault(IBulkErrorProcessor bulkErrorProcessor = null) => new SimplePolicyProcessor(bulkErrorProcessor);
+
 		public PolicyResult Execute(Action action, CancellationToken token = default)
 		{
 			PolicyResult result = PolicyResult.ForSync();

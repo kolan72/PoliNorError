@@ -115,5 +115,37 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(res.IsOk);
 			Assert.AreEqual(1, res.Result);
 		}
+
+		[Test]
+		public async Task Should_ExecuteAsync_BeCancelable()
+		{
+			var cancelTokenSource = new CancellationTokenSource();
+			cancelTokenSource.Cancel();
+
+			async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+			int i = 0;
+			var processor = SimplePolicyProcessor.CreateDefault();
+			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
+
+			Assert.AreEqual(true, tryResCount.IsCanceled);
+			Assert.AreEqual(0, i);
+			cancelTokenSource.Dispose();
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsyncT_BeCancelable()
+		{
+			var cancelTokenSource = new CancellationTokenSource();
+			cancelTokenSource.Cancel();
+
+			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+			int i = 0;
+			var processor = SimplePolicyProcessor.CreateDefault();
+			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
+
+			Assert.AreEqual(true, tryResCount.IsCanceled);
+			Assert.AreEqual(0, i);
+			cancelTokenSource.Dispose();
+		}
 	}
 }
