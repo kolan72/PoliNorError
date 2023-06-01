@@ -127,6 +127,5 @@ namespace PoliNorError
 			}
 			return result;
 		}
-
 	}
 }
