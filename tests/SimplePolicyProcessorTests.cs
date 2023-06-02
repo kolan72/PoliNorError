@@ -123,7 +123,7 @@ namespace PoliNorError.Tests
 			cancelTokenSource.Cancel();
 
 			async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
-			int i = 0;
+			const int i = 0;
 			var processor = SimplePolicyProcessor.CreateDefault();
 			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
 
@@ -139,13 +139,37 @@ namespace PoliNorError.Tests
 			cancelTokenSource.Cancel();
 
 			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
-			int i = 0;
+			const int i = 0;
 			var processor = SimplePolicyProcessor.CreateDefault();
 			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
 
 			Assert.AreEqual(true, tryResCount.IsCanceled);
 			Assert.AreEqual(0, i);
 			cancelTokenSource.Dispose();
+		}
+
+		[Test]
+		[TestCase("Test", false, "Test")]
+		[TestCase("Test2", true, "Test")]
+		public void Should_Generic_ForError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		{
+			var processor = SimplePolicyProcessor.CreateDefault();
+			processor.ForError<ArgumentNullException>((ane) => ane.ParamName == paramName);
+			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
+			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		[TestCase("Test2", false, "Test")]
+		[TestCase("Test", true, "Test")]
+		public void Should_Generic_ExcludeError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		{
+			var processor = SimplePolicyProcessor.CreateDefault();
+			processor.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
+			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
+			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 	}
 }

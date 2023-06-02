@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal interface ISimplePolicyProcessor
+	internal interface ISimplePolicyProcessor : IPolicyProcessor
 	{
 		PolicyResult Execute(Action action, CancellationToken token = default);
 		PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default);
