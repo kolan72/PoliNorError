@@ -217,7 +217,7 @@ With these methods
 - `WithPolicyDelagate`
 - `WithPolicyAndDelegate`
 - `AndDelegate` (set delegate to last `PolicyDelegate` object in the collection)
-- `WithCommonDelegate` (set the same delegate to all elements in the collection)
+- `WithCommonDelegate` (set the same delegate to elements that have already been added to the collection)
 
  or specific policy-related extensions methods and their overloads:
 - `WithRetry`
