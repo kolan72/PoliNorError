@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +36,29 @@ namespace PoliNorError
 			return retryResult;
 		}
 
-		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default) => throw new NotImplementedException();
+		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
+		{
+			if (func == null)
+				return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this));
+
+			PolicyResult<T> retryResult = null;
+
+			if (_wrappedPolicy == null)
+			{
+				retryResult = _simpleProcessor.Execute(func, token);
+			}
+			else
+			{
+				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token);
+				Func<T> funcWrapped = wrapper.Handle;
+
+				retryResult = _simpleProcessor.Execute(funcWrapped, token);
+				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyHandledResult());
+			}
+			HandlePolicyResult(retryResult, token);
+			return retryResult;
+		}
+
 		public Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
 		public Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
 	}
