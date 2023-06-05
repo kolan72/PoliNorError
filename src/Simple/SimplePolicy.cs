@@ -59,7 +59,29 @@ namespace PoliNorError
 			return retryResult;
 		}
 
-		public Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
+		{
+			if (func == null)
+				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this));
+
+			PolicyResult retryResult = null;
+
+			if (_wrappedPolicy == null)
+			{
+				retryResult = await _simpleProcessor.ExecuteAsync(func, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				var wrapper = new PolicyWrapper(_wrappedPolicy, func, token, configureAwait);
+				Func<CancellationToken, Task> funcWrapped = wrapper.HandleAsync;
+
+				retryResult = await _simpleProcessor.ExecuteAsync(funcWrapped, configureAwait, token).ConfigureAwait(configureAwait);
+				retryResult.WrappedPolicyResults = wrapper.PolicyResults;
+			}
+			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
+			return retryResult;
+		}
+
 		public Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
 	}
 }
