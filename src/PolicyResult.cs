@@ -27,11 +27,6 @@ namespace PoliNorError
 
 		public IEnumerable<HandlePolicyResultException> HandleResultErrors => _handleResultErrors;
 
-		public void AddError(Exception exception)
-		{
-			_errors.Add(exception);
-		}
-
 		public void SetFailed()
 		{
 			IsFailed = true;
@@ -56,6 +51,11 @@ namespace PoliNorError
 				throw new ArgumentException($"Collection of {nameof(exceptions)} is not type of {nameof(FlexSyncEnumerable<Exception>)}.");
 			}
 			_errors = (FlexSyncEnumerable<Exception>)exceptions;
+		}
+
+		internal void AddError(Exception exception)
+		{
+			_errors.Add(exception);
 		}
 
 		internal void AddCatchBlockError(CatchBlockException catchBlockException)
