@@ -31,7 +31,7 @@ namespace PoliNorError
 
 		public static RetryPolicy InfiniteRetries(IRetryProcessor retryProcessor, Action<RetryCountInfoOptions> action) => new RetryPolicy(retryProcessor, RetryCountInfo.Infinite(action));
 
-		private RetryPolicy(IRetryProcessor retryProcessor, RetryCountInfo retryCountInfo) : base(retryProcessor) => (_retryCountInfo, _retryProcessor) = (retryCountInfo, retryProcessor);
+		internal RetryPolicy(IRetryProcessor retryProcessor, RetryCountInfo retryCountInfo) : base(retryProcessor) => (_retryCountInfo, _retryProcessor) = (retryCountInfo, retryProcessor);
 
 		public RetryPolicy WithWait(Func<int, TimeSpan> delayOnRetryFunc)
 		{

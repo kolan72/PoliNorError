@@ -80,28 +80,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Retry_CanNotHandleIfTokenJustCanceled()
+		public void Should_Handle_CallRetryProcessor_If_No_Wrap()
 		{
-			PolicyResult prevResult = new PolicyResult();
-			prevResult.SetFailed();
-
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.Cancel();
-
 			var moqProcessor = new Mock<IRetryProcessor>();
 
-			moqProcessor.Setup((t) => t.Retry(It.IsAny<Action>(), RetryCountInfo.Infinite(null), cancelTokenSource.Token));
+			var rci = new RetryCountInfo(2, null, 0);
 
-			var policy = new RetryPolicy(2);
-			var res = policy.Handle(() => { }, cancelTokenSource.Token);
+			moqProcessor.Setup((t) => t.Retry(It.IsAny<Action>(), rci, default)).Returns(new PolicyResult());
 
-			Assert.AreEqual(true, res.IsCanceled);
-			Assert.AreEqual(false, res.IsFailed);
-			Assert.AreNotSame(res, prevResult);
-			Assert.IsFalse(res.IsOk);
+			var policy = new RetryPolicy(moqProcessor.Object, rci);
+			policy.Handle(() => { }, default);
 
-			moqProcessor.Verify((t) => t.Retry(It.IsAny<Action>(), RetryCountInfo.Infinite(null), cancelTokenSource.Token), Times.Never);
-			cancelTokenSource.Dispose();
+			moqProcessor.Verify((t) => t.Retry(It.IsAny<Action>(), rci, default), Times.Exactly(1));
 		}
 
 		[Test]
