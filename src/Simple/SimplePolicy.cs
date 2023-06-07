@@ -103,5 +103,9 @@ namespace PoliNorError
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
 		}
+
+		public SimplePolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<SimplePolicy, TException>(func);
+
+		public SimplePolicy ForError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ForError<SimplePolicy, TException>(func);
 	}
 }

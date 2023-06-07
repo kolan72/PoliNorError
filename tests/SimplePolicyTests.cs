@@ -236,5 +236,27 @@ namespace PoliNorError.Tests
 
 			wrappedPolicy.Verify((t) => t.HandleAsync(func, default, default), Times.Exactly(1));
 		}
+
+		[TestCase("Test")]
+		public void Should_GenericExcludeFilterWork(string errParamName)
+		{
+			var retryPolTest = new SimplePolicy();
+			retryPolTest.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == "Test");
+			void actionUnsatisied() => throw new ArgumentNullException(errParamName);
+			var res = retryPolTest.Handle(actionUnsatisied);
+			Assert.IsTrue(res.ErrorFilterUnsatisfied);
+			Assert.IsTrue(res.IsFailed);
+		}
+
+		[Test]
+		public void Should_GenericIncludeFilterError_Work()
+		{
+			var retryPolTest = new SimplePolicy();
+			void actionUnsatisied() => throw new Exception("Test");
+			retryPolTest.ForError<ArgumentNullException>();
+			var res = retryPolTest.Handle(actionUnsatisied);
+			Assert.IsTrue(res.ErrorFilterUnsatisfied);
+			Assert.IsTrue(res.IsFailed);
+		}
 	}
 }
