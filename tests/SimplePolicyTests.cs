@@ -258,5 +258,21 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(res.ErrorFilterUnsatisfied);
 			Assert.IsTrue(res.IsFailed);
 		}
+
+		[Test]
+		public void Should_InvokeParams_ToSimplePolicy_Work()
+		{
+			InvokeParams invokeParamsNull = null;
+			var policyFromNull = invokeParamsNull.ToSimplePolicy();
+			Assert.IsNotNull(policyFromNull);
+			Assert.IsInstanceOf<SimplePolicy>(policyFromNull);
+			Assert.AreEqual(0, policyFromNull.PolicyProcessor.Count());
+
+			InvokeParams invokeParamsFromAction = InvokeParams.From((e, ct) => Expression.Empty());
+			var policyFromAction = invokeParamsFromAction.ToSimplePolicy();
+			Assert.IsNotNull(policyFromAction);
+			Assert.IsInstanceOf<SimplePolicy>(policyFromAction);
+			Assert.AreEqual(1, policyFromAction.PolicyProcessor.Count());
+		}
 	}
 }
