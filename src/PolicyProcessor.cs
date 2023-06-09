@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public abstract partial class PolicyProcessor : IPolicyProcessor
+	public abstract class PolicyProcessor : IPolicyProcessor
 	{
 		private readonly List<Expression<Func<Exception, bool>>> _includedErrorFilters = new List<Expression<Func<Exception, bool>>>();
 		private readonly List<Expression<Func<Exception, bool>>> _excludedErrorFilters = new List<Expression<Func<Exception, bool>>>();
