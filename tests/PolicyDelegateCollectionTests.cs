@@ -165,7 +165,7 @@ namespace PoliNorError.Tests
 
 			policyDelegateCollection.WithCommonDelegate(funcCommon);
 			int m = 0;
-			policyDelegateCollection.WithRetry(1).AndDelegate(async (ct) => { m++; await Task.Delay(1); throw new Exception("Test2"); });
+			policyDelegateCollection.WithRetry(1).AndDelegate(async (_) => { m++; await Task.Delay(1); throw new Exception("Test2"); });
 			policyDelegateCollection.HandleAll();
 
 			Assert.AreEqual(4, i);
@@ -780,6 +780,14 @@ namespace PoliNorError.Tests
 				new RetryPolicy(1).ToPolicyDelegate(() => { })
 			};
 			Assert.Throws<InconsistencyPolicyException>(() => PolicyDelegateCollection.FromPolicyDelegates(policyDelegates));
+		}
+
+		[Test]
+		public void Should_WithSimple_AddElement_In_Collection()
+		{
+			var polDelCol = PolicyDelegateCollection.Create();
+			polDelCol.WithSimple();
+			Assert.AreEqual(1, polDelCol.Count());
 		}
 
 		private IEnumerable<PolicyHandledErrors> GetTestPolicyHandledErrors()

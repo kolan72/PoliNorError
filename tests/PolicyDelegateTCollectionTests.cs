@@ -242,7 +242,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ClearDelegates_Work()
 		{
-			var policyDelegateCollection = PolicyDelegateCollection<int>.FromPolicies(new RetryPolicy(2)).WithFallback(() => 1).WithCommonDelegate(async(ct) => { await Task.Delay(1); throw new Exception(); });
+			var policyDelegateCollection = PolicyDelegateCollection<int>.FromPolicies(new RetryPolicy(2)).WithFallback(() => 1).WithCommonDelegate(async(_) => { await Task.Delay(1); throw new Exception(); });
 			Assert.IsFalse(policyDelegateCollection.Any(pd => !pd.DelegateExists));
 			policyDelegateCollection.ClearDelegates();
 			Assert.AreEqual(policyDelegateCollection.Count(), policyDelegateCollection.Count(pd => !pd.DelegateExists));
@@ -290,7 +290,7 @@ namespace PoliNorError.Tests
 
 			policyDelegateCollection.WithCommonDelegate(funcCommon);
 			int m = 0;
-			policyDelegateCollection.WithRetry(1).AndDelegate(async (ct) => { m++; await Task.Delay(1); throw new Exception("Test2"); });
+			policyDelegateCollection.WithRetry(1).AndDelegate(async (_) => { m++; await Task.Delay(1); throw new Exception("Test2"); });
 			policyDelegateCollection.HandleAll();
 
 			Assert.AreEqual(4, i);
@@ -695,6 +695,14 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection<int>.FromPolicies(new RetryPolicy(1));
 			policyDelegateCollection.WithThrowOnLastFailed();
 			Assert.IsTrue(policyDelegateCollection.ThrowOnLastFailed);
+		}
+
+		[Test]
+		public void Should_WithSimple_AddElement_In_Collection()
+		{
+			var polDelCol = PolicyDelegateCollection<int>.Create();
+			polDelCol.WithSimple();
+			Assert.AreEqual(1, polDelCol.Count());
 		}
 
 		private class TestClass

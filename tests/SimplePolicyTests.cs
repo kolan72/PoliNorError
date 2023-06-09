@@ -268,7 +268,7 @@ namespace PoliNorError.Tests
 			Assert.IsInstanceOf<SimplePolicy>(policyFromNull);
 			Assert.AreEqual(0, policyFromNull.PolicyProcessor.Count());
 
-			InvokeParams invokeParamsFromAction = InvokeParams.From((e, ct) => Expression.Empty());
+			InvokeParams invokeParamsFromAction = InvokeParams.From((_, __) => Expression.Empty());
 			var policyFromAction = invokeParamsFromAction.ToSimplePolicy();
 			Assert.IsNotNull(policyFromAction);
 			Assert.IsInstanceOf<SimplePolicy>(policyFromAction);

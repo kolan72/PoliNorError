@@ -55,5 +55,10 @@ namespace PoliNorError
 		{
 			return policyDelegateCollection.WithPolicy(policyParams.ToFallbackPolicy(fallbackFunc, convertType));
 		}
+
+		public static PolicyDelegateCollection<T> WithSimple<T>(this PolicyDelegateCollection<T> policyDelegateCollection, InvokeParams policyParams = null)
+		{
+			return policyDelegateCollection.WithPolicy(policyParams.ToSimplePolicy());
+		}
 	}
 }
