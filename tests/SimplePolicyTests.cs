@@ -253,7 +253,7 @@ namespace PoliNorError.Tests
 		{
 			var retryPolTest = new SimplePolicy();
 			void actionUnsatisied() => throw new Exception("Test");
-			retryPolTest.ForError<ArgumentNullException>();
+			retryPolTest.IncludeError<ArgumentNullException>();
 			var res = retryPolTest.Handle(actionUnsatisied);
 			Assert.IsTrue(res.ErrorFilterUnsatisfied);
 			Assert.IsTrue(res.IsFailed);

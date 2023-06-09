@@ -243,7 +243,7 @@ namespace PoliNorError.Tests
 		public void Should_Add_GenericForErrorFilter(string errParamName)
 		{
 			var retryPolTest = new RetryPolicy(1);
-			retryPolTest.ForError<ArgumentNullException>((ane) => ane.ParamName == "Test");
+			retryPolTest.IncludeError<ArgumentNullException>((ane) => ane.ParamName == "Test");
 
 			void actionUnsatisied() => throw new Exception("Test2");
 			var polRes = retryPolTest.Handle(actionUnsatisied);
@@ -278,7 +278,7 @@ namespace PoliNorError.Tests
 		{
 			var retryPolTest = new RetryPolicy(1);
 			void actionUnsatisied() => throw new ArgumentNullException(paramName);
-			retryPolTest.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == excludeErrorParamName).ForError<ArgumentNullException>((ane) => ane.ParamName == forErrorParamName);
+			retryPolTest.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == excludeErrorParamName).IncludeError<ArgumentNullException>((ane) => ane.ParamName == forErrorParamName);
 			var resHandle = retryPolTest.Handle(actionUnsatisied);
 			Assert.AreEqual(res, resHandle.ErrorFilterUnsatisfied);
 		}
@@ -290,7 +290,7 @@ namespace PoliNorError.Tests
 		{
 			var retryPolTest = new RetryPolicy(1);
 			void actionUnsatisied() => throw new ArgumentNullException(paramName);
-			retryPolTest.ForError<ArgumentNullException>().ExcludeError<ArgumentNullException>((ane) => ane.ParamName == excludeParamName);
+			retryPolTest.IncludeError<ArgumentNullException>().ExcludeError<ArgumentNullException>((ane) => ane.ParamName == excludeParamName);
 			var resHandle = retryPolTest.Handle(actionUnsatisied);
 			Assert.AreEqual(resUnsatisfied, resHandle.ErrorFilterUnsatisfied);
 		}
@@ -300,7 +300,7 @@ namespace PoliNorError.Tests
 		{
 			var retryPolTest = new RetryPolicy(1);
 			void actionUnsatisied() => throw new Exception("Test");
-			retryPolTest.ForError<ArgumentNullException>().ExcludeError<ArgumentNullException>((ane) => ane.ParamName == "Test2");
+			retryPolTest.IncludeError<ArgumentNullException>().ExcludeError<ArgumentNullException>((ane) => ane.ParamName == "Test2");
 			var resHandle = retryPolTest.Handle(actionUnsatisied);
 			Assert.AreEqual(true, resHandle.ErrorFilterUnsatisfied);
 		}
@@ -309,7 +309,7 @@ namespace PoliNorError.Tests
 		public void Should_Add_ForErrorFilter()
 		{
 			var retryPolTest = new RetryPolicy(1);
-			retryPolTest.ForError((e) => e.Message == "Test");
+			retryPolTest.IncludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test2");
 			var polRes =  retryPolTest.Handle(action);
 			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
@@ -321,8 +321,8 @@ namespace PoliNorError.Tests
 		public void Should_Add_MoreThanOne_ForErrorFilter_Work()
 		{
 			var retryPolTest = new RetryPolicy(1);
-			retryPolTest.ForError((e) => e.Message == "Test")
-					    .ForError((e) => e.Message == "Test2");
+			retryPolTest.IncludeError((e) => e.Message == "Test")
+					    .IncludeError((e) => e.Message == "Test2");
 			int i = 0;
 			void action()
 			{

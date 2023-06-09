@@ -74,7 +74,7 @@ namespace PoliNorError.Tests
 		public void Should_Generic_ForError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
 		{
 			var processor = new DefaultRetryProcessor();
-			processor.ForError<ArgumentNullException>((ane) => ane.ParamName == paramName);
+			processor.IncludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() { throw new ArgumentNullException(errorParamName); }
 			var tryResCountWithNoInclude = processor.Retry(saveWithInclude, 1);
 			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
@@ -98,7 +98,7 @@ namespace PoliNorError.Tests
 		{
 			var processor = new DefaultRetryProcessor();
 
-			processor.ForError<ArgumentNullException>((ane) => ane.ParamName == "Test");
+			processor.IncludeError<ArgumentNullException>((ane) => ane.ParamName == "Test");
 			Assert.AreEqual(1, processor.IncludedErrorFilters.Count());
 
 			void saveWithInclude() { throw new ArgumentNullException(include); }

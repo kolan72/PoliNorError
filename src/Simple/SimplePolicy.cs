@@ -106,6 +106,6 @@ namespace PoliNorError
 
 		public SimplePolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<SimplePolicy, TException>(func);
 
-		public SimplePolicy ForError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ForError<SimplePolicy, TException>(func);
+		public SimplePolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<SimplePolicy, TException>(func);
 	}
 }

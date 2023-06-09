@@ -38,7 +38,7 @@ namespace PoliNorError
 
 		public new FallbackPolicy WithFallbackFunc<T>(Func<T> fallbackFunc, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) => this.WithFallbackFunc<FallbackPolicy, T>(fallbackFunc, convertType);
 
-		public new FallbackPolicy ForError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ForError<FallbackPolicy, TException>(func);
+		public new FallbackPolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicy, TException>(func);
 
 		public new FallbackPolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicy, TException>(func);
 

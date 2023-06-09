@@ -151,6 +151,6 @@ namespace PoliNorError
 
 		public RetryPolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<RetryPolicy, TException>(func);
 
-		public RetryPolicy ForError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ForError<RetryPolicy, TException>(func);
+		public RetryPolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<RetryPolicy, TException>(func);
 	}
 }

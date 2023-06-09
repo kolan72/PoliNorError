@@ -88,7 +88,7 @@ namespace PoliNorError.Tests
 		public void Should_Add_IncludedErrorFilter_Work()
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
-			var fbWithError = fallBackPol.ForError((e) => e.Message == "Test");
+			var fbWithError = fallBackPol.IncludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test2");
 			var polRes = fbWithError.Handle(action);
 			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
@@ -142,7 +142,7 @@ namespace PoliNorError.Tests
 		public void Should_Add_GenericForErrorFilter_Work(string testMsg)
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
-			var fbWithError = fallBackPol.ForError<ArgumentNullException>((ane) => ane.ParamName == "Test2");
+			var fbWithError = fallBackPol.IncludeError<ArgumentNullException>((ane) => ane.ParamName == "Test2");
 			void actionSatisfied() => throw new ArgumentNullException(testMsg);
 			var polRes = fbWithError.Handle(actionSatisfied);
 			Assert.IsFalse(polRes.ErrorFilterUnsatisfied);
@@ -159,8 +159,8 @@ namespace PoliNorError.Tests
 			var fallBackPol = new FallbackPolicy()
 										.WithFallbackFunc((_) => "EmptyString")
 										.WithFallbackFunc((_) => -1)
-										.ForError<ArgumentNullException>((ane) => ane.ParamName == "Test2")
-										.ForError<IndexOutOfRangeException>((ioe) => ioe.Message == "Out");
+										.IncludeError<ArgumentNullException>((ane) => ane.ParamName == "Test2")
+										.IncludeError<IndexOutOfRangeException>((ioe) => ioe.Message == "Out");
 
 			string actionSatisfiedForFirst() => throw new ArgumentNullException(testMsg);
 			var polRes = fallBackPol.Handle(actionSatisfiedForFirst);
@@ -184,7 +184,7 @@ namespace PoliNorError.Tests
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
 			void actionUnsatisied() => throw new ArgumentNullException(paramName);
-			fallBackPol.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == excludeErrorParamName).ForError<ArgumentNullException>((ane) => ane.ParamName == forErrorParamName);
+			fallBackPol.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == excludeErrorParamName).IncludeError<ArgumentNullException>((ane) => ane.ParamName == forErrorParamName);
 			var resHandle = fallBackPol.Handle(actionUnsatisied);
 			Assert.AreEqual(res, resHandle.ErrorFilterUnsatisfied);
 		}

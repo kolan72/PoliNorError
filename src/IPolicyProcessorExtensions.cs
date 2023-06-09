@@ -21,13 +21,13 @@ namespace PoliNorError
 			return policyProcessor;
 		}
 
-		public static T ForError<T, TException>(this T policyProcessor, Func<TException, bool> func = null) where T : IPolicyProcessor where TException : Exception
+		public static T IncludeError<T, TException>(this T policyProcessor, Func<TException, bool> func = null) where T : IPolicyProcessor where TException : Exception
 		{
 			policyProcessor.AddIncludedErrorFilter(func);
 			return policyProcessor;
 		}
 
-		public static T ForError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
+		public static T IncludeError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
 		{
 			policyProcessor.AddIncludedErrorFilter(handledErrorFilter);
 			return policyProcessor;

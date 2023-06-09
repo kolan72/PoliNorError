@@ -95,13 +95,13 @@ namespace PoliNorError
 			return errorPolicy;
 		}
 
-		public static T ForError<T>(this T errorPolicy, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyBase
+		public static T IncludeError<T>(this T errorPolicy, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyBase
 		{
 			errorPolicy.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter);
 			return errorPolicy;
 		}
 
-		internal static T ForError<T, TException>(this T errorPolicy, Func<TException, bool> func = null) where T : IPolicyBase where TException : Exception
+		internal static T IncludeError<T, TException>(this T errorPolicy, Func<TException, bool> func = null) where T : IPolicyBase where TException : Exception
 		{
 			errorPolicy.PolicyProcessor.AddIncludedErrorFilter(func);
 			return errorPolicy;

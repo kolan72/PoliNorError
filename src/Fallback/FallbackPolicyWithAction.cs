@@ -31,7 +31,7 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction WithAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicyWithAction, T>(fallbackAsync);
 
-		public new FallbackPolicyWithAction ForError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ForError<FallbackPolicyWithAction, TException>(func);
+		public new FallbackPolicyWithAction IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicyWithAction, TException>(func);
 
 		public new FallbackPolicyWithAction ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyWithAction, TException>(func);
 	}

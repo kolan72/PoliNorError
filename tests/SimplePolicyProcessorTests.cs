@@ -154,7 +154,7 @@ namespace PoliNorError.Tests
 		public void Should_Generic_ForError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
 		{
 			var processor = SimplePolicyProcessor.CreateDefault();
-			processor.ForError<ArgumentNullException>((ane) => ane.ParamName == paramName);
+			processor.IncludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
 			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
 			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);

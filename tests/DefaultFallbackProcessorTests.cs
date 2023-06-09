@@ -114,7 +114,7 @@ namespace PoliNorError.Tests
 		public void Should_Generic_ForError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
 		{
 			var processor = new DefaultFallbackProcessor();
-			processor.ForError<ArgumentNullException>((ane) => ane.ParamName == paramName);
+			processor.IncludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
 			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
@@ -128,7 +128,7 @@ namespace PoliNorError.Tests
 			void save(Exception _, CancellationToken __) { i++; }
 
 			var processor = new DefaultFallbackProcessor();
-			processor.ForError<Exception>((ane) => ane.Message == "Test2")
+			processor.IncludeError<Exception>((ane) => ane.Message == "Test2")
 					  .WithErrorProcessorOf(save);
 			void saveWithInclude() => throw new Exception("Test");
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
