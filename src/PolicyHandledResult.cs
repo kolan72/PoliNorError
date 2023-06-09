@@ -2,26 +2,26 @@
 {
 	public class PolicyHandledResult
 	{
-		public PolicyHandledResult(PolicyHandledInfo policyHandledInfo, PolicyResult result)
+		public PolicyHandledResult(PolicyDelegateInfo policyDelegateInfo, PolicyResult result)
 		{
-			PolicyInfo = policyHandledInfo;
+			PolicyInfo = policyDelegateInfo;
 			Result = result;
 		}
 
-		public PolicyHandledInfo PolicyInfo { get; }
+		public PolicyDelegateInfo PolicyInfo { get; }
 
 		public PolicyResult Result { get; }
 	}
 
 	public sealed class PolicyHandledResult<T>
 	{
-		public PolicyHandledResult(PolicyHandledInfo policyHandledInfo, PolicyResult<T> result)
+		public PolicyHandledResult(PolicyDelegateInfo policyDelegateInfo, PolicyResult<T> result)
 		{
-			PolicyInfo = policyHandledInfo;
+			PolicyInfo = policyDelegateInfo;
 			Result = result;
 		}
 
-		public PolicyHandledInfo PolicyInfo { get; }
+		public PolicyDelegateInfo PolicyInfo { get; }
 
 		public PolicyResult<T> Result { get; }
 

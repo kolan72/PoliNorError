@@ -29,7 +29,7 @@ namespace PoliNorError
 		{
 			var res = _policyBase.Handle(_func, _token);
 
-			_policyHandledResults.Add(new PolicyHandledResult<T>(new PolicyHandledInfo(_policyBase, _func.Method), res));
+			_policyHandledResults.Add(new PolicyHandledResult<T>(new PolicyDelegateInfo(_policyBase, _func.Method), res));
 
 			if (res.IsFailed)
 				throw res.Errors.LastOrDefault();
@@ -41,7 +41,7 @@ namespace PoliNorError
 		{
 			var res = await _policyBase.HandleAsync(_funcAsync, _configureAwait, token).ConfigureAwait(_configureAwait);
 
-			_policyHandledResults.Add(new PolicyHandledResult<T>(new PolicyHandledInfo(_policyBase, _funcAsync.Method), res));
+			_policyHandledResults.Add(new PolicyHandledResult<T>(new PolicyDelegateInfo(_policyBase, _funcAsync.Method), res));
 
 			if (res.IsFailed)
 				throw res.Errors.LastOrDefault();
@@ -77,7 +77,7 @@ namespace PoliNorError
 		{
 			var res = await _policyBase.HandleAsync(_func, _configureAwait, token).ConfigureAwait(_configureAwait);
 
-			_policyHandledResults.Add(new PolicyHandledResult(new PolicyHandledInfo(_policyBase, _func.Method), res));
+			_policyHandledResults.Add(new PolicyHandledResult(new PolicyDelegateInfo(_policyBase, _func.Method), res));
 
 			if (res.IsFailed)
 				throw res.Errors.LastOrDefault();
@@ -87,7 +87,7 @@ namespace PoliNorError
 		{
 			var res = _policyBase.Handle(_action, _token);
 
-			_policyHandledResults.Add(new PolicyHandledResult(new PolicyHandledInfo(_policyBase, _action.Method), res));
+			_policyHandledResults.Add(new PolicyHandledResult(new PolicyDelegateInfo(_policyBase, _action.Method), res));
 
 			if (res.IsFailed)
 			{

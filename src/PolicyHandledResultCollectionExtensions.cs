@@ -22,12 +22,12 @@
 
 		internal static void AddPolicyHandledResult(this FlexSyncEnumerable<PolicyHandledResult> handledResults, PolicyDelegate si, PolicyResult policyResult)
 		{
-			handledResults.Add(new PolicyHandledResult(PolicyHandledInfo.FromPolicyDelegate(si), policyResult));
+			handledResults.Add(new PolicyHandledResult(PolicyDelegateInfo.FromPolicyDelegate(si), policyResult));
 		}
 
 		internal static void AddPolicyHandledResult<T>(this FlexSyncEnumerable<PolicyHandledResult<T>> handledResults, PolicyDelegate<T> si, PolicyResult<T> policyResult)
 		{
-			handledResults.Add(new PolicyHandledResult<T>(PolicyHandledInfo.FromPolicyDelegate(si), policyResult));
+			handledResults.Add(new PolicyHandledResult<T>(PolicyDelegateInfo.FromPolicyDelegate(si), policyResult));
 		}
 	}
 }

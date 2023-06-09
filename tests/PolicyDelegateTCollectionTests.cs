@@ -632,7 +632,7 @@ namespace PoliNorError.Tests
 			var ts = new TestClass();
 
 			var policySyncInfo = policy.ToPolicyDelegate(ts.Save);
-			var polhandledInfo = PolicyHandledInfo.FromPolicyDelegate(policySyncInfo);
+			var polhandledInfo = PolicyDelegateInfo.FromPolicyDelegate(policySyncInfo);
 
 			var polResult = new PolicyResult<int>();
 			polResult.AddError(new Exception("Test"));
@@ -642,7 +642,7 @@ namespace PoliNorError.Tests
 			var polHandledError = PolicyHandledErrors<int>.FromHandledResult(handledResult);
 
 			var policySyncInfo2 = policy.ToPolicyDelegate(ts.Save);
-			var polhandledInfo2 = PolicyHandledInfo.FromPolicyDelegate(policySyncInfo2);
+			var polhandledInfo2 = PolicyDelegateInfo.FromPolicyDelegate(policySyncInfo2);
 
 			var polResult2 = new PolicyResult<int>();
 			polResult2.AddError(new Exception("Test2"));

@@ -5,13 +5,13 @@ namespace PoliNorError
 {
 	public class PolicyHandledErrors
 	{
-		internal protected PolicyHandledErrors(IEnumerable<Exception> errors, PolicyHandledInfo policyInfo)
+		internal protected PolicyHandledErrors(IEnumerable<Exception> errors, PolicyDelegateInfo policyInfo)
 		{
 			Errors = errors;
 			PolicyInfo = policyInfo;
 		}
 
-		public PolicyHandledInfo PolicyInfo { get; }
+		public PolicyDelegateInfo PolicyInfo { get; }
 
 		public IEnumerable<Exception> Errors { get; }
 
@@ -23,7 +23,7 @@ namespace PoliNorError
 
 	public sealed class PolicyHandledErrors<T> : PolicyHandledErrors
 	{
-		internal PolicyHandledErrors(IEnumerable<Exception> errors, PolicyHandledInfo policyInfo, T result) : base(errors, policyInfo)
+		internal PolicyHandledErrors(IEnumerable<Exception> errors, PolicyDelegateInfo policyInfo, T result) : base(errors, policyInfo)
 		{
 			Result = result;
 		}
