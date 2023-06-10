@@ -402,30 +402,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_WithCommonResultErrorsHandler_For_ActionWithExceptionsParam_Work()
-		{
-			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);
-			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
-
-			polDelegates.WithCommonResultErrorsHandler((IEnumerable<Exception> _) => i++);
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
-		public async Task Should_WithCommonResultErrorsHandler_For_ActionWithExceptionsAndCancelTokenParams_Work()
-		{
-			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);
-			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
-
-			polDelegates.WithCommonResultErrorsHandler((IEnumerable<Exception> __, CancellationToken _) => i++);
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
 		public async Task Should_WithPolicyAsyncResultHandler_For_Func_WithCancelTokenParam_Work()
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);

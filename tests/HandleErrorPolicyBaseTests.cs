@@ -18,13 +18,9 @@ namespace PoliNorError.Tests
 			retryPolicy.WithPolicyResultHandler(async (__, _) => { await Task.Delay(1); i++; })
 					   .WithPolicyResultHandler(async (_) => { await Task.Delay(1); i++; })
 					   .WithPolicyResultHandler((__, _) => i++)
-					   .WithPolicyResultErrorsHandler((_, __) => i++)
-					   .WithPolicyResultErrorsHandler(async(_, __) => { await Task.Delay(1); i++;})
-					   .WithPolicyResultErrorsHandler(async (_) => { await Task.Delay(1); i++; })
-					   .WithPolicyResultErrorsHandler((_) => i++)
 					   ;
 			retryPolicy.Handle<int>(() => throw new Exception("Handle"));
-			Assert.AreEqual(7, i);
+			Assert.AreEqual(3, i);
 		}
 
 		[Test]

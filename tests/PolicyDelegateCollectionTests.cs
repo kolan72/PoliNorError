@@ -588,54 +588,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_WithCommonResultErrorsHandler_For_ActionWithExceptionsParam_Work()
-		{
-			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => { });
-			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
-
-			_ = polDelegates.WithCommonResultErrorsHandler((IEnumerable<Exception> _) => i++);
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
-		public async Task Should_WithCommonResultErrorsHandler_For_ActionWithExceptionsAndCancelTokenParams_Work()
-		{
-			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => { });
-			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
-
-			_ = polDelegates.WithCommonResultErrorsHandler((IEnumerable<Exception> __, CancellationToken _) => i++);
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
-		public async Task Should_WithCommonResultErrorsHandler_For_FuncWithCancelTokenParam_Work()
-		{
-			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => { });
-			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
-
-			polDelegates.WithCommonResultErrorsHandler(async (_, ct) => { i++; await Task.Delay(1, ct); });
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
-		public async Task Should_WithCommonResultErrorsHandler_For_Func_Work()
-		{
-			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => { });
-			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
-
-			polDelegates.WithCommonResultErrorsHandler(async (_) => { i++; await Task.Delay(1);});
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
 		public void Should_PolicyDelegateCollectionHandleException_GetCorrectMessage()
 		{
 			var handledErrors = GetTestPolicyHandledErrors();

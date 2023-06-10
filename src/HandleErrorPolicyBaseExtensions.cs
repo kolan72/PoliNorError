@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,26 +27,6 @@ namespace PoliNorError
 		{
 			errorPolicyBase.AddAsyncHandler(func);
 			return errorPolicyBase;
-		}
-
-		public static T WithPolicyResultErrorsHandler<T>(this T errorPolicyBase, Action<IEnumerable<Exception>> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
-		{
-			return errorPolicyBase.WithPolicyResultErrorsHandler(action.ToCancelableAction(convertType));
-		}
-
-		public static T WithPolicyResultErrorsHandler<T>(this T errorPolicyBase, Action<IEnumerable<Exception>, CancellationToken> action) where T : HandleErrorPolicyBase
-		{
-			return errorPolicyBase.WithPolicyResultHandler(action.ToPolicyResultHandlerAction());
-		}
-
-		public static T WithPolicyResultErrorsHandler<T>(this T errorPolicyBase, Func<IEnumerable<Exception>, CancellationToken, Task> func) where T : HandleErrorPolicyBase
-		{
-			return errorPolicyBase.WithPolicyResultHandler(func.ToPolicyResultHandlerAsyncFunc());
-		}
-
-		public static T WithPolicyResultErrorsHandler<T>(this T errorPolicyBase, Func<IEnumerable<Exception>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
-		{
-			return errorPolicyBase.WithPolicyResultErrorsHandler(func.ToCancelableFunc(convertType));
 		}
 
 		public static T WrapPolicy<T>(this T errorPolicyBase, IPolicyBase wrappedPolicy) where T : HandleErrorPolicyBase
