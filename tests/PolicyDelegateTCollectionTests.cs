@@ -131,8 +131,8 @@ namespace PoliNorError.Tests
 		{
 			var polBuilder = PolicyDelegateCollection<int>.Create();
 			_ = polBuilder.WithRetry(1).AndDelegate(() => throw new Exception("Test1")).WithRetry(1).AndDelegate(() => throw new Exception("Test2"))
-				.ForError(ex => ex.Message == "Test1")
-				.ForError(ex => ex.Message == "Test2")
+				.IncludeErrorForAll(ex => ex.Message == "Test1")
+				.IncludeErrorForAll(ex => ex.Message == "Test2")
 				;
 			var handleRes = await polBuilder.HandleAllAsync();
 			Assert.IsFalse(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
@@ -143,7 +143,7 @@ namespace PoliNorError.Tests
 		public async Task Should_Generic_IncludeException_Work(string errParamName)
 		{
 			var polBuilder = PolicyDelegateCollection<int>.Create();
-			polBuilder.WithRetry(1).AndDelegate(() => throw new ArgumentNullException(errParamName)).ForError<ArgumentNullException>();
+			polBuilder.WithRetry(1).AndDelegate(() => throw new ArgumentNullException(errParamName)).IncludeErrorForAll<ArgumentNullException>();
 			var handleRes = await polBuilder.HandleAllAsync();
 			Assert.IsFalse(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
@@ -157,7 +157,7 @@ namespace PoliNorError.Tests
 				.WithRetry(1)
 				.WithFallback(() => 1)
 				.WithCommonDelegate(() => throw new ArgumentNullException(errParamName))
-				.ForError<ArgumentNullException>((ae) => ae.ParamName == paramName);
+				.IncludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.HandleAllAsync();
 
 			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyHandledResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);

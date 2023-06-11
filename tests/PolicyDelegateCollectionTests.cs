@@ -443,7 +443,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_NoGeneric_IncludeException_Work()
+		public async Task Should_NoGeneric_IncludeErrorForAll_Work()
 		{
 			var polBuilder = PolicyDelegateCollection.Create();
 			polBuilder
@@ -451,8 +451,8 @@ namespace PoliNorError.Tests
 				.AndDelegate(() => throw new Exception("Test1"))
 				.WithRetry(1)
 				.AndDelegate(() => throw new Exception("Test2"))
-				.ForError(ex => ex.Message == "Test1")
-				.ForError(ex => ex.Message == "Test2");
+				.IncludeErrorForAll(ex => ex.Message == "Test1")
+				.IncludeErrorForAll(ex => ex.Message == "Test2");
 			var handleRes = await polBuilder.HandleAllAsync();
 			Assert.IsFalse(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 			var policyResultsCollection = handleRes.PolicyHandledResults.Select(phr => phr.Result).ToList();
@@ -462,13 +462,13 @@ namespace PoliNorError.Tests
 
 		[Test]
 		[TestCase("")]
-		public async Task Should_Generic_IncludeException_Work(string errorParamName)
+		public async Task Should_Generic_IncludeErrorForAll_Work(string errorParamName)
 		{
 			var polBuilder = PolicyDelegateCollection
 							.Create()
 							.WithRetry(1)
 							.AndDelegate(() => throw new ArgumentNullException(errorParamName))
-							.ForError<ArgumentNullException>();
+							.IncludeErrorForAll<ArgumentNullException>();
 			var handleRes = await polBuilder.HandleAllAsync();
 			Assert.IsFalse(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
@@ -476,13 +476,13 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase("Test", false, "Test")]
 		[TestCase("Test2", true, "Test")]
-		public async Task Should_Generic_IncludeException_WithFunc_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		public async Task Should_Generic_IncludeErrorForAll_WithFunc_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
 		{
 			var polBuilder = PolicyDelegateCollection
 							.Create()
 							.WithRetry(1)
 							.WithFallback(() => Expression.Empty())
-							.ForError<ArgumentNullException>((ae) => ae.ParamName == paramName)
+							.IncludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName)
 							.WithCommonDelegate(() => throw new ArgumentNullException(errorParamName));
 
 			var handleRes = await polBuilder.HandleAllAsync();
@@ -494,14 +494,14 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase("Test", "Test2")]
 		[TestCase("Test2", "Test")]
-		public async Task Should_Generic_IncludeException_With2ForError_WithFunc_Work(string paramName1, string paramName2)
+		public async Task Should_Generic_IncludeErrorForAll_With2Calls_WithFunc_Work(string paramName1, string paramName2)
 		{
 			var polBuilder = PolicyDelegateCollection.Create()
 				.WithRetry(1)
 				.WithFallback(() => Expression.Empty())
-				.ForError<ArgumentNullException>((ae) => ae.ParamName == paramName1)
+				.IncludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName1)
 				.WithCommonDelegate(() => throw new ArgumentNullException(paramName2))
-				.ForError<ArgumentNullException>((ae) => ae.ParamName == paramName2);
+				.IncludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName2);
 
 			var handleRes = await polBuilder.HandleAllAsync();
 

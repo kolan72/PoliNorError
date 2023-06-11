@@ -183,13 +183,13 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyDelegateCollection ForError<TException>(Func<TException, bool> func = null) where TException : Exception
+		public PolicyDelegateCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilter(func);
 			return this;
 		}
 
-		public PolicyDelegateCollection ForError(Expression<Func<Exception, bool>> handledErrorFilter)
+		public PolicyDelegateCollection IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			this.AddIncludedErrorFilter(handledErrorFilter);
 			return this;
