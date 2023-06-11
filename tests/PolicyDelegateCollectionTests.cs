@@ -510,20 +510,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_NoGeneric_ExcludeException_Work()
+		public async Task Should_NoGeneric_ExcludeErrorForAll_Work()
 		{
 			var polBuilder = PolicyDelegateCollection.Create();
-			polBuilder.WithRetry(1).AndDelegate(() => throw new Exception("Test1")).ExcludeError(ex => ex.Message == "Test1");
+			polBuilder.WithRetry(1).AndDelegate(() => throw new Exception("Test1")).ExcludeErrorForAll(ex => ex.Message == "Test1");
 			var handleRes = await polBuilder.HandleAllAsync();
 			Assert.IsTrue(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
 
 		[Test]
 		[TestCase("")]
-		public async Task Should_Generic_ExcludeException_Work(string errorParamName)
+		public async Task Should_Generic_ExcludeErrorForAll_Work(string errorParamName)
 		{
 			var polBuilder = PolicyDelegateCollection.Create();
-			polBuilder.WithRetry(1).AndDelegate(() => throw new ArgumentNullException(errorParamName)).ExcludeError<ArgumentNullException>();
+			polBuilder.WithRetry(1).AndDelegate(() => throw new ArgumentNullException(errorParamName)).ExcludeErrorForAll<ArgumentNullException>();
 			var handleRes = await polBuilder.HandleAllAsync();
 			Assert.IsTrue(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
@@ -531,13 +531,13 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase("Test", true, "Test")]
 		[TestCase("Test2", false, "Test")]
-		public async Task Should_Generic_ExcludeException_WithFunc_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		public async Task Should_Generic_ExcludeErrorForAll_WithFunc_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
 		{
 			var polBuilder = PolicyDelegateCollection.Create()
 				.WithRetry(1)
 				.WithFallback(() => Expression.Empty())
 				.WithCommonDelegate(() => throw new ArgumentNullException(errorParamName))
-				.ExcludeError<ArgumentNullException>((ae) => ae.ParamName == paramName);
+				.ExcludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.HandleAllAsync();
 
 			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyHandledResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);

@@ -165,13 +165,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_NoGeneric_ExcludeException_Work()
+		public async Task Should_NoGeneric_ExcludeErrorForAll_Work()
 		{
 			var polBuilder = PolicyDelegateCollection<int>.Create();
 			polBuilder
 				.WithRetry(1)
 				.AndDelegate(() => throw new Exception("Test1"))
-				.ExcludeError(ex => ex.Message == "Test1")
+				.ExcludeErrorForAll(ex => ex.Message == "Test1")
 				.WithRetry(1)
 				.AndDelegate(() => throw new Exception("Test1"));
 			var handleRes = await polBuilder.HandleAllAsync();
@@ -181,10 +181,10 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_Generic_ExcludeException_Work()
+		public async Task Should_Generic_ExcludeErrorForAll_Work()
 		{
 			var polBuilder = PolicyDelegateCollection<int>.Create();
-			polBuilder.WithRetry(1).AndDelegate(() => throw new InvalidOperationException()).ExcludeError<InvalidOperationException>();
+			polBuilder.WithRetry(1).AndDelegate(() => throw new InvalidOperationException()).ExcludeErrorForAll<InvalidOperationException>();
 			var handleRes = await polBuilder.HandleAllAsync();
 			Assert.IsTrue(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
@@ -192,13 +192,13 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase("Test", true, "Test")]
 		[TestCase("Test2", false, "Test")]
-		public async Task Should_Generic_ExcludeException_WithFunc_Work(string paramName, bool errFilterUnsatisfied, string errParamName)
+		public async Task Should_Generic_ExcludeErrorForAll_WithFunc_Work(string paramName, bool errFilterUnsatisfied, string errParamName)
 		{
 			var polBuilder = PolicyDelegateCollection<int>.Create()
 				.WithRetry(1)
 				.WithFallback(() => 1)
 				.WithCommonDelegate(() => throw new ArgumentNullException(errParamName))
-				.ExcludeError<ArgumentNullException>((ae) => ae.ParamName == paramName);
+				.ExcludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.HandleAllAsync();
 
 			Assert.AreEqual(handleRes.PolicyHandledResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied, errFilterUnsatisfied);

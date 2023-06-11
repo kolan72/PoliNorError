@@ -195,13 +195,13 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyDelegateCollection ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+		public PolicyDelegateCollection ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddExcludedErrorFilter(func);
 			return this;
 		}
 
-		public PolicyDelegateCollection ExcludeError(Expression<Func<Exception, bool>> handledErrorFilter)
+		public PolicyDelegateCollection ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			this.AddExcludedErrorFilter(handledErrorFilter);
 			return this;
