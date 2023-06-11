@@ -25,7 +25,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_ForError_ToCancelableAction_Work()
+		public void Should_ToPrecancelableAction_WithParam_Work()
 		{
 			int i = 0;
 			Action<Exception> act = (_) => i++;
@@ -45,7 +45,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_ToPrecancelableFunc_Work()
+		public async Task Should_ToPrecancelableFunc_ForAsync_Work()
 		{
 			int i = 0;
 			Func<Task> func = async () => { await Task.Delay(1); i++; };

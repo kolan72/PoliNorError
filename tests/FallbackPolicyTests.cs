@@ -139,7 +139,7 @@ namespace PoliNorError.Tests
 
 		[Test]
 		[TestCase("Test2")]
-		public void Should_Add_GenericForErrorFilter_Work(string testMsg)
+		public void Should_Add_GenericIncludeErrorFilter_Work(string testMsg)
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
 			var fbWithError = fallBackPol.IncludeError<ArgumentNullException>((ane) => ane.ParamName == "Test2");
@@ -154,7 +154,7 @@ namespace PoliNorError.Tests
 
 		[Test]
 		[TestCase("Test2")]
-		public void Should_ForError_For_Different_Types_Work(string testMsg)
+		public void Should_IncludeError_For_Different_Types_Work(string testMsg)
 		{
 			var fallBackPol = new FallbackPolicy()
 										.WithFallbackFunc((_) => "EmptyString")

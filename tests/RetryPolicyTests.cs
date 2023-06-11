@@ -240,7 +240,7 @@ namespace PoliNorError.Tests
 
 		[Test]
 		[TestCase("Test")]
-		public void Should_Add_GenericForErrorFilter(string errParamName)
+		public void Should_Add_GenericIncludeErrorFilter(string errParamName)
 		{
 			var retryPolTest = new RetryPolicy(1);
 			retryPolTest.IncludeError<ArgumentNullException>((ane) => ane.ParamName == "Test");
@@ -306,7 +306,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Add_ForErrorFilter()
+		public void Should_Add_IncludeErrorFilter()
 		{
 			var retryPolTest = new RetryPolicy(1);
 			retryPolTest.IncludeError((e) => e.Message == "Test");
@@ -318,7 +318,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Add_MoreThanOne_ForErrorFilter_Work()
+		public void Should_Add_MoreThanOne_IncludeErrorFilter_Work()
 		{
 			var retryPolTest = new RetryPolicy(1);
 			retryPolTest.IncludeError((e) => e.Message == "Test")

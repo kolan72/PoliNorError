@@ -71,7 +71,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase("Test", false, "Test")]
 		[TestCase("Test2", true, "Test")]
-		public void Should_Generic_ForError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		public void Should_Generic_IncludeError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
 		{
 			var processor = new DefaultRetryProcessor();
 			processor.IncludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
