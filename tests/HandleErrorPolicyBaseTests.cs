@@ -15,9 +15,9 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy.WithPolicyResultHandler(async (__, _) => { await Task.Delay(1); i++; })
-					   .WithPolicyResultHandler(async (_) => { await Task.Delay(1); i++; })
-					   .WithPolicyResultHandler((__, _) => i++)
+			retryPolicy.AddPolicyResultHandler(async (__, _) => { await Task.Delay(1); i++; })
+					   .AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; })
+					   .AddPolicyResultHandler((__, _) => i++)
 					   ;
 			retryPolicy.Handle<int>(() => throw new Exception("Handle"));
 			Assert.AreEqual(3, i);
@@ -30,8 +30,8 @@ namespace PoliNorError.Tests
 			cancelSource.Cancel();
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy.WithPolicyResultHandler(async (__, _) => { await Task.Delay(1); i++; })
-					   .WithPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
+			retryPolicy.AddPolicyResultHandler(async (__, _) => { await Task.Delay(1); i++; })
+					   .AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 
 			var res1 = retryPolicy.Handle<int>(() => throw new Exception("Handle"), cancelSource.Token);
 			Assert.AreEqual(typeof(OperationCanceledException), res1.HandleResultErrors.FirstOrDefault().InnerException.GetType());
@@ -46,9 +46,9 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy =  retryPolicy.WithPolicyResultHandler((__, _) => i++);
-			retryPolicy = retryPolicy.WithPolicyResultHandler((_) => i++);
-			retryPolicy.WithPolicyResultHandler((__, _) => i++);
+			retryPolicy =  retryPolicy.AddPolicyResultHandler((__, _) => i++);
+			retryPolicy = retryPolicy.AddPolicyResultHandler((_) => i++);
+			retryPolicy.AddPolicyResultHandler((__, _) => i++);
 
 			await retryPolicy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
 
@@ -59,7 +59,7 @@ namespace PoliNorError.Tests
 		public void Should_HandleResultError_NotAffect_IsOk()
 		{
 			void action(PolicyResult _) { throw new Exception(); }
-			var retryPolicy = new RetryPolicy(1).WithPolicyResultHandler(action);
+			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler(action);
 			var res = retryPolicy.Handle(() => { });
 			Assert.IsTrue(res.IsOk);
 			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
@@ -68,7 +68,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_HandleResult_HasError_For_AggregateException()
 		{
-			var retryPolicy = new RetryPolicy(1).WithPolicyResultHandler((_) => Task.FromException(new Exception()));
+			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler((_) => Task.FromException(new Exception()));
 			var res = retryPolicy.Handle(() => { });
 			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
 		}

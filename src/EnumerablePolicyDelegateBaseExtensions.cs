@@ -57,7 +57,7 @@ namespace PoliNorError
 		{
 			foreach (var polInfo in policyDelegateInfos)
 			{
-				(polInfo.Policy as HandleErrorPolicyBase).WithPolicyResultHandler(act);
+				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(act);
 			}
 		}
 
@@ -65,7 +65,7 @@ namespace PoliNorError
 		{
 			foreach (var polInfo in policyDelegateInfos)
 			{
-				(polInfo.Policy as HandleErrorPolicyBase).WithPolicyResultHandler(act, convertType);
+				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(act, convertType);
 			}
 		}
 
@@ -73,7 +73,7 @@ namespace PoliNorError
 		{
 			foreach (var polInfo in policyDelegateInfos)
 			{
-				(polInfo.Policy as HandleErrorPolicyBase).WithPolicyResultHandler(func);
+				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(func);
 			}
 		}
 
@@ -81,7 +81,7 @@ namespace PoliNorError
 		{
 			foreach (var polInfo in policyDelegateInfos)
 			{
-				(polInfo.Policy as HandleErrorPolicyBase).WithPolicyResultHandler(func, convertType);
+				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(func, convertType);
 			}
 		}
 

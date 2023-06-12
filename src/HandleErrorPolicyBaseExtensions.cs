@@ -6,24 +6,24 @@ namespace PoliNorError
 {
 	public static class HandleErrorPolicyBaseExtensions
 	{
-		public static T WithPolicyResultHandler<T>(this T errorPolicyBase, Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
+		public static T AddPolicyResultHandler<T>(this T errorPolicyBase, Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
 		{
-			return errorPolicyBase.WithPolicyResultHandler(action.ToCancelableAction(convertType));
+			return errorPolicyBase.AddPolicyResultHandler(action.ToCancelableAction(convertType));
 		}
 
-		public static T WithPolicyResultHandler<T>(this T errorPolicyBase, Action<PolicyResult, CancellationToken> action) where T : HandleErrorPolicyBase
+		public static T AddPolicyResultHandler<T>(this T errorPolicyBase, Action<PolicyResult, CancellationToken> action) where T : HandleErrorPolicyBase
 		{
 			errorPolicyBase.AddSyncHandler(action);
 			return errorPolicyBase;
 		}
 
-		public static T WithPolicyResultHandler<T>(this T errorPolicyBase, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
+		public static T AddPolicyResultHandler<T>(this T errorPolicyBase, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
 		{
 			errorPolicyBase.AddAsyncHandler(func.ToCancelableFunc(convertType));
 			return errorPolicyBase;
 		}
 
-		public static T WithPolicyResultHandler<T>(this T errorPolicyBase, Func<PolicyResult, CancellationToken, Task> func) where T : HandleErrorPolicyBase
+		public static T AddPolicyResultHandler<T>(this T errorPolicyBase, Func<PolicyResult, CancellationToken, Task> func) where T : HandleErrorPolicyBase
 		{
 			errorPolicyBase.AddAsyncHandler(func);
 			return errorPolicyBase;
