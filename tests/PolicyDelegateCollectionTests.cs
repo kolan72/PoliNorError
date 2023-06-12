@@ -551,7 +551,7 @@ namespace PoliNorError.Tests
 			int i = 0;
 			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 			void action(PolicyResult __, CancellationToken _) { i++; }
-			polDelegates.WithCommonResultHandler(action);
+			polDelegates.AddPolicyResultHandlerForAll(action);
 			await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 		}
@@ -563,7 +563,7 @@ namespace PoliNorError.Tests
 			int i = 0;
 			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 			void action(PolicyResult _) { i++; }
-			polDelegates.WithCommonResultHandler(action);
+			polDelegates.AddPolicyResultHandlerForAll(action);
 			await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 		}
@@ -574,12 +574,12 @@ namespace PoliNorError.Tests
 			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithRetry(1);
 			int i = 0;
 			void action1(PolicyResult _) { i++; }
-			polDelegates.WithCommonResultHandler(action1);
+			polDelegates.AddPolicyResultHandlerForAll(action1);
 
 			polDelegates.WithRetry(1).WithRetry(1);
 			int m = 0;
 			void action2(PolicyResult _) { m++; }
-			polDelegates.WithCommonResultHandler(action2);
+			polDelegates.AddPolicyResultHandlerForAll(action2);
 			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
 			await polDelegates.HandleAllAsync();

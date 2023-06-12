@@ -380,7 +380,7 @@ namespace PoliNorError.Tests
 			int i = 0;
 			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 			void action(PolicyResult __, CancellationToken _) { i++; }
-			polDelegates.WithCommonResultHandler(action);
+			polDelegates.AddPolicyResultHandlerForAll(action);
 			await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 		}
@@ -396,7 +396,7 @@ namespace PoliNorError.Tests
 				i++;
 			}
 
-			polDelegates.WithCommonResultHandler(action);
+			polDelegates.AddPolicyResultHandlerForAll(action);
 			await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 		}
@@ -408,7 +408,7 @@ namespace PoliNorError.Tests
 			int i = 0;
 			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
-			polDelegates.WithCommonResultHandler(async (__, _) => { i++; await Task.Delay(1);});
+			polDelegates.AddPolicyResultHandlerForAll(async (__, _) => { i++; await Task.Delay(1);});
 			var res = await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 			Assert.AreEqual(1, res.Result);
@@ -432,7 +432,7 @@ namespace PoliNorError.Tests
 			int i = 0;
 			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
-			polDelegates.WithCommonResultHandler(async (_) => { i++; await Task.Delay(1);});
+			polDelegates.AddPolicyResultHandlerForAll(async (_) => { i++; await Task.Delay(1);});
 			var res = await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 			Assert.AreEqual(1, res.Result);
@@ -445,7 +445,7 @@ namespace PoliNorError.Tests
 			int i = 0;
 			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
-			polDelegates.WithCommonResultHandler(async (_) => { i++; await Task.Delay(1);});
+			polDelegates.AddPolicyResultHandlerForAll(async (_) => { i++; await Task.Delay(1);});
 			await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 		}
