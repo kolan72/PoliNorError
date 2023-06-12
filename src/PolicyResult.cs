@@ -42,7 +42,7 @@ namespace PoliNorError
 
 		public bool ErrorFilterUnsatisfied { get; protected set; }
 
-		public IEnumerable<PolicyHandledResult> WrappedPolicyResults { get; internal set; }
+		public IEnumerable<PolicyDelegateResult> WrappedPolicyResults { get; internal set; }
 
 		protected void SetErrors(IEnumerable<Exception> exceptions)
 		{

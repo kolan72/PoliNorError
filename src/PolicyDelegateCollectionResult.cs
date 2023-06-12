@@ -5,15 +5,15 @@ using System.Linq;
 
 namespace PoliNorError
 {
-	public class PolicyDelegateCollectionResult : IEnumerable<PolicyHandledResult>
+	public class PolicyDelegateCollectionResult : IEnumerable<PolicyDelegateResult>
 	{
-		public PolicyDelegateCollectionResult(IEnumerable<PolicyHandledResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused)
+		public PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused)
 		{
-			PolicyHandledResults = policyHandledResults;
+			PolicyDelegateResults = policyHandledResults;
 			PolicyDelegatesUnused = policyDelegatesUnused;
 		}
 
-        public PolicyDelegateCollectionResultStatus Status => PolicyHandledResults.GetStatus();
+        public PolicyDelegateCollectionResultStatus Status => PolicyDelegateResults.GetStatus();
 
         public Exception LastFailedError
 		{
@@ -22,49 +22,49 @@ namespace PoliNorError
 				if (Status != PolicyDelegateCollectionResultStatus.Faulted)
 					return null;
 
-				return PolicyHandledResults.Last().Result.Errors.LastOrDefault();
+				return PolicyDelegateResults.Last().Result.Errors.LastOrDefault();
 			}
 		}
 
 		public IEnumerable<PolicyDelegate> PolicyDelegatesUnused { get; }
-		public IEnumerable<PolicyHandledResult> PolicyHandledResults { get; }
+		public IEnumerable<PolicyDelegateResult> PolicyDelegateResults { get; }
 
-		public IEnumerator<PolicyHandledResult> GetEnumerator() => PolicyHandledResults.GetEnumerator();
+		public IEnumerator<PolicyDelegateResult> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	}
 
-	public class PolicyDelegateCollectionResult<T> : IEnumerable<PolicyHandledResult<T>>
+	public class PolicyDelegateCollectionResult<T> : IEnumerable<PolicyDelegateResult<T>>
 	{
-		public PolicyDelegateCollectionResult(IEnumerable<PolicyHandledResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused)
+		public PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused)
         {
-			PolicyHandledResults = policyHandledResultsT;
+			PolicyDelegateResults = policyHandledResultsT;
 			PolicyDelegatesUnused = policyDelegatesUnused;
 		}
 
-		IEnumerator<PolicyHandledResult<T>> IEnumerable<PolicyHandledResult<T>>.GetEnumerator() => PolicyHandledResults.GetEnumerator();
+		IEnumerator<PolicyDelegateResult<T>> IEnumerable<PolicyDelegateResult<T>>.GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
 		public T Result
 		{
 			get
 			{
-				var status = PolicyHandledResults.GetStatus();
+				var status = PolicyDelegateResults.GetStatus();
 				if (status == PolicyDelegateCollectionResultStatus.Created)
 					return default;
-				var lastHandledResult = PolicyHandledResults.Last();
+				var lastHandledResult = PolicyDelegateResults.Last();
 				return lastHandledResult.Result.Result;
 			}
 		}
 
-		public IEnumerable<PolicyHandledResult<T>> PolicyHandledResults { get; }
+		public IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults { get; }
 
 		public IEnumerable<PolicyDelegate<T>> PolicyDelegatesUnused { get; }
 
-		public IEnumerator<PolicyHandledResult<T>> GetEnumerator() => PolicyHandledResults.GetEnumerator();
+		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public PolicyDelegateCollectionResultStatus Status => PolicyHandledResults.GetStatus();
+		public PolicyDelegateCollectionResultStatus Status => PolicyDelegateResults.GetStatus();
 	}
 
 	[Flags]

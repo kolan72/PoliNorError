@@ -20,7 +20,7 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection<int>.Create(retrySI);
 			policyDelegateCollection = policyDelegateCollection.WithThrowOnLastFailed();
 
-			var res = Assert.ThrowsAsync<PolicyDelegateCollectionHandleException<int>>(async () => await policyDelegateCollection.HandleAllAsync());
+			var res = Assert.ThrowsAsync<PolicyDelegateCollectionException<int>>(async () => await policyDelegateCollection.HandleAllAsync());
 			Assert.IsTrue(res.ErrorResults.FirstOrDefault() == default);
 		}
 
@@ -34,7 +34,7 @@ namespace PoliNorError.Tests
 
 			var result = await policyDelegateCollection.HandleAllAsync();
 
-			Assert.AreEqual(result.PolicyHandledResults.FirstOrDefault().Result.Errors.FirstOrDefault()?.GetType(), typeof(NoDelegateException));
+			Assert.AreEqual(result.PolicyDelegateResults.FirstOrDefault().Result.Errors.FirstOrDefault()?.GetType(), typeof(NoDelegateException));
 		}
 
 		[Test]
@@ -135,7 +135,7 @@ namespace PoliNorError.Tests
 				.IncludeErrorForAll(ex => ex.Message == "Test2")
 				;
 			var handleRes = await polBuilder.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
+			Assert.IsFalse(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
 
 		[Test]
@@ -145,7 +145,7 @@ namespace PoliNorError.Tests
 			var polBuilder = PolicyDelegateCollection<int>.Create();
 			polBuilder.WithRetry(1).AndDelegate(() => throw new ArgumentNullException(errParamName)).IncludeErrorForAll<ArgumentNullException>();
 			var handleRes = await polBuilder.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
+			Assert.IsFalse(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
 
 		[Test]
@@ -160,8 +160,8 @@ namespace PoliNorError.Tests
 				.IncludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.HandleAllAsync();
 
-			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyHandledResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyHandledResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -176,8 +176,8 @@ namespace PoliNorError.Tests
 				.AndDelegate(() => throw new Exception("Test1"));
 			var handleRes = await polBuilder.HandleAllAsync();
 
-			Assert.AreEqual(true, handleRes.PolicyHandledResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.AreEqual(false, handleRes.PolicyHandledResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.AreEqual(true, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.AreEqual(false, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -186,7 +186,7 @@ namespace PoliNorError.Tests
 			var polBuilder = PolicyDelegateCollection<int>.Create();
 			polBuilder.WithRetry(1).AndDelegate(() => throw new InvalidOperationException()).ExcludeErrorForAll<InvalidOperationException>();
 			var handleRes = await polBuilder.HandleAllAsync();
-			Assert.IsTrue(handleRes.PolicyHandledResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
+			Assert.IsTrue(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
 
 		[Test]
@@ -201,8 +201,8 @@ namespace PoliNorError.Tests
 				.ExcludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.HandleAllAsync();
 
-			Assert.AreEqual(handleRes.PolicyHandledResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied, errFilterUnsatisfied);
-			Assert.AreEqual(handleRes.PolicyHandledResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied, errFilterUnsatisfied);
+			Assert.AreEqual(handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied, errFilterUnsatisfied);
+			Assert.AreEqual(handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied, errFilterUnsatisfied);
 		}
 
 		[Test]
@@ -219,7 +219,7 @@ namespace PoliNorError.Tests
 
 			var polHandleResults = await policyDelegateCollection.HandleAllAsync();
 
-			var handledResult = (IEnumerable<PolicyHandledResult<int>>)polHandleResults;
+			var handledResult = (IEnumerable<PolicyDelegateResult<int>>)polHandleResults;
 			Assert.AreEqual(2, handledResult.Count());
 
 			Assert.AreEqual(3, handledResult.ToList()[0].Result.Errors.Count());
@@ -262,7 +262,7 @@ namespace PoliNorError.Tests
 
 			var polHandleResults = await policyDelegateCollection.HandleAllAsync();
 
-			var handledResult = (IEnumerable<PolicyHandledResult<int>>)polHandleResults;
+			var handledResult = (IEnumerable<PolicyDelegateResult<int>>)polHandleResults;
 			Assert.AreEqual(2, handledResult.Count());
 
 			Assert.AreEqual(3, handledResult.ToList()[0].Result.Errors.Count());
@@ -591,8 +591,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_PolicyDelegateCollectionHandleException_GetCorrectMessage()
 		{
-			var handledErrors = GetTestPolicyHandledErrors();
-			var exception = new PolicyDelegateCollectionHandleException<int>(handledErrors);
+			var handledErrors = GetTestPolicyDelegateResultErrorsCollection();
+			var exception = new PolicyDelegateCollectionException<int>(handledErrors);
 
 			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
 			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
@@ -602,7 +602,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(2, exception.ErrorResults.ToList()[1]);
 		}
 
-		private IEnumerable<PolicyHandledErrors<int>> GetTestPolicyHandledErrors()
+		private IEnumerable<PolicyDelegateResultErrors<int>> GetTestPolicyDelegateResultErrorsCollection()
 		{
 			var policy = new RetryPolicy(1);
 			var ts = new TestClass();
@@ -614,8 +614,8 @@ namespace PoliNorError.Tests
 			polResult.AddError(new Exception("Test"));
 			polResult.SetResult(1);
 
-			var handledResult = new PolicyHandledResult<int>(polhandledInfo, polResult);
-			var polHandledError = PolicyHandledErrors<int>.FromHandledResult(handledResult);
+			var handledResult = new PolicyDelegateResult<int>(polhandledInfo, polResult);
+			var polHandledError = PolicyDelegateResultErrors<int>.FromDelegateResult(handledResult);
 
 			var policySyncInfo2 = policy.ToPolicyDelegate(ts.Save);
 			var polhandledInfo2 = PolicyDelegateInfo.FromPolicyDelegate(policySyncInfo2);
@@ -624,10 +624,10 @@ namespace PoliNorError.Tests
 			polResult2.AddError(new Exception("Test2"));
 			polResult2.SetResult(2);
 
-			var handledResult2 = new PolicyHandledResult<int>(polhandledInfo2, polResult2);
-			var polHandledError2 = PolicyHandledErrors<int>.FromHandledResult(handledResult2);
+			var handledResult2 = new PolicyDelegateResult<int>(polhandledInfo2, polResult2);
+			var polHandledError2 = PolicyDelegateResultErrors<int>.FromDelegateResult(handledResult2);
 
-			return new List<PolicyHandledErrors<int>>() { polHandledError, polHandledError2 };
+			return new List<PolicyDelegateResultErrors<int>>() { polHandledError, polHandledError2 };
 		}
 
 		[Test]

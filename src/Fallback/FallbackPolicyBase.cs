@@ -61,7 +61,7 @@ namespace PoliNorError
 				Action actionWrapped = wrapper.Handle;
 
 				fallBackRes = _fallbackProcessor.Fallback(actionWrapped, curFallback, token);
-				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults;
+				fallBackRes.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
 
 			HandlePolicyResult(fallBackRes, token);
@@ -104,7 +104,7 @@ namespace PoliNorError
 
 				fallbackResult = _fallbackProcessor.Fallback(funcWrapped, fallBackFunc, token);
 
-				fallbackResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyHandledResult());
+				fallbackResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
 
 			HandlePolicyResult(fallbackResult, token);
@@ -146,7 +146,7 @@ namespace PoliNorError
 
 				fallBackRes = await _fallbackProcessor.FallbackAsync(funcWrapped, curFallbackAsync, configureAwait, token).ConfigureAwait(configureAwait);
 
-				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults;
+				fallBackRes.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
 
 			await HandlePolicyResultAsync(fallBackRes, configureAwait, token).ConfigureAwait(configureAwait);
@@ -189,7 +189,7 @@ namespace PoliNorError
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
 
 				fallBackRes = await _fallbackProcessor.FallbackAsync(funcWrapped, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait);
-				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyHandledResult());
+				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
 			await HandlePolicyResultAsync(fallBackRes, configureAwait).ConfigureAwait(configureAwait);
 			return fallBackRes;

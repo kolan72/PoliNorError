@@ -20,7 +20,7 @@ namespace PoliNorError.Tests
 			var collection = PolicyDelegateCollection.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
 			var res = collection.HandleAll();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyHandledResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
 			Assert.IsTrue(res.Count(ph=>ph.Result.IsFailed) == nTimeInfinite);
 		}
 
@@ -34,7 +34,7 @@ namespace PoliNorError.Tests
 			var collection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
 			var res = collection.HandleAll();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyHandledResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
 		}
 
 		[Test]
@@ -48,7 +48,7 @@ namespace PoliNorError.Tests
 			var collection = PolicyDelegateCollection.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
 			var res = await  collection.HandleAllAsync();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyHandledResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
 			Assert.IsTrue(res.Count(ph => ph.Result.IsFailed) == nTimeInfinite);
 		}
 
@@ -63,7 +63,7 @@ namespace PoliNorError.Tests
 			var collection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
 			var res = await collection.HandleAllAsync();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyHandledResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
 			Assert.IsTrue(res.Count(ph => ph.Result.IsFailed) == nTimeInfinite);
 		}
 	}

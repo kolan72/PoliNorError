@@ -8,9 +8,9 @@ namespace PoliNorError
 {
 	internal static class PolicyDelegatesHandler
     {
-		internal static (IEnumerable<PolicyHandledResult> HandleResults, PolicyResult PolResult) HandleAllForceSync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) HandleAllForceSync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult>();
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
 			PolicyResult curPolResult = null;
 
 			foreach (var si in policyDelegateInfos)
@@ -22,7 +22,7 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 
@@ -36,11 +36,11 @@ namespace PoliNorError
 					curPolResult = policyResult;
 					if (IsCanceled)
 					{
-						handledResults.AddPolicyHandledResultCanceled(si);
+						handledResults.AddPolicyDelegateResultCanceled(si);
 						break;
 					}
 				}
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 
@@ -59,9 +59,9 @@ namespace PoliNorError
 			}
 		}
 
-		internal static (IEnumerable<PolicyHandledResult<T>> HandleResults, PolicyResult<T> PolResult) HandleAllForceSync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult) HandleAllForceSync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult<T>>();
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>();
 			PolicyResult<T> curPolResult = null;
 
 			foreach (var si in policyDelegateInfos)
@@ -73,7 +73,7 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 
@@ -87,11 +87,11 @@ namespace PoliNorError
 					curPolResult = policyResult;
 					if (IsCanceled)
 					{
-						handledResults.AddPolicyHandledResultCanceled(si);
+						handledResults.AddPolicyDelegateResultCanceled(si);
 						break;
 					}
 				}
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 
@@ -110,7 +110,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal static async Task<(IEnumerable<PolicyHandledResult> HandleResults, PolicyResult PolResult)> HandleAllBySyncType(PolicyDelegateCollection policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
+		internal static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleAllBySyncType(PolicyDelegateCollection policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
 		{
 			switch (handleType)
 			{
@@ -121,8 +121,8 @@ namespace PoliNorError
 					}
 					catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 					{
-						var handledResults = new FlexSyncEnumerable<PolicyHandledResult>();
-						var curPolResult = handledResults.AddPolicyHandledResultCanceled(policyDelegateInfos.FirstOrDefault());
+						var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
+						var curPolResult = handledResults.AddPolicyDelegateResultCanceled(policyDelegateInfos.FirstOrDefault());
 						return (handledResults, curPolResult);
 					}
 				case PolicyDelegateHandleType.Misc:
@@ -134,7 +134,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal static async Task<(IEnumerable<PolicyHandledResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllBySyncType<T>(PolicyDelegateCollection<T> policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
+		internal static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllBySyncType<T>(PolicyDelegateCollection<T> policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
 		{
 			switch (handleType)
 			{
@@ -145,8 +145,8 @@ namespace PoliNorError
 					}
 					catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 					{
-						var handledResults = new FlexSyncEnumerable<PolicyHandledResult<T>>();
-						var curPolResult = handledResults.AddPolicyHandledResultCanceled(policyDelegateInfos.FirstOrDefault());
+						var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>();
+						var curPolResult = handledResults.AddPolicyDelegateResultCanceled(policyDelegateInfos.FirstOrDefault());
 						return (handledResults, curPolResult);
 					}
 				case PolicyDelegateHandleType.Misc:
@@ -158,9 +158,9 @@ namespace PoliNorError
 			}
 		}
 
-		private static async Task<(IEnumerable<PolicyHandledResult> HandleResults, PolicyResult PolResult)> HandleAllMisc(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleAllMisc(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult>(!configureAwait);
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!configureAwait);
 			PolicyResult curPolResult = null;
 
 			foreach (var si in policyDelegateInfos)
@@ -172,7 +172,7 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 
@@ -184,14 +184,14 @@ namespace PoliNorError
 				{
 					curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				}
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 		}
 
-		private static async Task<(IEnumerable<PolicyHandledResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllMisc<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllMisc<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult<T>>(configureAwait);
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>(configureAwait);
 			PolicyResult<T> curPolResult = null;
 
 			foreach (var si in policyDelegateInfos)
@@ -203,7 +203,7 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 
@@ -215,14 +215,14 @@ namespace PoliNorError
 				{
 					curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				}
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 		}
 
-		internal static (IEnumerable<PolicyHandledResult<T>> HandleResults, PolicyResult<T> PolResult) HandleWhenAllSync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult) HandleWhenAllSync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult<T>>();
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>();
 
 			PolicyResult<T> curPolResult = null;
 			foreach (var si in policyDelegateInfos)
@@ -234,20 +234,20 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 
 				curPolResult = si.Handle(token);
 
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 		}
 
-		internal static (IEnumerable<PolicyHandledResult> HandleResults, PolicyResult PolResult) HandleWhenAllSync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) HandleWhenAllSync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult>();
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
 
 			PolicyResult curPolResult = null;
 			foreach (var si in policyDelegateInfos)
@@ -259,20 +259,20 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 
 				curPolResult = si.Handle(token);
 
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 		}
 
-		private static async Task<(IEnumerable<PolicyHandledResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleWhenAllAsync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleWhenAllAsync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult<T>>(!configureAwait);
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>(!configureAwait);
 			PolicyResult<T> curPolResult = null;
 
 			foreach (var si in policyDelegateInfos)
@@ -284,18 +284,18 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 				curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 		}
 
-		private static async Task<(IEnumerable<PolicyHandledResult> HandleResults, PolicyResult PolResult)> HandleWhenAllAsync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleWhenAllAsync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
-			var handledResults = new FlexSyncEnumerable<PolicyHandledResult>(!configureAwait);
+			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!configureAwait);
 			PolicyResult curPolResult = null;
 
 			foreach (var si in policyDelegateInfos)
@@ -307,11 +307,11 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyHandledResultCanceled(si);
+					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
 					break;
 				}
 				curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
-				handledResults.AddPolicyHandledResult(si, curPolResult);
+				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, curPolResult);
 		}

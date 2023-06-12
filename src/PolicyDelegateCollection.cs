@@ -12,7 +12,7 @@ namespace PoliNorError
 	{
 		private readonly List<PolicyDelegate> _syncInfos = new List<PolicyDelegate>();
 		private bool _terminated;
-		private IPolicyResultsToErrorConverter _errorConverter;
+		private IPolicyDelegateResultsToErrorConverter _errorConverter;
 
 		public static PolicyDelegateCollection CreateFromPolicy(IPolicyBase pol, int n = 1)
 		{
@@ -108,7 +108,7 @@ namespace PoliNorError
 		public PolicyDelegateCollectionResult HandleAll(CancellationToken token = default)
 		{
 			PolicyDelegateHandleType handleType = this.GetHandleType();
-			(IEnumerable<PolicyHandledResult> HandleResults, PolicyResult PolResult) result;
+			(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) result;
 			if (handleType == PolicyDelegateHandleType.Sync)
 			{
 				result = PolicyDelegatesHandler.HandleWhenAllSync(this, token);
@@ -137,10 +137,10 @@ namespace PoliNorError
 
 		public bool ThrowOnLastFailed => _terminated;
 
-		public PolicyDelegateCollection WithThrowOnLastFailed(IPolicyResultsToErrorConverter errorConverter = null)
+		public PolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null)
 		{
 			_terminated = true;
-			_errorConverter = errorConverter ?? new PolicyDelegateCollectionHandleExceptionConverter();
+			_errorConverter = errorConverter ?? new PolicyDelegateResultsToErrorConverter();
 			return this;
 		}
 
@@ -242,12 +242,12 @@ namespace PoliNorError
 			return SettingPolicyDelegateResult.Success;
 		}
 
-		internal PolicyDelegateCollectionResult GetResultOrThrow(IEnumerable<PolicyHandledResult> handledResults, PolicyResult polResult)
+		internal PolicyDelegateCollectionResult GetResultOrThrow(IEnumerable<PolicyDelegateResult> handledResults, PolicyResult polResult)
 		{
 			ThrowErrorIfNeed(polResult, handledResults);
 
 			return new PolicyDelegateCollectionResult(handledResults, this.Skip(handledResults.Count()));
-			void ThrowErrorIfNeed(PolicyResult policyResult, IEnumerable<PolicyHandledResult> hResults)
+			void ThrowErrorIfNeed(PolicyResult policyResult, IEnumerable<PolicyDelegateResult> hResults)
 			{
 				if (policyResult == null) return;
 				if (policyResult.IsFailed && ThrowOnLastFailed)

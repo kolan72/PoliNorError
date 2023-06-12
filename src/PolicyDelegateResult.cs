@@ -1,8 +1,8 @@
 ﻿namespace PoliNorError
 {
-	public class PolicyHandledResult
+	public class PolicyDelegateResult
 	{
-		public PolicyHandledResult(PolicyDelegateInfo policyDelegateInfo, PolicyResult result)
+		public PolicyDelegateResult(PolicyDelegateInfo policyDelegateInfo, PolicyResult result)
 		{
 			PolicyInfo = policyDelegateInfo;
 			Result = result;
@@ -13,9 +13,9 @@
 		public PolicyResult Result { get; }
 	}
 
-	public sealed class PolicyHandledResult<T>
+	public sealed class PolicyDelegateResult<T>
 	{
-		public PolicyHandledResult(PolicyDelegateInfo policyDelegateInfo, PolicyResult<T> result)
+		public PolicyDelegateResult(PolicyDelegateInfo policyDelegateInfo, PolicyResult<T> result)
 		{
 			PolicyInfo = policyDelegateInfo;
 			Result = result;
@@ -25,9 +25,9 @@
 
 		public PolicyResult<T> Result { get; }
 
-		internal PolicyHandledResult ToPolicyHandledResult()
+		internal PolicyDelegateResult ToPolicyDelegateResult()
 		{
-			return new PolicyHandledResult(PolicyInfo, Result);
+			return new PolicyDelegateResult(PolicyInfo, Result);
 		}
 	}
 }

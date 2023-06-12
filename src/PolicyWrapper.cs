@@ -11,17 +11,17 @@ namespace PoliNorError
 		private readonly Func<CancellationToken, Task<T>> _funcAsync;
 		private readonly Func<T> _func;
 
-		private readonly FlexSyncEnumerable<PolicyHandledResult<T>> _policyHandledResults;
+		private readonly FlexSyncEnumerable<PolicyDelegateResult<T>> _policyHandledResults;
 
 		internal PolicyWrapper(IPolicyBase policyBase, Func<CancellationToken, Task<T>> funcAsync, CancellationToken token, bool configureAwait) : base(policyBase, token, configureAwait)
 		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyHandledResult<T>>(!configureAwait);
+			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>(!configureAwait);
 			_funcAsync = funcAsync;
 		}
 
 		internal PolicyWrapper(IPolicyBase policyBase, Func<T> func, CancellationToken token) : base(policyBase, token)
 		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyHandledResult<T>>();
+			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>();
 			_func = func;
 		}
 
@@ -29,7 +29,7 @@ namespace PoliNorError
 		{
 			var res = _policyBase.Handle(_func, _token);
 
-			_policyHandledResults.Add(new PolicyHandledResult<T>(new PolicyDelegateInfo(_policyBase, _func.Method), res));
+			_policyHandledResults.Add(new PolicyDelegateResult<T>(new PolicyDelegateInfo(_policyBase, _func.Method), res));
 
 			if (res.IsFailed)
 				throw res.Errors.LastOrDefault();
@@ -41,7 +41,7 @@ namespace PoliNorError
 		{
 			var res = await _policyBase.HandleAsync(_funcAsync, _configureAwait, token).ConfigureAwait(_configureAwait);
 
-			_policyHandledResults.Add(new PolicyHandledResult<T>(new PolicyDelegateInfo(_policyBase, _funcAsync.Method), res));
+			_policyHandledResults.Add(new PolicyDelegateResult<T>(new PolicyDelegateInfo(_policyBase, _funcAsync.Method), res));
 
 			if (res.IsFailed)
 				throw res.Errors.LastOrDefault();
@@ -49,7 +49,7 @@ namespace PoliNorError
 			return res.Result;
 		}
 
-		internal IEnumerable<PolicyHandledResult<T>> PolicyResults
+		internal IEnumerable<PolicyDelegateResult<T>> PolicyResults
 		{
 			get { return _policyHandledResults; }
 		}
@@ -59,17 +59,17 @@ namespace PoliNorError
 	{
 		private readonly Func<CancellationToken, Task> _func;
 		private readonly Action _action;
-		private readonly FlexSyncEnumerable<PolicyHandledResult> _policyHandledResults;
+		private readonly FlexSyncEnumerable<PolicyDelegateResult> _policyHandledResults;
 
 		internal PolicyWrapper(IPolicyBase policyBase, Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait) : base(policyBase, token, configureAwait)
 		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyHandledResult>(!configureAwait);
+			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!configureAwait);
 			_func = func;
 		}
 
 		internal PolicyWrapper(IPolicyBase policyBase, Action action, CancellationToken token) : base(policyBase, token)
 		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyHandledResult>();
+			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
 			_action = action;
 		}
 
@@ -77,7 +77,7 @@ namespace PoliNorError
 		{
 			var res = await _policyBase.HandleAsync(_func, _configureAwait, token).ConfigureAwait(_configureAwait);
 
-			_policyHandledResults.Add(new PolicyHandledResult(new PolicyDelegateInfo(_policyBase, _func.Method), res));
+			_policyHandledResults.Add(new PolicyDelegateResult(new PolicyDelegateInfo(_policyBase, _func.Method), res));
 
 			if (res.IsFailed)
 				throw res.Errors.LastOrDefault();
@@ -87,7 +87,7 @@ namespace PoliNorError
 		{
 			var res = _policyBase.Handle(_action, _token);
 
-			_policyHandledResults.Add(new PolicyHandledResult(new PolicyDelegateInfo(_policyBase, _action.Method), res));
+			_policyHandledResults.Add(new PolicyDelegateResult(new PolicyDelegateInfo(_policyBase, _action.Method), res));
 
 			if (res.IsFailed)
 			{
@@ -95,7 +95,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal IEnumerable<PolicyHandledResult> PolicyResults
+		internal IEnumerable<PolicyDelegateResult> PolicyDelegateResults
 		{
 			get { return _policyHandledResults; }
 		}

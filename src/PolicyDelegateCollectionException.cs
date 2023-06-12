@@ -6,18 +6,18 @@ namespace PoliNorError
 {
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
-	public class PolicyDelegateCollectionHandleException : Exception
+	public class PolicyDelegateCollectionException : Exception
 	{
-		private readonly IEnumerable<PolicyHandledErrors> _policyHandledErrors;
-		private readonly IPolicyHandledErrorsToExceptionsConverter _policyHandledErrorsConverter;
+		private readonly IEnumerable<PolicyDelegateResultErrors> _policyHandledErrors;
+		private readonly IPolicyDelegateResultErrorsToExceptionsConverter _policyHandledErrorsConverter;
 		private readonly IErrorsToStringAggregator _errorsToStringAggregator;
 
 		private string _message;
 
-		public PolicyDelegateCollectionHandleException(IEnumerable<PolicyHandledErrors> policyHandledErrors, IPolicyHandledErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
+		public PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResultErrors> policyHandledErrors, IPolicyDelegateResultErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
 		{
 			_policyHandledErrors = policyHandledErrors;
-			_policyHandledErrorsConverter = policyHandledErrorsConverter ?? new DefaultPolicyHandledErrorsConverter();
+			_policyHandledErrorsConverter = policyHandledErrorsConverter ?? new DefaultPolicyDelegateResultErrorsConverter();
 			_errorsToStringAggregator = errorsToStringAggregator ?? new DefaultErrorsToStringAggregator();
 		}
 
@@ -36,12 +36,12 @@ namespace PoliNorError
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
-	public class PolicyDelegateCollectionHandleException<T> : PolicyDelegateCollectionHandleException
+	public class PolicyDelegateCollectionException<T> : PolicyDelegateCollectionException
 	{
-		private readonly IEnumerable<PolicyHandledErrors<T>> _policyHandledErrorsT;
+		private readonly IEnumerable<PolicyDelegateResultErrors<T>> _policyHandledErrorsT;
 
-		public PolicyDelegateCollectionHandleException(IEnumerable<PolicyHandledErrors<T>> policyHandledErrors, IPolicyHandledErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
-							: base(policyHandledErrors.Select(phe => phe.ToPolicyHandledErrors()), policyHandledErrorsConverter, errorsToStringAggregator)
+		public PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResultErrors<T>> policyHandledErrors, IPolicyDelegateResultErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
+							: base(policyHandledErrors.Select(phe => phe.ToPolicyDelegateResultErrors()), policyHandledErrorsConverter, errorsToStringAggregator)
 		{
 			_policyHandledErrorsT = policyHandledErrors;
 		}
