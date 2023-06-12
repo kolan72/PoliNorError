@@ -144,16 +144,16 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyDelegateCollection WithCommonDelegate(Action action)
+		public PolicyDelegateCollection SetCommonDelegate(Action action)
 		{
-			var res = SetCommonDelegate(action);
+			var res = SetCommonDelegateInner(action);
 			if (res != SettingPolicyDelegateResult.Success) res.ThrowErrorByResult();
 			return this;
 		}
 
-		public PolicyDelegateCollection WithCommonDelegate(Func<CancellationToken, Task> func)
+		public PolicyDelegateCollection SetCommonDelegate(Func<CancellationToken, Task> func)
 		{
-			var res = SetCommonDelegate(func);
+			var res = SetCommonDelegateInner(func);
 			if (res != SettingPolicyDelegateResult.Success) res.ThrowErrorByResult();
 			return this;
 		}
@@ -216,7 +216,7 @@ namespace PoliNorError
 			return SettingPolicyDelegateResult.Success;
 		}
 
-		internal SettingPolicyDelegateResult SetCommonDelegate(Action action)
+		internal SettingPolicyDelegateResult SetCommonDelegateInner(Action action)
 		{
 			if (this.IsEmpty()) return SettingPolicyDelegateResult.Empty;
 
@@ -229,7 +229,7 @@ namespace PoliNorError
 			return SettingPolicyDelegateResult.Success;
 		}
 
-		internal SettingPolicyDelegateResult SetCommonDelegate(Func<CancellationToken, Task> func)
+		internal SettingPolicyDelegateResult SetCommonDelegateInner(Func<CancellationToken, Task> func)
 		{
 			if (this.IsEmpty()) return SettingPolicyDelegateResult.Empty;
 

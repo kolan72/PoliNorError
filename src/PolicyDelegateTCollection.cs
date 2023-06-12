@@ -143,7 +143,7 @@ namespace PoliNorError
 			return SettingPolicyDelegateResult.Success;
 		}
 
-		internal SettingPolicyDelegateResult SetCommonDelegate(Func<T> func)
+		internal SettingPolicyDelegateResult SetCommonDelegateInner(Func<T> func)
 		{
 			if (this.IsEmpty()) return SettingPolicyDelegateResult.Empty;
 
@@ -156,7 +156,7 @@ namespace PoliNorError
 			return SettingPolicyDelegateResult.Success;
 		}
 
-		internal SettingPolicyDelegateResult SetCommonDelegate(Func<CancellationToken, Task<T>> func)
+		internal SettingPolicyDelegateResult SetCommonDelegateInner(Func<CancellationToken, Task<T>> func)
 		{
 			if (this.IsEmpty()) return SettingPolicyDelegateResult.Empty;
 
@@ -245,16 +245,16 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> WithCommonDelegate(Func<CancellationToken, Task<T>> func)
+		public PolicyDelegateCollection<T> SetCommonDelegate(Func<CancellationToken, Task<T>> func)
 		{
-			var res = SetCommonDelegate(func);
+			var res = SetCommonDelegateInner(func);
 			if (res != SettingPolicyDelegateResult.Success) res.ThrowErrorByResult();
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> WithCommonDelegate(Func<T> func)
+		public PolicyDelegateCollection<T> SetCommonDelegate(Func<T> func)
 		{
-			var res = SetCommonDelegate(func);
+			var res = SetCommonDelegateInner(func);
 			if (res != SettingPolicyDelegateResult.Success) res.ThrowErrorByResult();
 			return this;
 		}

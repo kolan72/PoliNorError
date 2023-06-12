@@ -156,7 +156,7 @@ namespace PoliNorError.Tests
 			var polBuilder = PolicyDelegateCollection<int>.Create()
 				.WithRetry(1)
 				.WithFallback(() => 1)
-				.WithCommonDelegate(() => throw new ArgumentNullException(errParamName))
+				.SetCommonDelegate(() => throw new ArgumentNullException(errParamName))
 				.IncludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.HandleAllAsync();
 
@@ -197,7 +197,7 @@ namespace PoliNorError.Tests
 			var polBuilder = PolicyDelegateCollection<int>.Create()
 				.WithRetry(1)
 				.WithFallback(() => 1)
-				.WithCommonDelegate(() => throw new ArgumentNullException(errParamName))
+				.SetCommonDelegate(() => throw new ArgumentNullException(errParamName))
 				.ExcludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.HandleAllAsync();
 
@@ -206,7 +206,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_WithCommonDelegate_Work_ForSyncFunc()
+		public async Task Should_SetCommonDelegate_Work_ForSyncFunc()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.Create();
 			var pol = new RetryPolicy(2);
@@ -215,7 +215,7 @@ namespace PoliNorError.Tests
 
 			int actSave() { throw new Exception("Test"); }
 
-			policyDelegateCollection.WithCommonDelegate(actSave);
+			policyDelegateCollection.SetCommonDelegate(actSave);
 
 			var polHandleResults = await policyDelegateCollection.HandleAllAsync();
 
@@ -227,7 +227,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_WithCommonDelegate_Throws_When_PolicyWithDelegateExists_ForSyncFunc()
+		public void Should_SetCommonDelegate_Throws_When_PolicyWithDelegateExists_ForSyncFunc()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.Create();
 			var pol = new RetryPolicy(2);
@@ -236,20 +236,20 @@ namespace PoliNorError.Tests
 
 			policyDelegateCollection.WithRetry(1).AndDelegate(funSave).WithPolicy(pol);
 
-			Assert.Throws<InvalidOperationException>(() => policyDelegateCollection.WithCommonDelegate(funSave));
+			Assert.Throws<InvalidOperationException>(() => policyDelegateCollection.SetCommonDelegate(funSave));
 		}
 
 		[Test]
 		public void Should_ClearDelegates_Work()
 		{
-			var policyDelegateCollection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(2)).WithFallback(() => 1).WithCommonDelegate(async(_) => { await Task.Delay(1); throw new Exception(); });
+			var policyDelegateCollection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(2)).WithFallback(() => 1).SetCommonDelegate(async(_) => { await Task.Delay(1); throw new Exception(); });
 			Assert.IsFalse(policyDelegateCollection.Any(pd => !pd.DelegateExists));
 			policyDelegateCollection.ClearDelegates();
 			Assert.AreEqual(policyDelegateCollection.Count(), policyDelegateCollection.Count(pd => !pd.DelegateExists));
 		}
 
 		[Test]
-		public async Task Should_WithCommonDelegate_Work_ForFunc()
+		public async Task Should_SetCommonDelegate_Work_ForFunc()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.Create();
 			var pol = new RetryPolicy(2);
@@ -258,7 +258,7 @@ namespace PoliNorError.Tests
 
 			async Task<int> taskSave(CancellationToken _) { await Task.Delay(1); throw new Exception("Test"); }
 
-			policyDelegateCollection.WithCommonDelegate(taskSave);
+			policyDelegateCollection.SetCommonDelegate(taskSave);
 
 			var polHandleResults = await policyDelegateCollection.HandleAllAsync();
 
@@ -270,25 +270,25 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_WithCommonDelegate_Throws_When_PolicyWithDelegateExists_ForAsyncFunc()
+		public void Should_SetCommonDelegate_Throws_When_PolicyWithDelegateExists_ForAsyncFunc()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(2)).WithRetry(1);
 
 			async Task<int> taskSave(CancellationToken _) { await Task.Delay(1); throw new Exception("Test"); }
 
-			policyDelegateCollection.WithCommonDelegate(taskSave);
+			policyDelegateCollection.SetCommonDelegate(taskSave);
 
-			Assert.Throws<InvalidOperationException>(() => policyDelegateCollection.WithCommonDelegate(taskSave));
+			Assert.Throws<InvalidOperationException>(() => policyDelegateCollection.SetCommonDelegate(taskSave));
 		}
 
 		[Test]
-		public void Should_WithCommonDelegate_Set_Handler_For_Only_Elements_Have_Already_Been_Added()
+		public void Should_SetCommonDelegate_Set_Handler_For_Only_Elements_Have_Already_Been_Added()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(1)).WithRetry(1);
 			int i = 0;
 			async Task<int> funcCommon(CancellationToken _) { i++; await Task.Delay(1) ; throw new Exception("Test"); }
 
-			policyDelegateCollection.WithCommonDelegate(funcCommon);
+			policyDelegateCollection.SetCommonDelegate(funcCommon);
 			int m = 0;
 			policyDelegateCollection.WithRetry(1).AndDelegate(async (_) => { m++; await Task.Delay(1); throw new Exception("Test2"); });
 			policyDelegateCollection.HandleAll();
@@ -298,13 +298,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_AddPolicyDelegate_After_WithCommonDelegate_Work_ForAsyncFunc()
+		public void Should_AddPolicyDelegate_After_SetCommonDelegate_Work_ForAsyncFunc()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(1)).WithRetry(1);
 			int i = 0;
 			async Task<int> funcCommon(CancellationToken _) { i++; await Task.Delay(1); throw new Exception("Test"); }
 
-			policyDelegateCollection.WithCommonDelegate(funcCommon).WithRetry(1).AndDelegate(funcCommon);
+			policyDelegateCollection.SetCommonDelegate(funcCommon).WithRetry(1).AndDelegate(funcCommon);
 			policyDelegateCollection.HandleAll();
 			Assert.AreEqual(6, i);
 		}
@@ -378,7 +378,7 @@ namespace PoliNorError.Tests
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);
 			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 			void action(PolicyResult __, CancellationToken _) { i++; }
 			polDelegates.WithCommonResultHandler(action);
 			await polDelegates.HandleAllAsync();
@@ -390,7 +390,7 @@ namespace PoliNorError.Tests
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);
 			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 			void action(PolicyResult _)
 			{
 				i++;
@@ -406,7 +406,7 @@ namespace PoliNorError.Tests
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);
 			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
 			polDelegates.WithCommonResultHandler(async (__, _) => { i++; await Task.Delay(1);});
 			var res = await polDelegates.HandleAllAsync();
@@ -418,7 +418,7 @@ namespace PoliNorError.Tests
 		public async Task Should_Result_And_Status_Be_Correct_When_All_Policies_Failed()
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithRetry(1);
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
 			var res = await polDelegates.HandleAllAsync();
 			Assert.AreEqual(0, res.Result);
@@ -430,7 +430,7 @@ namespace PoliNorError.Tests
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback((_) => 1);
 			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
 			polDelegates.WithCommonResultHandler(async (_) => { i++; await Task.Delay(1);});
 			var res = await polDelegates.HandleAllAsync();
@@ -443,7 +443,7 @@ namespace PoliNorError.Tests
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithFallback(async () => { await Task.Delay(1); throw new Exception("Fallback error"); });
 			int i = 0;
-			polDelegates.WithCommonDelegate(() => throw new Exception("Test"));
+			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
 
 			polDelegates.WithCommonResultHandler(async (_) => { i++; await Task.Delay(1);});
 			await polDelegates.HandleAllAsync();
@@ -648,7 +648,7 @@ namespace PoliNorError.Tests
 			void actionError(Exception _) { i1++; }
 			var polDelCol = PolicyDelegateCollection<int>.Create();
 			var builder = polDelCol.WithRetry(1, InvokeParams.From(actionError)).WithRetry(1);
-			builder.WithCommonDelegate(() => throw new Exception("Test"));
+			builder.SetCommonDelegate(() => throw new Exception("Test"));
 			var res = builder.HandleAllAsync().GetAwaiter().GetResult();
 			Assert.AreEqual(2, res.Count());
 			Assert.AreEqual(1, i1);

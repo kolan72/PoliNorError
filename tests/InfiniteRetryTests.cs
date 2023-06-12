@@ -17,7 +17,7 @@ namespace PoliNorError.Tests
 		{
 			void func() { throw TestExceptionHolder.TestException; }
 
-			var collection = PolicyDelegateCollection.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
+			var collection = PolicyDelegateCollection.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).SetCommonDelegate(func);
 			var res = collection.HandleAll();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
 			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
@@ -31,7 +31,7 @@ namespace PoliNorError.Tests
 		public void Should_ForGeneric_NRetries_Infinite_Work(int numOfRetries, int nTimeInfinite)
 		{
 			int func() { throw TestExceptionHolder.TestException; }
-			var collection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
+			var collection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).SetCommonDelegate(func);
 			var res = collection.HandleAll();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
 			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
@@ -45,7 +45,7 @@ namespace PoliNorError.Tests
 		{
 			async Task func(CancellationToken _) { await Task.Delay(1); throw TestExceptionHolder.TestException; }
 
-			var collection = PolicyDelegateCollection.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
+			var collection = PolicyDelegateCollection.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).SetCommonDelegate(func);
 			var res = await  collection.HandleAllAsync();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
 			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
@@ -60,7 +60,7 @@ namespace PoliNorError.Tests
 		{
 			async Task<int> func(CancellationToken _) { await Task.Delay(1); throw TestExceptionHolder.TestException; }
 
-			var collection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).WithCommonDelegate(func);
+			var collection = PolicyDelegateCollection<int>.CreateFromPolicy(new RetryPolicy(numOfRetries, (opt) => opt.StartTryCount = int.MaxValue - 1), nTimeInfinite).SetCommonDelegate(func);
 			var res = await collection.HandleAllAsync();
 			Assert.IsTrue(res.Count() == nTimeInfinite);
 			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
