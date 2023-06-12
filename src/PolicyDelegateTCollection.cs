@@ -11,25 +11,33 @@ namespace PoliNorError
 	public sealed class PolicyDelegateCollection<T> : IEnumerable<PolicyDelegate<T>>
 	{
 		private readonly List<PolicyDelegate<T>> _syncInfos = new List<PolicyDelegate<T>>();
-
-		public static PolicyDelegateCollection<T> Create() => new PolicyDelegateCollection<T>();
-
 		private bool _terminated;
 		private IPolicyResultsToErrorConverter<T> _errorConverter;
 
-		private PolicyDelegateCollection(){}
-
-		public static PolicyDelegateCollection<T> FromPolicies(params IPolicyBase[] errorPolicies)
+		public static PolicyDelegateCollection<T> CreateFromPolicy(IPolicyBase pol, int n = 1)
 		{
-			if (errorPolicies.Length == 0)
+			var res = new PolicyDelegateCollection<T>();
+			for (int i = 0; i < n; i++)
 			{
-				return Create();
+				res.WithPolicy(pol);
 			}
-			return FromPolicies((IEnumerable<IPolicyBase>)errorPolicies);
+			return res;
 		}
 
-		public static PolicyDelegateCollection<T> FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
+		public static PolicyDelegateCollection<T> CreateFromPolicies(IEnumerable<IPolicyBase> errorPolicies) => FromPolicies(errorPolicies);
+
+		public static PolicyDelegateCollection<T> Create(params PolicyDelegate<T>[] errorPolicyInfos) => Create((IEnumerable<PolicyDelegate<T>>)errorPolicyInfos);
+
+		public static PolicyDelegateCollection<T> Create(IEnumerable<PolicyDelegate<T>> errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
+
+		private PolicyDelegateCollection(){}
+
+		private static PolicyDelegateCollection<T> FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
 		{
+			if (!errorPolicies.Any())
+			{
+				return new PolicyDelegateCollection<T>();
+			}
 			var res = new PolicyDelegateCollection<T>();
 			foreach (var errorPolicy in errorPolicies)
 			{
@@ -38,7 +46,7 @@ namespace PoliNorError
 			return res;
 		}
 
-		public static PolicyDelegateCollection<T> FromPolicyDelegates(IEnumerable<PolicyDelegate<T>> errorPolicyInfos)
+		private static PolicyDelegateCollection<T> FromPolicyDelegates(IEnumerable<PolicyDelegate<T>> errorPolicyInfos)
 		{
 			if (!errorPolicyInfos.AnyWithDelegate())
 			{
@@ -53,25 +61,6 @@ namespace PoliNorError
 			foreach (var errorPolicy in errorPolicyInfos)
 			{
 				res.WithPolicyDelegate(errorPolicy);
-			}
-			return res;
-		}
-
-		public static PolicyDelegateCollection<T> FromPolicyDelegates(params PolicyDelegate<T>[] errorPolicyInfos)
-		{
-			if (errorPolicyInfos.Length == 0)
-			{
-				return Create();
-			}
-			return FromPolicyDelegates((IEnumerable<PolicyDelegate<T>>)errorPolicyInfos);
-		}
-
-		public static PolicyDelegateCollection<T> FromOneClonedPolicy(IPolicyBase pol, int n)
-		{
-			var res = new PolicyDelegateCollection<T>();
-			for (int i = 0; i < n; i++)
-			{
-				res.WithPolicy(pol);
 			}
 			return res;
 		}

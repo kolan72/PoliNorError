@@ -11,25 +11,33 @@ namespace PoliNorError
 	public sealed class PolicyDelegateCollection : IEnumerable<PolicyDelegate>
 	{
 		private readonly List<PolicyDelegate> _syncInfos = new List<PolicyDelegate>();
-
-		public static PolicyDelegateCollection Create() => new PolicyDelegateCollection();
-
 		private bool _terminated;
 		private IPolicyResultsToErrorConverter _errorConverter;
 
-		private PolicyDelegateCollection(){}
-
-		public static PolicyDelegateCollection FromPolicies(params IPolicyBase[] errorPolicies)
+		public static PolicyDelegateCollection CreateFromPolicy(IPolicyBase pol, int n = 1)
 		{
-			if (errorPolicies.Length == 0)
+			var res = new PolicyDelegateCollection();
+			for (int i = 0; i < n; i++)
 			{
-				return Create();
+				res.WithPolicy(pol);
 			}
-			return FromPolicies((IEnumerable<IPolicyBase>)errorPolicies);
+			return res;
 		}
 
-		public static PolicyDelegateCollection FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
+		public static PolicyDelegateCollection CreateFromPolicies(IEnumerable<IPolicyBase> errorPolicies) => FromPolicies(errorPolicies);
+
+		public static PolicyDelegateCollection Create(params PolicyDelegate[] errorPolicyInfos) => Create((IEnumerable<PolicyDelegate>)errorPolicyInfos);
+
+		public static PolicyDelegateCollection Create(IEnumerable<PolicyDelegate> errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
+
+		private PolicyDelegateCollection() { }
+
+		private static PolicyDelegateCollection FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
 		{
+			if (!errorPolicies.Any())
+			{
+				return new PolicyDelegateCollection(); 
+			}
 			var res = new PolicyDelegateCollection();
 			foreach (var errorPolicy in errorPolicies)
 			{
@@ -38,7 +46,7 @@ namespace PoliNorError
 			return res;
 		}
 
-		public static PolicyDelegateCollection FromPolicyDelegates(IEnumerable<PolicyDelegate> errorPolicyInfos)
+		private static PolicyDelegateCollection FromPolicyDelegates(IEnumerable<PolicyDelegate> errorPolicyInfos)
 		{
 			if (!errorPolicyInfos.AnyWithDelegate())
 			{
@@ -53,25 +61,6 @@ namespace PoliNorError
 			foreach (var errorPolicy in errorPolicyInfos)
 			{
 				res.WithPolicyDelegate(errorPolicy);
-			}
-			return res;
-		}
-
-		public static PolicyDelegateCollection FromPolicyDelegates(params PolicyDelegate[] errorPolicyInfos)
-		{
-			if (errorPolicyInfos.Length == 0)
-			{
-				return Create();
-			}
-			return FromPolicyDelegates((IEnumerable<PolicyDelegate>)errorPolicyInfos);
-		}
-
-		public static PolicyDelegateCollection FromOneClonedPolicy(IPolicyBase pol, int n)
-		{
-			var res = new PolicyDelegateCollection();
-			for (int i = 0; i < n; i++)
-			{
-				res.WithPolicy(pol);
 			}
 			return res;
 		}
@@ -106,7 +95,7 @@ namespace PoliNorError
 			return WithPolicyDelegate(errorPolicy.ToPolicyDelegate());
 		}
 
-		public  Task<PolicyDelegateCollectionResult> HandleAllAsync(CancellationToken token = default) => HandleAllAsync(false, token);
+		public Task<PolicyDelegateCollectionResult> HandleAllAsync(CancellationToken token = default) => HandleAllAsync(false, token);
 
 		public async Task<PolicyDelegateCollectionResult> HandleAllAsync(bool configAwait, CancellationToken token)
 		{
