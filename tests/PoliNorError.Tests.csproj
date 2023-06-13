@@ -71,6 +71,7 @@
     <Compile Include="DelayTimeErrorProcessorTests.cs" />
     <Compile Include="DelegateExtensionsFallbackTests.cs" />
     <Compile Include="DelegateExtensionsRetryTests.cs" />
+    <Compile Include="DelegateExtensionsSimpleTests.cs" />
     <Compile Include="DelegateExtensionsTFallbackTests.cs" />
     <Compile Include="DelegateExtensionsTRetryTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />

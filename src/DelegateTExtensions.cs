@@ -62,5 +62,9 @@ namespace PoliNorError
 		public static Task<PolicyResult<T>> InvokeWithFallbackAsync<T>(this Func<CancellationToken, Task<T>> func, Func<CancellationToken, Task<T>> fallbackAsync, CancellationToken token = default) => InvokeWithFallbackAsync(func, fallbackAsync, null, token);
 		public static Task<PolicyResult<T>> InvokeWithFallbackAsync<T>(this Func<CancellationToken, Task<T>> func, Func<CancellationToken, Task<T>> fallbackAsync, InvokeParams policyParams, CancellationToken token = default) => InvokeWithFallbackAsync(func, fallbackAsync, policyParams, false, token);
 		public static Task<PolicyResult<T>> InvokeWithFallbackAsync<T>(this Func<CancellationToken, Task<T>> func, Func<CancellationToken, Task<T>> fallbackAsync, InvokeParams policyParams, bool configureAwait, CancellationToken token) => policyParams.ToFallbackPolicy(fallbackAsync).HandleAsync(func, configureAwait, token);
+
+		public static PolicyResult<T> InvokeWithSimple<T>(this Func<T> func, CancellationToken token = default) => InvokeWithSimple(func, null, token);
+		public static PolicyResult<T> InvokeWithSimple<T>(this Func<T> func, InvokeParams policyParams, CancellationToken token = default) => policyParams.ToSimplePolicy().Handle(func, token);
+
 	}
 }

@@ -154,44 +154,5 @@ namespace PoliNorError.Tests
 
             Assert.AreEqual(5, i);
         }
-
-        [Test]
-        public void Should_InvokeWithSimple_Work()
-        {
-            int i = 0;
-            Action action = () => { i++; throw new Exception(); };
-
-            action.InvokeWithSimple();
-
-            int i1 = 0;
-            void beforeFallbackError(Exception _)
-            {
-                i1++;
-            }
-
-            action.InvokeWithSimple(InvokeParams.From(beforeFallbackError));
-            Assert.AreEqual(1, i1);
-
-            int i2 = 0;
-            void beforeFallbackErrorWithError(Exception _, CancellationToken __)
-            {
-                i2++;
-            }
-
-            action.InvokeWithSimple(InvokeParams.From(beforeFallbackErrorWithError));
-            Assert.AreEqual(1, i2);
-
-            int i3 = 0;
-            Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-            action.InvokeWithSimple(InvokeParams.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
-            Assert.AreEqual(1, i3);
-
-            int i4 = 0;
-            Task beforeProcessErrorWithCancelAsync(Exception _, CancellationToken __) { i4++; return Task.CompletedTask; }
-            action.InvokeWithSimple(InvokeParams.From(beforeProcessErrorWithCancelAsync));
-            Assert.AreEqual(1, i4);
-
-            Assert.AreEqual(5, i);
-        }
     }
 }
