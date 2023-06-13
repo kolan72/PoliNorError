@@ -85,7 +85,6 @@ namespace PoliNorError
 			}
 		}
 
-
 		internal static PolicyDelegateHandleType GetHandleType(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
 			if (policyDelegateInfos.Any(si => si.UseSync == SyncPolicyDelegateType.Sync))

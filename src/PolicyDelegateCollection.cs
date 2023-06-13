@@ -36,7 +36,7 @@ namespace PoliNorError
 		{
 			if (!errorPolicies.Any())
 			{
-				return new PolicyDelegateCollection(); 
+				return new PolicyDelegateCollection();
 			}
 			var res = new PolicyDelegateCollection();
 			foreach (var errorPolicy in errorPolicies)
