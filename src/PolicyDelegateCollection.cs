@@ -120,7 +120,7 @@ namespace PoliNorError
 			return GetResultOrThrow(result.HandleResults, result.PolResult);
 		}
 
-		public void ClearDelegates()
+		internal void ClearDelegates()
 		{
 			if (this.IsEmpty()) return;
 			foreach (var polInfo in this)

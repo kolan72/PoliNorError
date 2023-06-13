@@ -169,7 +169,7 @@ namespace PoliNorError
 			return SettingPolicyDelegateResult.Success;
 		}
 
-		public void ClearDelegates()
+		internal void ClearDelegates()
 		{
 			if (this.IsEmpty()) return;
 			foreach (var polInfo in this)
