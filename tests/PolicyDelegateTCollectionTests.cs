@@ -464,6 +464,8 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection<int>.Create().WithPolicyDelegate(retrySI).WithPolicyDelegate(retrySI2);
 			var res = await policyDelegateCollection.HandleAllAsync();
 
+			Assert.AreEqual(2, policyDelegateCollection.Count());
+
 			Assert.AreEqual(0, res.PolicyDelegatesUnused.Count());
 		}
 
@@ -639,6 +641,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(null, res.FirstOrDefault().PolicyInfo.PolicyMethodInfo);
 
 			Assert.IsTrue(res.FirstOrDefault().Result.IsFailed);
+			Assert.AreEqual(2, builder.Policies.Count());
 		}
 
 		[Test]

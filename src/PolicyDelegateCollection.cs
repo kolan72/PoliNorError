@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class PolicyDelegateCollection : IEnumerable<PolicyDelegate>
+	public sealed class PolicyDelegateCollection : PolicyDelegateCollectionBase<PolicyDelegate>
 	{
-		private readonly List<PolicyDelegate> _syncInfos = new List<PolicyDelegate>();
-		private bool _terminated;
 		private IPolicyDelegateResultsToErrorConverter _errorConverter;
 
 		public static PolicyDelegateCollection CreateFromPolicy(IPolicyBase pol, int n = 1)
@@ -79,8 +77,7 @@ namespace PoliNorError
 
 		public PolicyDelegateCollection WithPolicyDelegate(PolicyDelegate errorPolicy)
 		{
-			this.ThrowIfInconsistency(errorPolicy);
-			_syncInfos.Add(errorPolicy);
+			AddPolicyDelegate(errorPolicy);
 			return this;
 		}
 
@@ -128,14 +125,6 @@ namespace PoliNorError
 				polInfo.ClearDelegate();
 			}
 		}
-
-		public PolicyDelegate LastPolicyDelegate => this.LastOrDefaultIfEmpty();
-
-		public IEnumerable<IPolicyBase> Policies => _syncInfos.GetPolicies();
-
-		public IEnumerator<PolicyDelegate> GetEnumerator() => _syncInfos.GetEnumerator();
-
-		public bool ThrowOnLastFailed => _terminated;
 
 		public PolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null)
 		{
@@ -256,7 +245,5 @@ namespace PoliNorError
 				}
 			}
 		}
-
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	}
 }

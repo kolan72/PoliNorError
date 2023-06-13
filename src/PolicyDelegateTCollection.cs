@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class PolicyDelegateCollection<T> : IEnumerable<PolicyDelegate<T>>
+	public sealed class PolicyDelegateCollection<T> : PolicyDelegateCollectionBase<PolicyDelegate<T>>
 	{
-		private readonly List<PolicyDelegate<T>> _syncInfos = new List<PolicyDelegate<T>>();
-		private bool _terminated;
 		private IPolicyDelegateResultsToErrorConverter<T> _errorConverter;
 
 		public static PolicyDelegateCollection<T> CreateFromPolicy(IPolicyBase pol, int n = 1)
@@ -103,13 +100,6 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy)
-		{
-			this.ThrowIfInconsistency(errorPolicy);
-			_syncInfos.Add(errorPolicy);
-			return this;
-		}
-
 		public PolicyDelegateCollection<T> WithPolicyAndDelegate(IPolicyBase errorPolicy, Func<CancellationToken, Task<T>> func) => WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
 
 		public PolicyDelegateCollection<T> WithPolicyAndDelegate(IPolicyBase errorPolicy, Func<T> func) => WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
@@ -121,7 +111,11 @@ namespace PoliNorError
 			return WithPolicyDelegate(errorPolicy.ToPolicyDelegate<T>());
 		}
 
-		public PolicyDelegate<T> LastPolicyDelegate => this.LastOrDefaultIfEmpty();
+		public PolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy)
+		{
+			AddPolicyDelegate(errorPolicy);
+			return this;
+		}
 
 		internal SettingPolicyDelegateResult SetLastPolicyDelegate(Func<T> execute)
 		{
@@ -177,11 +171,6 @@ namespace PoliNorError
 				polInfo.ClearDelegate();
 			}
 		}
-		public IEnumerable<IPolicyBase> Policies => _syncInfos.GetPolicies();
-
-		public IEnumerator<PolicyDelegate<T>> GetEnumerator() => _syncInfos.GetEnumerator();
-
-		public bool ThrowOnLastFailed => _terminated;
 
 		public PolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null)
 		{
@@ -189,8 +178,6 @@ namespace PoliNorError
 			_errorConverter = errorConverter ?? new PolicyDelegateResultsToErrorConverter<T>();
 			return this;
 		}
-
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 		internal PolicyDelegateCollectionResult<T> GetResultOrThrow(IEnumerable<PolicyDelegateResult<T>> handledResults, PolicyResult<T> polResult)
 		{
@@ -213,19 +200,19 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyDelegateCollection<T>  IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
+		public PolicyDelegateCollection<T> IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilter(func);
 			return this;
 		}
 
-		public  PolicyDelegateCollection<T> ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
+		public PolicyDelegateCollection<T> ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			this.AddExcludedErrorFilter(handledErrorFilter);
 			return this;
 		}
 
-		public  PolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
+		public PolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddExcludedErrorFilter(func);
 			return this;

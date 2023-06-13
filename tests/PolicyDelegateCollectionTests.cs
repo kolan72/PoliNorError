@@ -365,6 +365,7 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create().WithPolicyDelegate(retrySI).WithPolicyDelegate(retrySI2).WithPolicyDelegate(retrySI3);
 			var res = await policyDelegateCollection.HandleAllAsync();
 
+			Assert.AreEqual(3, policyDelegateCollection.Count());
 			Assert.AreEqual(0, res.PolicyDelegatesUnused.Count());
 		}
 
