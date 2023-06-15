@@ -33,7 +33,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(res.IsFailed);
 			Assert.IsFalse(res.IsCanceled);
 			Assert.IsFalse(res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 			// Method intentionally left empty.
 		}
 
@@ -47,7 +47,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsFailed);
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -62,7 +62,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsFailed);
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -76,7 +76,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsFailed);
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -153,7 +153,7 @@ namespace PoliNorError.Tests
 			var polResult = await retryPol.HandleAsync(func, cancelTokenSource.Token);
 			Assert.IsTrue(polResult.IsCanceled);
 			Assert.IsFalse(polResult.IsSuccess);
-			Assert.IsFalse(polResult.IsOk);
+			Assert.IsFalse(polResult.NoError);
 			cancelTokenSource.Dispose();
 		}
 

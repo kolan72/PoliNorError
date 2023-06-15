@@ -21,7 +21,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polResult.IsFailed);
 			Assert.IsFalse(polResult.IsCanceled);
 			Assert.IsFalse(polResult.Errors.Any());
-			Assert.IsTrue(polResult.IsOk);
+			Assert.IsTrue(polResult.NoError);
 		}
 
 		[Test]
@@ -60,7 +60,7 @@ namespace PoliNorError.Tests
 			var res = policy.Handle(() => { }, cancelTokenSource.Token);
 
 			Assert.IsTrue(res.IsCanceled);
-			Assert.IsFalse(res.IsOk);
+			Assert.IsFalse(res.NoError);
 			cancelTokenSource.Dispose();
 		}
 
@@ -254,7 +254,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polResult.IsFailed);
 			Assert.IsFalse(polResult.IsCanceled);
 			Assert.IsFalse(polResult.Errors.Any());
-			Assert.IsTrue(polResult.IsOk);
+			Assert.IsTrue(polResult.NoError);
 		}
 
 		[Test]
@@ -391,7 +391,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polResult.IsFailed);
 			Assert.IsFalse(polResult.IsCanceled);
 			Assert.IsFalse(polResult.Errors.Any());
-			Assert.IsTrue(polResult.IsOk);
+			Assert.IsTrue(polResult.NoError);
 			Assert.AreEqual(4, polResult.Result);
 		}
 

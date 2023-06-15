@@ -64,7 +64,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FallbackT_Returns_SuccessValue_If_NotError()
+		public void Should_FallbackT_Returns_SuccessValue_If_NoError()
 		{
 			var processor = new DefaultFallbackProcessor();
 
@@ -76,7 +76,7 @@ namespace PoliNorError.Tests
 
 			Assert.AreEqual(1, res.Result);
 			Assert.IsFalse(res.IsFailed);
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]

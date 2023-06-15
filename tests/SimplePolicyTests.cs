@@ -11,7 +11,7 @@ namespace PoliNorError.Tests
 	internal class SimplePolicyTests
 	{
 		[Test]
-		public void Should_Handle_Work_When_Ok()
+		public void Should_Handle_Work_When_NoError()
 		{
 			var simple = new SimplePolicy();
 			void action() => Expression.Empty();
@@ -20,7 +20,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(res.IsFailed);
 			Assert.IsFalse(res.IsCanceled);
 			Assert.IsFalse(res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -77,7 +77,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_HandleT_Work_When_Ok()
+		public void Should_HandleT_Work_When_NoError()
 		{
 			var simple = new SimplePolicy();
 			int func() => 4;
@@ -86,7 +86,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(res.IsFailed);
 			Assert.IsFalse(res.IsCanceled);
 			Assert.IsFalse(res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 			Assert.AreEqual(4, res.Result);
 		}
 
@@ -130,7 +130,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleAsync_Work_When_Ok()
+		public async Task Should_HandleAsync_Work_When_NoError()
 		{
 			var simple = new SimplePolicy();
 			async Task action(CancellationToken _) { await Task.Delay(1); }
@@ -139,7 +139,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsFailed);
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -183,7 +183,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleAsyncT_Work_When_Ok()
+		public async Task Should_HandleAsyncT_Work_When_NoError()
 		{
 			var simple = new SimplePolicy();
 			async Task<int> action(CancellationToken _) { await Task.Delay(1); return 4; }
@@ -193,7 +193,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsFailed);
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 			Assert.AreEqual(4, res.Result);
 		}
 

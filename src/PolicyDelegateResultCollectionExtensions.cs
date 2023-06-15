@@ -63,7 +63,7 @@ namespace PoliNorError
 
 				return res;
 			}
-			else if (lastHandledResult.Result.IsOk)
+			else if (lastHandledResult.Result.NoError)
 			{
 				return PolicyDelegateCollectionResultStatus.LastPolicyOk;
 			}

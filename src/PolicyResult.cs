@@ -36,7 +36,7 @@ namespace PoliNorError
 
 		public bool IsCanceled { get; protected set; }
 
-		public bool IsOk { get; protected set; }
+		public bool NoError { get; protected set; }
 
 		public bool IsFailed { get; protected set; }
 
@@ -80,7 +80,7 @@ namespace PoliNorError
 
 		internal void SetOk()
 		{
-			IsOk = true;
+			NoError = true;
 		}
 
 		internal void SetFailedAndCanceled()

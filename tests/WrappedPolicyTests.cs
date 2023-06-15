@@ -494,7 +494,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(10, i);
 			Assert.IsFalse(polResult.IsFailed);
 			Assert.IsTrue(polResult.IsSuccess);
-			Assert.IsFalse(polResult.IsOk);
+			Assert.IsFalse(polResult.NoError);
 			Assert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
 		}
 

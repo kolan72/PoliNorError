@@ -56,12 +56,12 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_HandleResultError_NotAffect_IsOk()
+		public void Should_HandleResultError_NotAffect_NoError()
 		{
 			void action(PolicyResult _) { throw new Exception(); }
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler(action);
 			var res = retryPolicy.Handle(() => { });
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
 		}
 

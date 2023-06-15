@@ -32,7 +32,7 @@ namespace PoliNorError.Tests
 			void save() => Expression.Empty();
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = retryPolTest.Execute(save);
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -59,7 +59,7 @@ namespace PoliNorError.Tests
 			int save() => 1;
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = retryPolTest.Execute(save);
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 			Assert.AreEqual(1, res.Result);
 		}
 
@@ -86,7 +86,7 @@ namespace PoliNorError.Tests
 			async Task saveAsync(CancellationToken _) => await Task.Delay(1);
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = await retryPolTest.ExecuteAsync(saveAsync);
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -112,7 +112,7 @@ namespace PoliNorError.Tests
 			async Task<int> saveAsync(CancellationToken _) { await Task.Delay(1); return 1; }
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = await retryPolTest.ExecuteAsync(saveAsync);
-			Assert.IsTrue(res.IsOk);
+			Assert.IsTrue(res.NoError);
 			Assert.AreEqual(1, res.Result);
 		}
 
