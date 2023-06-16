@@ -10,9 +10,6 @@ namespace PoliNorError
 {
 	public abstract class PolicyProcessor : IPolicyProcessor
 	{
-		private readonly List<Expression<Func<Exception, bool>>> _includedErrorFilters = new List<Expression<Func<Exception, bool>>>();
-		private readonly List<Expression<Func<Exception, bool>>> _excludedErrorFilters = new List<Expression<Func<Exception, bool>>>();
-
 		protected IBulkErrorProcessor _bulkErrorProcessor;
 
 		protected PolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null)
@@ -25,19 +22,11 @@ namespace PoliNorError
 			_bulkErrorProcessor.AddProcessor(newErrorProcessor);
 		}
 
-		public void AddIncludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
-		{
-			_includedErrorFilters.Add(handledErrorFilter);
-		}
+		public IEnumerable<Expression<Func<Exception, bool>>> IncludedErrorFilters => ErrorFilter.IncludedErrorFilters;
 
-		public void AddExcludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
-		{
-			_excludedErrorFilters.Add(handledErrorFilter);
-		}
+		public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => ErrorFilter.ExcludedErrorFilters;
 
-		public IEnumerable<Expression<Func<Exception, bool>>> IncludedErrorFilters => _includedErrorFilters;
-
-		public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => _excludedErrorFilters;
+		public ExceptionFilter ErrorFilter { get; } = new ExceptionFilter();
 
 		protected void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo, CancellationToken token)
 		{
@@ -97,56 +86,38 @@ namespace PoliNorError
 
 		protected Func<Exception, bool> GetCanHandle()
 		{
-			return CanHandleHolder.Create(_includedErrorFilters, _excludedErrorFilters).GetCanHandle();
+			return ErrorFilter.GetCanHandle();
 		}
 
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public sealed class CanHandleHolder
+		public sealed class ExceptionFilter
 		{
-			private readonly IEnumerable<Expression<Func<Exception, bool>>> _includedErrorFilters;
-			private readonly IEnumerable<Expression<Func<Exception, bool>>> _excludedErrorFilters;
+			private readonly List<Expression<Func<Exception, bool>>> _includedErrorFilters = new List<Expression<Func<Exception, bool>>>();
+			private readonly List<Expression<Func<Exception, bool>>> _excludedErrorFilters = new List<Expression<Func<Exception, bool>>>();
 
-			private CanHandleHolder(IEnumerable<Expression<Func<Exception, bool>>> includedErrorFilters, IEnumerable<Expression<Func<Exception, bool>>> excludedErrorFilters)
+			internal void AddIncludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
 			{
-				_includedErrorFilters = includedErrorFilters;
-				_excludedErrorFilters = excludedErrorFilters;
+				_includedErrorFilters.Add(handledErrorFilter);
 			}
 
-			public static CanHandleHolder Create(IEnumerable<Expression<Func<Exception, bool>>> includedErrorFilters = null, IEnumerable<Expression<Func<Exception, bool>>> excludedErrorFilters = null)
+			internal void AddExcludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
 			{
-				if (!(includedErrorFilters == null ^ excludedErrorFilters == null))
-				{
-					return new CanHandleHolder(includedErrorFilters, excludedErrorFilters);
-				}
-				else if (includedErrorFilters != null)
-				{
-					return FromIncludedErrorFilters(includedErrorFilters);
-				}
-				else
-				{
-					return FromExcludedErrorFilters(excludedErrorFilters);
-				}
+				_excludedErrorFilters.Add(handledErrorFilter);
 			}
 
-			public static CanHandleHolder FromIncludedErrorFilters(IEnumerable<Expression<Func<Exception, bool>>> includedErrorFilters)
-			{
-				return new CanHandleHolder(includedErrorFilters, null);
-			}
-
-			public static CanHandleHolder FromExcludedErrorFilters(IEnumerable<Expression<Func<Exception, bool>>> excludedErrorFilters)
-			{
-				return new CanHandleHolder(null, excludedErrorFilters);
-			}
-
-			public Func<Exception, bool> GetCanHandle()
+			internal Func<Exception, bool> GetCanHandle()
 			{
 				var includedFilterPredicate = GetIncludedErrorFilterPredicate();
 				var excludedFilterPredicate = GetExcludedErrorFilterPredicate();
 				bool res(Exception e) => includedFilterPredicate(e) && !excludedFilterPredicate(e);
 				return res;
 			}
+
+			public IEnumerable<Expression<Func<Exception, bool>>> IncludedErrorFilters => _includedErrorFilters;
+
+			public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => _excludedErrorFilters;
 
 			private Func<Exception, bool> GetIncludedErrorFilterPredicate()
 			{

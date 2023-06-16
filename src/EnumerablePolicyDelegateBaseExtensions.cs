@@ -108,7 +108,7 @@ namespace PoliNorError
 		{
 			foreach (var polInfo in policyDelegateInfos)
 			{
-				polInfo.Policy.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter);
+				polInfo.Policy.PolicyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);
 			}
 		}
 
@@ -124,7 +124,7 @@ namespace PoliNorError
 		{
 			foreach (var polInfo in policyDelegateInfos)
 			{
-				polInfo.Policy.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
+				polInfo.Policy.PolicyProcessor.ErrorFilter.AddExcludedErrorFilter(handledErrorFilter);
 			}
 		}
 

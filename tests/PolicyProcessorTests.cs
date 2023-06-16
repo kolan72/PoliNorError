@@ -1,53 +1,38 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+using System.Linq;
 
 namespace PoliNorError.Tests
 {
-	internal class PolicyProcessorTests
+	internal class ExceptionFilterTests
 	{
 		[Test]
-		public void Should_CanRetryHolder_CanRetry_Be_True_When_IncludeAndExcludeAreEmpty()
+		public void Should_ExceptionFilter_Work_For_NoFilter()
 		{
-			var canRetryMock = PolicyProcessor.CanHandleHolder.Create(Array.Empty<Expression<Func<Exception, bool>>>(), Array.Empty<Expression<Func<Exception, bool>>>());
-			Assert.AreEqual(true, canRetryMock.GetCanHandle()(new Exception()));
+			var errorFiltter = new PolicyProcessor.ExceptionFilter();
+			Assert.AreEqual(true, errorFiltter.GetCanHandle()(new Exception()));
 		}
 
 		[Test]
-		public void Should_CanRetryHolder_CanRetry_Be_True_When_IncludeAndExcludeAreNull()
+		public void Should_ExceptionFilter_Work_For_IncludeFilter()
 		{
-			var canRetryMock = PolicyProcessor.CanHandleHolder.Create();
-			Assert.AreEqual(true, canRetryMock.GetCanHandle()(new Exception()));
+			var errorFiltter = new PolicyProcessor.ExceptionFilter();
+			errorFiltter.AddIncludedErrorFilter((ex) => ex.GetType().Equals(typeof(ArgumentNullException)));
+			Assert.AreEqual(1, errorFiltter.IncludedErrorFilters.Count());
+
+			Assert.AreEqual(true, errorFiltter.GetCanHandle()(new ArgumentNullException("Test", (Exception)null)));
+			Assert.AreEqual(false, errorFiltter.GetCanHandle()(new Exception("Test")));
 		}
 
 		[Test]
-		public void Should_CanRetryHolder_CanRetry_Be_False_If_Error_Satisfy_IncludeAndExclude_Filter()
+		public void Should_ExceptionFilter_Work_For_ExcludeFilter()
 		{
-			var includedFilter = new List<Expression<Func<Exception, bool>>>() { (ex)  =>ex.GetType().Equals(typeof(ArgumentNullException))};
+			var errorFiltter = new PolicyProcessor.ExceptionFilter();
+			errorFiltter.AddExcludedErrorFilter((ex) => ex.Message == "Test");
+			Assert.AreEqual(1, errorFiltter.ExcludedErrorFilters.Count());
 
-			var excludedFilter = new List<Expression<Func<Exception, bool>>>() { (ex) => ex.Message == "Test"};
-
-			var canRetryMock = PolicyProcessor.CanHandleHolder.Create(includedFilter, excludedFilter);
-			Assert.AreEqual(false, canRetryMock.GetCanHandle()(new ArgumentNullException("Test", (Exception)null)));
-		}
-
-		[Test]
-		public void Should_CanRetryHolder_CanRetry_Be_False_If_Error_Satisfy_OnlyExclude_Filter()
-		{
-			var excludedFilter = new List<Expression<Func<Exception, bool>>>() { (ex) => ex.Message == "Test" };
-
-			var canRetryMock = PolicyProcessor.CanHandleHolder.Create(null, excludedFilter);
-			Assert.AreEqual(false, canRetryMock.GetCanHandle()(new ArgumentNullException("Test", (Exception)null)));
-		}
-
-		[Test]
-		public void Should_CanRetryHolder_CanRetry_Be_True_If_Error_Satisfy_OnlyInclude_Filter()
-		{
-			var includedFilter = new List<Expression<Func<Exception, bool>>>() { (ex) => ex.GetType().Equals(typeof(ArgumentNullException))};
-
-			var canRetryMock = PolicyProcessor.CanHandleHolder.Create(includedFilter, null);
-			Assert.AreEqual(true, canRetryMock.GetCanHandle()(new ArgumentNullException("Test", (Exception)null)));
+			Assert.AreEqual(false, errorFiltter.GetCanHandle()(new Exception("Test")));
+			Assert.AreEqual(true, errorFiltter.GetCanHandle()(new Exception("Test2")));
 		}
 	}
 }
