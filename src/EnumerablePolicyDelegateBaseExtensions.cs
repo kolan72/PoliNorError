@@ -106,34 +106,22 @@ namespace PoliNorError
 
 		internal static void AddIncludedErrorFilter(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				polInfo.Policy.PolicyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).AddIncludedErrorFilter(handledErrorFilter);
 		}
 
 		internal static void AddIncludedErrorFilter<TException>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<TException, bool> func = null) where TException : Exception
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				polInfo.Policy.PolicyProcessor.AddIncludedErrorFilter(func);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).AddIncludedErrorFilter(func);
 		}
 
 		internal static void AddExcludedErrorFilter(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				polInfo.Policy.PolicyProcessor.ErrorFilter.AddExcludedErrorFilter(handledErrorFilter);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilter(handledErrorFilter);
 		}
 
 		internal static void AddExcludedErrorFilter<TException>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<TException, bool> func = null) where TException : Exception
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				polInfo.Policy.PolicyProcessor.AddExcludedErrorFilter(func);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilter(func);
 		}
 
 		internal static void ThrowIfInconsistency(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, PolicyDelegateBase newDelegateInfo)
