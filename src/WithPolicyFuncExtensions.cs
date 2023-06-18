@@ -41,9 +41,9 @@ namespace PoliNorError
 			return func(policyParams.ToFallbackPolicy(fallback));
 		}
 
-		public static T WithFallback<T>(this Func<IPolicyBase, T> func, Action fallback, InvokeParams policyParams = null)
+		public static T WithFallback<T>(this Func<IPolicyBase, T> func, Action fallback, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return func(policyParams.ToFallbackPolicy(fallback));
+			return func(policyParams.ToFallbackPolicy(fallback, convertType));
 		}
 
 		public static T WithFallback<T>(this Func<IPolicyBase, T> func, Func<CancellationToken, Task> fallbackAsync, InvokeParams policyParams = null)

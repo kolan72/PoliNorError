@@ -41,9 +41,9 @@ namespace PoliNorError
 			return policyDelegateCollection.ToWithPolicyFunc().WithFallback(fallback, policyParams);
 		}
 
-		public static PolicyDelegateCollection WithFallback(this PolicyDelegateCollection policyDelegateCollection, Action fallback, InvokeParams policyParams = null)
+		public static PolicyDelegateCollection WithFallback(this PolicyDelegateCollection policyDelegateCollection, Action fallback, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return policyDelegateCollection.ToWithPolicyFunc().WithFallback(fallback, policyParams);
+			return policyDelegateCollection.ToWithPolicyFunc().WithFallback(fallback, policyParams, convertType);
 		}
 
 		public static PolicyDelegateCollection WithFallback(this PolicyDelegateCollection policyDelegateCollection, Func<CancellationToken, Task> fallbackAsync, InvokeParams policyParams = null)
