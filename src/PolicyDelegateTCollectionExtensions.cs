@@ -60,10 +60,5 @@ namespace PoliNorError
 		{
 			return policyDelegateCollection.ToWithPolicyFunc().WithSimple(policyParams);
 		}
-
-		internal static Func<IPolicyBase, PolicyDelegateCollection<T>> ToWithPolicyFunc<T>(this PolicyDelegateCollection<T> policyDelegateCollection)
-		{
-			return policyDelegateCollection.WithPolicy;
-		}
 	}
 }

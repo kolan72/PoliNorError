@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class PolicyDelegateCollection<T> : PolicyDelegateCollectionBase<PolicyDelegate<T>>
+	public sealed class PolicyDelegateCollection<T> : PolicyDelegateCollectionBase<PolicyDelegate<T>>, IWithPolicy<PolicyDelegateCollection<T>>
 	{
 		private IPolicyDelegateResultsToErrorConverter<T> _errorConverter;
 
@@ -109,6 +109,11 @@ namespace PoliNorError
 		public PolicyDelegateCollection<T> WithPolicy(IPolicyBase errorPolicy)
 		{
 			return WithPolicyDelegate(errorPolicy.ToPolicyDelegate<T>());
+		}
+
+		PolicyDelegateCollection<T> IWithPolicy<PolicyDelegateCollection<T>>.WithPolicy(IPolicyBase policyBase)
+		{
+			return WithPolicy(policyBase);
 		}
 
 		public PolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy)
