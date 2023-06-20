@@ -6,79 +6,79 @@ namespace PoliNorError
 {
 	internal static class WithPolicyFuncExtensions
 	{
-		public static T WithRetry<T>(this Func<IPolicyBase, T> func, int retryCount, InvokeParams policyParams = null)
+		public static T WithRetryInner<T>(this T t, int retryCount, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToRetryPolicy(retryCount));
+			return t.ToWithPolicyFunc()(policyParams.ToRetryPolicy(retryCount));
 		}
 
-		public static T WithRetry<T>(this Func<IPolicyBase, T> func, int retryCount, TimeSpan delay, InvokeParams policyParams = null)
+		public static T WithRetryInner<T>(this T t, int retryCount, TimeSpan delay, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delay));
+			return t.ToWithPolicyFunc()(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delay));
 		}
 
-		public static T WithRetry<T>(this Func<IPolicyBase, T> func, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null)
+		public static T WithRetryInner<T>(this T t, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delayOnRetryFunc));
+			return t.ToWithPolicyFunc()(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delayOnRetryFunc));
 		}
 
-		public static T WithRetry<T>(this Func<IPolicyBase, T> func, InvokeParams policyParams = null)
+		public static T WithRetryInner<T>(this T t, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToInfiniteRetryPolicy());
+			return t.ToWithPolicyFunc()(policyParams.ToInfiniteRetryPolicy());
 		}
 
-		public static T WithRetry<T>(this Func<IPolicyBase, T> func, TimeSpan delay, InvokeParams policyParams = null)
+		public static T WithRetryInner<T>(this T t, TimeSpan delay, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delay));
+			return t.ToWithPolicyFunc()(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delay));
 		}
 
-		public static T WithRetry<T>(this Func<IPolicyBase, T> func, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null)
+		public static T WithRetryInner<T>(this T t, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc));
+			return t.ToWithPolicyFunc()(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc));
 		}
 
-		public static T WithFallback<T>(this Func<IPolicyBase, T> func, Action<CancellationToken> fallback, InvokeParams policyParams = null)
+		public static T WithFallbackInner<T>(this T t, Action<CancellationToken> fallback, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallback));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallback));
 		}
 
-		public static T WithFallback<T>(this Func<IPolicyBase, T> func, Action fallback, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static T WithFallbackInner<T>(this T t, Action fallback, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallback, convertType));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallback, convertType));
 		}
 
-		public static T WithFallback<T>(this Func<IPolicyBase, T> func, Func<CancellationToken, Task> fallbackAsync, InvokeParams policyParams = null)
+		public static T WithFallbackInner<T>(this T t, Func<Task> fallbackAsync, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallbackAsync));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
 		}
 
-		public static T WithFallback<T>(this Func<IPolicyBase, T> func, Func<Task> fallbackAsync, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static T WithFallbackInner<T>(this T t, Func<CancellationToken, Task> fallbackAsync, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallbackAsync));
 		}
 
-		public static T WithFallback<T, U>(this Func<IPolicyBase, T> func, Func<CancellationToken, U> fallbackAsync, InvokeParams policyParams = null)
+		public static T WithFallbackInner<T, U>(this T t, Func<CancellationToken, U> fallbackAsync, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallbackAsync));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallbackAsync));
 		}
 
-		public static T WithFallback<T, U>(this Func<IPolicyBase, T> func, Func<U> fallbackAsync, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static T WithFallbackInner<T, U>(this T t, Func<U> fallbackAsync, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
 		}
 
-		public static T WithFallback<T, U>(this Func<IPolicyBase, T> func, Func<CancellationToken, Task<U>> fallbackAsync, InvokeParams policyParams = null)
+		public static T WithFallbackInner<T, U>(this T t, Func<CancellationToken, Task<U>> fallbackAsync, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallbackAsync));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallbackAsync));
 		}
 
-		public static T WithFallback<T, U>(this Func<IPolicyBase, T> func, Func<Task<U>> fallbackAsync, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static T WithFallbackInner<T, U>(this T t, Func<Task<U>> fallbackAsync, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
+			return t.ToWithPolicyFunc()(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
 		}
 
-		public static T WithSimple<T>(this Func<IPolicyBase, T> func, InvokeParams policyParams = null)
+		public static T WithSimpleInner<T>(this T t, InvokeParams policyParams = null) where T : IWithPolicy<T>
 		{
-			return func(policyParams.ToSimplePolicy());
+			return t.ToWithPolicyFunc()(policyParams.ToSimplePolicy());
 		}
 	}
 }
