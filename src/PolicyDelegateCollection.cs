@@ -87,14 +87,9 @@ namespace PoliNorError
 
 		public PolicyDelegateCollection WithPolicy(Func<IPolicyBase> func) => WithPolicy(func());
 
-		public PolicyDelegateCollection WithPolicy(IPolicyBase errorPolicy)
+		public PolicyDelegateCollection WithPolicy(IPolicyBase policyBase)
 		{
-			return WithPolicyDelegate(errorPolicy.ToPolicyDelegate());
-		}
-
-		PolicyDelegateCollection IWithPolicy<PolicyDelegateCollection>.WithPolicy(IPolicyBase policyBase)
-		{
-			return WithPolicy(policyBase);
+			return WithPolicyDelegate(policyBase.ToPolicyDelegate());
 		}
 
 		public Task<PolicyDelegateCollectionResult> HandleAllAsync(CancellationToken token = default) => HandleAllAsync(false, token);
