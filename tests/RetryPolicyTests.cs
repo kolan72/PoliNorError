@@ -427,6 +427,21 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(polName, retryPol.PolicyName);
 		}
 
+		[Test]
+		public void Should_RetryInfo_Be_Correct_ForAnySetup()
+		{
+			var retryPol1 = new RetryPolicy(1);
+			Assert.IsFalse(retryPol1.RetryInfo.IsInfinite);
+			Assert.AreEqual(1, retryPol1.RetryInfo.RetryCount);
+
+			var retryPol0 = new RetryPolicy(0);
+			Assert.IsFalse(retryPol0.RetryInfo.IsInfinite);
+			Assert.AreEqual(1, retryPol0.RetryInfo.RetryCount);
+
+			var retryPolInfinite = RetryPolicy.InfiniteRetries();
+			Assert.IsTrue(retryPolInfinite.RetryInfo.IsInfinite);
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
