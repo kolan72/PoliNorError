@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -24,7 +23,7 @@ namespace PoliNorError
 
 		public static PolicyDelegateCollection CreateFromPolicies(IEnumerable<IPolicyBase> errorPolicies) => FromPolicies(errorPolicies);
 
-		public static PolicyDelegateCollection Create(params PolicyDelegate[] errorPolicyInfos) => Create((IEnumerable<PolicyDelegate>)errorPolicyInfos);
+		public static PolicyDelegateCollection Create(params PolicyDelegate[] errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
 
 		public static PolicyDelegateCollection Create(IEnumerable<PolicyDelegate> errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
 
