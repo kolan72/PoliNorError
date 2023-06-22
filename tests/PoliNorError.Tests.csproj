@@ -82,6 +82,7 @@
     <Compile Include="HandleErrorPolicyBaseTests.cs" />
     <Compile Include="InfiniteRetryTests.cs" />
     <Compile Include="IPolicyBaseExtensionsTests.cs" />
+    <Compile Include="PolicyCollectionTests.cs" />
     <Compile Include="PolicyDelegateCollectionTests.cs" />
     <Compile Include="PolicyDelegateTCollectionTests.cs" />
     <Compile Include="PolicyProcessorHandleCanceledTests.cs" />

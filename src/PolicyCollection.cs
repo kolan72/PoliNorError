@@ -2,13 +2,32 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace PoliNorError
 {
 	internal class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>
 	{
 		protected readonly List<IPolicyBase> _policies = new List<IPolicyBase>();
+
+		/// <summary>
+		/// Creates a collection from a single policy, which will be added n times.
+		/// </summary>
+		/// <param name="policy">The policy that will be added</param>
+		/// <param name="n">The number of times</param>
+		/// <returns></returns>
+		public static PolicyCollection Create(IPolicyBase policy, int n = 1)
+		{
+			var res = new PolicyCollection();
+			for (int i = 0; i < n; i++)
+			{
+				res.WithPolicy(policy);
+			}
+			return res;
+		}
+
+		public static PolicyCollection Create(params IPolicyBase[] policies) => FromPolicies(policies);
+
+		public static PolicyCollection Create(IEnumerable<IPolicyBase> errorPolicies) => FromPolicies(errorPolicies);
 
 		public PolicyCollection WithPolicy(Func<IPolicyBase> func) => WithPolicy(func());
 
@@ -40,6 +59,16 @@ namespace PoliNorError
 		{
 			this.AddExcludedErrorFilter(handledErrorFilter);
 			return this;
+		}
+
+		private static PolicyCollection FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
+		{
+			var res = new PolicyCollection();
+			foreach (var errorPolicy in errorPolicies)
+			{
+				res.WithPolicy(errorPolicy);
+			}
+			return res;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
