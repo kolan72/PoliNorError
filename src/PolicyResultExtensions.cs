@@ -18,7 +18,7 @@ namespace PoliNorError
 			switch (canHandleResult)
 			{
 				case HandleCatchBlockResult.FailedByPolicyRules:
-					policyResult.SetFailed();
+					policyResult.SetFailedInner();
 					break;
 				case HandleCatchBlockResult.FailedByErrorFilter:
 					policyResult.SetFailedAndFilterUnsatisfied();
@@ -34,23 +34,17 @@ namespace PoliNorError
 			return prevResult != null && (prevResult.IsCanceled || !prevResult.IsFailed);
 		}
 
-		internal static PolicyResult SetFailedWithError(this PolicyResult retryResult, Exception exception)
+		internal static T SetFailedWithError<T>(this T retryResult, Exception exception, PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyHandleGuardsFailed) where T : PolicyResult
 		{
 			retryResult.AddError(exception);
-			retryResult.SetFailed();
-			return retryResult;
-		}
-
-		internal static PolicyResult<T> SetFailedWithError<T>(this PolicyResult<T> retryResult, Exception exception)
-		{
-			((PolicyResult)retryResult).SetFailedWithError(exception);
+			retryResult.SetFailedInner(failedReason);
 			return retryResult;
 		}
 
 		internal static void SetFailedWithCatchBlockError(this PolicyResult result, Exception processException, Exception handlingException, bool isCritical = false)
 		{
 			result.AddCatchBlockError(new CatchBlockException(processException, handlingException, isCritical));
-			result.SetFailed();
+			result.SetFailedInner();
 		}
 
 		internal async static Task<PolicyResult> HandleResultMisc(this PolicyResult policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, bool configureAwait, CancellationToken token)

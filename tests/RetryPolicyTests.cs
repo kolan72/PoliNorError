@@ -208,6 +208,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new RetryPolicy(0);
 			var retryResult = retryPolTest.Handle(null);
 			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -217,6 +218,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new RetryPolicy(0);
 			var retryResult = await retryPolTest.HandleAsync(null);
 			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -226,6 +228,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new RetryPolicy(0);
 			var retryResult = retryPolTest.Handle<int>(null);
 			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -235,6 +238,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new RetryPolicy(0);
 			var retryResult = await retryPolTest.HandleAsync<int>(null);
 			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -399,7 +403,7 @@ namespace PoliNorError.Tests
 		{
 			void saveAsync() => throw new Exception();
 			void errorProcessorFunc(Exception ex) => throw ex;
-			var retryPolTest = new RetryPolicy(1, (pr, _) => pr.SetFailed()).WithErrorProcessorOf(errorProcessorFunc).ToPolicyDelegate(saveAsync);
+			var retryPolTest = new RetryPolicy(1, (pr, _) => pr.SetFailedInner()).WithErrorProcessorOf(errorProcessorFunc).ToPolicyDelegate(saveAsync);
 			var res = retryPolTest.Handle();
 			Assert.IsTrue(res.IsFailed);
 			Assert.IsTrue(!res.CatchBlockErrors.Any());

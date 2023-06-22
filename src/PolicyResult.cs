@@ -17,6 +17,7 @@ namespace PoliNorError
 		{
 			Async = forAsync;
 			_errors = new FlexSyncEnumerable<Exception>(forAsync);
+			FailedReason = PolicyResultFailedReason.None;
 			_catchBlockErrors = new FlexSyncEnumerable<CatchBlockException>(forAsync);
 			_handleResultErrors = new FlexSyncEnumerable<HandlePolicyResultException>(forAsync);
 		}
@@ -29,7 +30,10 @@ namespace PoliNorError
 
 		public void SetFailed()
 		{
-			IsFailed = true;
+			if (!IsFailed)
+			{
+				IsFailed = true;
+			}
 		}
 
 		public bool IsSuccess => !IsFailed && !IsCanceled;
@@ -40,9 +44,17 @@ namespace PoliNorError
 
 		public bool IsFailed { get; protected set; }
 
+		public PolicyResultFailedReason FailedReason { get; protected set; }
+
 		public bool ErrorFilterUnsatisfied { get; protected set; }
 
 		public IEnumerable<PolicyDelegateResult> WrappedPolicyResults { get; internal set; }
+
+		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
+		{
+			IsFailed = true;
+			FailedReason = failedReason;
+		}
 
 		protected void SetErrors(IEnumerable<Exception> exceptions)
 		{
@@ -86,13 +98,13 @@ namespace PoliNorError
 		internal void SetFailedAndCanceled()
 		{
 			SetCanceled();
-			SetFailed();
+			SetFailedInner();
 		}
 
 		internal void SetFailedAndFilterUnsatisfied()
 		{
 			ErrorFilterUnsatisfied = true;
-			SetFailed();
+			SetFailedInner();
 		}
 
 		internal void SetCanceled()
@@ -130,5 +142,12 @@ namespace PoliNorError
 		}
 
 		public T Result { get; private set; }
+	}
+
+	public enum PolicyResultFailedReason
+	{
+		None,
+		PolicyHandleGuardsFailed,
+		PolicyProcessorFailed
 	}
 }

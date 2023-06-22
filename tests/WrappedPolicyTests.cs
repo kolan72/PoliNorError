@@ -36,7 +36,7 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task> func = async (_) => { await Task.Delay(1); throw new Exception(); };
 
 			var polResult = new PolicyResult();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.HandleAsync(func, default, default)).Returns(Task.FromResult(polResult));
@@ -79,7 +79,7 @@ namespace PoliNorError.Tests
 			Action act = () => throw new Exception();
 
 			var polResult = new PolicyResult();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.Handle(act, default)).Returns(polResult);
@@ -107,7 +107,7 @@ namespace PoliNorError.Tests
 			Func<int> act = () => throw new Exception();
 
 			var polResult = new PolicyResult<int>();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.Handle(act, cancelToken)).Returns(polResult);
@@ -136,7 +136,7 @@ namespace PoliNorError.Tests
 			Func<int> act = () => throw new Exception();
 
 			var polResult = new PolicyResult<int>();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.Handle(act, default)).Returns(polResult);
@@ -164,7 +164,7 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task<int>> act = async (_) => { await Task.Delay(1); throw new Exception(); };
 
 			var polResult = new PolicyResult<int>();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.HandleAsync(act, default, cancelToken)).Returns(Task.FromResult(polResult));
@@ -192,7 +192,7 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task<int>> act = (_) => throw new Exception();
 
 			var polResult = PolicyResult<int>.ForNotSync();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.HandleAsync(act, default, default)).Returns(Task.FromResult(polResult));
@@ -367,7 +367,7 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task> func = async (_) => { await Task.Delay(1); throw new Exception(); };
 
 			var polResult = PolicyResult.ForNotSync();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 
 			wrappedPolicy.Setup(t => t.HandleAsync(func, default, default)).Returns(Task.FromResult(polResult));
 			retry.WrapPolicy(wrappedPolicy.Object);
@@ -453,7 +453,7 @@ namespace PoliNorError.Tests
 			Action act = () => throw new Exception();
 
 			var polResult = PolicyResult.ForSync();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.Handle(act, default)).Returns(polResult);

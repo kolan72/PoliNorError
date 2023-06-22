@@ -173,7 +173,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_RetryAsync_ShouldNotCallErrorProcess_When_ErrorSavingFailed()
 		{
-			var processor = RetryProcessor.CreateDefault((pr, _) => pr.SetFailed());
+			var processor = RetryProcessor.CreateDefault((pr, _) => pr.SetFailedInner());
 			int i = 0;
 			processor.WithErrorProcessorOf((_) => i++);
 			await processor.RetryAsync(async(_) => { await Task.Delay(1); throw new Exception("Test");}, 2);
@@ -183,7 +183,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_RetryAsyncT_ShouldNotCallErrorProcess_When_ErrorSavingFailed()
 		{
-			var processor = RetryProcessor.CreateDefault((pr, _) => pr.SetFailed());
+			var processor = RetryProcessor.CreateDefault((pr, _) => pr.SetFailedInner());
 			int i = 0;
 			processor.WithErrorProcessorOf((_) => i++);
 			await processor.RetryAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test"); }, 2);

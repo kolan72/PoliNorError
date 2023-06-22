@@ -42,6 +42,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicy();
 			var retryResult = retryPolTest.Handle(null);
 			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -96,6 +97,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicy();
 			var retryResult = retryPolTest.Handle<int>(null);
 			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -110,7 +112,7 @@ namespace PoliNorError.Tests
 			Func<int> func = () => throw new Exception();
 
 			var polResult = new PolicyResult<int>();
-			polResult.SetFailed();
+			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
 			wrappedPolicy.Setup(t => t.Handle(func, cancelToken)).Returns(polResult);
@@ -148,6 +150,7 @@ namespace PoliNorError.Tests
 			var simplePolTest = new SimplePolicy();
 			var retryResult = await simplePolTest.HandleAsync(null);
 			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -203,6 +206,7 @@ namespace PoliNorError.Tests
 			var simple = new SimplePolicy();
 			var res = await simple.HandleAsync<int>(null);
 			Assert.IsTrue(res.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, res.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), res.Errors.FirstOrDefault()?.GetType());
 		}
 
