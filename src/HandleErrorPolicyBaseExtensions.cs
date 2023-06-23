@@ -19,7 +19,7 @@ namespace PoliNorError
 
 		public static T AddPolicyResultHandler<T>(this T errorPolicyBase, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
 		{
-			errorPolicyBase.AddAsyncHandler(func.ToCancelableFunc(convertType));
+			errorPolicyBase.AddPolicyResultHandler(func.ToCancelableFunc(convertType));
 			return errorPolicyBase;
 		}
 

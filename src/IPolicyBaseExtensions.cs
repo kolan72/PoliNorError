@@ -85,7 +85,7 @@ namespace PoliNorError
 
 		public static T ExcludeError<T>(this T errorPolicy, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyBase
 		{
-			errorPolicy.PolicyProcessor.ErrorFilter.AddExcludedErrorFilter(handledErrorFilter);
+			errorPolicy.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
 			return errorPolicy;
 		}
 
@@ -97,7 +97,7 @@ namespace PoliNorError
 
 		public static T IncludeError<T>(this T errorPolicy, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyBase
 		{
-			errorPolicy.PolicyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);
+			errorPolicy.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter);
 			return errorPolicy;
 		}
 

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PoliNorError
 {
@@ -11,7 +12,7 @@ namespace PoliNorError
 		{
 			foreach (var pol in policies)
 			{
-				pol.PolicyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);
+				pol.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter);
 			}
 		}
 
@@ -27,7 +28,7 @@ namespace PoliNorError
 		{
 			foreach (var pol in policies)
 			{
-				pol.PolicyProcessor.ErrorFilter.AddExcludedErrorFilter(handledErrorFilter);
+				pol.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
 			}
 		}
 
@@ -36,6 +37,32 @@ namespace PoliNorError
 			foreach (var pol in policies)
 			{
 				pol.PolicyProcessor.AddExcludedErrorFilter(func);
+			}
+		}
+
+		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			policies.SetResultHandler(act.ToCancelableAction(convertType));
+		}
+
+		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult, CancellationToken> act)
+		{
+			foreach (var policy in policies)
+			{
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandler(act);
+			}
+		}
+
+		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			SetResultHandler(policies, func.ToCancelableFunc(convertType));
+		}
+
+		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, CancellationToken, Task> func)
+		{
+			foreach (var policy in policies)
+			{
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandler(func);
 			}
 		}
 	}

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PoliNorError
 {
@@ -37,6 +40,30 @@ namespace PoliNorError
 			return this;
 		}
 
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act)
+		{
+			this.SetResultHandler(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			this.SetResultHandler(act, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func)
+		{
+			this.SetResultHandler(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			this.SetResultHandler(func, convertType);
+			return this;
+		}
+
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilter(func);
@@ -69,6 +96,26 @@ namespace PoliNorError
 				res.WithPolicy(errorPolicy);
 			}
 			return res;
+		}
+
+		public PolicyDelegateCollection ToPolicyDelegateCollection(Action action)
+		{
+			return PolicyDelegateCollection.Create(_policies.Select(p => p.ToPolicyDelegate(action)));
+		}
+
+		public PolicyDelegateCollection ToPolicyDelegateCollection(Func<CancellationToken, Task> func)
+		{
+			return PolicyDelegateCollection.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
+		}
+
+		public PolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<T> action)
+		{
+			return PolicyDelegateCollection<T>.Create(_policies.Select(p => p.ToPolicyDelegate(action)));
+		}
+
+		public PolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<CancellationToken, Task<T>> func)
+		{
+			return PolicyDelegateCollection<T>.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

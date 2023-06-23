@@ -29,7 +29,7 @@ namespace PoliNorError
 
 		public static T IncludeError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
 		{
-			policyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);
+			policyProcessor.AddIncludedErrorFilter(handledErrorFilter);
 			return policyProcessor;
 		}
 
@@ -41,13 +41,23 @@ namespace PoliNorError
 
 		public static T ExcludeError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
 		{
-			policyProcessor.ErrorFilter.AddExcludedErrorFilter(handledErrorFilter);
+			policyProcessor.AddExcludedErrorFilter(handledErrorFilter);
 			return policyProcessor;
+		}
+
+		internal static void AddIncludedErrorFilter(this IPolicyProcessor policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);
 		}
 
 		internal static void AddIncludedErrorFilter<TException>(this IPolicyProcessor policyProcessor, Func<TException, bool> func = null) where TException : Exception
 		{
 			policyProcessor.ErrorFilter.AddIncludedErrorFilter(GetTypedErrorFilter(func));
+		}
+
+		internal static void AddExcludedErrorFilter(this IPolicyProcessor policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyProcessor.ErrorFilter.AddExcludedErrorFilter(handledErrorFilter);
 		}
 
 		internal static void AddExcludedErrorFilter<TException>(this IPolicyProcessor policyProcessor, Func<TException, bool> func = null) where TException : Exception

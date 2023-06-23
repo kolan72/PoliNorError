@@ -55,34 +55,22 @@ namespace PoliNorError
 
 		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult, CancellationToken> act)
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(act);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(act);
 		}
 
 		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(act, convertType);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(act, convertType);
 		}
 
 		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, CancellationToken, Task> func)
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(func);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(func);
 		}
 
 		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			foreach (var polInfo in policyDelegateInfos)
-			{
-				(polInfo.Policy as HandleErrorPolicyBase).AddPolicyResultHandler(func, convertType);
-			}
+			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(func, convertType);
 		}
 
 		internal static PolicyDelegateHandleType GetHandleType(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
