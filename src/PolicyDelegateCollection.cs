@@ -11,17 +11,25 @@ namespace PoliNorError
 	{
 		private IPolicyDelegateResultsToErrorConverter _errorConverter;
 
-		public static PolicyDelegateCollection CreateFromPolicy(IPolicyBase pol, int n = 1)
+		public static PolicyDelegateCollection Create(IPolicyBase pol, Action action, int n = 1)
 		{
 			var res = new PolicyDelegateCollection();
 			for (int i = 0; i < n; i++)
 			{
-				res.WithPolicy(pol);
+				res.WithPolicyAndDelegate(pol, action);
 			}
 			return res;
 		}
 
-		public static PolicyDelegateCollection CreateFromPolicies(IEnumerable<IPolicyBase> errorPolicies) => FromPolicies(errorPolicies);
+		public static PolicyDelegateCollection Create(IPolicyBase pol, Func<CancellationToken, Task> func, int n = 1)
+		{
+			var res = new PolicyDelegateCollection();
+			for (int i = 0; i < n; i++)
+			{
+				res.WithPolicyAndDelegate(pol, func);
+			}
+			return res;
+		}
 
 		public static PolicyDelegateCollection Create(params PolicyDelegate[] errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
 
