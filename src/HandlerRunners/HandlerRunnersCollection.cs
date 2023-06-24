@@ -5,7 +5,7 @@ using static PoliNorError.HandleErrorPolicyBase;
 
 namespace PoliNorError
 {
-	public class HandlerRunnersCollection
+	internal class HandlerRunnersCollection
 	{
 		private List<IEnumerable<IHandlerRunner>> _handlerRunnerBases;
 
