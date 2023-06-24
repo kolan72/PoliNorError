@@ -15,6 +15,8 @@
 
 		public SyncPolicyDelegateType UseSync => GetSyncType();
 
+		public void ClearDelegate() => DelegateContainer?.ClearDelegate();
+
 		protected abstract SyncPolicyDelegateType GetSyncType();
 	}
 }

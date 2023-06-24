@@ -26,7 +26,7 @@ namespace PoliNorError
 			};
 		}
 
-		public void ClearDelegate()
+		public override void ClearDelegate()
 		{
 			if (UseSync == SyncPolicyDelegateType.Async)
 			{

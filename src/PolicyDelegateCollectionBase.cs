@@ -22,5 +22,14 @@ namespace PoliNorError
 		public T LastPolicyDelegate => this.LastOrDefaultIfEmpty();
 
 		public IEnumerable<IPolicyBase> Policies => _syncInfos.GetPolicies();
+
+		internal void ClearDelegates()
+		{
+			if (this.IsEmpty()) return;
+			foreach (var polInfo in this)
+			{
+				polInfo.ClearDelegate();
+			}
+		}
 	}
 }

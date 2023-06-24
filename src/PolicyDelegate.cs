@@ -30,11 +30,6 @@ namespace PoliNorError
 			return _delegateContainer?.UseSync == SyncPolicyDelegateType.Sync ? Execute?.Method : ExecuteAsync?.Method;
 		}
 
-		public void ClearDelegate()
-		{
-			_delegateContainer?.ClearDelegate();
-		}
-
 		internal Func<CancellationToken, Task> ExecuteAsync => _delegateContainer?.ExecuteAsync;
 		internal Action Execute =>  _delegateContainer?.Execute;
 
@@ -63,11 +58,6 @@ namespace PoliNorError
 			if (_delegateContainer?.UseSync == SyncPolicyDelegateType.None)
 				return null;
 			return _delegateContainer?.UseSync == SyncPolicyDelegateType.Sync ? Execute?.Method : ExecuteAsync?.Method;
-		}
-
-		public void ClearDelegate()
-		{
-			_delegateContainer?.ClearDelegate();
 		}
 
 		internal Func<CancellationToken, Task<T>> ExecuteAsync => _delegateContainer?.ExecuteAsync;

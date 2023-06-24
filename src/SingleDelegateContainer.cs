@@ -20,7 +20,7 @@ namespace PoliNorError
 			UseSync = SyncPolicyDelegateType.Async
 		};
 
-		public void ClearDelegate()
+		public override void ClearDelegate()
 		{
 			if (UseSync == SyncPolicyDelegateType.Async)
 			{
