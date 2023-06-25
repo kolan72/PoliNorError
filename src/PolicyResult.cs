@@ -128,19 +128,6 @@ namespace PoliNorError
 			Result = result;
 		}
 
-		internal static PolicyResult<T> FromPolicyResult(PolicyResult policyResult)
-		{
-			var res = new PolicyResult<T>(policyResult.Async)
-			{
-				IsCanceled = policyResult.IsCanceled,
-				IsFailed = policyResult.IsFailed
-			};
-
-			res.SetErrors(policyResult.Errors);
-
-			return res;
-		}
-
 		public T Result { get; private set; }
 	}
 
