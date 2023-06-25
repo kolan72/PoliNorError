@@ -13,14 +13,14 @@ namespace PoliNorError
 
 		internal IPolicyBase _wrappedPolicy;
 
-		private readonly List<SyncHandlerRunner> _policyResultHandlers;
-		private readonly List<ASyncHandlerRunner> _policyResultAsyncHandlers;
+		private readonly List<IHandlerRunner> _policyResultHandlers;
+		private readonly List<IHandlerRunner> _policyResultAsyncHandlers;
 		private readonly HandlerRunnersCollection _handlerRunnersCollection;
 
 		private protected HandleErrorPolicyBase(IPolicyProcessor policyProcessor)
 		{
-			_policyResultHandlers = new List<SyncHandlerRunner>();
-			_policyResultAsyncHandlers = new List<ASyncHandlerRunner>();
+			_policyResultHandlers = new List<IHandlerRunner>();
+			_policyResultAsyncHandlers = new List<IHandlerRunner>();
 			_handlerRunnersCollection = HandlerRunnersCollection.FromSyncAndNotSync(_policyResultHandlers, _policyResultAsyncHandlers);
 			PolicyProcessor = policyProcessor;
 		}
@@ -43,7 +43,7 @@ namespace PoliNorError
 			return policyRetryResult.HandleResultForceSync(sortedHandlers, token);
 		}
 
-		private IOrderedEnumerable<IHandlerRunner> GetOrderedHandlers() => _policyResultHandlers.Cast<IHandlerRunner>().Union(_policyResultAsyncHandlers.Cast<IHandlerRunner>()).OrderBy(h => h.Num);
+		private IOrderedEnumerable<IHandlerRunner> GetOrderedHandlers() => _policyResultHandlers.Union(_policyResultAsyncHandlers).OrderBy(h => h.Num);
 
 		protected async Task HandlePolicyResultAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
