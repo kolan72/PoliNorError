@@ -54,7 +54,7 @@ namespace PoliNorError
 			{
 				try
 				{
-					if (handler.UseSync)
+					if (handler.SyncRun)
 					{
 						handler.Run(curRes, token);
 					}
@@ -78,7 +78,7 @@ namespace PoliNorError
 			{
 				try
 				{
-					if (handler.UseSync)
+					if (handler.SyncRun)
 					{
 						handler.Run(curRes, token);
 					}
@@ -153,7 +153,7 @@ namespace PoliNorError
 			{
 				try
 				{
-					if (handler.UseSync)
+					if (handler.SyncRun)
 					{
 					   handler.Run(curRes, token);
 					}

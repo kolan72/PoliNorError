@@ -9,6 +9,6 @@
 
 		public int Num { get; protected set; }
 
-		public abstract bool UseSync { get; }
+		public abstract bool SyncRun { get; }
 	}
 }

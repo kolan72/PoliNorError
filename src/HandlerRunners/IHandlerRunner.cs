@@ -13,6 +13,6 @@ namespace PoliNorError
 	public interface IHandlerRunnerBase
 	{
 		int Num { get; }
-		bool UseSync { get; }
+		bool SyncRun { get; }
 	}
 }

@@ -128,7 +128,7 @@ namespace PoliNorError.Tests
         {
             public int Num => throw new NotImplementedException();
 
-            public bool UseSync => throw new NotImplementedException();
+            public bool SyncRun => throw new NotImplementedException();
 
             public void Run(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();
             public Task RunAsync(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();

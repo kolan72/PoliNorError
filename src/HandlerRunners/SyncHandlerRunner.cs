@@ -13,7 +13,7 @@ namespace PoliNorError
 			_act = act;
 		}
 
-		public override bool UseSync => true;
+		public override bool SyncRun => true;
 
 		public void Run(PolicyResult policyResult, CancellationToken token = default)
 		{

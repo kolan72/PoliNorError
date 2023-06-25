@@ -13,7 +13,7 @@ namespace PoliNorError
 			_func = func;
 		}
 
-		public override bool UseSync => false;
+		public override bool SyncRun => false;
 
 		public async Task RunAsync(PolicyResult policyResult, CancellationToken token = default)
 		{
