@@ -20,7 +20,12 @@ namespace PoliNorError
 			if (token.IsCancellationRequested)
 				return;
 
+			bool wasNotFailed = false;
+			if (!policyResult.IsFailed)
+				wasNotFailed = true;
 			await _func(policyResult, token);
+			if (wasNotFailed && policyResult.IsFailed)
+				policyResult.FailedReason = PolicyResultFailedReason.PolicyResultHandlerFailed;
 		}
 
 		public void Run(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();

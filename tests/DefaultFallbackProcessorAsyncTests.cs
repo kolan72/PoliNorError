@@ -128,6 +128,7 @@ namespace PoliNorError.Tests
 
 			Assert.AreEqual(true, polResult.IsFailed);
 			Assert.AreEqual(true, polResult.CatchBlockErrors.FirstOrDefault().IsCritical);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 
 		[Test]
@@ -138,6 +139,7 @@ namespace PoliNorError.Tests
 
 			Assert.AreEqual(true, polResult.IsFailed);
 			Assert.AreEqual(true, polResult.CatchBlockErrors.FirstOrDefault().IsCritical);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 
 		[Test]

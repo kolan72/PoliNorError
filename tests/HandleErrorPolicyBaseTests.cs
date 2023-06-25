@@ -66,13 +66,25 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_PolicyResult_Can_Be_IsFailed_Even_If_NoError()
+		public void Should_PolicyResult_Can_Be_SetFailed_By_SyncPolicyResultHandler_Even_If_NoError()
 		{
 			void action(PolicyResult pr) { pr.SetFailed(); }
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler(action);
 			var res = retryPolicy.Handle(() => { });
 			Assert.IsTrue(res.NoError);
 			Assert.IsTrue(res.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
+		}
+
+		[Test]
+		public void Should_PolicyResult_Can_Be_SetFailed_By_AsyncPolicyResultHandler_Even_If_NoError()
+		{
+			async Task func(PolicyResult pr) { await Task.Delay(1); pr.SetFailed(); }
+			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler(func);
+			var res = retryPolicy.Handle(() => { });
+			Assert.IsTrue(res.NoError);
+			Assert.IsTrue(res.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
 		}
 
 		[Test]

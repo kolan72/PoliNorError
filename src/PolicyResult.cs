@@ -44,7 +44,7 @@ namespace PoliNorError
 
 		public bool IsFailed { get; protected set; }
 
-		public PolicyResultFailedReason FailedReason { get; protected set; }
+		public PolicyResultFailedReason FailedReason { get; internal set; }
 
 		public bool ErrorFilterUnsatisfied { get; protected set; }
 
@@ -135,6 +135,7 @@ namespace PoliNorError
 	{
 		None,
 		PolicyHandleGuardsFailed,
-		PolicyProcessorFailed
+		PolicyProcessorFailed,
+		PolicyResultHandlerFailed
 	}
 }

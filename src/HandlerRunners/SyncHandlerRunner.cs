@@ -19,7 +19,12 @@ namespace PoliNorError
 		{
 			if (token.IsCancellationRequested)
 				return;
+			bool wasNotFailed = false;
+			if (!policyResult.IsFailed)
+				wasNotFailed = true;
 			_act(policyResult, token);
+			if (wasNotFailed && policyResult.IsFailed)
+				policyResult.FailedReason = PolicyResultFailedReason.PolicyResultHandlerFailed;
 		}
 
 		public Task RunAsync(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();

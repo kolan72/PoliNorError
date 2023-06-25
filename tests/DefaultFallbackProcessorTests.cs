@@ -97,6 +97,7 @@ namespace PoliNorError.Tests
 			var polResult = processor.Fallback(() => throw new Exception("Test_Save"), (_) => throw new Exception("Test_Fallback"));
 
 			Assert.IsTrue(polResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 
 		[Test]
@@ -106,6 +107,7 @@ namespace PoliNorError.Tests
 			var polResult = processor.Fallback<int>(() => throw new Exception("Test_Save"), (_) => throw new Exception("Test_Fallback"));
 
 			Assert.IsTrue(polResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 
 		[Test]
