@@ -219,9 +219,11 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(false)]
-		[TestCase(true)]
-		public void Should_HandleDelegate_Work(bool generic)
+		[TestCase(false, false)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(true, true)]
+		public void Should_HandleDelegate_Work(bool generic, bool crossSync)
 		{
 			var polCollection = PolicyCollection
 								 .Create()
@@ -229,25 +231,50 @@ namespace PoliNorError.Tests
 								 .WithRetry(1);
 
 			int resultCount = 0;
+			int resultCountIfNoError = 0;
 
 			if (generic)
 			{
-				var res = polCollection.HandleDelegate<int>(() => throw new Exception("Test1"));
-				resultCount = res.Count();
+				if (crossSync)
+				{
+					resultCount = polCollection.HandleDelegate<int>(async (_) => { await Task.Delay(1); throw new Exception("Test1"); }).Count();
+
+					var resIfNoError = polCollection.HandleDelegate(async (_) => { await Task.Delay(1); return 1; });
+					resultCountIfNoError = resIfNoError.Count();
+					Assert.AreEqual(1, resIfNoError.Result);
+				}
+				else
+				{
+					resultCount = polCollection.HandleDelegate<int>(() => throw new Exception("Test1")).Count();
+
+					var resIfNoError = polCollection.HandleDelegate(() => 1);
+					resultCountIfNoError = resIfNoError.Count();
+					Assert.AreEqual(1, resIfNoError.Result);
+				}
 			}
 			else
 			{
-				var res = polCollection.HandleDelegate(() => throw new Exception("Test1"));
-				resultCount = res.Count();
+				if (crossSync)
+				{
+					resultCount = polCollection.HandleDelegate(async (_) => { await Task.Delay(1); throw new Exception("Test1");}).Count();
+					resultCountIfNoError = polCollection.HandleDelegate(async (_) => await Task.Delay(1)).Count();
+				}
+				else
+				{
+					resultCount = polCollection.HandleDelegate(() => throw new Exception("Test1")).Count();
+					resultCountIfNoError = polCollection.HandleDelegate(() => {}).Count();
+				}
 			}
-
 			Assert.AreEqual(2, resultCount);
+			Assert.AreEqual(1, resultCountIfNoError);
 		}
 
 		[Test]
-		[TestCase(false)]
-		[TestCase(true)]
-		public async Task Should_HandleDelegateAsync_Work(bool generic)
+		[TestCase(false, false)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(true, true)]
+		public async Task Should_HandleDelegateAsync_Work(bool generic, bool crossSync)
 		{
 			var polCollection = PolicyCollection
 							 .Create()
@@ -255,19 +282,43 @@ namespace PoliNorError.Tests
 							 .WithRetry(1);
 
 			int resultCount = 0;
+			int resultCountIfNoError = 0;
 
 			if (generic)
 			{
-				var res = await polCollection.HandleDelegateAsync<int>(async (_) => {await Task.Delay(1); throw new Exception("Test1");});
-				resultCount = res.Count();
+				if (crossSync)
+				{
+					resultCount = (await polCollection.HandleDelegateAsync<int>(() => throw new Exception("Test1"))).Count();
+
+					var resIfNoError = await polCollection.HandleDelegateAsync(() => 1);
+					resultCountIfNoError = resIfNoError.Count();
+					Assert.AreEqual(1, resIfNoError.Result);
+				}
+				else
+				{
+					resultCount = (await polCollection.HandleDelegateAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test1"); })).Count();
+
+					var resIfNoError = await polCollection.HandleDelegateAsync(async (_) =>  {await Task.Delay(1); return 1;});
+					resultCountIfNoError = resIfNoError.Count();
+					Assert.AreEqual(1, resIfNoError.Result);
+				}
 			}
 			else
 			{
-				var res = await polCollection.HandleDelegateAsync(async (_) => {await Task.Delay(1); throw new Exception("Test1");});
-				resultCount = res.Count();
+				if (crossSync)
+				{
+					resultCount = (await polCollection.HandleDelegateAsync(() => throw new Exception("Test1"))).Count();
+					resultCountIfNoError = (await polCollection.HandleDelegateAsync(() => {})).Count();
+				}
+				else
+				{
+					resultCount = (await polCollection.HandleDelegateAsync(async (_) => { await Task.Delay(1); throw new Exception("Test1");})).Count();
+					resultCountIfNoError = (await polCollection.HandleDelegateAsync(async (_) => await Task.Delay(1))).Count();
+				}
 			}
 
 			Assert.AreEqual(2, resultCount);
+			Assert.AreEqual(1, resultCountIfNoError);
 		}
 	}
 }

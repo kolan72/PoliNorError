@@ -124,15 +124,43 @@ namespace PoliNorError
 			return policyDelegateCollection.HandleAll(token);
 		}
 
+		public PolicyDelegateCollectionResult HandleDelegate(Func<CancellationToken, Task> func, CancellationToken token = default)
+		{
+			var policyDelegateCollection = ToPolicyDelegateCollection(func);
+			return policyDelegateCollection.HandleAll(token);
+		}
+
 		public PolicyDelegateCollectionResult<T> HandleDelegate<T>(Func<T> action, CancellationToken token = default)
 		{
 			var policyDelegateCollection = ToPolicyDelegateCollection(action);
 			return policyDelegateCollection.HandleAll(token);
 		}
 
+		public PolicyDelegateCollectionResult<T> HandleDelegate<T>(Func<CancellationToken, Task<T>> func, CancellationToken token = default)
+		{
+			var policyDelegateCollection = ToPolicyDelegateCollection(func);
+			return policyDelegateCollection.HandleAll(token);
+		}
+
+		public Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Action action, CancellationToken token = default) => HandleDelegateAsync(action, false, token);
+
+		public async Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Action action, bool configAwait, CancellationToken token = default)
+		{
+			var policyDelegateCollection = ToPolicyDelegateCollection(action);
+			return await policyDelegateCollection.HandleAllAsync(configAwait, token);
+		}
+
 		public Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Func<CancellationToken, Task> func, CancellationToken token = default) => HandleDelegateAsync(func, false, token);
 
 		public async Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Func<CancellationToken, Task> func, bool configAwait, CancellationToken token = default)
+		{
+			var policyDelegateCollection = ToPolicyDelegateCollection(func);
+			return await policyDelegateCollection.HandleAllAsync(configAwait, token);
+		}
+
+		public Task<PolicyDelegateCollectionResult<T>> HandleDelegateAsync<T>(Func<T> func, CancellationToken token = default) => HandleDelegateAsync(func, false, token);
+
+		public async Task<PolicyDelegateCollectionResult<T>> HandleDelegateAsync<T>(Func<T> func, bool configAwait, CancellationToken token = default)
 		{
 			var policyDelegateCollection = ToPolicyDelegateCollection(func);
 			return await policyDelegateCollection.HandleAllAsync(configAwait, token);

@@ -290,7 +290,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(1, policyDelegateCollection.Count());
 			Assert.True(policyDelegateCollection.FirstOrDefault().DelegateExists);
 		}
-		
+
 		[Test]
 		public void Should_AndDelegate_Work_For_Async_When_Can_Not_BeSet()
 		{
