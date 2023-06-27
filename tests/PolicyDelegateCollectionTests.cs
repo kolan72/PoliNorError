@@ -582,7 +582,7 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.HandleAllAsync(cancelSource.Token);
-			Assert.AreEqual(PolicyDelegateCollectionResultStatus.Canceled, result.Status);
+			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -597,7 +597,7 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.HandleAllAsync(cancelSource.Token);
-			Assert.AreEqual(PolicyDelegateCollectionResultStatus.Canceled, result.Status);
+			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -612,7 +612,7 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.HandleAllAsync(cancelSource.Token);
-			Assert.AreEqual(PolicyDelegateCollectionResultStatus.Canceled, result.Status);
+			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -627,7 +627,7 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = polDelegateCol.HandleAll(cancelSource.Token);
-			Assert.AreEqual(PolicyDelegateCollectionResultStatus.Canceled, result.Status);
+			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -641,7 +641,7 @@ namespace PoliNorError.Tests
 
 			var result = polDelegateCol.HandleAll();
 			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(PolicyDelegateCollectionResultStatus.Faulted, result.Status);
+			Assert.AreEqual(true, result.LastPolicyResult.IsFailed);
 		}
 
 		[Test]
@@ -653,7 +653,7 @@ namespace PoliNorError.Tests
 
 			var result = polDelegateCol.HandleAll();
 			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(PolicyDelegateCollectionResultStatus.Faulted, result.Status);
+			Assert.AreEqual(true, result.LastPolicyResult.IsFailed);
 		}
 
 		[Test]

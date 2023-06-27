@@ -13,15 +13,10 @@ namespace PoliNorError
 			PolicyDelegatesUnused = policyDelegatesUnused;
 		}
 
-        public PolicyDelegateCollectionResultStatus Status => PolicyDelegateResults.GetStatus();
-
         public Exception LastFailedError
 		{
 			get
 			{
-				if (Status != PolicyDelegateCollectionResultStatus.Faulted)
-					return null;
-
 				return PolicyDelegateResults.Last().Result.Errors.LastOrDefault();
 			}
 		}
@@ -53,10 +48,6 @@ namespace PoliNorError
 		{
 			get
 			{
-				var status = PolicyDelegateResults.GetStatus();
-				if (status == PolicyDelegateCollectionResultStatus.Created)
-					return default;
-
 				return LastPolicyResult != null ? LastPolicyResult.Result : default;
 			}
 		}
@@ -66,19 +57,5 @@ namespace PoliNorError
 		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-		public PolicyDelegateCollectionResultStatus Status => PolicyDelegateResults.GetStatus();
-	}
-
-	[Flags]
-	public enum PolicyDelegateCollectionResultStatus
-	{
-		None = 0,
-		Created = 1,
-		LastPolicySuccess = 2,
-		LastPolicyOk = 4,
-		Canceled = 8,
-		Faulted = 16,
-		FaultedCanceled = Faulted | Canceled
 	}
 }

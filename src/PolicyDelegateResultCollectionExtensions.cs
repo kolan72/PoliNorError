@@ -32,45 +32,5 @@ namespace PoliNorError
 		{
 			handledResults.Add(new PolicyDelegateResult<T>(PolicyDelegateInfo.FromPolicyDelegate(si), policyResult));
 		}
-
-		public static PolicyDelegateCollectionResultStatus GetStatus(this IEnumerable<PolicyDelegateResult> policyHandledResultBaseCollection)
-		{
-			if (!policyHandledResultBaseCollection.Any())
-				return PolicyDelegateCollectionResultStatus.Created;
-			return GetHandledResultStatus(policyHandledResultBaseCollection.Last());
-		}
-
-		public static PolicyDelegateCollectionResultStatus GetStatus<T>(this IEnumerable<PolicyDelegateResult<T>> policyHandledResultBaseCollection)
-		{
-			if (!policyHandledResultBaseCollection.Any())
-				return PolicyDelegateCollectionResultStatus.Created;
-			return GetHandledResultStatus(policyHandledResultBaseCollection.Last());
-		}
-
-		private static PolicyDelegateCollectionResultStatus GetHandledResultStatus(PolicyDelegateResult lastHandledResult)
-		{
-			if (lastHandledResult.Result == null)
-				return PolicyDelegateCollectionResultStatus.None;
-
-			if (lastHandledResult.Result.IsFailed || lastHandledResult.Result.IsCanceled)
-			{
-				var res = PolicyDelegateCollectionResultStatus.None;
-				if (lastHandledResult.Result.IsFailed)
-					res |= PolicyDelegateCollectionResultStatus.Faulted;
-
-				if (lastHandledResult.Result.IsCanceled)
-					res |= PolicyDelegateCollectionResultStatus.Canceled;
-
-				return res;
-			}
-			else if (lastHandledResult.Result.NoError)
-			{
-				return PolicyDelegateCollectionResultStatus.LastPolicyOk;
-			}
-			else
-			{
-				return PolicyDelegateCollectionResultStatus.LastPolicySuccess;
-			}
-		}
 	}
 }
