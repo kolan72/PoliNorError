@@ -29,5 +29,7 @@
 		{
 			return new PolicyDelegateResult(PolicyInfo, Result);
 		}
+
+		public static implicit operator PolicyDelegateResult(PolicyDelegateResult<T> policyDelegateResult) => new PolicyDelegateResult(policyDelegateResult.PolicyInfo, policyDelegateResult.Result);
 	}
 }

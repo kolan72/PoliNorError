@@ -44,7 +44,7 @@ namespace PoliNorError
 		{
 			if (!policyHandledResultBaseCollection.Any())
 				return PolicyDelegateCollectionResultStatus.Created;
-			return GetHandledResultStatus(policyHandledResultBaseCollection.Last().ToPolicyDelegateResult());
+			return GetHandledResultStatus(policyHandledResultBaseCollection.Last());
 		}
 
 		private static PolicyDelegateCollectionResultStatus GetHandledResultStatus(PolicyDelegateResult lastHandledResult)

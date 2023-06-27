@@ -26,8 +26,11 @@ namespace PoliNorError
 			}
 		}
 
-		public IEnumerable<PolicyDelegate> PolicyDelegatesUnused { get; }
 		public IEnumerable<PolicyDelegateResult> PolicyDelegateResults { get; }
+
+		public IEnumerable<PolicyDelegate> PolicyDelegatesUnused { get; }
+
+		public PolicyResult LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
 
 		public IEnumerator<PolicyDelegateResult> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
@@ -42,7 +45,9 @@ namespace PoliNorError
 			PolicyDelegatesUnused = policyDelegatesUnused;
 		}
 
-		IEnumerator<PolicyDelegateResult<T>> IEnumerable<PolicyDelegateResult<T>>.GetEnumerator() => PolicyDelegateResults.GetEnumerator();
+		public IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults { get; }
+
+		public IEnumerable<PolicyDelegate<T>> PolicyDelegatesUnused { get; }
 
 		public T Result
 		{
@@ -51,14 +56,12 @@ namespace PoliNorError
 				var status = PolicyDelegateResults.GetStatus();
 				if (status == PolicyDelegateCollectionResultStatus.Created)
 					return default;
-				var lastHandledResult = PolicyDelegateResults.Last();
-				return lastHandledResult.Result.Result;
+
+				return LastPolicyResult != null ? LastPolicyResult.Result : default;
 			}
 		}
 
-		public IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults { get; }
-
-		public IEnumerable<PolicyDelegate<T>> PolicyDelegatesUnused { get; }
+		public PolicyResult<T> LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
 
 		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 

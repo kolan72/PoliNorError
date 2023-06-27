@@ -210,6 +210,5 @@ namespace PoliNorError
 			}
 			return SettingPolicyDelegateResult.Success;
 		}
-
 	}
 }
