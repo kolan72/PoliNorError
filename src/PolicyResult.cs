@@ -7,7 +7,7 @@ namespace PoliNorError
 	{
 		private FlexSyncEnumerable<Exception> _errors;
 		private readonly FlexSyncEnumerable<CatchBlockException> _catchBlockErrors;
-		private readonly FlexSyncEnumerable<HandlePolicyResultException> _handleResultErrors;
+		private readonly FlexSyncEnumerable<PolicyResultHandlingException> _handleResultErrors;
 
 		public static PolicyResult ForSync() => new PolicyResult();
 		public static PolicyResult ForNotSync() => new PolicyResult(true);
@@ -19,14 +19,14 @@ namespace PoliNorError
 			_errors = new FlexSyncEnumerable<Exception>(forAsync);
 			FailedReason = PolicyResultFailedReason.None;
 			_catchBlockErrors = new FlexSyncEnumerable<CatchBlockException>(forAsync);
-			_handleResultErrors = new FlexSyncEnumerable<HandlePolicyResultException>(forAsync);
+			_handleResultErrors = new FlexSyncEnumerable<PolicyResultHandlingException>(forAsync);
 		}
 
 		public IEnumerable<Exception> Errors => _errors;
 
 		public IEnumerable<CatchBlockException> CatchBlockErrors => _catchBlockErrors;
 
-		public IEnumerable<HandlePolicyResultException> HandleResultErrors => _handleResultErrors;
+		public IEnumerable<PolicyResultHandlingException> PolicyResultHandlingErrors => _handleResultErrors;
 
 		public void SetFailed()
 		{
@@ -80,12 +80,12 @@ namespace PoliNorError
 			_catchBlockErrors.AddRange(catchBlockExceptions);
 		}
 
-		internal void AddHandleResultError(HandlePolicyResultException handlePolicyResultException)
+		internal void AddHandleResultError(PolicyResultHandlingException handlePolicyResultException)
 		{
 			_handleResultErrors.Add(handlePolicyResultException);
 		}
 
-		internal void AddHandleResultErrors(IEnumerable<HandlePolicyResultException> handlePolicyResultExceptions)
+		internal void AddHandleResultErrors(IEnumerable<PolicyResultHandlingException> handlePolicyResultExceptions)
 		{
 			_handleResultErrors.AddRange(handlePolicyResultExceptions);
 		}
@@ -123,7 +123,7 @@ namespace PoliNorError
 
 		public PolicyResult(bool forAsync = false) : base(forAsync){}
 
-		public void SetResult(T result)
+		internal void SetResult(T result)
 		{
 			Result = result;
 		}
