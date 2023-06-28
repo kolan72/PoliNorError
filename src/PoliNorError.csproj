@@ -29,10 +29,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="HandlerRunners\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\PoliNorError.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
