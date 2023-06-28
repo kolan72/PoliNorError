@@ -13,14 +13,6 @@ namespace PoliNorError
 			PolicyDelegatesUnused = policyDelegatesUnused;
 		}
 
-        public Exception LastFailedError
-		{
-			get
-			{
-				return PolicyDelegateResults.Last().Result.Errors.LastOrDefault();
-			}
-		}
-
 		public IEnumerable<PolicyDelegateResult> PolicyDelegateResults { get; }
 
 		public IEnumerable<PolicyDelegate> PolicyDelegatesUnused { get; }
