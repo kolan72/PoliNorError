@@ -46,13 +46,16 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy =  retryPolicy.AddPolicyResultHandler((__, _) => i++);
-			retryPolicy = retryPolicy.AddPolicyResultHandler((_) => i++);
-			retryPolicy.AddPolicyResultHandler((__, _) => i++);
+			int m = 0;
+			retryPolicy =  retryPolicy.AddPolicyResultHandler((__, _) => i++)
+									  .AddPolicyResultHandler((_) => i++)
+									  .AddPolicyResultHandler(async (__, _) => { await Task.Delay(1); m++; })
+									  .AddPolicyResultHandler((__, _) => i++);
 
 			await retryPolicy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
 
 			Assert.AreEqual(3, i);
+			Assert.AreEqual(1, m);
 		}
 
 		[Test]

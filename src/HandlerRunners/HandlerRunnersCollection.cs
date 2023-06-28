@@ -7,13 +7,13 @@ namespace PoliNorError
 {
 	internal class HandlerRunnersCollection
 	{
-		private List<IEnumerable<IHandlerRunner>> _handlerRunnerBases;
+		private List<IEnumerable<IHandlerRunnerBase>> _handlerRunnerBases;
 
-		private static readonly Func<IEnumerable<IHandlerRunner>, bool> _func = (ie) => ie.Any();
+		private static readonly Func<IEnumerable<IHandlerRunnerBase>, bool> _func = (ie) => ie.Any();
 
-		public static HandlerRunnersCollection FromSyncAndNotSync(IEnumerable<IHandlerRunner> syncCollection, IEnumerable<IHandlerRunner> asyncCollection)
+		public static HandlerRunnersCollection FromSyncAndNotSync(IEnumerable<IHandlerRunnerBase> syncCollection, IEnumerable<IHandlerRunnerBase> asyncCollection)
 		{
-			return new HandlerRunnersCollection() { _handlerRunnerBases = new List<IEnumerable<IHandlerRunner>>() { syncCollection, asyncCollection } };
+			return new HandlerRunnersCollection() { _handlerRunnerBases = new List<IEnumerable<IHandlerRunnerBase>>() { syncCollection, asyncCollection } };
 		}
 
 		public HandlerRunnerSyncType MapToSyncType()
