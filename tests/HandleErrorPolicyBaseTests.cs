@@ -34,10 +34,10 @@ namespace PoliNorError.Tests
 					   .AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 
 			var res1 = retryPolicy.Handle<int>(() => throw new Exception("Handle"), cancelSource.Token);
-			Assert.AreEqual(typeof(OperationCanceledException), res1.HandleResultErrors.FirstOrDefault().InnerException.GetType());
+			Assert.AreEqual(typeof(OperationCanceledException), res1.PolicyResultHandlingErrors.FirstOrDefault().InnerException.GetType());
 
 			var res2 = retryPolicy.Handle(() => throw new Exception("Handle"), cancelSource.Token);
-			Assert.AreEqual(typeof(OperationCanceledException), res2.HandleResultErrors.FirstOrDefault().InnerException.GetType());
+			Assert.AreEqual(typeof(OperationCanceledException), res2.PolicyResultHandlingErrors.FirstOrDefault().InnerException.GetType());
 			cancelSource.Dispose();
 		}
 
@@ -65,7 +65,7 @@ namespace PoliNorError.Tests
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler(action);
 			var res = retryPolicy.Handle(() => { });
 			Assert.IsTrue(res.NoError);
-			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
+			Assert.IsTrue(res.PolicyResultHandlingErrors.Count() == 1);
 		}
 
 		[Test]
@@ -95,7 +95,7 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler((_) => Task.FromException(new Exception()));
 			var res = retryPolicy.Handle(() => { });
-			Assert.IsTrue(res.HandleResultErrors.Count() == 1);
+			Assert.IsTrue(res.PolicyResultHandlingErrors.Count() == 1);
 		}
 
 		[Test]

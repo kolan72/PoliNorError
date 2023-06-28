@@ -65,7 +65,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex, handler);
+					curRes.AddWrappedHandleResultError(ex);
 				}
 			}
 			return curRes;
@@ -89,7 +89,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex, handler);
+					curRes.AddWrappedHandleResultError(ex);
 				}
 			}
 			return curRes;
@@ -106,7 +106,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex, handler);
+					curRes.AddWrappedHandleResultError(ex);
 				}
 			}
 			return curRes;
@@ -123,7 +123,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex, handler);
+					curRes.AddWrappedHandleResultError(ex);
 				}
 			}
 			return curRes;
@@ -140,7 +140,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex, handler);
+					curRes.AddWrappedHandleResultError(ex);
 				}
 			}
 			return curRes;
@@ -166,29 +166,29 @@ namespace PoliNorError
 				{
 					if (ae.HasCanceledException(token))
 					{
-						curRes.AddWrappedHandleResultError(new OperationCanceledException(token), handler);
+						curRes.AddWrappedHandleResultError(new OperationCanceledException(token));
 					}
 					else
 					{
-						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions, handler);
+						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions);
 					}
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex, handler);
+					curRes.AddWrappedHandleResultError(ex);
 				}
 			}
 			return curRes;
 		}
 
-		internal static void AddWrappedHandleResultError(this PolicyResult policyResult, Exception ex, IHandlerRunner handler)
+		internal static void AddWrappedHandleResultError(this PolicyResult policyResult, Exception ex)
 		{
-			policyResult.AddHandleResultError(new HandlePolicyResultException(ex, handler));
+			policyResult.AddHandleResultError(new PolicyResultHandlingException(ex));
 		}
 
-		internal static void AddWrappedHandleResultErrors(this PolicyResult policyResult, IEnumerable<Exception> exs, IHandlerRunner handler)
+		internal static void AddWrappedHandleResultErrors(this PolicyResult policyResult, IEnumerable<Exception> exs)
 		{
-			var handlePolicyResultErrors = exs.Select((ex) => new HandlePolicyResultException(ex, handler));
+			var handlePolicyResultErrors = exs.Select((ex) => new PolicyResultHandlingException(ex));
 			policyResult.AddHandleResultErrors(handlePolicyResultErrors);
 		}
 	}
