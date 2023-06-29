@@ -9,27 +9,25 @@ namespace PoliNorError
 {
 	public static class EnumerablePolicyDelegateBaseExtensions
 	{
-		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Action<PolicyResult, CancellationToken> act) where T: IEnumerable<PolicyDelegateBase>
+		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IEnumerable<PolicyDelegateBase>
+		{
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
+		}
+
+		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Action<PolicyResult, CancellationToken> act) where T : IEnumerable<PolicyDelegateBase>
 		{
 			policyDelegateCollection.SetResultHandler(act);
 			return policyDelegateCollection;
 		}
 
-		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IEnumerable<PolicyDelegateBase>
+		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IEnumerable<PolicyDelegateBase>
 		{
-			policyDelegateCollection.SetResultHandler(act, convertType);
-			return policyDelegateCollection;
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
 		}
 
 		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Func<PolicyResult, CancellationToken, Task> func) where T : IEnumerable<PolicyDelegateBase>
 		{
 			policyDelegateCollection.SetResultHandler(func);
-			return policyDelegateCollection;
-		}
-
-		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IEnumerable<PolicyDelegateBase>
-		{
-			policyDelegateCollection.SetResultHandler(func, convertType);
 			return policyDelegateCollection;
 		}
 
@@ -63,14 +61,14 @@ namespace PoliNorError
 			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(act, convertType);
 		}
 
+		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			policyDelegateInfos.SetResultHandler(func.ToCancelableFunc(convertType));
+		}
+
 		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, CancellationToken, Task> func)
 		{
 			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(func);
-		}
-
-		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
-		{
-			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(func, convertType);
 		}
 
 		internal static PolicyDelegateHandleType GetHandleType(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
