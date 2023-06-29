@@ -4,10 +4,10 @@
 	{
 		protected HandlerRunnerBase(int num)
 		{
-			Num = num;
+			CollectionIndex = num;
 		}
 
-		public int Num { get; protected set; }
+		public int CollectionIndex { get; protected set; }
 
 		public abstract bool SyncRun { get; }
 	}

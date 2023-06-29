@@ -12,7 +12,7 @@ namespace PoliNorError
 
 	public interface IHandlerRunnerBase
 	{
-		int Num { get; }
+		int CollectionIndex { get; }
 		bool SyncRun { get; }
 	}
 }
