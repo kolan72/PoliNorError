@@ -181,6 +181,41 @@ namespace PoliNorError
 			return curRes;
 		}
 
+		internal static PolicyResult<T> HandleResultForceSync<T>(this PolicyResult<T> policyRetryResult, IEnumerable<IHandlerRunnerT> handlerRunners, CancellationToken token)
+		{
+			var curRes = policyRetryResult;
+			foreach (var handler in handlerRunners)
+			{
+				try
+				{
+					if (handler.SyncRun)
+					{
+						handler.Run(curRes, token);
+					}
+					else
+					{
+						Task.Run(() => handler.RunAsync(curRes, token), token).Wait(token);
+					}
+				}
+				catch (AggregateException ae)
+				{
+					if (ae.HasCanceledException(token))
+					{
+						curRes.AddWrappedHandleResultError(new OperationCanceledException(token));
+					}
+					else
+					{
+						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions);
+					}
+				}
+				catch (Exception ex)
+				{
+					curRes.AddWrappedHandleResultError(ex);
+				}
+			}
+			return curRes;
+		}
+
 		internal static void AddWrappedHandleResultError(this PolicyResult policyResult, Exception ex)
 		{
 			policyResult.AddHandleResultError(new PolicyResultHandlingException(ex));

@@ -50,6 +50,18 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(HandlerRunnerSyncType.Misc, collection.MapToSyncType());
 		}
 
+		[Test]
+		public void Should_SyncHandlerRunnerT_Run_Correctly_After_Create()
+		{
+			bool flag = false;
+			void act(PolicyResult<int> prt, CancellationToken _) { if (prt.Result == 10) flag = true; }
+			var runner = SyncHandlerRunnerT.Create<int>(act, 1);
+			var pr = new PolicyResult<int>();
+			pr.SetResult(10);
+			runner.Run(pr);
+			Assert.IsTrue(flag);
+		}
+
 		private class TestHandlerRunner : IHandlerRunner
 		{
 			public int CollectionIndex => throw new NotImplementedException();

@@ -88,6 +88,7 @@
     <Compile Include="PolicyDelegateTCollectionTests.cs" />
     <Compile Include="PolicyProcessorHandleCanceledTests.cs" />
     <Compile Include="PolicyProcessorTests.cs" />
+    <Compile Include="PolicyResultHandlerTTests.cs" />
     <Compile Include="PolicyResultTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RetryCountInfoTests.cs" />

@@ -29,6 +29,12 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
+		public static T AddPolicyResultHandler<T, U>(this T errorPolicyBase, Action<PolicyResult<U>, CancellationToken> action) where T : HandleErrorPolicyBase
+		{
+			errorPolicyBase.AddSyncHandler(action);
+			return errorPolicyBase;
+		}
+
 		public static T WrapPolicy<T>(this T errorPolicyBase, IPolicyBase wrappedPolicy) where T : HandleErrorPolicyBase
 		{
 			if (errorPolicyBase._wrappedPolicy != null)

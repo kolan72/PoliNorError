@@ -12,10 +12,12 @@ namespace PoliNorError
 		internal IPolicyBase _wrappedPolicy;
 
 		private readonly List<IHandlerRunner> _handlers;
+		private readonly List<IHandlerRunnerT> _genericHandlers;
 
 		private protected HandleErrorPolicyBase(IPolicyProcessor policyProcessor)
 		{
 			_handlers = new List<IHandlerRunner>();
+			_genericHandlers = new List<IHandlerRunnerT>();
 			PolicyProcessor = policyProcessor;
 		}
 
@@ -29,6 +31,17 @@ namespace PoliNorError
 		{
 			var handler = new SyncHandlerRunner(act, _handlers.Count);
 			_handlers.Add(handler);
+		}
+
+		internal void AddSyncHandler<T>(Action<PolicyResult<T>, CancellationToken> act)
+		{
+			var handler = SyncHandlerRunnerT.Create(act, _handlers.Count);
+			_genericHandlers.Add(handler);
+		}
+
+		protected PolicyResult<T> HandlePolicyResult<T>(PolicyResult<T> policyRetryResult, CancellationToken token)
+		{
+			return policyRetryResult.HandleResultForceSync(_genericHandlers, token);
 		}
 
 		protected PolicyResult HandlePolicyResult(PolicyResult policyRetryResult, CancellationToken token)
