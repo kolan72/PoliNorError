@@ -7,48 +7,47 @@ namespace PoliNorError
 {
 	public abstract class HandleErrorPolicyBase
 	{
-		private int _curNum;
 		protected string _policyName;
 
 		internal IPolicyBase _wrappedPolicy;
 
-		private readonly List<IHandlerRunner> handlers;
+		private readonly List<IHandlerRunner> _handlers;
 
 		private protected HandleErrorPolicyBase(IPolicyProcessor policyProcessor)
 		{
-			handlers = new List<IHandlerRunner>();
+			_handlers = new List<IHandlerRunner>();
 			PolicyProcessor = policyProcessor;
 		}
 
 		internal void AddAsyncHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
-			var handler = new ASyncHandlerRunner(func, ++_curNum);
-			handlers.Add(handler);
+			var handler = new ASyncHandlerRunner(func, _handlers.Count);
+			_handlers.Add(handler);
 		}
 
 		internal void AddSyncHandler(Action<PolicyResult, CancellationToken> act)
 		{
-			var handler = new SyncHandlerRunner(act, ++_curNum);
-			handlers.Add(handler);
+			var handler = new SyncHandlerRunner(act, _handlers.Count);
+			_handlers.Add(handler);
 		}
 
 		protected PolicyResult HandlePolicyResult(PolicyResult policyRetryResult, CancellationToken token)
 		{
-			return policyRetryResult.HandleResultForceSync(handlers, token);
+			return policyRetryResult.HandleResultForceSync(_handlers, token);
 		}
 
 		protected async Task HandlePolicyResultAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
-			switch (handlers.MapToSyncType())
+			switch (_handlers.MapToSyncType())
 			{
 				case HandlerRunnerSyncType.Sync:
-					policyRetryResult.HandleResultSync(handlers, token);
+					policyRetryResult.HandleResultSync(_handlers, token);
 					break;
 				case HandlerRunnerSyncType.Misc:
-					await policyRetryResult.HandleResultMisc(handlers, configureAwait, token).ConfigureAwait(configureAwait);
+					await policyRetryResult.HandleResultMisc(_handlers, configureAwait, token).ConfigureAwait(configureAwait);
 					break;
 				case HandlerRunnerSyncType.Async:
-					await policyRetryResult.HandleResultAsync(handlers, configureAwait, token).ConfigureAwait(configureAwait);
+					await policyRetryResult.HandleResultAsync(_handlers, configureAwait, token).ConfigureAwait(configureAwait);
 					break;
 				case HandlerRunnerSyncType.None:
 					break;
