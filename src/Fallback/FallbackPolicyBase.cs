@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public abstract class FallbackPolicyBase : HandleErrorPolicyBase, IFallbackPolicy
+	public abstract class FallbackPolicyBase : HandleErrorPolicyBase, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
@@ -213,6 +213,10 @@ namespace PoliNorError
 
 		public FallbackPolicyBase IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicyBase, TException>(func);
 
+		public FallbackPolicyBase IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicyBase>(expression);
+
 		public FallbackPolicyBase ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyBase, TException>(func);
+
+		public FallbackPolicyBase ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyBase>(expression);
 	}
 }

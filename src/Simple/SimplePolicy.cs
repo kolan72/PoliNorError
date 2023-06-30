@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class SimplePolicy : HandleErrorPolicyBase, IPolicyBase
+	public sealed class SimplePolicy : HandleErrorPolicyBase, IPolicyBase, IWithErrorFilter<SimplePolicy>
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 
@@ -104,8 +105,12 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public SimplePolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<SimplePolicy, TException>(func);
+
+		public SimplePolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<SimplePolicy>(expression);
+
 		public SimplePolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<SimplePolicy, TException>(func);
 
-		public SimplePolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<SimplePolicy, TException>(func);
+		public SimplePolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<SimplePolicy>(expression);
 	}
 }

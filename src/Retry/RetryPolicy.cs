@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy
+	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy, IWithErrorFilter<RetryPolicy>
 	{
 		private readonly IRetryProcessor _retryProcessor;
 
@@ -149,7 +150,11 @@ namespace PoliNorError
 
 		public RetryPolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<RetryPolicy, TException>(func);
 
+		public RetryPolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<RetryPolicy>(expression);
+
 		public RetryPolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<RetryPolicy, TException>(func);
+
+		public RetryPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<RetryPolicy>(expression);
 
 		public RetryCountInfo RetryInfo { get; }
 	}

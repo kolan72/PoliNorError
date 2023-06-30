@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class FallbackPolicy : FallbackPolicyBase
+	public sealed class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>
 	{
 		public FallbackPolicy(IBulkErrorProcessor processor = null) : this(new DefaultFallbackProcessor(processor ?? new BulkErrorProcessor())){}
 
@@ -38,7 +39,11 @@ namespace PoliNorError
 
 		public new FallbackPolicy WithFallbackFunc<T>(Func<T> fallbackFunc, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) => this.WithFallbackFunc<FallbackPolicy, T>(fallbackFunc, convertType);
 
+		public new FallbackPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicy>(expression);
+
 		public new FallbackPolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicy, TException>(func);
+
+		public new FallbackPolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicy>(expression);
 
 		public new FallbackPolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicy, TException>(func);
 

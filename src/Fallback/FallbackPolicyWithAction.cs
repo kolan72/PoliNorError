@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace PoliNorError
 	/// <summary>
 	///  This class is primarily for internal use by PoliNorError
 	/// </summary>
-	public sealed class FallbackPolicyWithAction : FallbackPolicyBase
+	public sealed class FallbackPolicyWithAction : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAction>
 	{
 		internal FallbackPolicyWithAction(IFallbackProcessor processor) : base(processor ?? new DefaultFallbackProcessor()){}
 
@@ -33,6 +34,10 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicyWithAction, TException>(func);
 
+		public new FallbackPolicyWithAction IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicyWithAction>(expression);
+
 		public new FallbackPolicyWithAction ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyWithAction, TException>(func);
+
+		public new FallbackPolicyWithAction ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyWithAction>(expression);
 	}
 }

@@ -264,6 +264,26 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_ExludedErrorFilter_Work()
+		{
+			var simplePolicy = new SimplePolicy();
+			var fbWithError = simplePolicy.ExcludeError((e) => e.Message == "Test");
+			void action() => throw new Exception("Test");
+			var polRes = fbWithError.Handle(action);
+			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		public void Should_IncludedErrorFilter_Work()
+		{
+			var simplePolicy = new SimplePolicy();
+			var fbWithError = simplePolicy.IncludeError((e) => e.Message == "Test");
+			void action() => throw new Exception("Test2");
+			var polRes = fbWithError.Handle(action);
+			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		public void Should_InvokeParams_ToSimplePolicy_Work()
 		{
 			InvokeParams invokeParamsNull = null;

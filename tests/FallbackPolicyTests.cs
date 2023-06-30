@@ -86,7 +86,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Add_IncludedErrorFilter_Work()
+		public void Should_FallbackPolicyWithAction_Add_IncludedErrorFilter_Work()
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
 			var fbWithError = fallBackPol.IncludeError((e) => e.Message == "Test");
@@ -98,7 +98,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Add_ExludedErrorFilter_Work()
+		public void Should_FallbackPolicyWithAction_Add_ExludedErrorFilter_Work()
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
 			var fbWithError = fallBackPol.ExcludeError((e) => e.Message == "Test");
@@ -174,6 +174,52 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polRes2.ErrorFilterUnsatisfied);
 			Assert.AreEqual(1, polRes2.Errors.Count());
 			Assert.AreEqual(-1, polRes2.Result);
+		}
+
+		[Test]
+		public void Should_FallbackPolicy_IncludeError_Based_On_Expression_Work()
+		{
+			var fallBackPol = new FallbackPolicy()
+										.WithFallbackFunc((_) => -1)
+										.IncludeError((ex) => ex.Message == "Test");
+
+			string actionUnsatisfied() => throw new Exception("Test2");
+			var polRes = fallBackPol.Handle(actionUnsatisfied);
+			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		public void Should_FallbackPolicy_ExcludeError_Based_On_Expression_Work()
+		{
+			var fallBackPol = new FallbackPolicy()
+										.WithFallbackFunc((_) => -1)
+										.ExcludeError((ex) => ex.Message == "Test");
+
+			string actionSatisfiedForFirst() => throw new Exception("Test");
+			var polRes = fallBackPol.Handle(actionSatisfiedForFirst);
+			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		public void Should_FallbackPolicyWithAsyncFunc_IncludeError_Based_On_Expression_Work()
+		{
+			var fallBackPol = new FallbackPolicy()
+										.WithAsyncFallbackFunc(async(_) => await Task.Delay(1))
+										.IncludeError((ex) => ex.Message == "Test");
+			string actionUnsatisfied() => throw new Exception("Test2");
+			var polRes = fallBackPol.Handle(actionUnsatisfied);
+			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		public void Should_FallbackPolicyWithAsyncFunc_ExcludeError_Based_On_Expression_Work()
+		{
+			var fallBackPol = new FallbackPolicy()
+										.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+										.ExcludeError((ex) => ex.Message == "Test");
+			string actionUnsatisfied() => throw new Exception("Test");
+			var polRes = fallBackPol.Handle(actionUnsatisfied);
+			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
