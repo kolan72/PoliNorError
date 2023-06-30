@@ -8,6 +8,11 @@ namespace PoliNorError
 {
 	internal static class EnumerablePolicyExtensions
 	{
+		public static void AddIncludedErrorFilter<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		{
+			policies.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+		}
+
 		public static void AddIncludedErrorFilter(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			foreach (var pol in policies)
@@ -16,12 +21,9 @@ namespace PoliNorError
 			}
 		}
 
-		public static void AddIncludedErrorFilter<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		public static void AddExcludedErrorFilter<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			foreach (var pol in policies)
-			{
-				pol.PolicyProcessor.AddIncludedErrorFilter(func);
-			}
+			policies.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
 		}
 
 		public static void AddExcludedErrorFilter(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
@@ -29,14 +31,6 @@ namespace PoliNorError
 			foreach (var pol in policies)
 			{
 				pol.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
-			}
-		}
-
-		public static void AddExcludedErrorFilter<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
-		{
-			foreach (var pol in policies)
-			{
-				pol.PolicyProcessor.AddExcludedErrorFilter(func);
 			}
 		}
 
