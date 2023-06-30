@@ -123,6 +123,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase("Test", false, "Test")]
+		[TestCase("Test2", true, "Test")]
+		public void Should_IncludeError_BasedOnExpression_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		{
+			var processor = FallbackProcessor.CreateDefault()
+											 .IncludeError(ex => ex.Message == paramName);
+			void saveWithInclude() => throw new Exception(errorParamName);
+			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		public void Should_No_ErrorProcessor_Process_When_ErrorFilterUnsatisfied()
 		{
 			const int init_value = 1;
@@ -146,6 +158,18 @@ namespace PoliNorError.Tests
 			var processor = new DefaultFallbackProcessor();
 			processor.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
+			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		[TestCase("Test2", false, "Test")]
+		[TestCase("Test", true, "Test")]
+		public void Should_ExcludeError_BasedOnExpression_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		{
+			var processor = FallbackProcessor.CreateDefault()
+											 .ExcludeError(ex => ex.Message == paramName);
+			void saveWithInclude() => throw new Exception(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
 			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}

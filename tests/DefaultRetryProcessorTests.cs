@@ -81,6 +81,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase("Test", false, "Test")]
+		[TestCase("Test2", true, "Test")]
+		public void Should_IncludeError_BasedOnExpression_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		{
+			var processor = RetryProcessor.CreateDefault()
+										  .IncludeError((exc) => exc.Message == paramName);
+			void saveWithInclude() { throw new Exception(errorParamName); }
+			var tryResCountWithNoInclude = processor.Retry(saveWithInclude, 1);
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		[TestCase("Test2", false, "Test")]
 		[TestCase("Test", true, "Test")]
 		public void Should_Generic_ExcludeError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
@@ -88,6 +100,18 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor();
 			processor.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() { throw new ArgumentNullException(errorParamName); }
+			var tryResCountWithNoInclude = processor.Retry(saveWithInclude, 1);
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		[TestCase("Test2", false, "Test")]
+		[TestCase("Test", true, "Test")]
+		public void Should_ExcludeError_BasedOnExpression_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
+		{
+			var processor = RetryProcessor.CreateDefault()
+										  .ExcludeError((exc) => exc.Message == paramName);
+			void saveWithInclude() { throw new Exception(errorParamName); }
 			var tryResCountWithNoInclude = processor.Retry(saveWithInclude, 1);
 			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
