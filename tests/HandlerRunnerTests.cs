@@ -62,6 +62,18 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(flag);
 		}
 
+		[Test]
+		public async Task Should_ASyncHandlerRunnerT_RunAsync_Correctly_After_Create()
+		{
+			bool flag = false;
+			async Task func(PolicyResult<int> prt, CancellationToken _) { await Task.Delay(1) ; if (prt.Result == 10) flag = true; }
+			var runner = ASyncHandlerRunnerT.Create<int>(func, 1);
+			var pr = new PolicyResult<int>();
+			pr.SetResult(10);
+			await runner.RunAsync(pr);
+			Assert.IsTrue(flag);
+		}
+
 		private class TestHandlerRunner : IHandlerRunner
 		{
 			public int CollectionIndex => throw new NotImplementedException();
