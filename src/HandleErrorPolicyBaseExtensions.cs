@@ -29,6 +29,11 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
+		public static T AddPolicyResultHandler<T, U>(this T errorPolicyBase, Action<PolicyResult<U>> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : HandleErrorPolicyBase
+		{
+			return errorPolicyBase.AddPolicyResultHandler(action.ToCancelableAction(convertType));
+		}
+
 		public static T AddPolicyResultHandler<T, U>(this T errorPolicyBase, Action<PolicyResult<U>, CancellationToken> action) where T : HandleErrorPolicyBase
 		{
 			errorPolicyBase.AddSyncHandler(action);
