@@ -27,6 +27,12 @@ namespace PoliNorError
 			_handlers.Add(handler);
 		}
 
+		internal void AddAsyncHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			var handler = ASyncHandlerRunnerT.Create(func, _handlers.Count);
+			_genericHandlers.Add(handler);
+		}
+
 		internal void AddSyncHandler(Action<PolicyResult, CancellationToken> act)
 		{
 			var handler = new SyncHandlerRunner(act, _handlers.Count);
@@ -61,6 +67,26 @@ namespace PoliNorError
 					break;
 				case HandlerRunnerSyncType.Async:
 					await policyRetryResult.HandleResultAsync(_handlers, configureAwait, token).ConfigureAwait(configureAwait);
+					break;
+				case HandlerRunnerSyncType.None:
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+		}
+
+		protected async Task HandlePolicyResultAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		{
+			switch (_genericHandlers.MapToSyncType())
+			{
+				case HandlerRunnerSyncType.Sync:
+					policyRetryResult.HandleResultSync(_genericHandlers, token);
+					break;
+				case HandlerRunnerSyncType.Misc:
+					await policyRetryResult.HandleResultMisc(_genericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
+					break;
+				case HandlerRunnerSyncType.Async:
+					await policyRetryResult.HandleResultAsync(_genericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
 					break;
 				case HandlerRunnerSyncType.None:
 					break;

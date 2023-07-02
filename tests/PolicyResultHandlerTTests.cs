@@ -33,5 +33,61 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_PolicyResult_Handled_By_Handle_And_HandleAsync_Method_If_ASyncHandlersAdded(bool asnc)
+		{
+			var retryPolicy = new RetryPolicy(1);
+			int i = 0;
+			retryPolicy.AddPolicyResultHandler(async (PolicyResult<int> __, CancellationToken _) => { await Task.Delay(1); i++; })
+					   .AddPolicyResultHandler(async (PolicyResult<int> __) => { await Task.Delay(1); i++; });
+
+			if (asnc)
+			{
+				await retryPolicy.HandleAsync<int>((ct) => throw new Exception("Handle"));
+			}
+			else
+			{
+				retryPolicy.Handle<int>(() => throw new Exception("Handle"));
+			}
+
+			Assert.AreEqual(2, i);
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Handled_By_HandleAsync_If_SyncHandler_And_ASyncHandler_Added()
+		{
+			var retryPolicy = new RetryPolicy(1);
+			int i = 0;
+			retryPolicy.AddPolicyResultHandler(async (PolicyResult<int> __, CancellationToken _) => { await Task.Delay(1); i++; })
+					   .AddPolicyResultHandler((PolicyResult<int> __) => i++);
+
+			await retryPolicy.HandleAsync<int>((ct) => throw new Exception("Handle"));
+			Assert.AreEqual(2, i);
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Handled_By_HandleAsync_If_Only_SyncHandlers_Added()
+		{
+			var retryPolicy = new RetryPolicy(1);
+			int i = 0;
+			retryPolicy.AddPolicyResultHandler((PolicyResult<int> __, CancellationToken ct) => i++)
+					   .AddPolicyResultHandler((PolicyResult<int> __) => i++);
+
+			await retryPolicy.HandleAsync<int>((ct) => throw new Exception("Handle"));
+			Assert.AreEqual(2, i);
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Can_Be_SetFailed_By_ASyncPolicyResultHandlerT_Even_If_NoError()
+		{
+			async Task func(PolicyResult<int> pr, CancellationToken _) { pr.SetFailed(); await Task.Delay(1); }
+			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler<RetryPolicy, int>(func);
+			var res = await retryPolicy.HandleAsync(async (ct) => { await Task.Delay(1); return 1; });
+			Assert.IsTrue(res.NoError);
+			Assert.IsTrue(res.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
+		}
 	}
 }

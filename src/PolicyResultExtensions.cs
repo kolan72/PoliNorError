@@ -71,7 +71,7 @@ namespace PoliNorError
 			return curRes;
 		}
 
-		internal async static Task<PolicyResult<T>> HandleResultMisc<T>(this PolicyResult<T> policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, bool configureAwait, CancellationToken token)
+		internal async static Task<PolicyResult<T>> HandleResultMisc<T>(this PolicyResult<T> policyRetryResult, IEnumerable<IHandlerRunnerT> handlerRunners, bool configureAwait, CancellationToken token)
 		{
 			var curRes = policyRetryResult;
 			foreach (var handler in handlerRunners)
@@ -112,6 +112,23 @@ namespace PoliNorError
 			return curRes;
 		}
 
+		internal async static Task<PolicyResult<T>> HandleResultAsync<T>(this PolicyResult<T> policyRetryResult, IEnumerable<IHandlerRunnerT> handlerRunners, bool configureAwait, CancellationToken token)
+		{
+			var curRes = policyRetryResult;
+			foreach (var handler in handlerRunners)
+			{
+				try
+				{
+					await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
+				}
+				catch (Exception ex)
+				{
+					curRes.AddWrappedHandleResultError(ex);
+				}
+			}
+			return curRes;
+		}
+
 		internal static PolicyResult HandleResultSync(this PolicyResult policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, CancellationToken token)
 		{
 			var curRes = policyRetryResult;
@@ -129,7 +146,7 @@ namespace PoliNorError
 			return curRes;
 		}
 
-		internal static PolicyResult<T> HandleResultSync<T>(this PolicyResult<T> policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, CancellationToken token)
+		internal static PolicyResult<T> HandleResultSync<T>(this PolicyResult<T> policyRetryResult, IEnumerable<IHandlerRunnerT> handlerRunners, CancellationToken token)
 		{
 			var curRes = policyRetryResult;
 			foreach (var handler in handlerRunners)
