@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public abstract class FallbackPolicyBase : HandleErrorPolicyBase, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>
+	public abstract class FallbackPolicyBase : HandleErrorPolicyBase, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>, ICanAddPolicyResultHandler<FallbackPolicyBase>
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
@@ -218,5 +218,45 @@ namespace PoliNorError
 		public FallbackPolicyBase ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyBase, TException>(func);
 
 		public FallbackPolicyBase ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyBase>(expression);
+
+		public FallbackPolicyBase AddPolicyResultHandler(Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(action);
+		}
+
+		public FallbackPolicyBase AddPolicyResultHandler(Action<PolicyResult, CancellationToken> action)
+		{
+			return this.AddPolicyResultHandlerInner(action);
+		}
+
+		public FallbackPolicyBase AddPolicyResultHandler(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		public FallbackPolicyBase AddPolicyResultHandler(Func<PolicyResult, CancellationToken, Task> func)
+		{
+			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		public FallbackPolicyBase AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(action, convertType);
+		}
+
+		public FallbackPolicyBase AddPolicyResultHandler<T>(Action<PolicyResult<T>, CancellationToken> action)
+		{
+			return this.AddPolicyResultHandlerInner(action);
+		}
+
+		public FallbackPolicyBase AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(func, convertType);
+		}
+
+		public FallbackPolicyBase AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			return this.AddPolicyResultHandlerInner(func);
+		}
 	}
 }
