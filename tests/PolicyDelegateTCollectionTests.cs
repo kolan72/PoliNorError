@@ -342,22 +342,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_AddPolicyResultHandlerForAll_For_Action_Work()
-		{
-			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => {});
-			int i = 0;
-			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
-			void action(PolicyResult _)
-			{
-				i++;
-			}
-
-			polDelegates.AddPolicyResultHandlerForAll(action);
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
 		public async Task Should_WithPolicyAsyncResultHandler_For_Func_Work()
 		{
 			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => {});
