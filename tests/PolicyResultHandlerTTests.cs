@@ -45,7 +45,7 @@ namespace PoliNorError.Tests
 
 			if (asnc)
 			{
-				await retryPolicy.HandleAsync<int>((ct) => throw new Exception("Handle"));
+				await retryPolicy.HandleAsync<int>((_) => throw new Exception("Handle"));
 			}
 			else
 			{
@@ -63,7 +63,7 @@ namespace PoliNorError.Tests
 			retryPolicy.AddPolicyResultHandler(async (PolicyResult<int> __, CancellationToken _) => { await Task.Delay(1); i++; })
 					   .AddPolicyResultHandler((PolicyResult<int> __) => i++);
 
-			await retryPolicy.HandleAsync<int>((ct) => throw new Exception("Handle"));
+			await retryPolicy.HandleAsync<int>((_) => throw new Exception("Handle"));
 			Assert.AreEqual(2, i);
 		}
 
@@ -72,10 +72,10 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy.AddPolicyResultHandler((PolicyResult<int> __, CancellationToken ct) => i++)
+			retryPolicy.AddPolicyResultHandler((PolicyResult<int> __, CancellationToken _) => i++)
 					   .AddPolicyResultHandler((PolicyResult<int> __) => i++);
 
-			await retryPolicy.HandleAsync<int>((ct) => throw new Exception("Handle"));
+			await retryPolicy.HandleAsync<int>((_) => throw new Exception("Handle"));
 			Assert.AreEqual(2, i);
 		}
 
@@ -84,7 +84,7 @@ namespace PoliNorError.Tests
 		{
 			async Task func(PolicyResult<int> pr, CancellationToken _) { pr.SetFailed(); await Task.Delay(1); }
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandler<RetryPolicy, int>(func);
-			var res = await retryPolicy.HandleAsync(async (ct) => { await Task.Delay(1); return 1; });
+			var res = await retryPolicy.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 			Assert.IsTrue(res.NoError);
 			Assert.IsTrue(res.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);

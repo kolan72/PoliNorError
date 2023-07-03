@@ -330,18 +330,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_WithPolicyAsyncResultHandler_For_Func_Work()
-		{
-			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => {});
-			int i = 0;
-			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
-
-			polDelegates.AddPolicyResultHandlerForAll(async (__, _) => { i++; await Task.Delay(1);});
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
-		}
-
-		[Test]
 		public async Task Should_Result_And_Status_Be_Correct_When_All_Policies_Failed()
 		{
 			var polDelegates = PolicyDelegateCollection<int>.Create().WithRetry(1).WithRetry(1);
@@ -350,18 +338,6 @@ namespace PoliNorError.Tests
 			var res = await polDelegates.HandleAllAsync();
 			Assert.AreEqual(0, res.Result);
 			Assert.AreEqual(true, res.LastPolicyResult.IsFailed);
-		}
-
-		[Test]
-		public async Task Should_AddPolicyResultHandlerForAll_For_Func_Work_If_All_PolicyDelegates_Is_IsFailed()
-		{
-			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback(async () => { await Task.Delay(1); throw new Exception("Fallback error"); });
-			int i = 0;
-			polDelegates.SetCommonDelegate(() => throw new Exception("Test"));
-
-			polDelegates.AddPolicyResultHandlerForAll(async (_) => { i++; await Task.Delay(1);});
-			await polDelegates.HandleAllAsync();
-			Assert.AreEqual(2, i);
 		}
 
 		[Test]
