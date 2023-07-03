@@ -43,7 +43,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandler(act);
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(act);
 			}
 		}
 
@@ -56,7 +56,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandler(func);
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
 			}
 		}
 	}
