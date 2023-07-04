@@ -221,7 +221,7 @@ namespace PoliNorError
 
 		public FallbackPolicyBase AddPolicyResultHandler(Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddPolicyResultHandlerInner(action, convertType);
 		}
 
 		public FallbackPolicyBase AddPolicyResultHandler(Action<PolicyResult, CancellationToken> action)
@@ -231,7 +231,7 @@ namespace PoliNorError
 
 		public FallbackPolicyBase AddPolicyResultHandler(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddPolicyResultHandlerInner(func, convertType);
 		}
 
 		public FallbackPolicyBase AddPolicyResultHandler(Func<PolicyResult, CancellationToken, Task> func)
