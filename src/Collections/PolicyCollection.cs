@@ -64,6 +64,30 @@ namespace PoliNorError
 			return this;
 		}
 
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			this.SetResultHandler(act, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>, CancellationToken> act)
+		{
+			this.SetResultHandler(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			this.SetResultHandler(func, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			this.SetResultHandler(func);
+			return this;
+		}
+
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilter(func);

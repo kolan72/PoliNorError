@@ -59,5 +59,31 @@ namespace PoliNorError
 				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
 			}
 		}
+
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			policies.SetResultHandler(act.ToCancelableAction(convertType));
+		}
+
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>, CancellationToken> act)
+		{
+			foreach (var policy in policies)
+			{
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(act);
+			}
+		}
+
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			SetResultHandler(policies, func.ToCancelableFunc(convertType));
+		}
+
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			foreach (var policy in policies)
+			{
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
+			}
+		}
 	}
 }

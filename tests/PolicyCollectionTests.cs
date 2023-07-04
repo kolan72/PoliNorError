@@ -157,6 +157,36 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_AddPolicyResultHandlerForAll_By_Generic_Action_Work()
+		{
+			var policyCollection = PolicyCollection.Create().WithRetry(1).WithRetry(1);
+			int i = 0;
+			void action1(PolicyResult<int> _, CancellationToken __) { i++; }
+			void action2(PolicyResult<int> _) { i++; }
+			policyCollection
+				.AddPolicyResultHandlerForAll<int>(action1)
+				.AddPolicyResultHandlerForAll<int>(action2);
+
+			await policyCollection.HandleDelegateAsync<int>(() => throw new Exception("Test"));
+			Assert.AreEqual(4, i);
+		}
+
+		[Test]
+		public async Task Should_AddPolicyResultHandlerForAll_By_Generic_AsyncFunc_Work()
+		{
+			var policyCollection = PolicyCollection.Create().WithRetry(1).WithRetry(1);
+			int i = 0;
+			async Task func1(PolicyResult<int> _, CancellationToken __) { await Task.Delay(1); i++; }
+			async Task func2(PolicyResult<int> _) { await Task.Delay(1); i++; }
+			policyCollection
+				.AddPolicyResultHandlerForAll<int>(func1)
+				.AddPolicyResultHandlerForAll<int>(func2);
+
+			await policyCollection.HandleDelegateAsync<int>(() => throw new Exception("Test"));
+			Assert.AreEqual(4, i);
+		}
+
+		[Test]
 		[TestCase("")]
 		public async Task Should_Generic_IncludeErrorForAll_Work(string errorParamName)
 		{
