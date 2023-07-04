@@ -446,6 +446,82 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(retryPolInfinite.RetryInfo.IsInfinite);
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddPolicyResultHandler_By_Action_Work(bool withCancelTokenParam)
+		{
+			int i = 0;
+			var policy = new RetryPolicy(1);
+			if (withCancelTokenParam)
+			{
+				policy.AddPolicyResultHandler((_, __) => i++);
+			}
+			else
+			{
+				policy.AddPolicyResultHandler((_) => i++);
+			}
+			policy.Handle(() => throw new Exception("Handle"));
+			Assert.AreEqual(1, i);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddPolicyResultHandler_By_Generic_Action_Work(bool withCancelTokenParam)
+		{
+			int i = 0;
+			var policy = new RetryPolicy(1);
+			if (withCancelTokenParam)
+			{
+				policy.AddPolicyResultHandler<int>((_, __) => i++);
+			}
+			else
+			{
+				policy.AddPolicyResultHandler<int>((_) => i++);
+			}
+			policy.Handle<int>(() => throw new Exception("Handle"));
+			Assert.AreEqual(1, i);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_AddPolicyResultHandler_By_AsyncFunc_Work(bool withCancelTokenParam)
+		{
+			int i = 0;
+			var policy = new RetryPolicy(1);
+			if (withCancelTokenParam)
+			{
+				policy.AddPolicyResultHandler(async (_, __) => { await Task.Delay(1); i++; });
+			}
+			else
+			{
+				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
+			}
+			await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
+			Assert.AreEqual(1, i);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_AddPolicyResultHandler_By_Generic_AsyncFunc_Work(bool withCancelTokenParam)
+		{
+			int i = 0;
+			var policy = new RetryPolicy(1);
+			if (withCancelTokenParam)
+			{
+				policy.AddPolicyResultHandler<int>(async (_, __) => { await Task.Delay(1); i++; });
+			}
+			else
+			{
+				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
+			}
+			await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
+			Assert.AreEqual(1, i);
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;

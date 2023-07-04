@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy, IWithErrorFilter<RetryPolicy>
+	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy, IWithErrorFilter<RetryPolicy>, ICanAddPolicyResultHandler<RetryPolicy>
 	{
 		private readonly IRetryProcessor _retryProcessor;
 
@@ -155,6 +155,46 @@ namespace PoliNorError
 		public RetryPolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<RetryPolicy, TException>(func);
 
 		public RetryPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<RetryPolicy>(expression);
+
+		public RetryPolicy AddPolicyResultHandler(Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(action, convertType);
+		}
+
+		public RetryPolicy AddPolicyResultHandler(Action<PolicyResult, CancellationToken> action)
+		{
+			return this.AddPolicyResultHandlerInner(action);
+		}
+
+		public RetryPolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(func, convertType);
+		}
+
+		public RetryPolicy AddPolicyResultHandler(Func<PolicyResult, CancellationToken, Task> func)
+		{
+			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		public RetryPolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(action, convertType);
+		}
+
+		public RetryPolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>, CancellationToken> action)
+		{
+			return this.AddPolicyResultHandlerInner(action);
+		}
+
+		public RetryPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return this.AddPolicyResultHandlerInner(func, convertType);
+		}
+
+		public RetryPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			return this.AddPolicyResultHandlerInner(func);
+		}
 
 		public RetryCountInfo RetryInfo { get; }
 	}
