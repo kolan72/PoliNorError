@@ -125,7 +125,7 @@ namespace PoliNorError
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddPolicyResultHandlerInner(func, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, CancellationToken, Task> func)
