@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public interface ICanAddPolicyResultHandler<T> where T: HandleErrorPolicyBase, ICanAddPolicyResultHandler<T>
+	public interface ICanAddPolicyResultHandler<T> where T: ICanAddPolicyResultHandler<T>
 	{
 		T AddPolicyResultHandler(Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable);
 		T AddPolicyResultHandler(Action<PolicyResult, CancellationToken> action);
