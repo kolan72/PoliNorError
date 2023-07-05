@@ -34,7 +34,7 @@ namespace PoliNorError
 			return prevResult != null && (prevResult.IsCanceled || !prevResult.IsFailed);
 		}
 
-		internal static T SetFailedWithError<T>(this T retryResult, Exception exception, PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyHandleGuardsFailed) where T : PolicyResult
+		internal static T SetFailedWithError<T>(this T retryResult, Exception exception, PolicyResultFailedReason failedReason = PolicyResultFailedReason.DelegateIsNull) where T : PolicyResult
 		{
 			retryResult.AddError(exception);
 			retryResult.SetFailedInner(failedReason);

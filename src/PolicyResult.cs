@@ -134,7 +134,7 @@ namespace PoliNorError
 	public enum PolicyResultFailedReason
 	{
 		None,
-		PolicyHandleGuardsFailed,
+		DelegateIsNull,
 		PolicyProcessorFailed,
 		PolicyResultHandlerFailed
 	}

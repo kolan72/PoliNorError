@@ -42,7 +42,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicy();
 			var retryResult = retryPolTest.Handle(null);
 			Assert.IsTrue(retryResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -97,7 +97,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicy();
 			var retryResult = retryPolTest.Handle<int>(null);
 			Assert.IsTrue(retryResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -150,7 +150,7 @@ namespace PoliNorError.Tests
 			var simplePolTest = new SimplePolicy();
 			var retryResult = await simplePolTest.HandleAsync(null);
 			Assert.IsTrue(retryResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, retryResult.FailedReason);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
@@ -206,7 +206,7 @@ namespace PoliNorError.Tests
 			var simple = new SimplePolicy();
 			var res = await simple.HandleAsync<int>(null);
 			Assert.IsTrue(res.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyHandleGuardsFailed, res.FailedReason);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, res.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), res.Errors.FirstOrDefault()?.GetType());
 		}
 
