@@ -59,9 +59,6 @@ namespace PoliNorError
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
-			if (action == null)
-				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this));
-
 			PolicyResult retryResult = null;
 
 			if (_wrappedPolicy == null)
@@ -70,6 +67,9 @@ namespace PoliNorError
 			}
 			else
 			{
+				if (action == null)
+					return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this));
+
 				var wrapper = new PolicyWrapper(_wrappedPolicy, action, token);
 				Action actionWrapped = wrapper.Handle;
 
@@ -82,9 +82,6 @@ namespace PoliNorError
 
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
-			if (func == null)
-				return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this));
-
 			PolicyResult<T> retryResult = null;
 
 			if (_wrappedPolicy == null)
@@ -93,6 +90,9 @@ namespace PoliNorError
 			}
 			else
 			{
+				if (func == null)
+					return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this));
+
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token);
 				Func<T> funcWrapped = wrapper.Handle;
 
@@ -105,9 +105,6 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			if(func == null)
-				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this));
-
 			PolicyResult retryResult = null;
 
 			if (_wrappedPolicy == null)
@@ -116,6 +113,9 @@ namespace PoliNorError
 			}
 			else
 			{
+				if (func == null)
+					return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this));
+
 				var wrapper = new PolicyWrapper(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task> funcWrapped = wrapper.HandleAsync;
 
@@ -128,16 +128,17 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			if (func == null)
-				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this));
-
 			PolicyResult<T> retryResult = null;
+
 			if (_wrappedPolicy == null)
 			{
 				retryResult = await _retryProcessor.RetryAsync(func, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			else
 			{
+				if (func == null)
+					return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this));
+
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
 

@@ -15,6 +15,9 @@ namespace PoliNorError
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
+			if (action == null)
+				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(action)}' is null."));
+
 			var result = PolicyResult.ForSync();
 
 			int tryCount = retryCountInfo.StartTryCount;
@@ -63,6 +66,9 @@ namespace PoliNorError
 
 		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
+			if (func == null)
+				return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+
 			if (typeof(T).Equals(typeof(Task)) || typeof(T).IsSubclassOf(typeof(Task)))
 			{
 				throw new ArgumentException("Do not use this method for task return type!");
@@ -118,6 +124,9 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
+			if (func == null)
+				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+
 			var result = PolicyResult.InitByConfigureAwait(configureAwait);
 
 			int tryCount = retryCountInfo.StartTryCount;
@@ -162,6 +171,9 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
+			if (func == null)
+				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 
 			int tryCount = retryCountInfo.StartTryCount;

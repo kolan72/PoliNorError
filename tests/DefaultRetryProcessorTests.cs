@@ -292,5 +292,45 @@ namespace PoliNorError.Tests
 			Assert.Greater(Math.Floor(sw.Elapsed.TotalMilliseconds), 250);
 			Assert.AreEqual(1, customDelayErrorProcessor.CurRetry);
 		}
+
+		[Test]
+		public void Should_Retry_Null_Delegate_Work()
+		{
+			var proc = RetryProcessor.CreateDefault();
+			var retryResult = proc.Retry(null,1);
+			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public void Should_RetryT_Null_Delegate_Work()
+		{
+			var proc = RetryProcessor.CreateDefault();
+			var retryResult = proc.Retry<int>(null, 1);
+			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_RetryAsync_Null_Delegate_Work()
+		{
+			var proc = RetryProcessor.CreateDefault();
+			var retryResult = await proc.RetryAsync(null, 1);
+			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_RetryTAsync_Null_Delegate_Work()
+		{
+			var proc = RetryProcessor.CreateDefault();
+			var retryResult = await proc.RetryAsync<int>(null, 1);
+			Assert.IsTrue(retryResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
 	}
 }

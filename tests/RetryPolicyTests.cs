@@ -213,6 +213,50 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_RetryPolicy_Wrap_OtherPolicy_And_Handle_NullDelegate()
+		{
+			var fallBackPolicy = new SimplePolicy();
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(fallBackPolicy);
+			var retryResult = retryPolicy.Handle(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_RetryPolicy_Wrap_OtherPolicy_And_HandleAsync_NullDelegate()
+		{
+			var fallBackPolicy = new SimplePolicy();
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(fallBackPolicy);
+			var retryResult = await retryPolicy.HandleAsync(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_RetryPolicy_Wrap_OtherPolicy_And_HandleT_NullDelegate()
+		{
+			var fallBackPolicy = new SimplePolicy();
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(fallBackPolicy);
+			var retryResult = retryPolicy.Handle<int>(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_RetryPolicy_Wrap_OtherPolicy_And_HandleTAsync_NullDelegate()
+		{
+			var fallBackPolicy = new SimplePolicy();
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(fallBackPolicy);
+			var retryResult = await retryPolicy.HandleAsync<int>(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
 		public async Task Should_Work_For_HandleAsync_Null_Delegate()
 		{
 			var retryPolTest = new RetryPolicy(0);
