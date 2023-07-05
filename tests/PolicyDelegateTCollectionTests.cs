@@ -418,6 +418,32 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_AddPolicyResultHandlerForAll_For_Action_Work()
+		{
+			int i = 0;
+			var polDelegates = PolicyCollection.Create().WithRetry(1).WithRetry(1).ToPolicyDelegateCollection<int>(() => throw new Exception("Test"));
+			polDelegates
+				.AddPolicyResultHandlerForAll((_, __) => i++)
+				.AddPolicyResultHandlerForAll((_) => i++);
+			var result = polDelegates.HandleAll();
+			Assert.AreEqual(2, result.Count());
+			Assert.AreEqual(4, i);
+		}
+
+		[Test]
+		public async Task Should_AddPolicyResultHandlerForAll_For_AsyncFunc_Work()
+		{
+			int i = 0;
+			var polDelegates = PolicyCollection.Create().WithRetry(1).WithRetry(1).ToPolicyDelegateCollection<int>(() => throw new Exception("Test"));
+			polDelegates
+				.AddPolicyResultHandlerForAll(async (_, __) => { await Task.Delay(1); i++; })
+				.AddPolicyResultHandlerForAll(async (_) => { await Task.Delay(1); i++; });
+			var result = await polDelegates.HandleAllAsync();
+			Assert.AreEqual(2, result.Count());
+			Assert.AreEqual(4, i);
+		}
+
+		[Test]
 		public async Task Should_UnhandledDelegateInfoCount_Equals_Zero_If_All_Policies_Handled_For_Only_Async_Policies()
 		{
 			var retry = new RetryPolicy(2);

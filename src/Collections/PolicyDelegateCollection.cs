@@ -128,7 +128,7 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func) 
+		public PolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func)
 		{
 			this.Select(pd => pd.Policy).SetResultHandler(func);
 			return this;
