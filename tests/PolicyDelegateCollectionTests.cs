@@ -519,7 +519,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_WithCommonResultHandler_For_ActionWithCancelToken_Work()
+		public async Task Should_AddPolicyResultHandlerForAll_For_ActionWithCancelToken_Work()
 		{
 			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => { });
 			int i = 0;
@@ -547,7 +547,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_WithCommonResultHandler_Set_Handler_For_Only_Elements_Have_Already_Been_Added()
+		public async Task Should_AddPolicyResultHandlerForAll_Set_Handler_For_Only_Elements_Have_Already_Been_Added()
 		{
 			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithRetry(1);
 			int i = 0;
@@ -578,7 +578,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_WithPolicyAsyncResultHandler_For_Func_Work()
+		public async Task Should_AddPolicyResultHandlerForAll_For_Func_Work()
 		{
 			var polDelegates = PolicyDelegateCollection.Create().WithRetry(1).WithFallback((_) => { });
 			int i = 0;

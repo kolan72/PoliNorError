@@ -9,28 +9,6 @@ namespace PoliNorError
 {
 	public static class EnumerablePolicyDelegateBaseExtensions
 	{
-		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IEnumerable<PolicyDelegateBase>
-		{
-			return policyDelegateCollection.AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
-		}
-
-		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Action<PolicyResult, CancellationToken> act) where T : IEnumerable<PolicyDelegateBase>
-		{
-			policyDelegateCollection.SetResultHandler(act);
-			return policyDelegateCollection;
-		}
-
-		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IEnumerable<PolicyDelegateBase>
-		{
-			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
-		}
-
-		public static T AddPolicyResultHandlerForAll<T>(this T policyDelegateCollection, Func<PolicyResult, CancellationToken, Task> func) where T : IEnumerable<PolicyDelegateBase>
-		{
-			policyDelegateCollection.SetResultHandler(func);
-			return policyDelegateCollection;
-		}
-
 		internal static bool AnyWithoutDelegate(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
 			return policyDelegateInfos.Any(Predicates.Not(PolicyDelegatePredicates.WithDelegateFunc));

@@ -110,6 +110,30 @@ namespace PoliNorError
 			return this;
 		}
 
+		public PolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			this.Select(pd => pd.Policy).SetResultHandler(act, convertType);
+			return this;
+		}
+
+		public PolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act)
+		{
+			this.Select(pd => pd.Policy).SetResultHandler(act);
+			return this;
+		}
+
+		public PolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			this.Select(pd => pd.Policy).SetResultHandler(func, convertType);
+			return this;
+		}
+
+		public PolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func) 
+		{
+			this.Select(pd => pd.Policy).SetResultHandler(func);
+			return this;
+		}
+
 		public PolicyDelegateCollection SetCommonDelegate(Action action)
 		{
 			var res = SetCommonDelegateInner(action);
