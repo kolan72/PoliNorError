@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class PolicyDelegateCollection<T> : PolicyDelegateCollectionBase<PolicyDelegate<T>>, IWithPolicy<PolicyDelegateCollection<T>>
+	public sealed class PolicyDelegateCollection<T> : PolicyDelegateCollectionBase<PolicyDelegate<T>>,  IWithPolicyBase<IPolicyNeedDelegateCollection<T>>, IPolicyNeedDelegateCollection<T>
 	{
 		private IPolicyDelegateResultsToErrorConverter<T> _errorConverter;
 
@@ -48,11 +48,6 @@ namespace PoliNorError
 				res.WithPolicyDelegate(errorPolicy);
 			}
 			return res;
-		}
-
-		public PolicyDelegateCollection<T> WithPolicy(IPolicyBase policyBase)
-		{
-			return WithPolicyDelegate(policyBase.ToPolicyDelegate<T>());
 		}
 
 		public PolicyDelegateCollection<T> WithPolicyAndDelegate(IPolicyBase errorPolicy, Func<CancellationToken, Task<T>> func) => WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
@@ -233,6 +228,11 @@ namespace PoliNorError
 				polInfo.SetDelegate(func);
 			}
 			return SettingPolicyDelegateResult.Success;
+		}
+
+		public IPolicyNeedDelegateCollection<T> WithPolicy(IPolicyBase policyBase)
+		{
+			return WithPolicyDelegate(policyBase.ToPolicyDelegate<T>());
 		}
 	}
 }

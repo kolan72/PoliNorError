@@ -4,9 +4,8 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public interface IWithPolicy<T> where T : IWithPolicy<T>
+	public interface IWithPolicy<out T> : IWithPolicyBase<T> where T : IWithPolicy<T>
 	{
-		T WithPolicy(IPolicyBase policyBase);
 	}
 
 	internal static class IWithPolicyExtensions
