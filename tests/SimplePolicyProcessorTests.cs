@@ -193,5 +193,45 @@ namespace PoliNorError.Tests
 			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
 			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_Execute_Null_Delegate()
+		{
+			var proc = SimplePolicyProcessor.CreateDefault();
+			var simpleResult = proc.Execute(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_ExecuteT_Null_Delegate()
+		{
+			var proc = SimplePolicyProcessor.CreateDefault();
+			var simpleResult = proc.Execute<int>(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_ExecuteAsync_Null_Delegate()
+		{
+			var proc = SimplePolicyProcessor.CreateDefault();
+			var simpleResult = await proc.ExecuteAsync(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_ExecuteTAsync_Null_Delegate()
+		{
+			var proc = SimplePolicyProcessor.CreateDefault();
+			var simpleResult = await proc.ExecuteAsync<int>(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+		}
 	}
 }

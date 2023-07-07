@@ -39,9 +39,53 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Work_For_Handle_Null_Delegate()
 		{
-			var retryPolTest = new SimplePolicy();
-			var retryResult = retryPolTest.Handle(null);
-			Assert.IsTrue(retryResult.IsFailed);
+			var simplePolTest = new SimplePolicy();
+			var simpleResult = simplePolTest.Handle(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_SimplePolicy_Wrap_OtherPolicy_And_Handle_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var simple = new SimplePolicy();
+			simple.WrapPolicy(simpleWrapped);
+			var wrapResult = simple.Handle(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_SimplePolicy_Wrap_OtherPolicy_And_HandleT_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var simple = new SimplePolicy();
+			simple.WrapPolicy(simpleWrapped);
+			var wrapResult = simple.Handle<int>(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_SimplePolicy_Wrap_OtherPolicy_And_HandleAsync_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var simple = new SimplePolicy();
+			simple.WrapPolicy(simpleWrapped);
+			var retryResult = await simple.HandleAsync(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_SimplePolicy_Wrap_OtherPolicy_And_HandleTAsync_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var simple = new SimplePolicy();
+			simple.WrapPolicy(simpleWrapped);
+			var retryResult = await simple.HandleAsync<int>(null);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
