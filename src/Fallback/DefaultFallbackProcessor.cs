@@ -10,6 +10,9 @@ namespace PoliNorError
 
 		public PolicyResult Fallback(Action action, Action<CancellationToken> fallback, CancellationToken token = default)
 		{
+			if (action == null)
+				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(action)}' is null."));
+
 			PolicyResult result = PolicyResult.ForSync();
 
 			if (token.IsCancellationRequested)
@@ -45,6 +48,9 @@ namespace PoliNorError
 
 		public PolicyResult<T> Fallback<T>(Func<T> func, Func<CancellationToken, T> fallback, CancellationToken token = default)
 		{
+			if (func == null)
+				return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+
 			var result = PolicyResult<T>.ForSync();
 
 			if (token.IsCancellationRequested)
@@ -81,6 +87,9 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> FallbackAsync(Func<CancellationToken, Task> func, Func<CancellationToken, Task> fallback, bool configureAwait = false, CancellationToken token = default)
 		{
+			if (func == null)
+				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+
 			PolicyResult result = PolicyResult.InitByConfigureAwait(configureAwait);
 
 			if (token.IsCancellationRequested)
@@ -112,6 +121,9 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> FallbackAsync<T>(Func<CancellationToken, Task<T>> func, Func<CancellationToken, Task<T>> fallback, bool configureAwait = false, CancellationToken token = default)
 		{
+			if (func == null)
+				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 
 			if (token.IsCancellationRequested)

@@ -498,6 +498,50 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_FallbackPolicy_Wrap_OtherPolicy_And_Handle_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var fallback = new FallbackPolicy();
+			fallback.WrapPolicy(simpleWrapped);
+			var wrapResult = fallback.Handle(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_FallbackPolicy_Wrap_OtherPolicy_And_HandleT_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var fallback = new FallbackPolicy();
+			fallback.WrapPolicy(simpleWrapped);
+			var wrapResult = fallback.Handle<int>(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_FallbackPolicy_Wrap_OtherPolicy_And_HandleAsync_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var fallback = new FallbackPolicy();
+			fallback.WrapPolicy(simpleWrapped);
+			var wrapResult = await fallback.HandleAsync(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public async Task Should_PolicyResult_Contains_NoDelegateException_When_FallbackPolicy_Wrap_OtherPolicy_And_HandleTAsync_NullDelegate()
+		{
+			var simpleWrapped = new SimplePolicy();
+			var fallback = new FallbackPolicy();
+			fallback.WrapPolicy(simpleWrapped);
+			var wrapResult = await fallback.HandleAsync<int>(null);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
 		public async Task Should_Handle_ASync_NoGeneric_ByFallbackSync_If_Cancel()
 		{
 			using (var cancelSource = new CancellationTokenSource())

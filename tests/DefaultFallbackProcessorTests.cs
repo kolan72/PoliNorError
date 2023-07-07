@@ -3,6 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using System.Linq;
 
 namespace PoliNorError.Tests
 {
@@ -172,6 +173,26 @@ namespace PoliNorError.Tests
 			void saveWithInclude() => throw new Exception(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
 			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_Fallback_Null_Delegate()
+		{
+			var proc = FallbackProcessor.CreateDefault();
+			var fallbackResult = proc.Fallback(null, (_) => { });
+			Assert.IsTrue(fallbackResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		public void Should_PolicyResult_Contains_NoDelegateException_When_FallbackT_Null_Delegate()
+		{
+			var proc = FallbackProcessor.CreateDefault();
+			var fallbackResult = proc.Fallback(null, (_) => 1);
+			Assert.IsTrue(fallbackResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());
 		}
 	}
 }
