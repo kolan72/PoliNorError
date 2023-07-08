@@ -122,22 +122,22 @@ namespace PoliNorError
 			return res;
 		}
 
-		public PolicyDelegateCollection ToPolicyDelegateCollection(Action action)
+		public IPolicyDelegateCollection ToPolicyDelegateCollection(Action action)
 		{
 			return PolicyDelegateCollection.Create(_policies.Select(p => p.ToPolicyDelegate(action)));
 		}
 
-		public PolicyDelegateCollection ToPolicyDelegateCollection(Func<CancellationToken, Task> func)
+		public IPolicyDelegateCollection ToPolicyDelegateCollection(Func<CancellationToken, Task> func)
 		{
 			return PolicyDelegateCollection.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
 		}
 
-		public PolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<T> func)
+		public IPolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<T> func)
 		{
 			return PolicyDelegateCollection<T>.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
 		}
 
-		public PolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<CancellationToken, Task<T>> func)
+		public IPolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<CancellationToken, Task<T>> func)
 		{
 			return PolicyDelegateCollection<T>.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
 		}

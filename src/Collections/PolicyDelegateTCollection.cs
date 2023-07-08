@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class PolicyDelegateCollection<T> : PolicyDelegateCollectionBase<PolicyDelegate<T>>,  IWithPolicyBase<IPolicyNeedDelegateCollection<T>>, IPolicyNeedDelegateCollection<T>
+	public sealed class PolicyDelegateCollection<T> : PolicyDelegateCollectionBase<PolicyDelegate<T>>, IPolicyDelegateCollection<T>, INeedDelegateCollection<T>
 	{
 		private IPolicyDelegateResultsToErrorConverter<T> _errorConverter;
 
-		public static PolicyDelegateCollection<T> Create(IPolicyBase pol, Func<T> func, int n = 1)
+		public static IPolicyDelegateCollection<T> Create(IPolicyBase pol, Func<T> func, int n = 1)
 		{
 			var res = new PolicyDelegateCollection<T>();
 			for (int i = 0; i < n; i++)
@@ -21,7 +21,7 @@ namespace PoliNorError
 			return res;
 		}
 
-		public static PolicyDelegateCollection<T> Create(IPolicyBase pol, Func<CancellationToken, Task<T>> func, int n = 1)
+		public static IPolicyDelegateCollection<T> Create(IPolicyBase pol, Func<CancellationToken, Task<T>> func, int n = 1)
 		{
 			var res = new PolicyDelegateCollection<T>();
 			for (int i = 0; i < n; i++)
@@ -31,13 +31,13 @@ namespace PoliNorError
 			return res;
 		}
 
-		public static PolicyDelegateCollection<T> Create(params PolicyDelegate<T>[] errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
+		public static IPolicyDelegateCollection<T> Create(params PolicyDelegate<T>[] errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
 
-		public static PolicyDelegateCollection<T> Create(IEnumerable<PolicyDelegate<T>> errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
+		public static IPolicyDelegateCollection<T> Create(IEnumerable<PolicyDelegate<T>> errorPolicyInfos) => FromPolicyDelegates(errorPolicyInfos);
 
 		private PolicyDelegateCollection(){}
 
-		private static PolicyDelegateCollection<T> FromPolicyDelegates(IEnumerable<PolicyDelegate<T>> errorPolicyInfos)
+		private static IPolicyDelegateCollection<T> FromPolicyDelegates(IEnumerable<PolicyDelegate<T>> errorPolicyInfos)
 		{
 			errorPolicyInfos.ThrowIfNotLastPolicyWithoutDelegateExists();
 
@@ -50,100 +50,74 @@ namespace PoliNorError
 			return res;
 		}
 
-		public PolicyDelegateCollection<T> WithPolicyAndDelegate(IPolicyBase errorPolicy, Func<CancellationToken, Task<T>> func) => WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
-
-		public PolicyDelegateCollection<T> WithPolicyAndDelegate(IPolicyBase errorPolicy, Func<T> func) => WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
-
-		public PolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy)
+		public IPolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy)
 		{
 			AddPolicyDelegate(errorPolicy);
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> AndDelegate(Func<CancellationToken, Task<T>> func)
+		public INeedDelegateCollection<T> WithPolicy(IPolicyBase policyBase)
+		{
+			WithPolicyDelegate(policyBase.ToPolicyDelegate<T>());
+			return this;
+		}
+
+		public IPolicyDelegateCollection<T> AndDelegate(Func<CancellationToken, Task<T>> func)
 		{
 			var setResult = SetLastPolicyDelegate(func);
 			if (setResult != SettingPolicyDelegateResult.Success) setResult.ThrowErrorByResult();
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> AndDelegate(Func<T> func)
+		public IPolicyDelegateCollection<T> AndDelegate(Func<T> func)
 		{
 			var setResult = SetLastPolicyDelegate(func);
 			if (setResult != SettingPolicyDelegateResult.Success) setResult.ThrowErrorByResult();
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null)
+		public IPolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null)
 		{
 			_terminated = true;
 			_errorConverter = errorConverter ?? new PolicyDelegateResultsToErrorConverter<T>();
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
+		public IPolicyDelegateCollection<T> IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			this.AddIncludedErrorFilter(handledErrorFilter);
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
+		public IPolicyDelegateCollection<T> IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilter(func);
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
+		public IPolicyDelegateCollection<T> ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			this.AddExcludedErrorFilter(handledErrorFilter);
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
+		public IPolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddExcludedErrorFilter(func);
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
-		{
-			this.Select(pd => pd.Policy).SetResultHandler(act, convertType);
-			return this;
-		}
-
-		public PolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>, CancellationToken> act)
+		public IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>, CancellationToken> act)
 		{
 			this.Select(pd => pd.Policy).SetResultHandler(act);
 			return this;
 		}
 
-		public PolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
-		{
-			this.Select(pd => pd.Policy).SetResultHandler(func, convertType);
-			return this;
-		}
-
-		public PolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, CancellationToken, Task> func)
+		public IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
 			this.Select(pd => pd.Policy).SetResultHandler(func);
 			return this;
 		}
-
-		public PolicyDelegateCollection<T> SetCommonDelegate(Func<CancellationToken, Task<T>> func)
-		{
-			var res = SetCommonDelegateInner(func);
-			if (res != SettingPolicyDelegateResult.Success) res.ThrowErrorByResult();
-			return this;
-		}
-
-		public PolicyDelegateCollection<T> SetCommonDelegate(Func<T> func)
-		{
-			var res = SetCommonDelegateInner(func);
-			if (res != SettingPolicyDelegateResult.Success) res.ThrowErrorByResult();
-			return this;
-		}
-
-		public Task<PolicyDelegateCollectionResult<T>> HandleAllAsync(CancellationToken token = default) => HandleAllAsync(false, token);
 
 		public async Task<PolicyDelegateCollectionResult<T>> HandleAllAsync(bool configAwait, CancellationToken token)
 		{
@@ -202,37 +176,6 @@ namespace PoliNorError
 					throw _errorConverter.ToExceptionConverter()(hResults);
 				}
 			}
-		}
-
-		internal SettingPolicyDelegateResult SetCommonDelegateInner(Func<T> func)
-		{
-			if (this.IsEmpty()) return SettingPolicyDelegateResult.Empty;
-
-			if (_syncInfos.AnyWithDelegate()) return SettingPolicyDelegateResult.AlreadySet;
-
-			foreach (var polInfo in this)
-			{
-				polInfo.SetDelegate(func);
-			}
-			return SettingPolicyDelegateResult.Success;
-		}
-
-		internal SettingPolicyDelegateResult SetCommonDelegateInner(Func<CancellationToken, Task<T>> func)
-		{
-			if (this.IsEmpty()) return SettingPolicyDelegateResult.Empty;
-
-			if (_syncInfos.AnyWithDelegate()) return SettingPolicyDelegateResult.AlreadySet;
-
-			foreach (var polInfo in this)
-			{
-				polInfo.SetDelegate(func);
-			}
-			return SettingPolicyDelegateResult.Success;
-		}
-
-		public IPolicyNeedDelegateCollection<T> WithPolicy(IPolicyBase policyBase)
-		{
-			return WithPolicyDelegate(policyBase.ToPolicyDelegate<T>());
 		}
 	}
 }

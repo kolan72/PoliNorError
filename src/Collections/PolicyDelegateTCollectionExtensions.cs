@@ -6,59 +6,75 @@ namespace PoliNorError
 {
 	public static class PolicyDelegateTCollectionExtensions
 	{
-		public static IPolicyNeedDelegateCollection<T> WithRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, int retryCount, InvokeParams policyParams = null)
+		public static IPolicyDelegateCollection<T> WithPolicyAndDelegate<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, IPolicyBase errorPolicy, Func<CancellationToken, Task<T>> func) => policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+
+		public static IPolicyDelegateCollection<T> WithPolicyAndDelegate<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, IPolicyBase errorPolicy, Func<T> func) => policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+
+		public static INeedDelegateCollection<T> WithRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, int retryCount, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithRetryInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>>(retryCount, policyParams);
+			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(retryCount, policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithWaitAndRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, int retryCount, TimeSpan delay, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithWaitAndRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, int retryCount, TimeSpan delay, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithRetryInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>>(retryCount, delay, policyParams);
+			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(retryCount, delay, policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithWaitAndRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithWaitAndRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithRetryInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>>(retryCount, delayOnRetryFunc, policyParams);
+			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(retryCount, delayOnRetryFunc, policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithInfiniteRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithInfiniteRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithRetryInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>>(policyParams);
+			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithWaitAndInfiniteRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, TimeSpan delay, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithWaitAndInfiniteRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, TimeSpan delay, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithRetryInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>>(delay, policyParams);
+			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(delay, policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithWaitAndInfiniteRetry<T>(this PolicyDelegateCollection<T> policyDelegateCollection, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithWaitAndInfiniteRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<int, Exception, TimeSpan> delayOnRetryFunc, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithRetryInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>>(delayOnRetryFunc, policyParams);
+			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(delayOnRetryFunc, policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithFallback<T>(this PolicyDelegateCollection<T> policyDelegateCollection, Func<CancellationToken, T> fallbackFunc, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithFallback<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<CancellationToken, T> fallbackFunc, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithFallbackInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>, T>(fallbackFunc, policyParams);
+			return policyDelegateCollection.WithFallbackInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>, T>(fallbackFunc, policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithFallback<T>(this PolicyDelegateCollection<T> policyDelegateCollection, Func<T> fallbackFunc, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static INeedDelegateCollection<T> WithFallback<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<T> fallbackFunc, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return policyDelegateCollection.WithFallbackInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>, T>(fallbackFunc, policyParams, convertType);
+			return policyDelegateCollection.WithFallbackInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>, T>(fallbackFunc, policyParams, convertType);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithFallback<T>(this PolicyDelegateCollection<T> policyDelegateCollection, Func<CancellationToken, Task<T>> fallbackFunc, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithFallback<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<CancellationToken, Task<T>> fallbackFunc, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithFallbackInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>,T>(fallbackFunc, policyParams);
+			return policyDelegateCollection.WithFallbackInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>,T>(fallbackFunc, policyParams);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithFallback<T>(this PolicyDelegateCollection<T> policyDelegateCollection, Func<Task<T>> fallbackFunc, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static INeedDelegateCollection<T> WithFallback<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<Task<T>> fallbackFunc, InvokeParams policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
 		{
-			return policyDelegateCollection.WithFallbackInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>, T>(fallbackFunc, policyParams, convertType);
+			return policyDelegateCollection.WithFallbackInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>, T>(fallbackFunc, policyParams, convertType);
 		}
 
-		public static IPolicyNeedDelegateCollection<T> WithSimple<T>(this PolicyDelegateCollection<T> policyDelegateCollection, InvokeParams policyParams = null)
+		public static INeedDelegateCollection<T> WithSimple<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, InvokeParams policyParams = null)
 		{
-			return policyDelegateCollection.WithSimpleInner<PolicyDelegateCollection<T>, IPolicyNeedDelegateCollection<T>>(policyParams);
+			return policyDelegateCollection.WithSimpleInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(policyParams);
 		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
+		}
+
+		public static Task<PolicyDelegateCollectionResult<T>> HandleAllAsync<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, CancellationToken token = default) => policyDelegateCollection.HandleAllAsync(false, token);
 	}
 }
