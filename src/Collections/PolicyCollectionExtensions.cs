@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal static class PolicyCollectionExtensions
+	public static class PolicyCollectionExtensions
 	{
 		public static PolicyCollection WithRetry(this PolicyCollection policyCollection, int retryCount, InvokeParams policyParams = null)
 		{

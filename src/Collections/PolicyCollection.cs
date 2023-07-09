@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>
+	public class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>
 	{
 		protected readonly List<IPolicyBase> _policies = new List<IPolicyBase>();
 
