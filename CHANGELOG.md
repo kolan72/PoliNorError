@@ -1,3 +1,10 @@
+## 2.0.0-rc  
+
+- Add `SimplePolicy`-related methods to extensions methods for delegates.
+- `IPolicyProcessor` now has an `ErrorFilter` property. Methods that add filters were removed.
+- Fix `PolicyDelegateCollectionExtensions.WithFallback` method signature
+
+
 ## 2.0.0-alpha  
 
 - Introduce `SimplePolicy` and `SimplePolicyProcessor` classes
