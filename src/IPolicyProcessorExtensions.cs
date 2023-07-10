@@ -27,7 +27,7 @@ namespace PoliNorError
 			return policyProcessor;
 		}
 
-		public static T IncludeError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
+		internal static T IncludeError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
 		{
 			policyProcessor.AddIncludedErrorFilter(handledErrorFilter);
 			return policyProcessor;
@@ -39,7 +39,7 @@ namespace PoliNorError
 			return policyProcessor;
 		}
 
-		public static T ExcludeError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
+		internal static T ExcludeError<T>(this T policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) where T : IPolicyProcessor
 		{
 			policyProcessor.AddExcludedErrorFilter(handledErrorFilter);
 			return policyProcessor;
