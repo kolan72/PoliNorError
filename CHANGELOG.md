@@ -3,6 +3,7 @@
 - Introduce `PolicyCollectin` class.
 - More robust `PolicyDelegateCollection(<T>)` creation.
 - All `PolicyDelegateCollection(<T>)` creation methods are named `Create`.
+- Drop `PolicyDelegateCollection(<T>).SetCommonDelegate` method.
 - New public `RetryPolicy.RetryInfo` property.
 - Made `PolicyResult<T>.SetResult` method internal.
 - Add `PolicyResult.FailedReason` property.
