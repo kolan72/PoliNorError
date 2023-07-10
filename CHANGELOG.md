@@ -1,3 +1,16 @@
+## 2.0.0-rc2  
+
+- Introduce `PolicyCollectin` class.
+- More robust `PolicyDelegateCollection(<T>)` creation.
+- All `PolicyDelegateCollection(<T>)` creation methods are named `Create`.
+- New public `RetryPolicy.RetryInfo` property.
+- Made `PolicyResult<T>.SetResult` method internal.
+- Add `PolicyResult.FailedReason` property.
+- Add  `AddPolicyResultHandler<T>`, `AddPolicyResultHandlerForAll<T>` methods for handling `PolicyResult<T>`.
+- Add `PolicyDelegateCollectionResult(<T>).LastPolicyResult` property.
+- Drop `PolicyDelegateCollectionResult.LastFailedError` property.
+
+
 ## 2.0.0-rc  
 
 - Add `SimplePolicy`-related methods to extensions methods for delegates.
