@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>, ICanAddPolicyResultHandler<FallbackPolicy>
+	public sealed class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>
 	{
 		public FallbackPolicy(IBulkErrorProcessor processor = null) : this(new DefaultFallbackProcessor(processor ?? new BulkErrorProcessor())){}
 

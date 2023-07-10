@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy, IWithErrorFilter<RetryPolicy>, ICanAddPolicyResultHandler<RetryPolicy>
+	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy, IWithErrorFilter<RetryPolicy>
 	{
 		private readonly IRetryProcessor _retryProcessor;
 

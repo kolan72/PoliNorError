@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class SimplePolicy : HandleErrorPolicyBase, IPolicyBase, IWithErrorFilter<SimplePolicy>, ICanAddPolicyResultHandler<SimplePolicy>
+	public sealed class SimplePolicy : HandleErrorPolicyBase, IPolicyBase, IWithErrorFilter<SimplePolicy>
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 

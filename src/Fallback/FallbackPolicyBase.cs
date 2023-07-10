@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public abstract class FallbackPolicyBase : HandleErrorPolicyBase, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>, ICanAddPolicyResultHandler<FallbackPolicyBase>
+	public abstract class FallbackPolicyBase : HandleErrorPolicyBase, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
