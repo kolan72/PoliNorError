@@ -17,7 +17,7 @@ namespace PoliNorError
 			_bulkErrorProcessor = bulkErrorProcessor ?? new BulkErrorProcessor();
 		}
 
-		public void WithErrorProcessor(IErrorProcessor newErrorProcessor)
+		public void AddErrorProcessor(IErrorProcessor newErrorProcessor)
 		{
 			_bulkErrorProcessor.AddProcessor(newErrorProcessor);
 		}

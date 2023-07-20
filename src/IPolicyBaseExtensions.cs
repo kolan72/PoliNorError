@@ -79,7 +79,7 @@ namespace PoliNorError
 			if (errorProcessor == null)
 				throw new ArgumentNullException(nameof(errorProcessor));
 
-			errorPolicyBase.PolicyProcessor.WithErrorProcessor(errorProcessor);
+			errorPolicyBase.PolicyProcessor.AddErrorProcessor(errorProcessor);
 			return errorPolicyBase;
 		}
 

@@ -59,7 +59,7 @@ namespace PoliNorError
 
 		public static IRetryProcessor WithWait(this IRetryProcessor retryProcessor, DelayErrorProcessor delayErrorProcessor)
 		{
-			retryProcessor.WithErrorProcessor(delayErrorProcessor);
+			retryProcessor.AddErrorProcessor(delayErrorProcessor);
 			return retryProcessor;
 		}
 

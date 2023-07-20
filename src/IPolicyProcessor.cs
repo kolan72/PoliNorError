@@ -6,6 +6,6 @@ namespace PoliNorError
 	public interface IPolicyProcessor : IEnumerable<IErrorProcessor>
 	{
 		ExceptionFilter ErrorFilter { get; }
-		void WithErrorProcessor(IErrorProcessor newErrorProcessor);
+		void AddErrorProcessor(IErrorProcessor newErrorProcessor);
 	}
 }

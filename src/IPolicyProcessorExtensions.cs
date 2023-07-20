@@ -17,7 +17,7 @@ namespace PoliNorError
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyProcessor
 		{
-			policyProcessor.WithErrorProcessor(new DefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync));
+			policyProcessor.AddErrorProcessor(new DefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync));
 			return policyProcessor;
 		}
 
