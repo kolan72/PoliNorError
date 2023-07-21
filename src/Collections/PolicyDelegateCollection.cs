@@ -39,7 +39,7 @@ namespace PoliNorError
 
 		private static IPolicyDelegateCollection FromPolicyDelegates(IEnumerable<PolicyDelegate> errorPolicyInfos)
 		{
-			errorPolicyInfos.ThrowIfNotLastPolicyWithoutDelegateExists();
+			errorPolicyInfos.ThrowIfAnyPolicyWithoutDelegateExists();
 
 			var res = new PolicyDelegateCollection();
 

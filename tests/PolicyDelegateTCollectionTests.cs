@@ -60,18 +60,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FromPolicyDelegates_Work_WhenOnlyLastPolicyWithoutDelegate()
-		{
-			var pol = new RetryPolicy(2);
-
-			int actSave() { throw new Exception("Test"); }
-
-			var polBuilder = PolicyDelegateCollection<int>.Create(pol.ToPolicyDelegate(actSave), pol.ToPolicyDelegate<int>());
-
-			Assert.AreEqual(2, polBuilder.Count());
-		}
-
-		[Test]
 		public void Should_FromPolicyDelegates_Work_WhenAllPoliciesWithoutDelegates()
 		{
 			var pol = new RetryPolicy(2);

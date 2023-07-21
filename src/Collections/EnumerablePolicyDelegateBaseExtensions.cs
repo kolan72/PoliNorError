@@ -100,11 +100,11 @@ namespace PoliNorError
 			}
 		}
 
-		internal static void ThrowIfNotLastPolicyWithoutDelegateExists(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
+		internal static void ThrowIfAnyPolicyWithoutDelegateExists(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
-			if (policyDelegateInfos.SkipLast().AnyWithoutDelegate())
+			if (policyDelegateInfos.AnyWithoutDelegate())
 			{
-				throw new InconsistencyPolicyException("Only the last element can be without a delegate!");
+				throw new InconsistencyPolicyException("All elements should be with a delegate!");
 			}
 		}
 
