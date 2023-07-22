@@ -17,6 +17,7 @@ namespace PoliNorError
 			catch (Exception exIn)
 			{
 				result.SetFailedWithCatchBlockError(exIn, ex, true);
+				result.UnprocessedError = ex;
 			}
 		};
 	}

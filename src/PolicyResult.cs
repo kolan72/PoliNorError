@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PoliNorError
 {
@@ -8,6 +9,8 @@ namespace PoliNorError
 		private FlexSyncEnumerable<Exception> _errors;
 		private readonly FlexSyncEnumerable<CatchBlockException> _catchBlockErrors;
 		private readonly FlexSyncEnumerable<PolicyResultHandlingException> _handleResultErrors;
+
+		private Exception _unprocessedError;
 
 		public static PolicyResult ForSync() => new PolicyResult();
 		public static PolicyResult ForNotSync() => new PolicyResult(true);
@@ -47,6 +50,12 @@ namespace PoliNorError
 		public PolicyResultFailedReason FailedReason { get; internal set; }
 
 		public bool ErrorFilterUnsatisfied { get; protected set; }
+
+		public Exception UnprocessedError
+		{
+			get { return _unprocessedError ?? (IsFailed ? Errors.LastOrDefault() : null); }
+			set { _unprocessedError = value; }
+		}
 
 		public IEnumerable<PolicyDelegateResult> WrappedPolicyResults { get; internal set; }
 

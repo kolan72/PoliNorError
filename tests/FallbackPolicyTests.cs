@@ -34,7 +34,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(polResult.IsFailed);
 			Assert.IsFalse(polResult.IsCanceled);
 			Assert.IsTrue(polResult.Errors.Any());
-
+			Assert.NotNull(polResult.UnprocessedError);
 			Assert.AreEqual(1, polResult.CatchBlockErrors.Count());
 		}
 
@@ -47,6 +47,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polResult.IsFailed);
 			Assert.IsFalse(polResult.IsCanceled);
 			Assert.IsTrue(polResult.Errors.Count() == 1);
+			Assert.Null(polResult.UnprocessedError);
 			Assert.AreEqual(0, polResult.CatchBlockErrors.Count());
 		}
 

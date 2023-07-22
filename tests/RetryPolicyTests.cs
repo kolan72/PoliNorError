@@ -43,7 +43,7 @@ namespace PoliNorError.Tests
 			var retry = new RetryPolicy(1);
 			async Task action(CancellationToken _) { await Task.Delay(100); }
 
-			var res =await  retry.HandleAsync(action);
+			var res = await retry.HandleAsync(action);
 			Assert.AreEqual(false, res.IsFailed);
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
@@ -95,8 +95,8 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-        public void Should_Be_Cancelable_ForSyncAction_WithError()
-        {
+		public void Should_Be_Cancelable_ForSyncAction_WithError()
+		{
 			var retryPol = RetryPolicy.InfiniteRetries().WithWait(TimeSpan.FromSeconds(1));
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
@@ -372,7 +372,7 @@ namespace PoliNorError.Tests
 			var retryPolTest = new RetryPolicy(1);
 			retryPolTest.IncludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test2");
-			var polRes =  retryPolTest.Handle(action);
+			var polRes = retryPolTest.Handle(action);
 			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
 			Assert.IsTrue(polRes.IsFailed);
 			Assert.AreEqual(1, polRes.Errors.Count());
@@ -383,7 +383,7 @@ namespace PoliNorError.Tests
 		{
 			var retryPolTest = new RetryPolicy(1);
 			retryPolTest.IncludeError((e) => e.Message == "Test")
-					    .IncludeError((e) => e.Message == "Test2");
+						.IncludeError((e) => e.Message == "Test2");
 			int i = 0;
 			void action()
 			{
@@ -412,7 +412,7 @@ namespace PoliNorError.Tests
 			var resPol = retryPolTest.Handle(act);
 			Assert.AreEqual(1, resPol.Errors.Count());
 			Assert.IsTrue(resPol.ErrorFilterUnsatisfied);
-			retryPolTest  = retryPolTest.ExcludeError((e) => e.Message == "Test2");
+			retryPolTest = retryPolTest.ExcludeError((e) => e.Message == "Test2");
 			void act2() => throw new Exception("Test2");
 			var resPol2 = retryPolTest.Handle(act2);
 			Assert.AreEqual(1, resPol2.Errors.Count());
@@ -453,6 +453,8 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polRes.IsFailed);
 			Assert.IsTrue(polRes.CatchBlockErrors.Count() == 1);
 			Assert.IsFalse(polRes.CatchBlockErrors.FirstOrDefault().IsCritical);
+			Assert.IsTrue(polRes.Errors.Any());
+			Assert.IsNull(polRes.UnprocessedError);
 		}
 
 		[Test]
@@ -471,10 +473,12 @@ namespace PoliNorError.Tests
 		{
 			var action = PolicyResultHandleErrorDelegates.GetWrappedErrorSaver((_, __) => throw new Exception("Test"));
 			var res = new PolicyResult();
-			action(res, new Exception());
+			var exceptionToHandle = new Exception("Error");
+			action(res, exceptionToHandle);
 			Assert.IsTrue(res.IsFailed);
 			Assert.IsTrue(res.CatchBlockErrors.Count() == 1);
 			Assert.IsTrue(res.CatchBlockErrors.FirstOrDefault().IsCritical);
+			Assert.AreEqual(exceptionToHandle, res.UnprocessedError);
 		}
 
 		[Test]

@@ -44,6 +44,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(simpleResult.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			Assert.NotNull(simpleResult.UnprocessedError);
 		}
 
 		[Test]
@@ -139,10 +140,11 @@ namespace PoliNorError.Tests
 		public void Should_Work_For_HandleT_Null_Delegate()
 		{
 			var retryPolTest = new SimplePolicy();
-			var retryResult = retryPolTest.Handle<int>(null);
-			Assert.IsTrue(retryResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			var simpleResult = retryPolTest.Handle<int>(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			Assert.NotNull(simpleResult.UnprocessedError);
 		}
 
 		[Test]
@@ -192,10 +194,11 @@ namespace PoliNorError.Tests
 		public async Task Should_Work_For_HandleAsync_Null_Delegate()
 		{
 			var simplePolTest = new SimplePolicy();
-			var retryResult = await simplePolTest.HandleAsync(null);
-			Assert.IsTrue(retryResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			var simpleResult = await simplePolTest.HandleAsync(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			Assert.NotNull(simpleResult.UnprocessedError);
 		}
 
 		[Test]
@@ -248,10 +251,11 @@ namespace PoliNorError.Tests
 		public async Task Should_Work_For_HandleAsyncT_Null_Delegate()
 		{
 			var simple = new SimplePolicy();
-			var res = await simple.HandleAsync<int>(null);
-			Assert.IsTrue(res.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, res.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), res.Errors.FirstOrDefault()?.GetType());
+			var simpleResult = await simple.HandleAsync<int>(null);
+			Assert.IsTrue(simpleResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			Assert.NotNull(simpleResult.UnprocessedError);
 		}
 
 		[Test]
@@ -294,6 +298,7 @@ namespace PoliNorError.Tests
 			var res = retryPolTest.Handle(actionUnsatisied);
 			Assert.IsTrue(res.ErrorFilterUnsatisfied);
 			Assert.IsTrue(res.IsFailed);
+			Assert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
@@ -305,6 +310,7 @@ namespace PoliNorError.Tests
 			var res = retryPolTest.Handle(actionUnsatisied);
 			Assert.IsTrue(res.ErrorFilterUnsatisfied);
 			Assert.IsTrue(res.IsFailed);
+			Assert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
@@ -313,8 +319,9 @@ namespace PoliNorError.Tests
 			var simplePolicy = new SimplePolicy();
 			var fbWithError = simplePolicy.ExcludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test");
-			var polRes = fbWithError.Handle(action);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			var res = fbWithError.Handle(action);
+			Assert.IsTrue(res.ErrorFilterUnsatisfied);
+			Assert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
@@ -323,8 +330,9 @@ namespace PoliNorError.Tests
 			var simplePolicy = new SimplePolicy();
 			var fbWithError = simplePolicy.IncludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test2");
-			var polRes = fbWithError.Handle(action);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			var res = fbWithError.Handle(action);
+			Assert.IsTrue(res.ErrorFilterUnsatisfied);
+			Assert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
