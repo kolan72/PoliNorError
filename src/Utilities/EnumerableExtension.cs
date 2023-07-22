@@ -11,15 +11,6 @@ namespace PoliNorError
 			return !source.Any();
 		}
 
-		public static T LastOrDefaultIfEmpty<T>(this IEnumerable<T> source)
-		{
-			if (source.IsEmpty())
-			{
-				return default;
-			}
-			return source.Last();
-		}
-
 		public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source)
 		{
 			using (var e = source.GetEnumerator())

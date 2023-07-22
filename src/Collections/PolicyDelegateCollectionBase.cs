@@ -19,8 +19,6 @@ namespace PoliNorError
 
 		public bool ThrowOnLastFailed => _terminated;
 
-		public T LastPolicyDelegate => this.LastOrDefaultIfEmpty();
-
 		public IEnumerable<IPolicyBase> Policies => _syncInfos.GetPolicies();
 
 		internal void ClearDelegates()
