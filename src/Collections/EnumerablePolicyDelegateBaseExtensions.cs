@@ -108,16 +108,6 @@ namespace PoliNorError
 			}
 		}
 
-		internal static SettingPolicyDelegateResult CheckLastPolicyDelegateCanBeSet(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
-		{
-			if (policyDelegateInfos.IsEmpty())
-				return SettingPolicyDelegateResult.Empty;
-			if (policyDelegateInfos.LastOrDefaultIfEmpty().DelegateExists)
-				return SettingPolicyDelegateResult.AlreadySet;
-
-			return SettingPolicyDelegateResult.None;
-		}
-
 		internal static IEnumerable<IPolicyBase> GetPolicies(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
 			return policyDelegateInfos.Select(si => si.Policy);

@@ -64,15 +64,13 @@ namespace PoliNorError
 
 		public IPolicyDelegateCollection<T> AndDelegate(Func<CancellationToken, Task<T>> func)
 		{
-			var setResult = SetLastPolicyDelegate(func);
-			if (setResult != SettingPolicyDelegateResult.Success) setResult.ThrowErrorByResult();
+			this.LastOrDefault()?.SetDelegate(func);
 			return this;
 		}
 
 		public IPolicyDelegateCollection<T> AndDelegate(Func<T> func)
 		{
-			var setResult = SetLastPolicyDelegate(func);
-			if (setResult != SettingPolicyDelegateResult.Success) setResult.ThrowErrorByResult();
+			this.LastOrDefault()?.SetDelegate(func);
 			return this;
 		}
 
@@ -141,26 +139,6 @@ namespace PoliNorError
 				result = PolicyDelegatesHandler.HandleAllForceSync(this, token);
 			}
 			return GetResultOrThrow(result.HandleResults, result.PolResult);
-		}
-
-		internal SettingPolicyDelegateResult SetLastPolicyDelegate(Func<T> execute)
-		{
-			var lpd = this.CheckLastPolicyDelegateCanBeSet();
-			if (lpd != SettingPolicyDelegateResult.None)
-				return lpd;
-
-			LastPolicyDelegate.SetDelegate(execute);
-			return SettingPolicyDelegateResult.Success;
-		}
-
-		internal SettingPolicyDelegateResult SetLastPolicyDelegate(Func<CancellationToken, Task<T>> executeAsync)
-		{
-			var lpd = this.CheckLastPolicyDelegateCanBeSet();
-			if (lpd != SettingPolicyDelegateResult.None)
-				return lpd;
-
-			LastPolicyDelegate.SetDelegate(executeAsync);
-			return SettingPolicyDelegateResult.Success;
 		}
 
 		internal PolicyDelegateCollectionResult<T> GetResultOrThrow(IEnumerable<PolicyDelegateResult<T>> handledResults, PolicyResult<T> polResult)
