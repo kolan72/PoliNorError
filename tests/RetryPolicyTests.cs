@@ -332,6 +332,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase("Test", "Test", true, 1)]
+		[TestCase("Test", "Test2", false, 2)]
+		public void Should_ExcludeFilter_Filter_IncludeFiler(string excMessage, string excludeExcMessage, bool res, int errorsCount)
+		{
+			var retryPolTest = new RetryPolicy(1);
+			void actionUnsatisied() => throw new ArgumentNullException(excMessage, new Exception());
+			retryPolTest.IncludeError<ArgumentNullException>().ExcludeError<ArgumentNullException>((ane) => ane.Message == excludeExcMessage);
+			var resHandle = retryPolTest.Handle(actionUnsatisied);
+			Assert.AreEqual(res, resHandle.ErrorFilterUnsatisfied);
+			Assert.AreEqual(resHandle.Errors.Count(), errorsCount);
+		}
+
+		[Test]
 		[TestCase("Test", "Test", true)]
 		[TestCase("Test", "Test2", false)]
 		public void Should_IncludeTypeAndExcludeByErrorPropertyFilter_Work(string paramName, string excludeParamName, bool resUnsatisfied)
