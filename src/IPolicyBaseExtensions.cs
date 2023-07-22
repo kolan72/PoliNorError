@@ -31,7 +31,7 @@ namespace PoliNorError
 			return res;
 		}
 
-		public static PolicyDelegate ToPolicyDelegate(this IPolicyBase errorPolicy)
+		internal static PolicyDelegate ToPolicyDelegate(this IPolicyBase errorPolicy)
 		{
 			return new PolicyDelegate(errorPolicy);
 		}
@@ -50,7 +50,7 @@ namespace PoliNorError
 			return res;
 		}
 
-		public static PolicyDelegate<T> ToPolicyDelegate<T>(this IPolicyBase errorPolicy)
+		internal static PolicyDelegate<T> ToPolicyDelegate<T>(this IPolicyBase errorPolicy)
 		{
 			return new PolicyDelegate<T>(errorPolicy);
 		}

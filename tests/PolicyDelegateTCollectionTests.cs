@@ -50,24 +50,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FromPolicyDelegates_ThrowError_WhenNotOnlyLastPolicyWithoutDelegate()
-		{
-			var pol = new RetryPolicy(2);
-
-			int actSave() { throw new Exception("Test"); }
-
-			Assert.Throws<InconsistencyPolicyException>(() => PolicyDelegateCollection<int>.Create(pol.ToPolicyDelegate(actSave), pol.ToPolicyDelegate<int>(), pol.ToPolicyDelegate<int>()));
-		}
-
-		[Test]
-		public void Should_FromPolicyDelegates_Work_WhenAllPoliciesWithoutDelegates()
-		{
-			var pol = new RetryPolicy(2);
-
-			Assert.Throws<InconsistencyPolicyException>(() => PolicyDelegateCollection<int>.Create(pol.ToPolicyDelegate<int>(), pol.ToPolicyDelegate<int>()));
-		}
-
-		[Test]
 		public async Task Should_NoGeneric_IncludeException_Work()
 		{
 			var polBuilder = PolicyDelegateCollection<int>.Create();
@@ -411,17 +393,6 @@ namespace PoliNorError.Tests
 			var res = builder.HandleAllAsync().GetAwaiter().GetResult();
 			Assert.AreEqual(2, res.Count());
 			Assert.AreEqual(1, i1);
-		}
-
-		[Test]
-		public void Should_FromPolicyDelegates_Throw_Exception_For_PolicyCollection_Inconsistency()
-		{
-			var policyDelegates = new List<PolicyDelegate<int>>
-			{
-				new RetryPolicy(1).ToPolicyDelegate<int>(),
-				new RetryPolicy(1).ToPolicyDelegate(() => 1)
-			};
-			Assert.Throws<InconsistencyPolicyException>(() => PolicyDelegateCollection<int>.Create(policyDelegates));
 		}
 
 		[Test]

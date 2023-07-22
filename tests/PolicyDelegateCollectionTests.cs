@@ -624,17 +624,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FromPolicyDelegates_Throw_Exception_For_PolicyCollection_Inconsistency()
-		{
-			var policyDelegates = new List<PolicyDelegate>
-			{
-				new RetryPolicy(1).ToPolicyDelegate(),
-				new RetryPolicy(1).ToPolicyDelegate(() => { })
-			};
-			Assert.Throws<InconsistencyPolicyException>(() => PolicyDelegateCollection.Create(policyDelegates));
-		}
-
-		[Test]
 		public void Should_WithSimple_AddElement_In_Collection()
 		{
 			var polDelCol = PolicyDelegateCollection.Create();
