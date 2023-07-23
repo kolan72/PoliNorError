@@ -1,5 +1,16 @@
 ## 2.0.0-rc2  
 
+- Add new `PolicyResult.UnprocessedError` property.
+- Remove `PolicyDelegateCollectionBase<T>.LastPolicyDelegate` property.
+- Made `IPolicyBase.ToPolicyDelegate` extension methods without delegate param internal.
+- Made `IHandlerRunnerBase` interface and its inheritors internal.
+- Change the accessibility of all `IPolicyBaseExtensions` error filter related extension methods to internal.
+- Change the accessibility of all `IPolicyProcessorExtensions` error filter related extension methods to internal.
+- Drop redundant `ICanAddPolicyResultHandler<T>` interface.
+
+
+## 2.0.0-rc2  
+
 - Introduce `PolicyCollectin` class.
 - More robust `PolicyDelegateCollection(<T>)` creation.
 - All `PolicyDelegateCollection(<T>)` creation methods are named `Create`.
