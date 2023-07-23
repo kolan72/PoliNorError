@@ -52,6 +52,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_UnprocessedError_Be_Null_Even_SetFailed_In_PolicyResultHandler()
+		{
+			async Task func(PolicyResult pr) { await Task.Delay(1); pr.SetFailed(); }
+			var fallbackPolicy = new FallbackPolicy().WithFallbackAction(() => { })
+				.AddPolicyResultHandler(func)
+				;
+			var res = fallbackPolicy.Handle(() => throw new Exception());
+			Assert.IsTrue(res.IsFailed);
+			Assert.Null(res.UnprocessedError);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
+		}
+
+		[Test]
 		public void Should_Fallback_Result_BeCanceled_IfTokenJustCanceled()
 		{
 			var cancelTokenSource = new CancellationTokenSource();

@@ -53,7 +53,9 @@ namespace PoliNorError
 
 		public Exception UnprocessedError
 		{
-			get { return _unprocessedError ?? (IsFailed ? Errors.LastOrDefault() : null); }
+			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed)) 
+															? Errors.LastOrDefault() 
+															: null); }
 			set { _unprocessedError = value; }
 		}
 
