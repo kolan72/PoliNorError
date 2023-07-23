@@ -1,6 +1,6 @@
-## 2.0.0-rc2  
+## 2.0.0-rc3  
 
-- Add new `PolicyResult.UnprocessedError` property.
+- Introduce `PolicyResult.UnprocessedError` property.
 - Remove `PolicyDelegateCollectionBase<T>.LastPolicyDelegate` property.
 - Made `IPolicyBase.ToPolicyDelegate` extension methods without delegate param internal.
 - Made `IHandlerRunnerBase` interface and its inheritors internal.
