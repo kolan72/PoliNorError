@@ -137,6 +137,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_HandleT_Work_When_Error()
+		{
+			var simple = new SimplePolicy();
+			int func() => throw new Exception();
+
+			var res = simple.Handle(func);
+			Assert.IsFalse(res.IsFailed);
+			Assert.IsTrue(res.IsSuccess);
+			Assert.IsTrue(res.Errors.Any());
+			Assert.IsFalse(res.NoError);
+			Assert.AreEqual(0, res.Result);
+		}
+
+		[Test]
 		public void Should_Work_For_HandleT_Null_Delegate()
 		{
 			var retryPolTest = new SimplePolicy();
@@ -245,6 +259,21 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.Errors.Any());
 			Assert.IsTrue(res.NoError);
 			Assert.AreEqual(4, res.Result);
+		}
+
+		[Test]
+		public async Task Should_HandleAsyncT_Work_When_Error()
+		{
+			var simple = new SimplePolicy();
+			async Task<int> action(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
+
+			var res = await simple.HandleAsync(action);
+
+			Assert.IsFalse(res.IsFailed);
+			Assert.IsTrue(res.IsSuccess);
+			Assert.IsTrue(res.Errors.Any());
+			Assert.IsFalse(res.NoError);
+			Assert.AreEqual(0, res.Result);
 		}
 
 		[Test]
