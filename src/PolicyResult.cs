@@ -56,7 +56,7 @@ namespace PoliNorError
 			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed)) 
 															? Errors.LastOrDefault() 
 															: null); }
-			set { _unprocessedError = value; }
+			internal set { _unprocessedError = value; }
 		}
 
 		public IEnumerable<PolicyDelegateResult> WrappedPolicyResults { get; internal set; }
