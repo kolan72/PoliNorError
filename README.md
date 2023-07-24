@@ -28,6 +28,7 @@ The types of delegates that can be handled include:
 - `Func<CancellationToken, Task<T>>`
 
 Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface.  
+The real error handling is done by [error processors](#error-processors) in the policy processor's catch block. For example, one of such classes - `DelayErrorProcessor` specify amount of delay time before continuing with the handling process.  
 A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling delegates.  
 For retries using default retry policy processor:
 ```csharp
@@ -65,7 +66,6 @@ var result = new FallbackPolicy()
                              .WithFallbackFunc<Email>(() => UserManager.GetGuestEmail())
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
-Error handling within the policy processor's catch block can be extended by using [error processors](#error-processors), which are classes that implement the `IErrorProcessor` interface. For example, one of such classes - `DelayErrorProcessor` specify amount of delay time before continuing with the handling process.  
 Errors handling allows for further specification through the use of [error filters](#error-filters).  
 The results of handling are stored in the [PolicyResult](#policyresult) class.  
 Using policy, you can extra handle `PolicyResult` by [`PolicyResult` handlers](#policyresult-handlers) after policy processor processing.  
