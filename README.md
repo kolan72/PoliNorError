@@ -82,10 +82,10 @@ It can happen due to these reasons:
 -   A critical error has occurred within the catch block, specifically related to the calling of the saving error delegate for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
  -   Cancellation occurs after the first call of the delegate you handle.
 
-In case the  `CancellationToken` passed as a parameter in handling method is canceled, the  `IsCanceled`  property will be set to  `true`. But  cancellation may occur before the first call of the delegate. However, the `IsFailed` property still equals `false` because no delegate was executed.  To ensure that the policy or policy processor has handled  executed delegate successfully, check the  `IsSuccess`  property, that equals  `true`  only if the  `IsFailed`  and  `IsCanceled`  properties are both  `false`.  
-Check the  `IsOk`  property to ensure that there were no errors in handling delegate at all. But an error may still happen in `PolicyResult` handlers. In this case it will be stored in the `HandleResultErrors` property, but it will not affect the`IsOk` or other `PolicyResult` properties.  
+The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
+Check the  `IsOk`  property to ensure that there were no errors in handling delegate at all. But an error may still happen in `PolicyResult` handlers. In this case it will be stored in the `HandleResultErrors` property, but it will not affect the other `PolicyResult` properties.  
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
-For generic delegates, a return value will be stored in the  `Result`  property if handling was successful. 
+For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
 
 ### Error processors
 You can add an error processor to any policy or policyprocessor class by using the `WithErrorProcessor` or `WithErrorProcessorOf` methods.  
