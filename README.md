@@ -193,28 +193,28 @@ The `SimplePolicy` is a policy without rules, If an exception occurs, the `Simpl
 For example, you could create a policy for copying or reading a file with a warning on the `FileNotFoundException` and logging an error for the other exceptions:  
 ```csharp
 var fileNotFoundPolicy = new SimplePolicy()
-								.IncludeError<FileNotFoundException>()
-								.WithErrorProcessorOf((ex) => logger.Warning(ex.Message))
-								.AddPolicyResultHandler((pr) =>
-								{
-									if (pr.IsFailed)
-									{
-										logger.Error(pr.UnprocessedError?.Message);
-									}
-								}
-								)
-								.AddPolicyResultHandler<string>((pr) =>
-								{
-									if (pr.NoError)
-									{
-										logger.Info($"Result: {pr.Result}");
-									}
-									if (pr.IsFailed)
-									{
-										logger.Error(pr.UnprocessedError?.Message);
-									}
-								}
-								);
+							 .IncludeError<FileNotFoundException>()
+							 .WithErrorProcessorOf((ex) => logger.Warning(ex.Message))
+							 .AddPolicyResultHandler((pr) =>
+							 {
+							 	if (pr.IsFailed)
+							 	{
+							 		logger.Error(pr.UnprocessedError?.Message);
+							 	}
+							 }
+							 )
+							 .AddPolicyResultHandler<string>((pr) =>
+							 {
+							 	if (pr.NoError)
+							 	{
+							 		logger.Info($"Result: {pr.Result}");
+							 	}
+							 	if (pr.IsFailed)
+							 	{
+							 		logger.Error(pr.UnprocessedError?.Message);
+							 	}
+							 }
+							 );
 
 //A warning  will be reported in the log if the FileNotFoundException occurs,
 //and an error message  for all other exceptions.
