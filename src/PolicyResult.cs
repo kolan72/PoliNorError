@@ -12,9 +12,9 @@ namespace PoliNorError
 
 		private Exception _unprocessedError;
 
-		public static PolicyResult ForSync() => new PolicyResult();
-		public static PolicyResult ForNotSync() => new PolicyResult(true);
-		public static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
+		internal static PolicyResult ForSync() => new PolicyResult();
+		internal static PolicyResult ForNotSync() => new PolicyResult(true);
+		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		public PolicyResult(bool forAsync = false)
 		{
@@ -128,9 +128,9 @@ namespace PoliNorError
 
 	public class PolicyResult<T> : PolicyResult
 	{
-		public static new PolicyResult<T> ForSync() => new PolicyResult<T>();
-		public static new PolicyResult<T> ForNotSync() => new PolicyResult<T>(true);
-		public static new PolicyResult<T> InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
+		internal static new PolicyResult<T> ForSync() => new PolicyResult<T>();
+		internal static new PolicyResult<T> ForNotSync() => new PolicyResult<T>(true);
+		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		public PolicyResult(bool forAsync = false) : base(forAsync){}
 
