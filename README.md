@@ -189,7 +189,7 @@ If you try to handle a generic func delegate without a corresponding fallback de
 If an exception occurs during the calling of the fallback delegate, the `IsFailed` property of the `PolicyResult` object will be set to `true` and this exception will be wrapped in the `CatchBlockException` exception with  the `IsCritical` property  equal to `true`.
 
 ### SimplePolicy (appeared in _version_ 2.0.0-alpha)
-The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With error filters and policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  
+The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  
 For example, you could create a policy for copying or reading a file with a warning on the `FileNotFoundException` and logging an error for the other exceptions:  
 ```csharp
 var fileNotFoundPolicy = new SimplePolicy()
