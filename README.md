@@ -27,7 +27,8 @@ The types of delegates that can be handled include:
 - `Func<CancellationToken, Task>`
 - `Func<CancellationToken, Task<T>>`
 
-Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface.  
+Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface. Policy processors implicitly determine policy rules - behavioral features that determine whether or not a policy can handle exception. For example, the most obvious policy rule for the Retry is when the number of permitted retries exceeds.
+For the Fallback - when the fallback delegate throws an exception. Policy rules only work when an exception occurs.  
 The real error handling is done by [error processors](#error-processors) in the policy processor's catch block. For example, one of such classes - `DelayErrorProcessor` specify amount of delay time before continuing with the handling process.  
 A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling delegates.  
 For retries using default retry policy processor:
