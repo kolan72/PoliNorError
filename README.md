@@ -78,14 +78,15 @@ Handling begins when an exception occurs during the execution of the delegate. A
 Later on, the policy processor will try to handle delegate and store results in the `PolicyResult` properties.  
 The most crucial property is the `IsFailed` property. If it equals `true`, the delegate was not able to be handled.  
 It can happen due to these reasons:
+-   Policy rules failed (as mentioned above).
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
--   Policy-specific conditions failed (for example, the number of permitted retries is exceeded for retry processor).
 -   A critical error has occurred within the catch block, specifically related to the calling of the saving error delegate for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
  -   Cancellation occurs after the first call of the delegate you handle.
 
 The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
 Check the  `IsOk`  property to ensure that there were no errors in handling delegate at all. But an error may still happen in `PolicyResult` handlers. In this case it will be stored in the `HandleResultErrors` property, but it will not affect the other `PolicyResult` properties.  
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
+The `UnprocessedError` property (appeared in _version_ 2.0.0-rc3) contains an exception from the `Errors`(the last one for the `RetryPolicy` and the single one for others) that was not handled by policy rules or did not match error filters.  
 For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
 
 ### Error processors
