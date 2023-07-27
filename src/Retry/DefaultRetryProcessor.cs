@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.PolicyResultHandleErrorDelegates;
 
 namespace PoliNorError
 {
@@ -11,7 +12,7 @@ namespace PoliNorError
 		public DefaultRetryProcessor(Action<PolicyResult, Exception> errorSaverFunc = null) : this(null, errorSaverFunc) { }
 
 		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, Action<PolicyResult, Exception> errorSaverFunc = null)
-			: base(bulkErrorProcessor) => _errorSaverFunc = errorSaverFunc ?? PolicyResultHandleErrorDelegates.DefaultErrorSaver;
+			: base(bulkErrorProcessor) => _errorSaverFunc = GetWrappedErrorSaver(errorSaverFunc ?? GetDefaultErrorSaver());
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
