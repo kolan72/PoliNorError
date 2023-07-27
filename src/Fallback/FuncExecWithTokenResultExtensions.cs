@@ -28,7 +28,7 @@ namespace PoliNorError
 			if (funcExecResult.IsCanceled)
 				policyResult.SetFailedAndCanceled();
 			else
-				policyResult.SetFailedWithCatchBlockError(funcExecResult.Error, ex, true);
+				policyResult.SetFailedWithCatchBlockError(funcExecResult.Error, ex);
 		}
 	}
 }

@@ -41,9 +41,9 @@ namespace PoliNorError
 			return retryResult;
 		}
 
-		internal static void SetFailedWithCatchBlockError(this PolicyResult result, Exception processException, Exception handlingException, bool isCritical = false)
+		internal static void SetFailedWithCatchBlockError(this PolicyResult result, Exception processException, Exception handlingException)
 		{
-			result.AddCatchBlockError(new CatchBlockException(processException, handlingException, isCritical));
+			result.AddCatchBlockError(new CatchBlockException(processException, handlingException, true));
 			result.SetFailedInner();
 		}
 
