@@ -162,7 +162,8 @@ For testing purposes there is a `RetryPolicy` constructor that has `Action<Retry
 `RetryPolicy` can be customized of your implementation of `IRetryProcessor` interface.  
 
 ### FallbackPolicy
-`FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
+The policy rule for the `FallbackPolicy` is that it can't handle error when the fallback delegate throws an exception. 
+If it happens, the `IsFailed` property of the `PolicyResult` object will be set to true. This exception will be wrapped up in a `CatchBlockException` exception with the `IsCritical` property set to true.
 You can setup this policy for different return types:
 ```csharp
   var userFallbackPolicy = new FallbackPolicy()
@@ -185,9 +186,8 @@ The whole list of methods, accepting fallback delegate as an argument:
 -    `WithFallbackFunc<T>`
 -    `WithAsyncFallbackFunc<T>`
 
-If you try to handle a generic func delegate without a corresponding fallback delegate being set, the default value of type will be returned.
-
-If an exception occurs during the calling of the fallback delegate, the `IsFailed` property of the `PolicyResult` object will be set to `true` and this exception will be wrapped in the `CatchBlockException` exception with  the `IsCritical` property  equal to `true`.
+If you try to handle a generic func delegate without a corresponding fallback delegate being set, the default value of type will be returned.  
+`FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
 
 ### SimplePolicy (appeared in _version_ 2.0.0-alpha)
 The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  
