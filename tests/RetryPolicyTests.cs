@@ -469,16 +469,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_CatchBlockError_BeCritical_If_DefaultErrorSaver_HasError()
+		[TestCase(true, true)]
+		[TestCase(false, false)]
+		public void Should_CatchBlockError_Saving_Can_Be_Customized(bool setFailedIfInvocationError, bool resSaving)
 		{
-			var action = PolicyResultHandleErrorDelegates.GetWrappedErrorSaver((_, __) => throw new Exception("Test"));
+			var action = PolicyResultHandleErrorDelegates.GetWrappedErrorSaver((_, __) => throw new Exception("Test"), setFailedIfInvocationError);
 			var res = new PolicyResult();
 			var exceptionToHandle = new Exception("Error");
 			action(res, exceptionToHandle);
-			Assert.IsTrue(res.IsFailed);
+
+			Assert.AreEqual(resSaving, res.IsFailed);
+			Assert.AreEqual(resSaving, res.CatchBlockErrors.FirstOrDefault().IsCritical);
+
 			Assert.IsTrue(res.CatchBlockErrors.Count() == 1);
-			Assert.IsTrue(res.CatchBlockErrors.FirstOrDefault().IsCritical);
-			Assert.AreEqual(exceptionToHandle, res.UnprocessedError);
 		}
 
 		[Test]

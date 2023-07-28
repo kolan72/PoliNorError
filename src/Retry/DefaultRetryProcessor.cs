@@ -9,10 +9,10 @@ namespace PoliNorError
 	{
 		private readonly Action<PolicyResult, Exception> _errorSaverFunc;
 
-		public DefaultRetryProcessor(Action<PolicyResult, Exception> errorSaverFunc = null) : this(null, errorSaverFunc) { }
+		public DefaultRetryProcessor(Action<PolicyResult, Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false) : this(null, errorSaverFunc, setFailedIfInvocationError) { }
 
-		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, Action<PolicyResult, Exception> errorSaverFunc = null)
-			: base(bulkErrorProcessor) => _errorSaverFunc = GetWrappedErrorSaver(errorSaverFunc ?? GetDefaultErrorSaver());
+		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, Action<PolicyResult, Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false)
+			: base(bulkErrorProcessor) => _errorSaverFunc = GetWrappedErrorSaver(errorSaverFunc ?? DefaultErrorSaver, setFailedIfInvocationError);
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
@@ -54,6 +54,7 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
+						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = HandleCatchBlockAndChangeResult(ex, result, retryCountInfo, tryCount, token);
@@ -112,6 +113,7 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
+						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = HandleCatchBlockAndChangeResult(ex, result, retryCountInfo, tryCount, token);
@@ -159,6 +161,7 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
+						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = await HandleCatchBlockAndChangeResultAsync(ex, result, retryCountInfo, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
@@ -207,6 +210,7 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
+						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = await HandleCatchBlockAndChangeResultAsync(ex, result, retryCountInfo, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
