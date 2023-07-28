@@ -9,7 +9,7 @@ namespace PoliNorError
 			if (funcExecResult.IsSuccess)
 				return;
 
-			SetFailedByCancel(funcExecResult, policyResult, ex);
+			policyResult.SetFailedByFallbackFuncExecResult(funcExecResult, ex);
 		}
 
 		internal static void ChangePolicyResult<T>(this FallbackFuncExecResult<T> funcExecResult, PolicyResult<T> policyResult, Exception ex)
@@ -19,16 +19,7 @@ namespace PoliNorError
 				policyResult.SetResult(funcExecResult.Result);
 				return;
 			}
-
-			SetFailedByCancel(funcExecResult, policyResult, ex);
-		}
-
-		private static void SetFailedByCancel(FallbackFuncExecResult funcExecResult, PolicyResult policyResult, Exception ex)
-		{
-			if (funcExecResult.IsCanceled)
-				policyResult.SetFailedAndCanceled();
-			else
-				policyResult.SetFailedWithCatchBlockError(funcExecResult.Error, ex);
+			policyResult.SetFailedByFallbackFuncExecResult(funcExecResult, ex);
 		}
 	}
 }

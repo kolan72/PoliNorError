@@ -47,6 +47,14 @@ namespace PoliNorError
 			result.SetFailedInner();
 		}
 
+		internal static void SetFailedByFallbackFuncExecResult(this PolicyResult policyResult, FallbackFuncExecResult funcExecResult, Exception ex)
+		{
+			if (funcExecResult.IsCanceled)
+				policyResult.SetFailedAndCanceled();
+			else
+				policyResult.SetFailedWithCatchBlockError(funcExecResult.Error, ex);
+		}
+
 		internal async static Task<PolicyResult> HandleResultMisc(this PolicyResult policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, bool configureAwait, CancellationToken token)
 		{
 			var curRes = policyRetryResult;
