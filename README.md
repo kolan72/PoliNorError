@@ -163,7 +163,7 @@ For testing purposes there is a `RetryPolicy` constructor that has `Action<Retry
 
 ### FallbackPolicy
 The policy rule for the `FallbackPolicy` is that it can't handle error when the fallback delegate throws an exception. 
-If it happens, the `IsFailed` property of the `PolicyResult` object will be set to true. This exception will be wrapped up in a `CatchBlockException` exception with the `IsCritical` property set to true.
+If it happens, the `IsFailed` property of the `PolicyResult` object will be set to true. This exception will be wrapped up in a `CatchBlockException` exception with the `IsCritical` property set to true.  
 You can setup this policy for different return types:
 ```csharp
   var userFallbackPolicy = new FallbackPolicy()
