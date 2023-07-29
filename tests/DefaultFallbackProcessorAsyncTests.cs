@@ -201,7 +201,7 @@ namespace PoliNorError.Tests
 		public async Task Should_PolicyResult_Contains_NoDelegateException_When_FallbackAsync_Null_Delegate()
 		{
 			var proc = FallbackProcessor.CreateDefault();
-			var fallbackResult = await proc.FallbackAsync(null, async (_) => { await Task.Delay(1); });
+			var fallbackResult = await proc.FallbackAsync(null, async (_) => await Task.Delay(1));
 			Assert.IsTrue(fallbackResult.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());

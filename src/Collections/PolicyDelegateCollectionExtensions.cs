@@ -76,6 +76,5 @@ namespace PoliNorError
 		}
 
 		public static Task<PolicyDelegateCollectionResult> HandleAllAsync(this IPolicyDelegateCollection policyDelegateCollection, CancellationToken token = default) => policyDelegateCollection.HandleAllAsync(false, token);
-
 	}
 }
