@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace PoliNorError
 {
@@ -13,11 +14,18 @@ namespace PoliNorError
 			try
 			{
 				action(result, ex);
+				//We don't know if the action saves an error in the Errors collection, 
+				//so we set it here to keep UnprocessedError from being lost.
+				if(!result.Errors.Contains(ex))
+				{
+					result.UnprocessedError = ex;
+				}
 			}
 			catch (Exception exIn)
 			{
 				if (setFailedIfInvocationError)
 				{
+					result.UnprocessedError = ex;
 					result.SetFailedWithCatchBlockError(exIn, ex);
 				}
 				else

@@ -480,6 +480,14 @@ namespace PoliNorError.Tests
 
 			Assert.AreEqual(resSaving, res.IsFailed);
 			Assert.AreEqual(resSaving, res.CatchBlockErrors.FirstOrDefault().IsCritical);
+			if (setFailedIfInvocationError)
+			{
+				Assert.AreEqual(exceptionToHandle, res.UnprocessedError);
+			}
+			else
+			{
+				Assert.IsNull(res.UnprocessedError);
+			}
 
 			Assert.IsTrue(res.CatchBlockErrors.Count() == 1);
 		}

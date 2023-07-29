@@ -39,6 +39,8 @@ namespace PoliNorError
 					{
 						result.SetOk();
 					}
+					if(result.UnprocessedError != null)
+						result.UnprocessedError = null;
 					break;
 				}
 				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
@@ -54,7 +56,6 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
-						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = HandleCatchBlockAndChangeResult(ex, result, retryCountInfo, tryCount, token);
@@ -97,7 +98,8 @@ namespace PoliNorError
 						result.SetOk();
 					}
 					result.SetResult(res);
-
+					if (result.UnprocessedError != null)
+						result.UnprocessedError = null;
 					break;
 				}
 				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
@@ -113,7 +115,6 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
-						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = HandleCatchBlockAndChangeResult(ex, result, retryCountInfo, tryCount, token);
@@ -150,6 +151,8 @@ namespace PoliNorError
 					{
 						result.SetOk();
 					}
+					if (result.UnprocessedError != null)
+						result.UnprocessedError = null;
 					break;
 				}
 				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
@@ -161,7 +164,6 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
-						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = await HandleCatchBlockAndChangeResultAsync(ex, result, retryCountInfo, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
@@ -199,6 +201,8 @@ namespace PoliNorError
 						result.SetOk();
 					}
 					result.SetResult(res);
+					if (result.UnprocessedError != null)
+						result.UnprocessedError = null;
 					break;
 				}
 				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
@@ -210,7 +214,6 @@ namespace PoliNorError
 					_errorSaverFunc(result, ex);
 					if (result.IsFailed)
 					{
-						result.UnprocessedError = ex;
 						break;
 					}
 					var handleResult = await HandleCatchBlockAndChangeResultAsync(ex, result, retryCountInfo, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
