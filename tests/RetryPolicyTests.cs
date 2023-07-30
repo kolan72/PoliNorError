@@ -458,22 +458,11 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_CatchBlockError_Handled_For_Handle_WithFailedErrorSaver()
-		{
-			void saveAsync() => throw new Exception();
-			void errorProcessorFunc(Exception ex) => throw ex;
-			var retryPolTest = new RetryPolicy(1, (pr, _) => pr.SetFailedInner()).WithErrorProcessorOf(errorProcessorFunc).ToPolicyDelegate(saveAsync);
-			var res = retryPolTest.Handle();
-			Assert.IsTrue(res.IsFailed);
-			Assert.IsTrue(!res.CatchBlockErrors.Any());
-		}
-
-		[Test]
 		[TestCase(true, true)]
 		[TestCase(false, false)]
 		public void Should_CatchBlockError_Saving_Can_Be_Customized(bool setFailedIfInvocationError, bool resSaving)
 		{
-			var action = PolicyResultHandleErrorDelegates.GetWrappedErrorSaver((_, __) => throw new Exception("Test"), setFailedIfInvocationError);
+			var action = PolicyResultHandleErrorDelegates.GetWrappedErrorSaver((_) => throw new Exception("Test"), setFailedIfInvocationError);
 			var res = new PolicyResult();
 			var exceptionToHandle = new Exception("Error");
 			action(res, exceptionToHandle);

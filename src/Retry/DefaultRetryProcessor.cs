@@ -8,11 +8,16 @@ namespace PoliNorError
 	public sealed class DefaultRetryProcessor : PolicyProcessor, IRetryProcessor
 	{
 		private readonly Action<PolicyResult, Exception> _errorSaverFunc;
+		private readonly bool _isErrorSaverDefault;
 
-		public DefaultRetryProcessor(Action<PolicyResult, Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false) : this(null, errorSaverFunc, setFailedIfInvocationError) { }
+		public DefaultRetryProcessor(Action<Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false) : this(null, errorSaverFunc, setFailedIfInvocationError) { }
 
-		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, Action<PolicyResult, Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false)
-			: base(bulkErrorProcessor) => _errorSaverFunc = GetWrappedErrorSaver(errorSaverFunc ?? DefaultErrorSaver, setFailedIfInvocationError);
+		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, Action<Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false)
+			: base(bulkErrorProcessor)
+		{
+			_errorSaverFunc = GetWrappedErrorSaver(errorSaverFunc, setFailedIfInvocationError);
+			_isErrorSaverDefault = errorSaverFunc == null;
+		}
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
@@ -20,6 +25,7 @@ namespace PoliNorError
 				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(action)}' is null."));
 
 			var result = PolicyResult.ForSync();
+			result.ErrorsNotUsed = !_isErrorSaverDefault;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -78,6 +84,7 @@ namespace PoliNorError
 			}
 
 			var result = PolicyResult<T>.ForSync();
+			result.ErrorsNotUsed = !_isErrorSaverDefault;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -132,6 +139,7 @@ namespace PoliNorError
 				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
 
 			var result = PolicyResult.InitByConfigureAwait(configureAwait);
+			result.ErrorsNotUsed = !_isErrorSaverDefault;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -181,6 +189,7 @@ namespace PoliNorError
 				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
 
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
+			result.ErrorsNotUsed = !_isErrorSaverDefault;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do

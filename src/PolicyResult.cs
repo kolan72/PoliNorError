@@ -27,6 +27,8 @@ namespace PoliNorError
 
 		public IEnumerable<Exception> Errors => _errors;
 
+		public bool ErrorsNotUsed { get; internal set; }
+
 		public IEnumerable<CatchBlockException> CatchBlockErrors => _catchBlockErrors;
 
 		public IEnumerable<PolicyResultHandlingException> PolicyResultHandlingErrors => _handleResultErrors;

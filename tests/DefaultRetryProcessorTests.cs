@@ -246,23 +246,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Retry_NotCallErrorProcess_When_ErrorSavingFailed()
+		public void Should_Retry_Work_For_NotDefaultErrorSaving()
 		{
-			var processor = RetryProcessor.CreateDefault((pr, _) => pr.SetFailedInner());
-			var i = 0;
-			processor.WithErrorProcessorOf((_) => i++);
-			processor.Retry(() => throw new Exception("Test"), 2);
-			Assert.AreEqual(0, i);
-		}
-
-		[Test]
-		public void Should_RetryT_NotCallErrorProcess_When_ErrorSavingFailed()
-		{
-			var processor = RetryProcessor.CreateDefault((pr, _) => pr.SetFailedInner());
+			var processor = RetryProcessor.CreateDefault((_) => { });
 			int i = 0;
-			processor.WithErrorProcessorOf((_) => i++);
-			processor.Retry<int>(() => throw new Exception("Test"), 2);
-			Assert.AreEqual(0, i);
+			var res = processor.Retry(() => { i++; throw new Exception("Test"); }, 2);
+			Assert.AreEqual(3, i);
+			Assert.AreEqual(true, res.ErrorsNotUsed);
+			Assert.AreEqual(0, res.Errors.Count());
 		}
 
 		[Test]
