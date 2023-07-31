@@ -114,17 +114,17 @@ If filter conditions are unsatisfied, error handling break and set both the `IsF
 
 ### PolicyResult handlers
 
-When handling delegate by policy you can add so-called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` or `WithPolicyResultErrorsHandler`.
+When handling delegate by policy you can add so-called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` (`AddPolicyResultHandler` since _version_ 2.0.0-alpha).  
  These methods accept delegate as a parameter and can extra handle `PolicyResult`:
 
 - `Action<PolicyResult>`
 - `Action<PolicyResult, CancellationToken>`
-- `Action<IEnumerable<Exception>>`
-- `Action<IEnumerable<Exception>, CancellationToken>`
 - `Func<PolicyResult, Task>`
 - `Func<PolicyResult, CancellationToken, Task>`
-- `Func<IEnumerable<Exception>, Task>`
-- `Func<IEnumerable<Exception>, CancellationToken, Task>`
+- `Action<PolicyResult<T>>` (appeared in _version_ 2.0.0-rc2)
+- `Action<PolicyResult<T>, CancellationToken>` (appeared in _version_ 2.0.0-rc2)
+- `Func<PolicyResult<T>, Task>` (appeared in _version_ 2.0.0-rc2)
+- `Func<PolicyResult<T>, CancellationToken, Task>` (appeared in _version_ 2.0.0-rc2)
 
 For example:
 ```csharp
