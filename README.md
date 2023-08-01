@@ -136,7 +136,7 @@ var result = await new RetryPolicy(5)
 In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true. It may be helpful if for some reason the `PolicyResult` cannot be accepted as correct and needs additional handling.  
 For example, if you wish to remove certain large folders when there is less than 40Gb of free space on your disk, you can create two policies and put them together in the `PolicyDelegateCollection`:
 ```csharp
-var checkFreeSpacePolicy = new SimplePolicy()
+            var checkFreeSpacePolicy = new SimplePolicy()
 								.AddPolicyResultHandler<long>((pr) =>
 								{
 									if (pr.NoError)
@@ -150,7 +150,7 @@ var checkFreeSpacePolicy = new SimplePolicy()
 									}
 								});
 
-var freeSpaceAfterPolicy = new SimplePolicy()
+            var freeSpaceAfterPolicy = new SimplePolicy()
 								.WithErrorProcessorOf((ex) => logger.Error(ex.Message))
 								.AddPolicyResultHandler<long>((pr) =>
 								{
@@ -159,7 +159,6 @@ var freeSpaceAfterPolicy = new SimplePolicy()
 							  			logger.Info($"Total available space: {pr.Result} bytes");
 							  		}
 								});
-
 
 
 PolicyDelegateCollection<long>.Create(checkFreeSpacePolicy, GetFreeSpace)
