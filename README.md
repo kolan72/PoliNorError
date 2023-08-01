@@ -132,8 +132,51 @@ var result = await new RetryPolicy(5)
                             .WithPolicyResultHandler((pr) => { if (pr.IsOk) logger.Info("There were no errors.");})
                             .HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
 ```
-The  `PolicyResult` handler can't change the `Result` property of `PolicyResult<T>`.
+The generic and non-generic policy result handlers will only handle the generic and non-generic delegate, respectively.  
+In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true. It may be helpful if for some reason the `PolicyResult` cannot be accepted as correct and needs additional handling.  
+For example, if you wish to remove certain large folders when there is less than 40Gb of free space on your disk, you can create two policies and put them together in the `PolicyDelegateCollection`:
+```csharp
+var checkFreeSpacePolicy = new SimplePolicy().AddPolicyResultHandler<long>((pr) =>
+												  {
+													 if (pr.NoError)
+													 {
+														 if (pr.Result < 40000000000)
+															 //If free space is not enough we pass handling to the next PolicyDelegate in the collection:
+															 pr.SetFailed();
+														 else
+															 logger.Info("Free space is ok");
+													 }
+												   });
 
+var freeSpaceAfterPolicy = new SimplePolicy().WithErrorProcessorOf((ex) => logger.Error(ex.Message))
+											 .AddPolicyResultHandler<long>((pr) =>
+											 {
+											 	if (pr.NoError)
+											 	{
+											 		logger.Info($"Total available space: {pr.Result} bytes");
+											 	}
+											 });
+
+
+
+PolicyDelegateCollection<long>.Create(checkFreeSpacePolicy, GetFreeSpace)
+							  .WithPolicyAndDelegate(freeSpaceAfterPolicy, 
+													 () => {
+															DeleteLargeFolders();
+														    return GetFreeSpace(); 
+															}
+													 )
+							  .HandleAll();
+
+
+//Somewhere in your code:
+private static void DeleteLargeFolders()
+{
+	//...
+}
+
+private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
+```
 ### RetryPolicy
 The policy rule for the `RetryPolicy` is that it can handle exceptions only until the number of permitted retries does not exceed, so it is the most crucial parameter and is set in policy constructor.  
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
