@@ -165,7 +165,7 @@ PolicyDelegateCollection<long>.Create(checkFreeSpacePolicy, GetFreeSpace)
 								.WithPolicyAndDelegate(freeSpaceAfterPolicy, 
 									() =>
 									{
-									    DeleteLargeFolders();
+										DeleteLargeFolders();
 										return GetFreeSpace(); 
 									}
 								)
