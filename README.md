@@ -126,46 +126,46 @@ When handling delegate by policy you can add so-called `PolicyResult` handlers u
 - `Func<PolicyResult<T>, Task>` (appeared in _version_ 2.0.0-rc2)
 - `Func<PolicyResult<T>, CancellationToken, Task>` (appeared in _version_ 2.0.0-rc2)
 
+The generic and non-generic policy result handlers will only handle the generic and non-generic delegate, respectively.  
 For example:
 ```csharp
 var result = await new RetryPolicy(5)
                             .WithPolicyResultHandler((pr) => { if (pr.IsOk) logger.Info("There were no errors.");})
                             .HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
 ```
-The generic and non-generic policy result handlers will only handle the generic and non-generic delegate, respectively.  
 In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true. It may be helpful if for some reason the `PolicyResult` cannot be accepted as correct and needs additional handling.  
 For example, if you wish to remove certain large folders when there is less than 40Gb of free space on your disk, you can create two policies and put them together in the `PolicyDelegateCollection`:
 ```csharp
 var checkFreeSpacePolicy = new SimplePolicy().AddPolicyResultHandler<long>((pr) =>
-												  {
-													 if (pr.NoError)
-													 {
-														 if (pr.Result < 40000000000)
-															 //If free space is not enough we pass handling to the next PolicyDelegate in the collection:
-															 pr.SetFailed();
-														 else
-															 logger.Info("Free space is ok");
-													 }
-												   });
+								  {
+									 if (pr.NoError)
+									 {
+										 if (pr.Result < 40000000000)
+											 //If free space is not enough we pass handling to the next PolicyDelegate in the collection:
+											 pr.SetFailed();
+										 else
+											 logger.Info("Free space is ok");
+									 }
+								   });
 
 var freeSpaceAfterPolicy = new SimplePolicy().WithErrorProcessorOf((ex) => logger.Error(ex.Message))
-											 .AddPolicyResultHandler<long>((pr) =>
-											 {
-											 	if (pr.NoError)
-											 	{
-											 		logger.Info($"Total available space: {pr.Result} bytes");
-											 	}
-											 });
+								.AddPolicyResultHandler<long>((pr) =>
+								{
+									if (pr.NoError)
+									{
+										logger.Info($"Total available space: {pr.Result} bytes");
+									}
+								});
 
 
 
 PolicyDelegateCollection<long>.Create(checkFreeSpacePolicy, GetFreeSpace)
 							  .WithPolicyAndDelegate(freeSpaceAfterPolicy, 
-													 () => {
-															DeleteLargeFolders();
-														    return GetFreeSpace(); 
-															}
-													 )
+								() =>{
+										DeleteLargeFolders();
+										return GetFreeSpace(); 
+									 }
+								)
 							  .HandleAll();
 
 
