@@ -137,39 +137,40 @@ In the `PolicyResult` handler, it is possible to set the `IsFailed` property to 
 For example, if you wish to remove certain large folders when there is less than 40Gb of free space on your disk, you can create two policies and put them together in the `PolicyDelegateCollection`:
 ```csharp
 var checkFreeSpacePolicy = new SimplePolicy()
-								  .AddPolicyResultHandler<long>((pr) =>
-								  {
-									 if (pr.NoError)
-									 {
-										 if (pr.Result < 40000000000)
-											 //If free space is not enough we pass handling 
-											 //to the next PolicyDelegate in the collection:
-											 pr.SetFailed();
-										 else
-											 logger.Info("Free space is ok");
-									 }
-								   });
+								.AddPolicyResultHandler<long>((pr) =>
+								{
+									if (pr.NoError)
+									{
+									 if (pr.Result < 40000000000)
+										 //If free space is not enough we pass handling 
+										 //to the next PolicyDelegate in the collection:
+										 pr.SetFailed();
+									 else
+										 logger.Info("Free space is ok");
+									}
+								});
 
 var freeSpaceAfterPolicy = new SimplePolicy()
-								  .WithErrorProcessorOf((ex) => logger.Error(ex.Message))
-								  .AddPolicyResultHandler<long>((pr) =>
-								  {
+								.WithErrorProcessorOf((ex) => logger.Error(ex.Message))
+								.AddPolicyResultHandler<long>((pr) =>
+								{
 							  		if (pr.NoError)
 							  		{
 							  			logger.Info($"Total available space: {pr.Result} bytes");
 							  		}
-								  });
+								});
 
 
 
 PolicyDelegateCollection<long>.Create(checkFreeSpacePolicy, GetFreeSpace)
-								  .WithPolicyAndDelegate(freeSpaceAfterPolicy, 
-									() =>{
-											DeleteLargeFolders();
-											return GetFreeSpace(); 
-										 }
-									)
-								  .HandleAll();
+								.WithPolicyAndDelegate(freeSpaceAfterPolicy, 
+									() =>
+									{
+									    DeleteLargeFolders();
+										return GetFreeSpace(); 
+									}
+								)
+								.HandleAll();
 
 
 //Somewhere in your code:
