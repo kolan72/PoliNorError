@@ -133,7 +133,7 @@ var result = await new RetryPolicy(5)
                             .WithPolicyResultHandler((pr) => { if (pr.IsOk) logger.Info("There were no errors.");})
                             .HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
 ```
-In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true. It may be helpful if for some reason the `PolicyResult` cannot be accepted as correct and needs additional handling.  
+In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true by using `PolicyResult.SetFailed()` method. It may be helpful if for some reason the `PolicyResult` can't be accepted as a success and needs additional handling.  
 For example, if you wish to remove certain large folders when there is less than 40Gb of free space on your disk, you can create two policies and put them together in the `PolicyDelegateCollection`:
 ```csharp
             var checkFreeSpacePolicy = new SimplePolicy()
