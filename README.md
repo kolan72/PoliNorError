@@ -164,12 +164,11 @@ For example, if you wish to remove large folders from your disk when there is le
 			var freeSpaceResult = PolicyDelegateCollection<long>
 						.Create()
 						.WithPolicyAndDelegate(checkFreeSpacePolicy, GetFreeSpace)
-						.WithPolicyAndDelegate(freeSpaceAfterPolicy, 
-							() =>
-							{
-								DeleteLargeFolders();
-								return GetFreeSpace(); 
-							})
+						.WithPolicyAndDelegate(freeSpaceAfterPolicy, () =>
+						{
+							DeleteLargeFolders();
+							return GetFreeSpace(); 
+						})
 						.HandleAll();
 
 
