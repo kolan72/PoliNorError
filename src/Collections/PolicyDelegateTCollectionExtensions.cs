@@ -74,7 +74,5 @@ namespace PoliNorError
 		{
 			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
 		}
-
-		public static Task<PolicyDelegateCollectionResult<T>> HandleAllAsync<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, CancellationToken token = default) => policyDelegateCollection.HandleAllAsync(false, token);
 	}
 }

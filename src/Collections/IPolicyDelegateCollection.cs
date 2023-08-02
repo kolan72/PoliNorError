@@ -24,9 +24,11 @@ namespace PoliNorError
 
 		IPolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null);
 
-		PolicyDelegateCollectionResult HandleAll(CancellationToken token = default);
-
-		Task<PolicyDelegateCollectionResult> HandleAllAsync(bool configAwait, CancellationToken token);
+		/// <summary>
+		/// Builds a handler for the entire collecton of PolicyDelegates
+		/// </summary>
+		/// <returns>An instance of <see cref="IPolicyDelegateCollectionHandler"/></returns>
+		IPolicyDelegateCollectionHandler BuildCollectionHandler();
 	}
 
 	public interface IPolicyDelegateCollection<T> : IWithPolicyBase<INeedDelegateCollection<T>>, IEnumerable<PolicyDelegate<T>>
@@ -47,8 +49,10 @@ namespace PoliNorError
 
 		IPolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null);
 
-		PolicyDelegateCollectionResult<T> HandleAll(CancellationToken token = default);
-
-		Task<PolicyDelegateCollectionResult<T>> HandleAllAsync(bool configAwait, CancellationToken token);
+		/// <summary>
+		/// Builds a handler for the entire collecton of generic PolicyDelegates
+		/// </summary>
+		/// <returns>An instance of <see cref="IPolicyDelegateCollectionHandler{T}"/>.</returns>
+		IPolicyDelegateCollectionHandler<T> BuildCollectionHandler();
 	}
 }

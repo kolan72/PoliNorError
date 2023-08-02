@@ -117,44 +117,11 @@ namespace PoliNorError
 			return this;
 		}
 
-		public Task<PolicyDelegateCollectionResult> HandleAllAsync(CancellationToken token = default) => HandleAllAsync(false, token);
-
-		public async Task<PolicyDelegateCollectionResult> HandleAllAsync(bool configAwait, CancellationToken token)
+		public IPolicyDelegateCollectionHandler BuildCollectionHandler()
 		{
-			PolicyDelegateHandleType handleType = this.GetHandleType();
-			var (HandleResults, PolResult) = await PolicyDelegatesHandler.HandleAllBySyncType(this, handleType, token, configAwait).ConfigureAwait(configAwait);
-
-			return GetResultOrThrow(HandleResults, PolResult);
+			return new PolicyDelegateCollectionHandler(this);
 		}
 
-		public PolicyDelegateCollectionResult HandleAll(CancellationToken token = default)
-		{
-			PolicyDelegateHandleType handleType = this.GetHandleType();
-			(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) result;
-			if (handleType == PolicyDelegateHandleType.Sync)
-			{
-				result = PolicyDelegatesHandler.HandleWhenAllSync(this, token);
-			}
-			else
-			{
-				result = PolicyDelegatesHandler.HandleAllForceSync(this, token);
-			}
-			return GetResultOrThrow(result.HandleResults, result.PolResult);
-		}
-
-		internal PolicyDelegateCollectionResult GetResultOrThrow(IEnumerable<PolicyDelegateResult> handledResults, PolicyResult polResult)
-		{
-			ThrowErrorIfNeed(polResult, handledResults);
-
-			return new PolicyDelegateCollectionResult(handledResults, this.Skip(handledResults.Count()));
-			void ThrowErrorIfNeed(PolicyResult policyResult, IEnumerable<PolicyDelegateResult> hResults)
-			{
-				if (policyResult == null) return;
-				if (policyResult.IsFailed && ThrowOnLastFailed)
-				{
-					throw _errorConverter.ToExceptionConverter()(hResults);
-				}
-			}
-		}
+		internal IPolicyDelegateResultsToErrorConverter ErrorConverter => _errorConverter;
 	}
 }
