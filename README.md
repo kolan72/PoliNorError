@@ -313,7 +313,7 @@ With these methods
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scene, which calls delegates in sync or async manner or in the miscellaneous way.  
 
-You can establish a common `PolicyResult` handler for the entire collection by using either the `WithCommonResultHandler` or `WithCommonResultErrorsHandler` method. 
+You can establish a common `PolicyResult` handler for the entire collection by using the `WithCommonResultHandler` method. 
 These methods require the same delegates types as `PolicyResult` handlers.  
 
 This is an example of how to add retry policies and delegates with common `PolicyResult` handler:
