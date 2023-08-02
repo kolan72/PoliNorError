@@ -126,27 +126,27 @@ When handling delegate by policy you can add so-called `PolicyResult` handlers u
 - `Func<PolicyResult<T>, Task>` (appeared in _version_ 2.0.0-rc2)
 - `Func<PolicyResult<T>, CancellationToken, Task>` (appeared in _version_ 2.0.0-rc2)
 
-The generic and non-generic policy result handlers will only handle the generic and non-generic delegate, respectively.  
+The generic and non-generic `PolicyResult` handlers will only handle the generic and non-generic delegate, respectively.  
 For example:
 ```csharp
 var result = await new RetryPolicy(5)
-                            .WithPolicyResultHandler((pr) => { if (pr.IsOk) logger.Info("There were no errors.");})
+                            .AddPolicyResultHandler<int>((pr) => { if (pr.NoError) logger.Info("There were no errors.");})
                             .HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
 ```
-In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true by using `PolicyResult.SetFailed()` method. It may be helpful if for some reason the `PolicyResult` can't be accepted as a success and needs additional handling.  
-For example, if you wish to remove certain large folders when there is less than 40Gb of free space on your disk, you can create two policies and put them together in the `PolicyDelegateCollection`:
+In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true by using `PolicyResult.SetFailed()` method. It may be helpful if for some reason the `PolicyResult` object, as a result of handling, can't be accepted as a success and may require additional work.  
+For example, if you wish to remove large folders from your disk when there is less than 40Gb of free space, and notify about it, create two policies and combine them in the `PolicyDelegateCollection` for further handling.:
 ```csharp
             var checkFreeSpacePolicy = new SimplePolicy()
 						.AddPolicyResultHandler<long>((pr) =>
 						{
 							if (pr.NoError)
 							{
-							 if (pr.Result < 40000000000)
-								 //If free space is not enough we pass handling 
-								 //to the next PolicyDelegate in the collection:
-								 pr.SetFailed();
-							 else
-								 logger.Info("Free space is ok");
+								if (pr.Result < 40000000000)
+									//If free space is not enough we pass handling 
+									//to the next PolicyDelegate in the collection:
+									pr.SetFailed();
+								else
+									logger.Info("Free space is ok");
 							}
 						});
 
@@ -161,21 +161,22 @@ For example, if you wish to remove certain large folders when there is less than
 						});
 
 
-PolicyDelegateCollection<long>.Create(checkFreeSpacePolicy, GetFreeSpace)
-								.WithPolicyAndDelegate(freeSpaceAfterPolicy, 
-									() =>
-									{
-										DeleteLargeFolders();
-										return GetFreeSpace(); 
-									}
-								)
-								.HandleAll();
+			PolicyDelegateCollection<long>
+						.Create()
+						.WithPolicyAndDelegate(checkFreeSpacePolicy, GetFreeSpace)
+						.WithPolicyAndDelegate(freeSpaceAfterPolicy, 
+							() =>
+							{
+								DeleteLargeFolders();
+								return GetFreeSpace(); 
+							})
+							.HandleAll();
 
 
 //Somewhere in your code:
-private static void DeleteLargeFolders()
+private void DeleteLargeFolders()
 {
-	//...
+	//Delete folders here...
 }
 
 private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
