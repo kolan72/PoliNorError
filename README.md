@@ -315,22 +315,26 @@ With these methods
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scene, which calls delegates in sync or async manner or in the miscellaneous way.  
 
-You can establish a common `PolicyResult` handler for the entire collection by using the `WithCommonResultHandler` method. 
+You can establish a common `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method. 
 These methods require the same delegates types as `PolicyResult` handlers.  
 
 This is an example of how to add retry policies and delegates with common `PolicyResult` handler:
 ```csharp
-var result = PolicyDelegateCollection.Create()
+var result = PolicyDelegateCollection<IConnection>.Create()
                         .WithWaitAndRetry(3, TimeSpan.FromSeconds(2))
                         .AndDelegate(() => connectionFactory1.CreateConnection())
                         .WithRetry(5)
                         .AndDelegate(() => connectionFactory2.CreateConnection())
-                        .WithCommonResultHandler((pr) =>
-							{ 
-								if (pr.IsCanceled) 
-									logger.Error("The operation was canceled.");
+                        .AddPolicyResultHandlerForAll((pr) =>
+						{
+							//There is no need to add logging to each policy result handler -
+							//the code below will log all errors
+							//that occur during handling by two policies.
+							foreach (var err in pr.Errors)
+							{
+								logger.Error(err.Message);
 							}
-						 )
+						}
                         .HandleAll();
 ```
 You can use ExcludeError and ForError methods to set filters on the entire collection:
