@@ -90,9 +90,9 @@ The `UnprocessedError` property (appeared in _version_ 2.0.0-rc3) contains an ex
 For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
 
 ### Error processors
-You can add an error processor to any policy or policyprocessor class by using the `WithErrorProcessor` or `WithErrorProcessorOf` methods.  
-In the common case, an error processor is a class that implements the `IErrorProcessor` interface. You can create an error processor from delegates with the argument of the `Exception` type by using overloads of the `WithErrorProcessorOf` method.  
-The whole list of such error processor delegates:
+In the common case, an error processor is a class that implements the `IErrorProcessor` interface. For instance, the class `DelayErrorProcessor` specifies the duration of delay before proceeding with the error processing.  
+You can add your object with the implementation  of `IErrorProcessor`  to a policy or policy processor by using the `WithErrorProcessor` method.  
+The easiest way to create and add an error processor is to use the `WithErrorProcessorOf` method with this list of delegates:
 - `Action<Exception>`
 - `Action<Exception, CancellationToken>`
 - `Func<Exception, Task>`
