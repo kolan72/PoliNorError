@@ -101,6 +101,7 @@ The whole list of such error processor delegates:
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.
 
 ### Error filters
+If no filter is set, any error will try to be processed.  
 You can specify error filter for policy or policy processor:
 ```csharp
  var result = new FallbackPolicy()
@@ -110,7 +111,7 @@ You can specify error filter for policy or policy processor:
                                 .Handle(() => cmd1.ExecuteNonQuery());
 ```
 Error can be handled if any conditions specified by `ForError` is satisfied and all conditions specified by `ExcludeError` is unsatisfied.
-There are no limitations on the number of filter conditions for both types. If no filter is set, all errors will be handled .
+There are no limitations on the number of filter conditions for both types. 
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers
