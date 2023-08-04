@@ -142,60 +142,48 @@ namespace PoliNorError
 			return PolicyDelegateCollection<T>.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
 		}
 
-		public PolicyDelegateCollectionResult HandleDelegate(Action action, CancellationToken token = default)
+		/// <summary>
+		/// Creates PoiicyDelegateCollection from this collection and <paramref name="action"/> and returns  <see cref="IPolicyDelegateCollection"/> 
+		/// from calling <see cref="IPolicyDelegateCollection.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="action">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler BuildCollectionHandlerFor(Action action)
 		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(action);
-			return policyDelegateCollection.BuildCollectionHandler().Handle(token);
+			return ToPolicyDelegateCollection(action).BuildCollectionHandler();
 		}
 
-		public PolicyDelegateCollectionResult HandleDelegate(Func<CancellationToken, Task> func, CancellationToken token = default)
+		/// <summary>
+		/// Creates PoiicyDelegateCollection from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection"/> 
+		/// from calling <see cref="IPolicyDelegateCollection.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="func">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler BuildCollectionHandlerFor(Func<CancellationToken, Task> func)
 		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(func);
-			return policyDelegateCollection.BuildCollectionHandler().Handle(token);
+			return ToPolicyDelegateCollection(func).BuildCollectionHandler();
 		}
 
-		public PolicyDelegateCollectionResult<T> HandleDelegate<T>(Func<T> action, CancellationToken token = default)
+		/// <summary>
+		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/> 
+		/// from calling <see cref="IPolicyDelegateCollection{T}.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="func">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler<T> BuildCollectionHandlerFor<T>(Func<T> func)
 		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(action);
-			return policyDelegateCollection.BuildCollectionHandler().Handle(token);
+			return ToPolicyDelegateCollection(func).BuildCollectionHandler();
 		}
 
-		public PolicyDelegateCollectionResult<T> HandleDelegate<T>(Func<CancellationToken, Task<T>> func, CancellationToken token = default)
+		/// <summary>
+		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/> 
+		/// from calling <see cref="IPolicyDelegateCollection{T}.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="func">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler<T> BuildCollectionHandlerFor<T>(Func<CancellationToken, Task<T>> func)
 		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(func);
-			return policyDelegateCollection.BuildCollectionHandler().Handle(token);
-		}
-
-		public Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Action action, CancellationToken token = default) => HandleDelegateAsync(action, false, token);
-
-		public async Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Action action, bool configAwait, CancellationToken token = default)
-		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(action);
-			return await policyDelegateCollection.BuildCollectionHandler().HandleAsync(configAwait, token);
-		}
-
-		public Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Func<CancellationToken, Task> func, CancellationToken token = default) => HandleDelegateAsync(func, false, token);
-
-		public async Task<PolicyDelegateCollectionResult> HandleDelegateAsync(Func<CancellationToken, Task> func, bool configAwait, CancellationToken token = default)
-		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(func);
-			return await policyDelegateCollection.BuildCollectionHandler().HandleAsync(configAwait, token);
-		}
-
-		public Task<PolicyDelegateCollectionResult<T>> HandleDelegateAsync<T>(Func<T> func, CancellationToken token = default) => HandleDelegateAsync(func, false, token);
-
-		public async Task<PolicyDelegateCollectionResult<T>> HandleDelegateAsync<T>(Func<T> func, bool configAwait, CancellationToken token = default)
-		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(func);
-			return await policyDelegateCollection.BuildCollectionHandler().HandleAsync(configAwait, token);
-		}
-
-		public Task<PolicyDelegateCollectionResult<T>> HandleDelegateAsync<T>(Func<CancellationToken, Task<T>> func, CancellationToken token = default) => HandleDelegateAsync(func, false, token);
-
-		public async Task<PolicyDelegateCollectionResult<T>> HandleDelegateAsync<T>(Func<CancellationToken, Task<T>> func, bool configAwait, CancellationToken token = default)
-		{
-			var policyDelegateCollection = ToPolicyDelegateCollection(func);
-			return await policyDelegateCollection.BuildCollectionHandler().HandleAsync(configAwait, token);
+			return ToPolicyDelegateCollection(func).BuildCollectionHandler();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
