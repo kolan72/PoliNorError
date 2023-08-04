@@ -151,7 +151,7 @@ namespace PoliNorError.Tests
 			}
 			var polDelegates = policyCollection.ToPolicyDelegateCollection(() => throw new Exception("Test"));
 
-			await polDelegates.BuildCollectionHandler().HandleAsync();
+			await polDelegates.HandleAllAsync();
 			Assert.AreEqual(2, i);
 			Assert.AreEqual(4, m);
 		}
@@ -197,7 +197,7 @@ namespace PoliNorError.Tests
 							.IncludeErrorForAll<ArgumentNullException>()
 							.ToPolicyDelegateCollection(() => throw new ArgumentNullException(errorParamName));
 
-			var handleRes = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
 			Assert.IsFalse(handleRes.PolicyDelegateResults.Any(pr => pr.Result.ErrorFilterUnsatisfied));
 			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
@@ -212,7 +212,7 @@ namespace PoliNorError.Tests
 						.IncludeErrorForAll(ex => ex.Message == "Test1")
 						.ToPolicyDelegateCollection(() => throw new Exception("Test1"));
 
-			var handleRes = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
 			Assert.IsFalse(handleRes.PolicyDelegateResults.Any(pr => pr.Result.ErrorFilterUnsatisfied));
 			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
@@ -228,7 +228,7 @@ namespace PoliNorError.Tests
 							.ExcludeErrorForAll<ArgumentNullException>()
 							.ToPolicyDelegateCollection(() => throw new ArgumentNullException(errorParamName));
 
-			var handleRes = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
 			Assert.IsTrue(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
@@ -243,7 +243,7 @@ namespace PoliNorError.Tests
 							.ExcludeErrorForAll(ex => ex.Message == "Test1")
 							.ToPolicyDelegateCollection(() => throw new Exception("Test1"));
 
-			var handleRes = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
 			Assert.IsTrue(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}

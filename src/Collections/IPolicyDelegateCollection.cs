@@ -25,7 +25,7 @@ namespace PoliNorError
 		IPolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null);
 
 		/// <summary>
-		/// Builds a handler for the entire collecton of PolicyDelegates
+		/// Builds a handler for the entire collection of PolicyDelegates
 		/// </summary>
 		/// <returns>An instance of <see cref="IPolicyDelegateCollectionHandler"/></returns>
 		IPolicyDelegateCollectionHandler BuildCollectionHandler();
@@ -50,7 +50,7 @@ namespace PoliNorError
 		IPolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null);
 
 		/// <summary>
-		/// Builds a handler for the entire collecton of generic PolicyDelegates
+		/// Builds a handler for the entire collection of generic PolicyDelegates
 		/// </summary>
 		/// <returns>An instance of <see cref="IPolicyDelegateCollectionHandler{T}"/>.</returns>
 		IPolicyDelegateCollectionHandler<T> BuildCollectionHandler();

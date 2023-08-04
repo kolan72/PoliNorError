@@ -74,5 +74,17 @@ namespace PoliNorError
 		{
 			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
 		}
+
+		public static PolicyDelegateCollectionResult HandleAll(this IPolicyDelegateCollection policyDelegateCollection, CancellationToken token = default)
+		{
+			return policyDelegateCollection.BuildCollectionHandler().Handle(token);
+		}
+
+		public static Task<PolicyDelegateCollectionResult> HandleAllAsync(this IPolicyDelegateCollection policyDelegateCollection, CancellationToken token) => HandleAllAsync(policyDelegateCollection, false, token);
+
+		public static Task<PolicyDelegateCollectionResult> HandleAllAsync(this IPolicyDelegateCollection policyDelegateCollection, bool configAwait = false, CancellationToken token = default)
+		{
+			return policyDelegateCollection.BuildCollectionHandler().HandleAsync(configAwait, token);
+		}
 	}
 }
