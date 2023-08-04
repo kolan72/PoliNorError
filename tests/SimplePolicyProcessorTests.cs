@@ -233,5 +233,26 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 		}
+
+		[Test]
+		public void Should_WithErrorProcessor_AddErrorProcessorInCollection()
+		{
+			var proc = SimplePolicyProcessor.CreateDefault();
+			proc.AddErrorProcessor(new TestErrorProcessor());
+			Assert.IsTrue(proc.Count() == 1);
+		}
+
+		private class TestErrorProcessor : IErrorProcessor
+		{
+			public Exception Process(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+			{
+				throw new NotImplementedException();
+			}
+
+			public Task<Exception> ProcessAsync(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
+			{
+				throw new NotImplementedException();
+			}
+		}
 	}
 }
