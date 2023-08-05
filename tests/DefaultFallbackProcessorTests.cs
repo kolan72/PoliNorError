@@ -65,6 +65,29 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_FallbackT_Not_Executed_If_Error_And_Canceled_During_Error_Processors_Run()
+		{
+			var cancelTokenSource = new CancellationTokenSource();
+			var processor = new DefaultFallbackProcessor();
+
+			int i = 0;
+			int p = 0;
+
+			int fallback(CancellationToken _) { i++; return i; }
+
+			var res = processor
+							.WithErrorProcessorOf((_, __) => {p++; cancelTokenSource.Cancel();})
+							.Fallback(() => throw new Exception(), fallback, cancelTokenSource.Token);
+
+			Assert.IsTrue(res.IsFailed);
+			Assert.IsTrue(res.IsCanceled);
+			Assert.AreEqual(1, p);
+			Assert.AreEqual(0, i);
+			Assert.AreEqual(0, res.Result);
+			cancelTokenSource.Dispose();
+		}
+
+		[Test]
 		public void Should_FallbackT_Returns_SuccessValue_If_NoError()
 		{
 			var processor = new DefaultFallbackProcessor();

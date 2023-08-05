@@ -235,6 +235,7 @@ The whole list of methods, accepting fallback delegate as an argument:
 -    `WithAsyncFallbackFunc<T>`
 
 If you try to handle a generic func delegate without a corresponding fallback delegate being set, the default value of type will be returned.  
+Note that error processors for fallback policies run *before* calling fallback delegate. This lets you cancel before calling the fallback delegate if you need to, but if you want to get fallback faster, don't add long-running error processors.  
 `FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
 
 ### SimplePolicy (appeared in _version_ 2.0.0-alpha)

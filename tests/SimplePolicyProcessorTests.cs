@@ -158,6 +158,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(res.IsFailed);
 			Assert.IsTrue(res.IsCanceled);
 			Assert.IsFalse(res.IsSuccess);
+			cancelTokenSource.Dispose();
 		}
 
 		[Test]
