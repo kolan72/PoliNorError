@@ -143,7 +143,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Creates PoiicyDelegateCollection from this collection and <paramref name="action"/> and returns  <see cref="IPolicyDelegateCollection"/> 
+		/// Creates PoiicyDelegateCollection from this collection and <paramref name="action"/> and returns  <see cref="IPolicyDelegateCollection"/>
 		/// from calling <see cref="IPolicyDelegateCollection.BuildCollectionHandler"/>
 		/// </summary>
 		/// <param name="action">The delegate will be common to the entire collection.</param>
@@ -154,7 +154,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Creates PoiicyDelegateCollection from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection"/> 
+		/// Creates PoiicyDelegateCollection from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection"/>
 		/// from calling <see cref="IPolicyDelegateCollection.BuildCollectionHandler"/>
 		/// </summary>
 		/// <param name="func">The delegate will be common to the entire collection.</param>
@@ -165,7 +165,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/> 
+		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/>
 		/// from calling <see cref="IPolicyDelegateCollection{T}.BuildCollectionHandler"/>
 		/// </summary>
 		/// <param name="func">The delegate will be common to the entire collection.</param>
@@ -176,7 +176,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/> 
+		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/>
 		/// from calling <see cref="IPolicyDelegateCollection{T}.BuildCollectionHandler"/>
 		/// </summary>
 		/// <param name="func">The delegate will be common to the entire collection.</param>

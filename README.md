@@ -98,7 +98,7 @@ The easiest way to create and add an error processor is to use the `WithErrorPro
 - `Func<Exception, Task>`
 - `Func<Exception, CancellationToken, Task>`
 
-Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.
+Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors. Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate handling will be interrupted, and the `IsFailed` and `IsCanceled` properties of the `PolicyResult` will be set to true.
 
 ### Error filters
 If no filter is set, any error will try to be processed.  

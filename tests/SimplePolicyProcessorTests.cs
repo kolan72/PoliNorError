@@ -149,6 +149,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_PolicyResult_Be_Failed_And_Canceled_If_Canceled_During_Error_Processors_Run()
+		{
+			var cancelTokenSource = new CancellationTokenSource();
+			var processor = SimplePolicyProcessor.CreateDefault();
+			var res =  processor.WithErrorProcessorOf((_, __) => cancelTokenSource.Cancel())
+					 .Execute(() => throw new Exception(), cancelTokenSource.Token);
+			Assert.IsTrue(res.IsFailed);
+			Assert.IsTrue(res.IsCanceled);
+			Assert.IsFalse(res.IsSuccess);
+		}
+
+		[Test]
 		[TestCase("Test", false, "Test")]
 		[TestCase("Test2", true, "Test")]
 		public void Should_Generic_IncludeError_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
