@@ -149,7 +149,7 @@ namespace PoliNorError.Tests
 			int i = 0;
 			async Task save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<CatchBlockProcessErrorInfo>(), throwingExc, It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<ProcessErrorInfo>(), throwingExc, It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
 				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) })));
 
 			async Task fallback(CancellationToken _) { await Task.Delay(1); i++; }

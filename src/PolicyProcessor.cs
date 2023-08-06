@@ -28,7 +28,7 @@ namespace PoliNorError
 
 		public ExceptionFilter ErrorFilter { get; } = new ExceptionFilter();
 
-		protected void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo, CancellationToken token)
+		protected void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, ProcessErrorInfo catchBlockProcessErrorInfo, CancellationToken token)
 		{
 			result.ChangeByHandleCatchBlockResult(CanHandleCatchBlock());
 
@@ -52,7 +52,7 @@ namespace PoliNorError
 			}
 		}
 
-		protected async Task HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo, CancellationToken token, bool configAwait)
+		protected async Task HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, ProcessErrorInfo catchBlockProcessErrorInfo, CancellationToken token, bool configAwait)
 		{
 			result.ChangeByHandleCatchBlockResult(await CanHandleCatchBlockAsync().ConfigureAwait(configAwait));
 

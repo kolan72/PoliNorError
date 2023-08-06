@@ -51,7 +51,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			async Task save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<CatchBlockProcessErrorInfo>(), throwingExc, It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<ProcessErrorInfo>(), throwingExc, It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
 				new BulkProcessResult(throwingExc,new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Faulted)})));
 
 			var processor = RetryProcessor.CreateDefault(mockedBulkProcessor.Object);
@@ -69,7 +69,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			async Task save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<CatchBlockProcessErrorInfo>(), throwingExc, It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<ProcessErrorInfo>(), throwingExc, It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
 				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) })));
 
 			var processor = new DefaultRetryProcessor(mockedBulkProcessor.Object);
@@ -89,7 +89,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<CatchBlockProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<ProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
 				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Faulted) })));
 
 			var processor = new DefaultRetryProcessor(mockedBulkProcessor.Object);
@@ -107,7 +107,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<CatchBlockProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+			mockedBulkProcessor.Setup((t) => t.ProcessAsync(It.IsAny<ProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
 				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) })));
 
 			var processor = new DefaultRetryProcessor(mockedBulkProcessor.Object);

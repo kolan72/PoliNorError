@@ -16,13 +16,13 @@ namespace PoliNorError
 
 		public DefaultErrorProcessor(Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) => _exceptionDelegatesHelper = new ExceptionDelegatesHelper(onBeforeProcessError, onBeforeProcessErrorAsync);
 
-		public Exception Process(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+		public Exception Process(Exception error, ProcessErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
 			_exceptionDelegatesHelper.Delegate(error, cancellationToken);
 			return error;
 		}
 
-		public async Task<Exception> ProcessAsync(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
+		public async Task<Exception> ProcessAsync(Exception error, ProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
 			await _exceptionDelegatesHelper.DelegateAsync(error, cancellationToken, configAwait).ConfigureAwait(configAwait);
 			return error;

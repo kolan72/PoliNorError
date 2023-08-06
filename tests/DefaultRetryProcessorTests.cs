@@ -176,7 +176,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			void save() { throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<CatchBlockProcessErrorInfo>(), throwingExc, It.IsAny<CancellationToken>())).Returns(
+			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), throwingExc, It.IsAny<CancellationToken>())).Returns(
 				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Faulted) }));
 
 			var processor = new DefaultRetryProcessor(mockedBulkProcessor.Object);
@@ -194,7 +194,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			void save() { throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<CatchBlockProcessErrorInfo>(), throwingExc, It.IsAny<CancellationToken>())).Returns(
+			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), throwingExc, It.IsAny<CancellationToken>())).Returns(
 				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) }));
 
 			var processor = RetryProcessor
@@ -214,7 +214,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			int save() { throw throwingExc; }
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<CatchBlockProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>())).Returns(
+			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>())).Returns(
 					new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Faulted) })
 				);
 
@@ -233,7 +233,7 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			int save() => throw throwingExc;
 			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<CatchBlockProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>())).Returns(
+			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>())).Returns(
 					new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) })
 				);
 

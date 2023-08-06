@@ -39,7 +39,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, CatchBlockProcessErrorInfo.FromSimple(), token);
+				HandleCatchBlockAndChangeResult(ex, result, ProcessErrorInfo.FromSimple(), token);
 			}
 			return result;
 		}
@@ -74,7 +74,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, CatchBlockProcessErrorInfo.FromSimple(), token);
+				HandleCatchBlockAndChangeResult(ex, result, ProcessErrorInfo.FromSimple(), token);
 			}
 			return result;
 		}
@@ -104,7 +104,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, CatchBlockProcessErrorInfo.FromSimple(), token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, ProcessErrorInfo.FromSimple(), token, configureAwait).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -135,7 +135,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, CatchBlockProcessErrorInfo.FromSimple(), token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, ProcessErrorInfo.FromSimple(), token, configureAwait).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}

@@ -16,7 +16,7 @@ namespace PoliNorError
 			_errorProcessors.Add(errorProcessor);
 		}
 
-		public BulkProcessResult Process(CatchBlockProcessErrorInfo catchBlockProcessErrorInfo, Exception handlingError, CancellationToken token = default)
+		public BulkProcessResult Process(ProcessErrorInfo catchBlockProcessErrorInfo, Exception handlingError, CancellationToken token = default)
 		{
 			List<ErrorProcessorException> errorProcessorExceptions = new List<ErrorProcessorException>();
 			if (_errorProcessors.Count == 0)
@@ -43,7 +43,7 @@ namespace PoliNorError
 			return new BulkProcessResult(handlingError, errorProcessorExceptions, isCanceledBetweenProcessOne);
 		}
 
-		private (ErrorProcessorException, Exception) ProcessOne(IErrorProcessor errorProcessor, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token)
+		private (ErrorProcessorException, Exception) ProcessOne(IErrorProcessor errorProcessor, ProcessErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token)
 		{
 			if (token.IsCancellationRequested)
 			{
@@ -65,7 +65,7 @@ namespace PoliNorError
 			}
 		}
 
-		public async Task<BulkProcessResult> ProcessAsync(CatchBlockProcessErrorInfo catchBlockProcessErrorInfo, Exception handlingError, bool configAwait = false, CancellationToken token = default)
+		public async Task<BulkProcessResult> ProcessAsync(ProcessErrorInfo catchBlockProcessErrorInfo, Exception handlingError, bool configAwait = false, CancellationToken token = default)
 		{
 			var errorProcessorExceptions = new FlexSyncEnumerable<ErrorProcessorException>(!configAwait);
 			if (_errorProcessors.Count == 0)
@@ -92,7 +92,7 @@ namespace PoliNorError
 			return new BulkProcessResult(handlingError, errorProcessorExceptions, isCanceledBetweenProcessOne);
 		}
 
-		private  async Task<(ErrorProcessorException, Exception)> ProcessOneAsync(IErrorProcessor errorProcessor, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token, bool configAwait)
+		private  async Task<(ErrorProcessorException, Exception)> ProcessOneAsync(IErrorProcessor errorProcessor, ProcessErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token, bool configAwait)
 		{
 			if (token.IsCancellationRequested)
 			{

@@ -17,7 +17,7 @@ namespace PoliNorError
 		public DelayErrorProcessor(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg) : this((retryAttempt, exc) => delayOnRetryFunc.Apply(delayFuncArg)(retryAttempt, exc))
 		{}
 
-		public virtual Exception Process(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+		public virtual Exception Process(Exception error, ProcessErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
 			bool waitResult = cancellationToken.WaitHandle.WaitOne(GetCurDelay(catchBlockProcessErrorInfo.CurrentRetryCount, error));
 			if (waitResult)
@@ -27,7 +27,7 @@ namespace PoliNorError
 			return error;
 		}
 
-		public virtual async Task<Exception> ProcessAsync(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
+		public virtual async Task<Exception> ProcessAsync(Exception error, ProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
 			await Task.Delay(GetCurDelay(catchBlockProcessErrorInfo.CurrentRetryCount, error), cancellationToken).ConfigureAwait(configAwait);
 			return error;

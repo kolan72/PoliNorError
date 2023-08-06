@@ -257,12 +257,12 @@ namespace PoliNorError.Tests
 
 		private class TestErrorProcessor : IErrorProcessor
 		{
-			public Exception Process(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+			public Exception Process(Exception error, ProcessErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 			{
 				throw new NotImplementedException();
 			}
 
-			public Task<Exception> ProcessAsync(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
+			public Task<Exception> ProcessAsync(Exception error, ProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 			{
 				throw new NotImplementedException();
 			}

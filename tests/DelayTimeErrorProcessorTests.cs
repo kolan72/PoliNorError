@@ -14,7 +14,7 @@ namespace PoliNorError.Tests
 		{
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.Zero);
 			var exc = new Exception();
-			var res = await delayProcessor.ProcessAsync(exc, CatchBlockProcessErrorInfo.FromRetry(1), CancellationToken.None);
+			var res = await delayProcessor.ProcessAsync(exc, ProcessErrorInfo.FromRetry(1), CancellationToken.None);
 			Assert.IsTrue(exc.Equals(res));
 		}
 
@@ -23,7 +23,7 @@ namespace PoliNorError.Tests
 		{
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.Zero);
 			var exc = new Exception();
-			var res = delayProcessor.Process(exc, CatchBlockProcessErrorInfo.FromRetry(1), CancellationToken.None);
+			var res = delayProcessor.Process(exc, ProcessErrorInfo.FromRetry(1), CancellationToken.None);
 			Assert.IsTrue(exc.Equals(res));
 		}
 
@@ -33,7 +33,7 @@ namespace PoliNorError.Tests
 			var funcMock = new Mock<Func<int, Exception, TimeSpan>>();
 			funcMock.Setup((f) => f(It.IsAny<int>(), It.IsAny<Exception>()));
 			var delayProcessor = new DelayErrorProcessor(funcMock.Object);
-			delayProcessor.Process(new Exception(), CatchBlockProcessErrorInfo.FromRetry(1), CancellationToken.None);
+			delayProcessor.Process(new Exception(), ProcessErrorInfo.FromRetry(1), CancellationToken.None);
 			funcMock.Verify((f) => f(It.IsAny<int>(), It.IsAny<Exception>()), Times.Once);
 		}
 
@@ -43,7 +43,7 @@ namespace PoliNorError.Tests
 			var funcMock = new Mock<Func<int, Exception, TimeSpan>>();
 			funcMock.Setup((f) => f(It.IsAny<int>(), It.IsAny<Exception>()));
 			var delayProcessor = new DelayErrorProcessor(funcMock.Object);
-			await delayProcessor.ProcessAsync(new Exception(), CatchBlockProcessErrorInfo.FromRetry(1), CancellationToken.None);
+			await delayProcessor.ProcessAsync(new Exception(), ProcessErrorInfo.FromRetry(1), CancellationToken.None);
 			funcMock.Verify((f) => f(It.IsAny<int>(), It.IsAny<Exception>()), Times.Once);
 		}
 
@@ -53,7 +53,7 @@ namespace PoliNorError.Tests
 			var processor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1500));
 			var testExc = new Exception();
 			var sw = Stopwatch.StartNew();
-			var resError = processor.Process(testExc, CatchBlockProcessErrorInfo.FromRetry(1), default);
+			var resError = processor.Process(testExc, ProcessErrorInfo.FromRetry(1), default);
 			sw.Stop();
 			Assert.GreaterOrEqual(Math.Floor(sw.Elapsed.TotalSeconds), 1);
 			Assert.AreEqual(resError, testExc);
@@ -66,7 +66,7 @@ namespace PoliNorError.Tests
 			var testExc = new Exception();
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
-			Assert.Throws<OperationCanceledException>(() => processor.Process(testExc, CatchBlockProcessErrorInfo.FromRetry(1), cancelTokenSource.Token));
+			Assert.Throws<OperationCanceledException>(() => processor.Process(testExc, ProcessErrorInfo.FromRetry(1), cancelTokenSource.Token));
 			cancelTokenSource.Dispose();
 		}
 
@@ -76,7 +76,7 @@ namespace PoliNorError.Tests
 			var processor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
 			var testExc = new Exception();
 			var sw = Stopwatch.StartNew();
-			Exception resError = await processor.ProcessAsync(testExc, CatchBlockProcessErrorInfo.FromRetry(1), CancellationToken.None);
+			Exception resError = await processor.ProcessAsync(testExc, ProcessErrorInfo.FromRetry(1), CancellationToken.None);
 			sw.Stop();
 			Assert.Greater(Math.Floor(sw.Elapsed.TotalMilliseconds), 500);
 			Assert.AreEqual(resError, testExc);
@@ -88,7 +88,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(1000);
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(2000));
-			Assert.ThrowsAsync<TaskCanceledException>(async () => await delayProcessor.ProcessAsync(new Exception(), CatchBlockProcessErrorInfo.FromRetry(1), cancelTokenSource.Token));
+			Assert.ThrowsAsync<TaskCanceledException>(async () => await delayProcessor.ProcessAsync(new Exception(), ProcessErrorInfo.FromRetry(1), cancelTokenSource.Token));
 			cancelTokenSource.Dispose();
 		}
 
@@ -96,7 +96,7 @@ namespace PoliNorError.Tests
 		public async Task Should_DelayErrorProcessorSubclass_ProcessAsyncMethod_Work()
 		{
 			var delayProcessor = new YourDelayErrorProcessor(TimeSpan.Zero);
-			await delayProcessor.ProcessAsync(new Exception(), CatchBlockProcessErrorInfo.FromRetry(1), default(CancellationToken));
+			await delayProcessor.ProcessAsync(new Exception(), ProcessErrorInfo.FromRetry(1), default(CancellationToken));
 			Assert.AreEqual(1, delayProcessor.CurRetry);
 			Assert.AreEqual(PolicyAlias.Retry, delayProcessor.PolicyKind);
 		}
@@ -105,7 +105,7 @@ namespace PoliNorError.Tests
 		{
 			public YourDelayErrorProcessor(TimeSpan timeSpan): base(timeSpan){}
 
-			public override Task<Exception> ProcessAsync(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
+			public override Task<Exception> ProcessAsync(Exception error, ProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 			{
 				CurRetry = catchBlockProcessErrorInfo.CurrentRetryCount;
 				PolicyKind = catchBlockProcessErrorInfo.PolicyKind;

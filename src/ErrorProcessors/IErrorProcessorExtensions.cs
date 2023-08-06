@@ -8,7 +8,7 @@ namespace PoliNorError
 	{
 		public static Task<Exception> ProcessAsync(this IErrorProcessor errorProcessor,
 														Exception error,
-														CatchBlockProcessErrorInfo catchBlockProcessErrorInfo,
+														ProcessErrorInfo catchBlockProcessErrorInfo,
 														CancellationToken cancellationToken = default) =>
 			errorProcessor.ProcessAsync(error, catchBlockProcessErrorInfo, false, cancellationToken);
 	}

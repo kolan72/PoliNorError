@@ -247,7 +247,7 @@ namespace PoliNorError
 				var checkRetryResult = CanRetry(ex, retryCountInfo, tryErrorCount);
 				if (checkRetryResult == HandleCatchBlockResult.Success)
 				{
-					var bulkProcessResult = _bulkErrorProcessor.Process(CatchBlockProcessErrorInfo.FromRetry(tryErrorCount), ex, token);
+					var bulkProcessResult = _bulkErrorProcessor.Process(ProcessErrorInfo.FromRetry(tryErrorCount), ex, token);
 					result.AddBulkProcessorErrors(bulkProcessResult);
 					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkRetryResult;
 				}
@@ -271,7 +271,7 @@ namespace PoliNorError
 				var checkRetryResult = CanRetry(ex, retryCountInfo, tryErrorCount);
 				if (checkRetryResult == HandleCatchBlockResult.Success)
 				{
-					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(CatchBlockProcessErrorInfo.FromRetry(tryErrorCount), ex, configAwait, token).ConfigureAwait(configAwait);
+					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ProcessErrorInfo.FromRetry(tryErrorCount), ex, configAwait, token).ConfigureAwait(configAwait);
 					result.AddBulkProcessorErrors(bulkProcessResult);
 					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkRetryResult;
 				}

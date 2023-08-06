@@ -37,7 +37,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token);
+				HandleCatchBlockAndChangeResult(ex, result, ProcessErrorInfo.FromFallback(), token);
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -76,7 +76,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token);
+				HandleCatchBlockAndChangeResult(ex, result, ProcessErrorInfo.FromFallback(), token);
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -110,7 +110,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, ProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
@@ -145,7 +145,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, CatchBlockProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, ProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
