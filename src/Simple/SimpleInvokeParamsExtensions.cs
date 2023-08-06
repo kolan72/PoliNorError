@@ -2,9 +2,9 @@
 {
 	internal static class SimpleInvokeParamsExtensions
 	{
-		public static SimplePolicy ToSimplePolicy(this InvokeParams policyParams)
+		public static SimplePolicy ToSimplePolicy(this ErrorProcessorDelegate policyParams)
 		{
-			return (SimplePolicy)(policyParams ?? InvokeParams.Default()).ConfigurePolicy(new SimplePolicy());
+			return (SimplePolicy)(policyParams ?? ErrorProcessorDelegate.Default()).ConfigurePolicy(new SimplePolicy());
 		}
 	}
 }

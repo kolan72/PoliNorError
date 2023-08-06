@@ -624,7 +624,7 @@ namespace PoliNorError.Tests
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
 			var polDelCol = PolicyDelegateCollection.Create();
-			var builder = polDelCol.WithRetry(1, InvokeParams.From(actionError)).AndDelegate(() => throw new Exception("Test")).WithRetry(1).AndDelegate(() => throw new Exception("Test"));
+			var builder = polDelCol.WithRetry(1, ErrorProcessorDelegate.From(actionError)).AndDelegate(() => throw new Exception("Test")).WithRetry(1).AndDelegate(() => throw new Exception("Test"));
 			var res = builder.BuildCollectionHandler().HandleAsync().GetAwaiter().GetResult();
 			Assert.AreEqual(2, res.Count());
 			Assert.AreEqual(1, i1);
