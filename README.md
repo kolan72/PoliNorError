@@ -102,16 +102,16 @@ Error processors are handled one by one by the `BulkErrorProcessor` class. To cu
 Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate handling will be interrupted, and the `IsFailed` and `IsCanceled` properties of the `PolicyResult` will be set to true.
 
 ### Error filters
-If no filter is set, any error will try to be processed.  
+If no filter is set, the delegate will try to be handled with any exception.  
 You can specify error filter for policy or policy processor:
 ```csharp
  var result = new FallbackPolicy()
-                                .ForError<SqlException>()
+                                .ForError<SqlException>() //IncludeError<SqlException>() since version 2.0.0-alpha
                                 .ExcludeError<SqlException>(ex => ex.Number == 1205)
                                 .WithFallbackAction(() => cmd2.ExecuteNonQuery())
                                 .Handle(() => cmd1.ExecuteNonQuery());
 ```
-Error can be handled if any conditions specified by `ForError` is satisfied and all conditions specified by `ExcludeError` is unsatisfied.
+Error can be handled if any conditions specified by `ForError` (`IncludeError` since _version_ 2.0.0-alpha) is satisfied and all conditions specified by `ExcludeError` is unsatisfied.
 There are no limitations on the number of filter conditions for both types. 
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
