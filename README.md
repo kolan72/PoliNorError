@@ -29,7 +29,8 @@ The types of delegates that can be handled include:
 
 Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface. Policy processors implicitly determine *policy inner rules* (further for simplicity referred to as *policy rules*) - built-in behavioral features that determine whether or not a policy can handle exception. For example, the policy rule for the Retry is that it can handle exceptions only until the number of permitted retries does not exceed.  
 Within the catch block, the policy processor can contain [error processors](#error-processors) that can extra handle exceptions.  
-So, the term *error processing* refers to process exception by policy rules and error processors.  
+But before handling can start, [error filters](#error-filters) need to be satisfied.  
+So, the process of handling a delegate consists of checking error filters, running error processors and applying policy rules.  
 A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling delegates mentioned above.  
 For retries using default retry policy processor:
 ```csharp
@@ -67,7 +68,6 @@ var result = new FallbackPolicy()
                              .WithFallbackFunc<Email>(() => UserManager.GetGuestEmail())
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
-Errors handling allows for further specification through the use of [error filters](#error-filters).  
 The results of handling are stored in the [PolicyResult](#policyresult) class.  
 Using policy, you can extra handle `PolicyResult` by [`PolicyResult` handlers](#policyresult-handlers) after policy processor processing.  
 A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection). In this case, each delegate will be handled according to its policy.  
