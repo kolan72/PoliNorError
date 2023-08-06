@@ -299,13 +299,13 @@ var result = policyDelegate.Handle();
 ```
 
 ### PolicyDelegateCollection
-You can create `PolicyDelegateCollection(<T>)` by using `Create` method. Having policy delegates or even policies only - by using `FromPolicyDelegates`, `FromPolicies` methods respectevly.  
+You can create `PolicyDelegateCollection(<T>)` by using `Create` method.  
 With these methods
 - `WithPolicy` (create the `PolicyDelegate` with a policy but without a delegate)
 - `WithPolicyDelagate`
 - `WithPolicyAndDelegate`
 - `AndDelegate` (set delegate to last `PolicyDelegate` object in the collection)
-- `WithCommonDelegate` (set the same delegate to elements that have already been added to the collection)
+- `WithCommonDelegate` (deprecated since _version_ 2.0.0-rc2 version)
 
  or specific policy-related extensions methods and their overloads:
 - `WithRetry`
@@ -313,6 +313,7 @@ With these methods
 - `WithInfiniteRetry`
 - `WithWaitAndInfiniteRetry`
 - `WithFallback`
+- `WithSimple` (appeared in _version_ 2.0.0-alpha)
 
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scene, which calls delegates in sync or async manner or in the miscellaneous way.  
@@ -320,7 +321,7 @@ Handling is smart - it checks the synchronicity type of all delegates in collect
 You can establish a common `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method. 
 These methods require the same delegates types as `PolicyResult` handlers.  
 
-This is an example of how to add retry policies and delegates with common `PolicyResult` handler:
+This is an example of how to add retry policies and delegates with common `PolicyResult` handler(example for _version_ 2.0.0-rc2 version):
 ```csharp
 var result = PolicyDelegateCollection<IConnection>.Create()
                         .WithWaitAndRetry(3, TimeSpan.FromSeconds(2))
@@ -339,7 +340,7 @@ var result = PolicyDelegateCollection<IConnection>.Create()
 						}
                         .HandleAll();
 ```
-You can use ExcludeError and ForError methods to set filters on the entire collection:
+You can use ExcludeError and ForError methods to set filters on the entire collection(example for _version_ 1.0.4 version):
 ```csharp
 var result = PolicyDelegateCollection<int>.Create()
                          .WithRetry(5)
@@ -350,11 +351,9 @@ var result = PolicyDelegateCollection<int>.Create()
 ```
 The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
 
-Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyHandledResult(<T>)>` interface. The `PolicyHandledResult(<T>)` class in turn is just a wrapper around `PolicyResult` that contains `PolicyHandledInfo` class with information about policy and `MethodInfo` of delegate.  
+Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(<T>)` class in turn is just a wrapper around `PolicyResult` that contains `PolicyDelegateInfo` class with information about policy and `MethodInfo` of delegate.  
 
 The `PolicyDelegatesUnused` property contains a collection of policydelegates that were not handled due to the reasons described above.  
-
-Check the `Status` property to find out how the last used policy handled the delegate.
 
 For some purpurses  throw a special `PolicyDelegateCollectionHandleException` exception if the last policy in the collection fails may be useful. You can do it with the  `WithThrowOnLastFailed` method.
 
