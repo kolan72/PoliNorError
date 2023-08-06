@@ -82,6 +82,7 @@ It can happen due to these reasons:
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
 -   A critical error has occurred within the catch block, specifically related to the calling of the saving error delegate for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
  -   Cancellation occurs after the first call of the delegate you handle.
+ 
 When `IsFailed` true, you can check the `UnprocessedError` property (appeared in _version_ 2.0.0-rc3) to see if there was an exception that didn't match the error filters or was not handled by the policy rules.  
 The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
 Check the  `NoError`  property to ensure that there were no errors in handling delegate at all. But an error may still happen in `PolicyResult` handlers. In this case it will be stored in the `PolicyResultHandlingErrors` property, but it will not affect the other `PolicyResult` properties.  
