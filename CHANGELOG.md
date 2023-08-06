@@ -1,3 +1,15 @@
+## 2.0.0-rc4  
+
+- Made `PolicyResult(<T>)` static creation methods internal.
+- Add new `PolicyResult.ErrorsNotUsed` property.
+- Extract the handling of `PolicyDelegateCollection(<T>)` into the new interfaces `IPolicyDelegateCollectionHandler(<T>)`.
+- Add `IPolicyProcessor.WithErrorProcessor` generic extension method.
+- Add `IPolicyDelegateCollection(<T>).HandleAll(Async)` extensions methods.
+- Add `PolicyCollection.BuildCollectionHandlerFor` methods and `PolicyCollection.HandleDelegate(Async)` extensions methods.
+- Refactor the `CatchBlockProcessErrorInfo` class and rename it to `ProcessErrorInfo`.
+- Rename `InvokeParams` class to `ErrorProcessorDelegate`.
+
+
 ## 2.0.0-rc3  
 
 - Introduce `PolicyResult.UnprocessedError` property.
