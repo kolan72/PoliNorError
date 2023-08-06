@@ -4,23 +4,23 @@
 	{
 		private CatchBlockProcessErrorInfo(){}
 
-		public int CurRetryErrorCount { get; private set; } = -1;
+		public int CurrentRetryCount { get; private set; } = -1;
 
-		public string Info { get; private set; }
-
-		public static CatchBlockProcessErrorInfo FromRetry(int retryAttempt, string info = nameof(FromRetry))
+		public static CatchBlockProcessErrorInfo FromRetry(int retryAttempt)
 		{
-			return new CatchBlockProcessErrorInfo() { CurRetryErrorCount = retryAttempt, Info = info };
+			return new CatchBlockProcessErrorInfo() { CurrentRetryCount = retryAttempt, PolicyKind = PolicyAlias.Retry };
 		}
 
-		public static CatchBlockProcessErrorInfo FromFallback(string info = nameof(FromFallback))
+		public static CatchBlockProcessErrorInfo FromFallback()
 		{
-			return new CatchBlockProcessErrorInfo() { Info = info };
+			return new CatchBlockProcessErrorInfo() { PolicyKind = PolicyAlias.Fallback };
 		}
 
-		public static CatchBlockProcessErrorInfo FromSimple(string info = nameof(FromSimple))
+		public static CatchBlockProcessErrorInfo FromSimple()
 		{
-			return new CatchBlockProcessErrorInfo() { Info = info };
+			return new CatchBlockProcessErrorInfo() { PolicyKind = PolicyAlias.Simple };
 		}
+
+		public PolicyAlias PolicyKind { get; private set; }
 	}
 }

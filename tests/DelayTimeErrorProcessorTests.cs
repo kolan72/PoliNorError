@@ -98,6 +98,7 @@ namespace PoliNorError.Tests
 			var delayProcessor = new YourDelayErrorProcessor(TimeSpan.Zero);
 			await delayProcessor.ProcessAsync(new Exception(), CatchBlockProcessErrorInfo.FromRetry(1), default(CancellationToken));
 			Assert.AreEqual(1, delayProcessor.CurRetry);
+			Assert.AreEqual(PolicyAlias.Retry, delayProcessor.PolicyKind);
 		}
 
 		public class YourDelayErrorProcessor : DelayErrorProcessor
@@ -106,10 +107,14 @@ namespace PoliNorError.Tests
 
 			public override Task<Exception> ProcessAsync(Exception error, CatchBlockProcessErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 			{
-				CurRetry = catchBlockProcessErrorInfo.CurRetryErrorCount;
+				CurRetry = catchBlockProcessErrorInfo.CurrentRetryCount;
+				PolicyKind = catchBlockProcessErrorInfo.PolicyKind;
 				return base.ProcessAsync(error, catchBlockProcessErrorInfo, configAwait, cancellationToken);
 			}
+
 			public int CurRetry { get; private set; }
+
+			public PolicyAlias PolicyKind { get; private set; }
 		}
 	}
 }
