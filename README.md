@@ -399,6 +399,7 @@ Full list of extensions methods:
 - `InvokeWithRetryInfinite(Async)`
 - `InvokeWithWaitAndRetryInfinite(Async)`
 - `InvokeWithFallback(Async)`
+- `InvokeWithSimple(Async)` (appeared in _version_ 2.0.0-alpha)
 
 
 ### Usage recommendations
