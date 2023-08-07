@@ -9,13 +9,17 @@ namespace PoliNorError
 	{
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception> onBeforeProcessError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable) where T : IPolicyProcessor => WithErrorProcessorOf(policyProcessor, onBeforeProcessError.ToCancelableAction(convertToCancelableFuncType));
 
-		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, CancellationToken> onBeforeProcessError) where T : IPolicyProcessor => WithErrorProcessorOf(policyProcessor, onBeforeProcessError, null);
+		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, CancellationToken> onBeforeProcessError) where T : IPolicyProcessor => WithErrorProcessorOf(policyProcessor, null, onBeforeProcessError);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> onBeforeProcessErrorAsync, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable) where T : IPolicyProcessor => WithErrorProcessorOf(policyProcessor, onBeforeProcessErrorAsync.ToCancelableFunc(convertToCancelableFuncType));
 
-		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyProcessor => WithErrorProcessorOf(policyProcessor, null, onBeforeProcessErrorAsync);
+		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyProcessor => WithErrorProcessorOf(policyProcessor, onBeforeProcessErrorAsync, null);
 
-		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyProcessor
+		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync, Action<Exception> onBeforeProcessError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable)
+			where T : IPolicyProcessor
+			=> WithErrorProcessorOf(policyProcessor, onBeforeProcessErrorAsync, onBeforeProcessError.ToCancelableAction(convertToCancelableFuncType));
+
+		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync, Action<Exception, CancellationToken> onBeforeProcessError) where T : IPolicyProcessor
 		{
 			return WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync));
 		}
