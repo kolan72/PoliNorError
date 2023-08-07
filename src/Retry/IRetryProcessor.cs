@@ -11,5 +11,7 @@ namespace PoliNorError
 
 		Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default);
 		Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func,  RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default);
+
+		IRetryProcessor UseCustomErrorSaver(IErrorProcessor saveErrorProcessor);
 	}
 }

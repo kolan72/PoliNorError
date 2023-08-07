@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using static PoliNorError.PolicyResultHandleErrorDelegates;
 
 namespace PoliNorError
 {
 	public sealed class DefaultRetryProcessor : PolicyProcessor, IRetryProcessor
 	{
-		private readonly Action<PolicyResult, Exception> _errorSaverFunc;
-		private readonly bool _isErrorSaverDefault;
+		private IErrorProcessor _saveErrorProcessor;
+		private readonly bool _failedIfSaveErrorThrows;
 
-		public DefaultRetryProcessor(Action<Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false) : this(null, errorSaverFunc, setFailedIfInvocationError) { }
+		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
 
-		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, Action<Exception> errorSaverFunc = null, bool setFailedIfInvocationError = false)
+		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false)
 			: base(bulkErrorProcessor)
 		{
-			_errorSaverFunc = GetWrappedErrorSaver(errorSaverFunc, setFailedIfInvocationError);
-			_isErrorSaverDefault = errorSaverFunc == null;
+			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
 		}
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
@@ -25,7 +23,7 @@ namespace PoliNorError
 				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(action)}' is null."));
 
 			var result = PolicyResult.ForSync();
-			result.ErrorsNotUsed = !_isErrorSaverDefault;
+			result.ErrorsNotUsed = _saveErrorProcessor != null;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -59,7 +57,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					_errorSaverFunc(result, ex);
+					SaveError(result, ex, tryCount, token);
 					if (result.IsFailed)
 					{
 						break;
@@ -84,7 +82,7 @@ namespace PoliNorError
 			}
 
 			var result = PolicyResult<T>.ForSync();
-			result.ErrorsNotUsed = !_isErrorSaverDefault;
+			result.ErrorsNotUsed = _saveErrorProcessor != null;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -119,7 +117,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					_errorSaverFunc(result, ex);
+					SaveError(result, ex, tryCount, token);
 					if (result.IsFailed)
 					{
 						break;
@@ -139,7 +137,7 @@ namespace PoliNorError
 				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
 
 			var result = PolicyResult.InitByConfigureAwait(configureAwait);
-			result.ErrorsNotUsed = !_isErrorSaverDefault;
+			result.ErrorsNotUsed = _saveErrorProcessor != null;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -169,7 +167,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					_errorSaverFunc(result, ex);
+					await SaveErrorAsync(result, ex, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
 					if (result.IsFailed)
 					{
 						break;
@@ -189,7 +187,7 @@ namespace PoliNorError
 				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
 
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
-			result.ErrorsNotUsed = !_isErrorSaverDefault;
+			result.ErrorsNotUsed = _saveErrorProcessor != null;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -220,7 +218,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					_errorSaverFunc(result, ex);
+					await SaveErrorAsync(result, ex, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
 					if (result.IsFailed)
 					{
 						break;
@@ -232,6 +230,12 @@ namespace PoliNorError
 			}
 			while (!result.IsFailed);
 			return result;
+		}
+
+		public IRetryProcessor UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)
+		{
+			_saveErrorProcessor = saveErrorProcessor;
+			return this;
 		}
 
 		private PolicyResult HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, RetryCountInfo retryCountInfo, int tryErrorCount, CancellationToken token)
@@ -279,6 +283,61 @@ namespace PoliNorError
 				{
 					return checkRetryResult;
 				}
+			}
+		}
+
+		private void SaveError(PolicyResult result, Exception ex, int tryErrorCount, CancellationToken token)
+		{
+			try
+			{
+				if (_saveErrorProcessor == null)
+				{
+					result.AddError(ex);
+				}
+				else
+				{
+					_saveErrorProcessor.Process(ex, ProcessErrorInfo.FromRetry(tryErrorCount), token);
+					//We set it here to keep UnprocessedError from being lost.
+					result.UnprocessedError = ex;
+				}
+			}
+			catch (Exception exIn)
+			{
+				HandleSaveErrorProcessorException(result, exIn, ex);
+			}
+		}
+
+		private async Task SaveErrorAsync(PolicyResult result, Exception ex, int tryErrorCount, bool configureAwait, CancellationToken token)
+		{
+			try
+			{
+				if (_saveErrorProcessor == null)
+				{
+					result.AddError(ex);
+				}
+				else
+				{
+					await _saveErrorProcessor.ProcessAsync(ex, ProcessErrorInfo.FromRetry(tryErrorCount), configureAwait, token).ConfigureAwait(configureAwait);
+					//We set it here to keep UnprocessedError from being lost.
+					result.UnprocessedError = ex;
+				}
+			}
+			catch (Exception exIn)
+			{
+				HandleSaveErrorProcessorException(result, exIn, ex);
+			}
+		}
+
+		private void HandleSaveErrorProcessorException(PolicyResult result, Exception errorProcessorEx, Exception ex)
+		{
+			if (_failedIfSaveErrorThrows)
+			{
+				result.UnprocessedError = ex;
+				result.SetFailedWithCatchBlockError(errorProcessorEx, ex);
+			}
+			else
+			{
+				result.AddCatchBlockError(new CatchBlockException(errorProcessorEx, ex));
 			}
 		}
 

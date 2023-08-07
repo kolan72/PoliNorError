@@ -248,7 +248,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Retry_Work_For_NotDefaultErrorSaving()
 		{
-			var processor = RetryProcessor.CreateDefault((_) => { });
+			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new DefaultErrorProcessor((_, __) => { }));
 			int i = 0;
 			var res = processor.Retry(() => { i++; throw new Exception("Test"); }, 2);
 			Assert.AreEqual(3, i);
