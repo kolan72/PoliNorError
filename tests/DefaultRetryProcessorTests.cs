@@ -246,7 +246,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Retry_Work_For_NotDefaultErrorSaving()
+		public void Should_UseCustomErrorSaver_Work_When_No_Save_Error()
 		{
 			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new DefaultErrorProcessor((_, __) => { }));
 			int i = 0;
@@ -254,6 +254,21 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(3, i);
 			Assert.AreEqual(true, res.ErrorsNotUsed);
 			Assert.AreEqual(0, res.Errors.Count());
+			Assert.IsNotNull(res.UnprocessedError);
+		}
+
+		[Test]
+		public void Should_UseCustomErrorSaver_Work_When_Has_Save_Error()
+		{
+			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new DefaultErrorProcessor((_, __) => throw new Exception("Saver exception")));
+			int i = 0;
+			var res = processor.Retry(() => { i++; throw new Exception("Test"); }, 2);
+			Assert.AreEqual(3, i);
+			Assert.AreEqual(true, res.ErrorsNotUsed);
+			Assert.AreEqual(0, res.Errors.Count());
+			Assert.IsNotNull(res.UnprocessedError);
+			Assert.AreEqual(3, res.CatchBlockErrors.Count());
+			Assert.IsTrue(res.CatchBlockErrors.All(ce => ce.ExceptionSource == CatchBlockExceptionSource.ErrorSaver));
 		}
 
 		[Test]

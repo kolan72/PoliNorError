@@ -171,7 +171,7 @@ namespace PoliNorError
 			{
 				return ProcessErrors?.Any() != true
 					? Array.Empty<CatchBlockException>()
-					: ProcessErrors.Select(pe => new CatchBlockException(pe, HandlingError));
+					: ProcessErrors.Select(pe => new CatchBlockException(pe, HandlingError, CatchBlockExceptionSource.ErrorProcessor));
 			}
 		}
 	}

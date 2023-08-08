@@ -6,12 +6,13 @@ namespace PoliNorError
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
 	public sealed class CatchBlockException : Exception
 	{
-		public CatchBlockException(Exception processException, Exception handlingException, bool isCritical = false) : this("Error within the catch block.", processException, handlingException, isCritical) {}
+		public CatchBlockException(Exception processException, Exception handlingException, CatchBlockExceptionSource errorSource, bool isCritical = false) : this("Error within the catch block.", processException, handlingException, errorSource, isCritical) {}
 
-		public CatchBlockException(string msg, Exception processException, Exception handlingException, bool isCritical = false) : base(msg, handlingException)
+		public CatchBlockException(string msg, Exception processException, Exception handlingException, CatchBlockExceptionSource errorSource = CatchBlockExceptionSource.Unknown, bool isCritical = false) : base(msg, handlingException)
 		{
 			ProcessingException = processException;
 			IsCritical = isCritical;
+			ExceptionSource = errorSource;
 		}
 
 		/// <summary>
@@ -23,5 +24,10 @@ namespace PoliNorError
 		/// Gets a value that determines if the current exception leads to setting PolicyResult.IsFailed to true.
 		/// </summary>
 		public bool IsCritical { get; }
+
+		/// <summary>
+		/// Gets the source of the CatchBlockException thrown.
+		/// </summary>
+		public CatchBlockExceptionSource ExceptionSource { get; }
 	}
 }

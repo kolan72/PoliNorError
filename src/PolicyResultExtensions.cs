@@ -41,18 +41,10 @@ namespace PoliNorError
 			return retryResult;
 		}
 
-		internal static void SetFailedWithCatchBlockError(this PolicyResult result, Exception processException, Exception handlingException)
+		internal static void SetFailedWithCatchBlockError(this PolicyResult result, Exception processException, Exception handlingException, CatchBlockExceptionSource errorSource = CatchBlockExceptionSource.Unknown)
 		{
-			result.AddCatchBlockError(new CatchBlockException(processException, handlingException, true));
+			result.AddCatchBlockError(new CatchBlockException(processException, handlingException, errorSource, true));
 			result.SetFailedInner();
-		}
-
-		internal static void SetFailedByFallbackFuncExecResult(this PolicyResult policyResult, FallbackFuncExecResult funcExecResult, Exception ex)
-		{
-			if (funcExecResult.IsCanceled)
-				policyResult.SetFailedAndCanceled();
-			else
-				policyResult.SetFailedWithCatchBlockError(funcExecResult.Error, ex);
 		}
 
 		internal async static Task<PolicyResult> HandleResultMisc(this PolicyResult policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, bool configureAwait, CancellationToken token)

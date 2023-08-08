@@ -10,7 +10,7 @@ namespace PoliNorError.Tests
 	internal class DefaultFallbackProcessorTests
 	{
 		[Test]
-		public void Should_DefaultFallbackProcessor_FallbackT_Call_Error_Action_When_Error()
+		public void Should_FallbackT_Call_Error_Action_When_Error()
 		{
 			int i = 1;
 			void save(Exception _, CancellationToken __) { i++; }
@@ -22,7 +22,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_DefaultFallbackProcessor_FallbackT_Call_Error_Func_When_Error()
+		public void Should_FallbackT_Call_Error_Func_When_Error()
 		{
 			int i = 1;
 			async Task onErrorTask(Exception _, CancellationToken __) { await Task.FromResult(i++); }
@@ -104,7 +104,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_DefaultFallbackProcessor_Fallback_Call_Error_Action_When_Error()
+		public void Should_Fallback_Call_Error_Action_When_Error()
 		{
 			int i = 1;
 			void save(Exception _, CancellationToken __) { i++; }
@@ -115,22 +115,26 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_DefaultFallbackProcessor_Fallback_Result_IsFailed_Equals_True_When_Error_In_CatchBlockProcessing()
+		public void Should_Fallback_Result_Correct_When_Error_In_CatchBlockProcessing()
 		{
 			var processor = new DefaultFallbackProcessor();
 			var polResult = processor.Fallback(() => throw new Exception("Test_Save"), (_) => throw new Exception("Test_Fallback"));
 
 			Assert.IsTrue(polResult.IsFailed);
+			Assert.IsNotNull(polResult.UnprocessedError);
+			Assert.AreEqual(CatchBlockExceptionSource.PolicyRule, polResult.CatchBlockErrors.FirstOrDefault().ExceptionSource);
 			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 
 		[Test]
-		public void Should_DefaultFallbackProcessor_FallbackT_Result_IsFailed_Equals_True_When_Error_In_CatchBlockProcessing()
+		public void Should_FallbackT_Result_Correct_When_Error_In_CatchBlockProcessing()
 		{
 			var processor = new DefaultFallbackProcessor();
 			var polResult = processor.Fallback<int>(() => throw new Exception("Test_Save"), (_) => throw new Exception("Test_Fallback"));
 
 			Assert.IsTrue(polResult.IsFailed);
+			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
+			Assert.AreEqual(CatchBlockExceptionSource.PolicyRule, polResult.CatchBlockErrors.FirstOrDefault().ExceptionSource);
 			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 

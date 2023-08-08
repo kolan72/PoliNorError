@@ -332,13 +332,13 @@ namespace PoliNorError
 		{
 			if (_failedIfSaveErrorThrows)
 			{
-				result.UnprocessedError = ex;
-				result.SetFailedWithCatchBlockError(errorProcessorEx, ex);
+				result.SetFailedWithCatchBlockError(errorProcessorEx, ex, CatchBlockExceptionSource.ErrorSaver);
 			}
 			else
 			{
-				result.AddCatchBlockError(new CatchBlockException(errorProcessorEx, ex));
+				result.AddCatchBlockError(new CatchBlockException(errorProcessorEx, ex, CatchBlockExceptionSource.ErrorSaver));
 			}
+			result.UnprocessedError = ex;
 		}
 
 		private HandleCatchBlockResult CanRetry(Exception exception, RetryCountInfo retryCountInfo, int curErrorsCount)

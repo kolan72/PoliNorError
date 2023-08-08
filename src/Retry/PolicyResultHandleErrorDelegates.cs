@@ -31,7 +31,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					result.AddCatchBlockError(new CatchBlockException(exIn, ex));
+					result.AddCatchBlockError(new CatchBlockException(exIn, ex, CatchBlockExceptionSource.Unknown));
 				}
 			}
 		};
