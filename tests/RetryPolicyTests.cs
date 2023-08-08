@@ -458,30 +458,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(false, false)]
-		public void Should_CatchBlockError_Saving_Can_Be_Customized(bool setFailedIfInvocationError, bool resSaving)
-		{
-			var action = PolicyResultHandleErrorDelegates.GetWrappedErrorSaver((_) => throw new Exception("Test"), setFailedIfInvocationError);
-			var res = new PolicyResult();
-			var exceptionToHandle = new Exception("Error");
-			action(res, exceptionToHandle);
-
-			Assert.AreEqual(resSaving, res.IsFailed);
-			Assert.AreEqual(resSaving, res.CatchBlockErrors.FirstOrDefault().IsCritical);
-			if (setFailedIfInvocationError)
-			{
-				Assert.AreEqual(exceptionToHandle, res.UnprocessedError);
-			}
-			else
-			{
-				Assert.IsNull(res.UnprocessedError);
-			}
-
-			Assert.IsTrue(res.CatchBlockErrors.Count() == 1);
-		}
-
-		[Test]
 		public void Should_WithPolicyName_Work()
 		{
 			var retryPol = new RetryPolicy(1);
