@@ -28,10 +28,17 @@ The types of delegates that can be handled include:
 - `Func<CancellationToken, Task<T>>`
 
 Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface. Policy processors implicitly determine *policy inner rules* (further for simplicity referred to as *policy rules*) - built-in behavioral features that determine whether or not a policy can handle exception. For example, the policy rule for the Retry is that it can handle exceptions only until the number of permitted retries does not exceed.  
+
 Within the catch block, the policy processor can contain [error processors](#error-processors) that can extra handle exceptions.  
+
 But before handling can start, [error filters](#error-filters) need to be satisfied.  
+
 So, the process of handling a delegate consists of checking error filters, running error processors and applying policy rules.  
-A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling delegates mentioned above.  
+
+A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling aforementioned delegates.  
+The policy can have [`PolicyResult` handlers](#policyresult-handlers) that handle the `PolicyResult` after the policy processor has finished.  
+
+Below are some examples of how policies and policy processors are used.
 For retries using default retry policy processor:
 ```csharp
 var result = RetryProcessor
@@ -69,7 +76,6 @@ var result = new FallbackPolicy()
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
 The results of handling are stored in the [PolicyResult](#policyresult) class.  
-Using policy, you can extra handle `PolicyResult` by [`PolicyResult` handlers](#policyresult-handlers) after policy processor processing.  
 A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection). In this case, each delegate will be handled according to its policy.  
 The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
 
