@@ -14,7 +14,7 @@ namespace PoliNorError
 
 	public static class IPolicyDelegateCollectionHandlerExtensions
 	{
-		public static Task<PolicyDelegateCollectionResult> HandleAsync(this IPolicyDelegateCollectionHandler policyDelegateCollectionHandler, CancellationToken token = default)
+		public static Task<PolicyDelegateCollectionResult> HandleAsync(this IPolicyDelegateCollectionHandler policyDelegateCollectionHandler, CancellationToken token)
 		{
 			return policyDelegateCollectionHandler.HandleAsync(false, token);
 		}
