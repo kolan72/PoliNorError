@@ -281,7 +281,6 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(true, res.ErrorsNotUsed);
 			Assert.AreEqual(0, res.Errors.Count());
 			Assert.IsNotNull(res.UnprocessedError);
-		
 		}
 
 		[Test]

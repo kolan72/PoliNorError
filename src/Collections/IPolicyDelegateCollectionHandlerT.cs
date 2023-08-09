@@ -12,12 +12,4 @@ namespace PoliNorError
 		PolicyDelegateCollectionResult<T> Handle(CancellationToken token = default);
 		Task<PolicyDelegateCollectionResult<T>> HandleAsync(bool configAwait = false, CancellationToken token = default);
 	}
-
-	public static class IPolicyDelegateCollectionHandlerTExtensions
-	{
-		public static Task<PolicyDelegateCollectionResult<T>> HandleAsync<T>(this IPolicyDelegateCollectionHandler<T> policyDelegateCollectionHandler, CancellationToken token = default)
-		{
-			return policyDelegateCollectionHandler.HandleAsync(false, token);
-		}
-	}
 }
