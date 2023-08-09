@@ -82,17 +82,22 @@ The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and som
 ### PolicyResult
 Handling begins when an exception occurs during the execution of the delegate. At first, exception will be stored in the `Errors` property (for retry-related classes, this is by default and can be customized).  
 Later on, the policy processor will try to process error and populate the other `PolicyResult` properties.  
+
 The most crucial property is the `IsFailed` property. If it equals `true`, the delegate was not able to be handled.  
 It can happen due to these reasons:
--   Policy rules failed (as mentioned above).
+-   Policy rules failed.
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
 -   A critical error has occurred within the catch block, specifically related to the calling of the saving error delegate for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
  -   Cancellation occurs after the first call of the delegate you handle.
  
-When `IsFailed` true, you can check the `UnprocessedError` property (appeared in _version_ 2.0.0-rc3) to see if there was an exception that didn't match the error filters or was not handled by the policy rules.  
+When the policy processor finishes his work and is run within a policy, you can use a `PolicyResult` handler to set `IsFailed` to true if handling cannot be accepted as a success.  
+Having `IsFailed` true, you can check the `UnprocessedError` property (appeared in version 2.0.0-rc3) to see if there was an exception that was not handled properly within the catch block.
+
 The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
-Check the  `NoError`  property to ensure that there were no errors in handling delegate at all. But an error may still happen in `PolicyResult` handlers. In this case it will be stored in the `PolicyResultHandlingErrors` property, but it will not affect the other `PolicyResult` properties.  
+Check the  `NoError`  property to ensure that there were no errors in handling delegate at all.  
+
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
+
 For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
 
 ### Error processors
