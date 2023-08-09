@@ -180,20 +180,23 @@ For example, if you wish to remove large folders from your disk when there is le
 						.WithPolicyAndDelegate(checkFreeSpacePolicy, GetFreeSpace)
 						.WithPolicyAndDelegate(freeSpaceAfterPolicy, () =>
 						{
-							DeleteLargeFolders();
+							DeleteUselessLargeFolders();
 							return GetFreeSpace(); 
 						})
 						.HandleAll();
 
 
 //Somewhere in your code:
-private void DeleteLargeFolders()
+private void DeleteUselessLargeFolders()
 {
 	//Delete folders here...
 }
 
 private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
 ```
+
+Exceptions in a `PolicyResult` handler are allowed and stored in `PolicyResultHandlingErrors` property without affecting other `PolicyResult` properties.  
+
 ### RetryPolicy
 The policy rule for the `RetryPolicy` is that it can handle exceptions only until the number of permitted retries does not exceed, so it is the most crucial parameter and is set in policy constructor.  
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
