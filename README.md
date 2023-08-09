@@ -122,7 +122,7 @@ You can specify error filter for policy or policy processor:
                                 .WithFallbackAction(() => cmd2.ExecuteNonQuery())
                                 .Handle(() => cmd1.ExecuteNonQuery());
 ```
-Error can be handled if any conditions specified by `ForError` (`IncludeError` since _version_ 2.0.0-alpha) is satisfied and all conditions specified by `ExcludeError` is unsatisfied.
+An exception is permitted for processing if any of the conditions specified by `IncludeError` are satisfied and all conditions specified by `ExcludeError` are unsatisfied.  
 There are no limitations on the number of filter conditions for both types. 
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
