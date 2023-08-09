@@ -23,7 +23,7 @@ namespace PoliNorError
 				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(action)}' is null."));
 
 			var result = PolicyResult.ForSync();
-			result.ErrorsNotUsed = _saveErrorProcessor != null;
+			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -82,7 +82,7 @@ namespace PoliNorError
 			}
 
 			var result = PolicyResult<T>.ForSync();
-			result.ErrorsNotUsed = _saveErrorProcessor != null;
+			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -137,7 +137,7 @@ namespace PoliNorError
 				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
 
 			var result = PolicyResult.InitByConfigureAwait(configureAwait);
-			result.ErrorsNotUsed = _saveErrorProcessor != null;
+			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -187,7 +187,7 @@ namespace PoliNorError
 				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
 
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
-			result.ErrorsNotUsed = _saveErrorProcessor != null;
+			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -234,9 +234,11 @@ namespace PoliNorError
 
 		public IRetryProcessor UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)
 		{
-			_saveErrorProcessor = saveErrorProcessor;
+			_saveErrorProcessor = saveErrorProcessor ?? throw new ArgumentNullException(nameof(saveErrorProcessor), "Custom error saver cannot be null.");
 			return this;
 		}
+
+		private bool ErrorsNotUsed => _saveErrorProcessor != null;
 
 		private PolicyResult HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, RetryCountInfo retryCountInfo, int tryErrorCount, CancellationToken token)
 		{

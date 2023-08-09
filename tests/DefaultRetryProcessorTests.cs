@@ -258,6 +258,33 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_UseCustomErrorSaverOf_Work_When_SetupBySyncAndAsyncDelegates(bool notSync)
+		{
+			int asyncM = 0;
+			int syncM = 0;
+			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaverOf(async(_, __) => { await Task.Delay(1) ; asyncM++; }, (_, __) => syncM++);
+			int i = 0;
+			PolicyResult res = null;
+			if (notSync)
+			{
+				res = await processor.RetryAsync((_) => { i++; throw new Exception("Test"); }, 2);
+				Assert.AreEqual(3, asyncM);
+			}
+			else
+			{
+				res = processor.Retry(() => { i++; throw new Exception("Test"); }, 2);
+				Assert.AreEqual(3, syncM);
+			}
+			Assert.AreEqual(3, i);
+			Assert.AreEqual(true, res.ErrorsNotUsed);
+			Assert.AreEqual(0, res.Errors.Count());
+			Assert.IsNotNull(res.UnprocessedError);
+		
+		}
+
+		[Test]
 		public void Should_UseCustomErrorSaver_Work_When_Has_Save_Error()
 		{
 			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new DefaultErrorProcessor((_, __) => throw new Exception("Saver exception")));

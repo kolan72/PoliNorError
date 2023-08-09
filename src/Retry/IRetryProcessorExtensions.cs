@@ -70,5 +70,30 @@ namespace PoliNorError
 		public static IRetryProcessor ExcludeError<TException>(this IRetryProcessor retryProcessor, Func<TException, bool> func = null) where TException : Exception => retryProcessor.ExcludeError<IRetryProcessor, TException>(func);
 
 		public static IRetryProcessor ExcludeError(this IRetryProcessor retryProcessor, Expression<Func<Exception, bool>> handledErrorFilter) => retryProcessor.ExcludeError<IRetryProcessor>(handledErrorFilter);
+
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Action<Exception> onBeforeProcessError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return UseCustomErrorSaverOf(retryProcessor, onBeforeProcessError.ToCancelableAction(convertToCancelableFuncType));
+		}
+
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Action<Exception, CancellationToken> onBeforeProcessError)
+		{
+			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessor(onBeforeProcessError));
+		}
+
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync)
+		{
+			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessor(onBeforeProcessErrorAsync));
+		}
+
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync, Action<Exception> onBeforeProcessError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return UseCustomErrorSaverOf(retryProcessor, onBeforeProcessErrorAsync, onBeforeProcessError.ToCancelableAction(convertToCancelableFuncType));
+		}
+
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync, Action<Exception, CancellationToken> onBeforeProcessError)
+		{
+			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync));
+		}
 	}
 }
