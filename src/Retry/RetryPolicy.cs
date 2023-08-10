@@ -8,9 +8,7 @@ namespace PoliNorError
 {
 	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy, IWithErrorFilter<RetryPolicy>
 	{
-		private readonly IRetryProcessor _retryProcessor;
-
-		public RetryPolicy(int retryCount, bool setFailedIfInvocationError = false) : this(retryCount, null, setFailedIfInvocationError) {}
+		public RetryPolicy(int retryCount, bool setFailedIfInvocationError = false) : this(retryCount, null, setFailedIfInvocationError) { }
 
 		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool setFailedIfInvocationError = false) : this(retryCount, null, setFailedIfInvocationError, action) { }
 
@@ -26,7 +24,7 @@ namespace PoliNorError
 
 		public static RetryPolicy InfiniteRetries(IRetryProcessor retryProcessor, Action<RetryCountInfoOptions> action) => new RetryPolicy(retryProcessor, RetryCountInfo.Infinite(action));
 
-		internal RetryPolicy(IRetryProcessor retryProcessor, RetryCountInfo retryCountInfo) : base(retryProcessor) => (RetryInfo, _retryProcessor) = (retryCountInfo, retryProcessor);
+		internal RetryPolicy(IRetryProcessor retryProcessor, RetryCountInfo retryCountInfo) : base(retryProcessor) => (RetryInfo, RetryProcessor) = (retryCountInfo, retryProcessor);
 
 		public RetryPolicy WithWait(Func<int, TimeSpan> delayOnRetryFunc)
 		{
@@ -59,7 +57,7 @@ namespace PoliNorError
 
 			if (_wrappedPolicy == null)
 			{
-				retryResult = _retryProcessor.Retry(action, RetryInfo, token);
+				retryResult = RetryProcessor.Retry(action, RetryInfo, token);
 			}
 			else
 			{
@@ -69,7 +67,7 @@ namespace PoliNorError
 				var wrapper = new PolicyWrapper(_wrappedPolicy, action, token);
 				Action actionWrapped = wrapper.Handle;
 
-				retryResult = _retryProcessor.Retry(actionWrapped, RetryInfo, token);
+				retryResult = RetryProcessor.Retry(actionWrapped, RetryInfo, token);
 				retryResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
 			HandlePolicyResult(retryResult, token);
@@ -82,7 +80,7 @@ namespace PoliNorError
 
 			if (_wrappedPolicy == null)
 			{
-				retryResult = _retryProcessor.Retry(func, RetryInfo, token);
+				retryResult = RetryProcessor.Retry(func, RetryInfo, token);
 			}
 			else
 			{
@@ -92,7 +90,7 @@ namespace PoliNorError
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token);
 				Func<T> funcWrapped = wrapper.Handle;
 
-				retryResult = _retryProcessor.Retry(funcWrapped, RetryInfo, token);
+				retryResult = RetryProcessor.Retry(funcWrapped, RetryInfo, token);
 				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
 			HandlePolicyResult(retryResult, token);
@@ -105,7 +103,7 @@ namespace PoliNorError
 
 			if (_wrappedPolicy == null)
 			{
-				retryResult = await _retryProcessor.RetryAsync(func, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+				retryResult = await RetryProcessor.RetryAsync(func, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			else
 			{
@@ -115,7 +113,7 @@ namespace PoliNorError
 				var wrapper = new PolicyWrapper(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task> funcWrapped = wrapper.HandleAsync;
 
-				retryResult = await _retryProcessor.RetryAsync(funcWrapped, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+				retryResult = await RetryProcessor.RetryAsync(funcWrapped, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
 				retryResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
@@ -128,7 +126,7 @@ namespace PoliNorError
 
 			if (_wrappedPolicy == null)
 			{
-				retryResult = await _retryProcessor.RetryAsync(func, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+				retryResult = await RetryProcessor.RetryAsync(func, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			else
 			{
@@ -138,7 +136,7 @@ namespace PoliNorError
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
 
-				retryResult = await _retryProcessor.RetryAsync(funcWrapped, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+				retryResult = await RetryProcessor.RetryAsync(funcWrapped, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
 				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
@@ -192,6 +190,14 @@ namespace PoliNorError
 		{
 			return this.AddPolicyResultHandlerInner(func);
 		}
+
+		public RetryPolicy UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)
+		{
+			RetryProcessor.UseCustomErrorSaver(saveErrorProcessor);
+			return this;
+		}
+
+		internal IRetryProcessor RetryProcessor { get; }
 
 		public RetryCountInfo RetryInfo { get; }
 	}
