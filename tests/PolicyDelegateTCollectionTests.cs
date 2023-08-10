@@ -358,23 +358,21 @@ namespace PoliNorError.Tests
 			var ts = new TestClass();
 
 			var policySyncInfo = policy.ToPolicyDelegate(ts.Save);
-			var polhandledInfo = PolicyDelegateInfo.FromPolicyDelegate(policySyncInfo);
 
 			var polResult = new PolicyResult<int>();
 			polResult.AddError(new Exception("Test"));
 			polResult.SetResult(1);
 
-			var handledResult = new PolicyDelegateResult<int>(polhandledInfo, polResult);
+			var handledResult = new PolicyDelegateResult<int>(polResult, policy.PolicyName, policySyncInfo.GetMethodInfo());
 			var polHandledError = PolicyDelegateResultErrors<int>.FromDelegateResult(handledResult);
 
 			var policySyncInfo2 = policy.ToPolicyDelegate(ts.Save);
-			var polhandledInfo2 = PolicyDelegateInfo.FromPolicyDelegate(policySyncInfo2);
 
 			var polResult2 = new PolicyResult<int>();
 			polResult2.AddError(new Exception("Test2"));
 			polResult2.SetResult(2);
 
-			var handledResult2 = new PolicyDelegateResult<int>(polhandledInfo2, polResult2);
+			var handledResult2 = new PolicyDelegateResult<int>(polResult2, policy.PolicyName, policySyncInfo2.GetMethodInfo());
 			var polHandledError2 = PolicyDelegateResultErrors<int>.FromDelegateResult(handledResult2);
 
 			return new List<PolicyDelegateResultErrors<int>>() { polHandledError, polHandledError2 };

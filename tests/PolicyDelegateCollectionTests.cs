@@ -644,22 +644,18 @@ namespace PoliNorError.Tests
 			var ts = new TestClass();
 
 			var policySyncInfo = policy.ToPolicyDelegate(ts.Save);
-			var polhandledInfo = PolicyDelegateInfo.FromPolicyDelegate(policySyncInfo);
 
 			var polResult = new PolicyResult();
 			polResult.AddError(new Exception("Test"));
 
-			var handledResult = new PolicyDelegateResult(polhandledInfo, polResult);
+			var handledResult = new PolicyDelegateResult(polResult, policy.PolicyName, policySyncInfo.GetMethodInfo());
 			var polHandledError = PolicyDelegateResultErrors.FromDelegateResult(handledResult);
 
-			new RetryPolicy(1);
 			var policySyncInfo2 = policy.ToPolicyDelegate(ts.Save);
-			var polhandledInfo2 = PolicyDelegateInfo.FromPolicyDelegate(policySyncInfo2);
-
 			var polResult2 = new PolicyResult();
 			polResult.AddError(new Exception("Test2"));
 
-			var handledResult2 = new PolicyDelegateResult(polhandledInfo2, polResult2);
+			var handledResult2 = new PolicyDelegateResult(polResult2, policy.PolicyName, policySyncInfo2.GetMethodInfo());
 			var polHandledError2 = PolicyDelegateResultErrors.FromDelegateResult(handledResult2);
 
 			return new List<PolicyDelegateResultErrors>() { polHandledError, polHandledError2 };

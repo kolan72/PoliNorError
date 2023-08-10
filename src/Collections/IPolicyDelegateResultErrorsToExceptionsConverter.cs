@@ -19,7 +19,7 @@ namespace PoliNorError
 
 		private Exception GetResultException(PolicyDelegateResultErrors policyHandledErrors, Exception exc)
 		{
-			var res = $"Policy {policyHandledErrors.PolicyInfo.Policy.PolicyName} handled {policyHandledErrors.PolicyInfo.PolicyMethodInfo?.DeclaringType.Name}.{policyHandledErrors.PolicyInfo.PolicyMethodInfo?.Name} method with exception: '{exc.Message}'.";
+			var res = $"Policy {policyHandledErrors.PolicyName} handled {policyHandledErrors.PolicyMethodInfo?.DeclaringType.Name}.{policyHandledErrors.PolicyMethodInfo?.Name} method with exception: '{exc.Message}'.";
 			return new Exception(res);
 		}
 	}
