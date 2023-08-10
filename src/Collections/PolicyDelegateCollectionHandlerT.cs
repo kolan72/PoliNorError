@@ -42,7 +42,7 @@ namespace PoliNorError
 		{
 			ThrowErrorIfNeed(polResult, handledResults);
 
-			return new PolicyDelegateCollectionResult<T>(handledResults, _policyDelegates.Skip(handledResults.Count()));
+			return new PolicyDelegateCollectionResult<T>(handledResults, _policyDelegates.Skip(handledResults.Count()).ToList());
 			void ThrowErrorIfNeed(PolicyResult<T> policyResult, IEnumerable<PolicyDelegateResult<T>> hResults)
 			{
 				if (policyResult == null) return;
