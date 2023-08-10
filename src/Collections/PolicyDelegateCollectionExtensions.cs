@@ -65,16 +65,6 @@ namespace PoliNorError
 			return policyDelegateCollection.WithSimpleInner<IPolicyDelegateCollection, INeedDelegateCollection>(policyParams);
 		}
 
-		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
-		{
-			return policyDelegateCollection.AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
-		}
-
-		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
-		{
-			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
-		}
-
 		public static PolicyDelegateCollectionResult HandleAll(this IPolicyDelegateCollection policyDelegateCollection, CancellationToken token = default)
 		{
 			return policyDelegateCollection.BuildCollectionHandler().Handle(token);

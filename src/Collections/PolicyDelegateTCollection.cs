@@ -105,10 +105,20 @@ namespace PoliNorError
 			return this;
 		}
 
+		public IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
+		}
+
 		public IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>, CancellationToken> act)
 		{
 			this.Select(pd => pd.Policy).SetResultHandler(act);
 			return this;
+		}
+
+		public IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		{
+			return AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
 		}
 
 		public IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, CancellationToken, Task> func)
