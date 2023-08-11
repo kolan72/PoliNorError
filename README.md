@@ -376,29 +376,30 @@ Sometimes one delegate needs to be handled by many policies, and this can be don
 
 If, for instance, you'd like to read a file that's currently being used by another process, you could try two attempts and, if the error persists, copy the file to the temporary folder and access it from there:
 ```csharp
-			var result = PolicyCollection.Create()
-					.WithRetry(2) 
-					.WithFallback(() =>
-					{
-						var newFilePath = Path.Combine(Path.GetTempPath(),
-													 Path.GetFileName(filePath));
-						File.Copy(filePath, newFilePath, true);
+	var result = PolicyCollection.Create()
+		.WithRetry(2) 
+		.WithFallback(() =>
+		{
+			var newFilePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(filePath));
+			File.Copy(filePath, newFilePath, true);
 
-						return File.ReadAllLines(newFilePath);
-					})
-					.AddPolicyResultHandlerForAll<string[]>(pr => pr.Errors.ToList()
-																 .ForEach(ex => logger.Error(ex.Message))
-															)
-					//You can call `BuildCollectionHandlerFor(..)` method to build a collection handler
-					//that has a `IPolicyDelegateCollectionHandler<string[]>` type
-					//that can be passed somewhere for further handling
-					//or handle delegate in-place:
-					.HandleDelegate(() => File.ReadAllLines(filePath));
+			return File.ReadAllLines(newFilePath);
+		})
+		.AddPolicyResultHandlerForAll<string[]>(pr => 
+			pr.Errors
+				.ToList()
+				.ForEach(ex => logger.Error(ex.Message)))
 
-			if (result.LastPolicyResult.IsSuccess)
-			{
-				result.Result.ToList().ForEach(l => Console.WriteLine(l));
-			}
+		//You can call `BuildCollectionHandlerFor(..)` method to build a collection handler
+		//that has a `IPolicyDelegateCollectionHandler<string[]>` type
+		//that can be passed somewhere for further handling
+		//or handle delegate in place:
+		.HandleDelegate(() => File.ReadAllLines(filePath));
+
+	if (result.LastPolicyResult.IsSuccess)
+	{
+		result.Result.ToList().ForEach(l => Console.WriteLine(l));
+	}
 ```
 
 ### Calling Func and Action delegates in a resilient manner
