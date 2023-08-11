@@ -6,7 +6,7 @@ namespace PoliNorError
 {
 	public sealed class DefaultFallbackProcessor : PolicyProcessor, IFallbackProcessor
 	{
-		public DefaultFallbackProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(bulkErrorProcessor) { }
+		public DefaultFallbackProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Fallback, bulkErrorProcessor) { }
 
 		public PolicyResult Fallback(Action action, Action<CancellationToken> fallback, CancellationToken token = default)
 		{
@@ -37,7 +37,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, ProcessErrorInfo.FromFallback(), token);
+				HandleCatchBlockAndChangeResult(ex, result, token);
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -76,7 +76,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, ProcessErrorInfo.FromFallback(), token);
+				HandleCatchBlockAndChangeResult(ex, result, token);
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -110,7 +110,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, ProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, token, configureAwait).ConfigureAwait(configureAwait);
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
@@ -145,7 +145,7 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, ProcessErrorInfo.FromFallback(), token, configureAwait).ConfigureAwait(configureAwait);
+				await HandleCatchBlockAndChangeResultAsync(ex, result, token, configureAwait).ConfigureAwait(configureAwait);
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);

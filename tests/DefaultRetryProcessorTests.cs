@@ -171,78 +171,68 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Retry_NotBreak_When_ErrorProcessing_Faulted()
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_Retry_NotBreak_When_ErrorProcessing_Faulted(bool isGeneric)
 		{
 			var throwingExc = new ApplicationException();
-			void save() { throw throwingExc; }
-			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), throwingExc, It.IsAny<CancellationToken>())).Returns(
-				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Faulted) }));
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			bulkProcessor.AddProcessor(new DefaultErrorProcessor((_, __) => throw new Exception("Test")));
 
-			var processor = new DefaultRetryProcessor(mockedBulkProcessor.Object);
+			var processor = RetryProcessor.CreateDefault(bulkProcessor);
+			PolicyResult tryResCount = null;
+			const int plannedRetryCount = 3;
 
-			const int plannedRetryCount = 1;
-			var tryResCount = processor.Retry(save, plannedRetryCount, It.IsAny<CancellationToken>());
+			if (isGeneric)
+			{
+				int save() { throw throwingExc; }
+				tryResCount = processor.Retry(save, plannedRetryCount);
+			}
+			else
+			{
+				void save() { throw throwingExc; }
+				tryResCount = processor.Retry(save, plannedRetryCount);
+			}
 
-			Assert.AreEqual(plannedRetryCount+1, tryResCount.Errors.Count());
+			Assert.AreEqual(plannedRetryCount + 1, tryResCount.Errors.Count());
 			Assert.AreEqual(true, tryResCount.IsFailed);
 		}
 
 		[Test]
-		public void Should_Break_When_ErrorProcessing_Canceled()
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_Retry_Break_When_ErrorProcessing_Canceled(bool isGeneric)
 		{
+			var cancelSource = new CancellationTokenSource();
+
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+
+			bulkProcessor.AddProcessor(new DefaultErrorProcessor((_, __) => cancelSource.Cancel()));
+			bulkProcessor.AddProcessor(new DefaultErrorProcessor((_, __) => { }));
+
+			var processor = new DefaultRetryProcessor(bulkProcessor);
+
 			var throwingExc = new ApplicationException();
-			void save() { throw throwingExc; }
-			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), throwingExc, It.IsAny<CancellationToken>())).Returns(
-				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) }));
 
-			var processor = RetryProcessor
-									.CreateDefault(mockedBulkProcessor.Object);
-
+			PolicyResult tryResCount = null;
 			const int plannedRetryCount = 3;
-			var tryResCount = processor.Retry(save, plannedRetryCount, It.IsAny<CancellationToken>());
 
-			Assert.AreEqual(1, tryResCount.Errors.Count());
+			if (isGeneric)
+			{
+				int save() { throw throwingExc; }
+				tryResCount = processor.Retry(save, plannedRetryCount, cancelSource.Token);
+			}
+			else
+			{
+				void save() { throw throwingExc; }
+				tryResCount = processor.Retry(save, plannedRetryCount, cancelSource.Token);
+			}
+
 			Assert.AreEqual(true, tryResCount.IsFailed);
 			Assert.AreEqual(true, tryResCount.IsCanceled);
-		}
-
-		[Test]
-		public void Should_RetryT_NotBreak_When_ErrorProcessing_Faulted()
-		{
-			var throwingExc = new ApplicationException();
-			int save() { throw throwingExc; }
-			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>())).Returns(
-					new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Faulted) })
-				);
-
-			var processor = new DefaultRetryProcessor(mockedBulkProcessor.Object);
-
-			const int plannedRetryCount = 3;
-			var tryResCount = processor.Retry(save, plannedRetryCount, CancellationToken.None);
-
-			Assert.AreEqual(plannedRetryCount+1, tryResCount.Errors.Count());
-			Assert.AreEqual(true, tryResCount.IsFailed);
-		}
-
-		[Test]
-		public void Should_RetryT_Break_When_ErrorProcessing_Canceled()
-		{
-			var throwingExc = new ApplicationException();
-			int save() => throw throwingExc;
-			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.Process(It.IsAny<ProcessErrorInfo>(), It.IsAny<Exception>(), It.IsAny<CancellationToken>())).Returns(
-					new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) })
-				);
-
-			var processor = new DefaultRetryProcessor(mockedBulkProcessor.Object);
-
-			const int plannedRetryCount = 3;
-			var tryResCount = processor.Retry(save, plannedRetryCount);
-
-			Assert.AreEqual(true, tryResCount.IsFailed);
+			Assert.AreNotEqual(plannedRetryCount + 1, tryResCount.Errors.Count());
+			Assert.AreEqual(1, tryResCount.Errors.Count());
+			cancelSource.Dispose();
 		}
 
 		[Test]

@@ -12,9 +12,9 @@ namespace PoliNorError
 	{
 		protected IBulkErrorProcessor _bulkErrorProcessor;
 
-		protected PolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null)
+		protected PolicyProcessor(PolicyAlias policyAlias, IBulkErrorProcessor bulkErrorProcessor = null)
 		{
-			_bulkErrorProcessor = bulkErrorProcessor ?? new BulkErrorProcessor();
+			_bulkErrorProcessor = bulkErrorProcessor ?? new BulkErrorProcessor(policyAlias);
 		}
 
 		public void AddErrorProcessor(IErrorProcessor newErrorProcessor)
@@ -28,7 +28,7 @@ namespace PoliNorError
 
 		public ExceptionFilter ErrorFilter { get; } = new ExceptionFilter();
 
-		protected void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, ProcessErrorInfo catchBlockProcessErrorInfo, CancellationToken token)
+		protected void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, CancellationToken token, ProcessingErrorContext  errorContext = null)
 		{
 			result.ChangeByHandleCatchBlockResult(CanHandleCatchBlock());
 
@@ -41,7 +41,7 @@ namespace PoliNorError
 				var checkFallbackResult = CanHandle(ex);
 				if (checkFallbackResult == HandleCatchBlockResult.Success)
 				{
-					var bulkProcessResult = _bulkErrorProcessor.Process(catchBlockProcessErrorInfo, ex, token);
+					var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext, token);
 					result.AddBulkProcessorErrors(bulkProcessResult);
 					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkFallbackResult;
 				}
@@ -52,7 +52,7 @@ namespace PoliNorError
 			}
 		}
 
-		protected async Task HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, ProcessErrorInfo catchBlockProcessErrorInfo, CancellationToken token, bool configAwait)
+		protected async Task HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, CancellationToken token, bool configAwait, ProcessingErrorContext errorContext = null)
 		{
 			result.ChangeByHandleCatchBlockResult(await CanHandleCatchBlockAsync().ConfigureAwait(configAwait));
 
@@ -65,7 +65,7 @@ namespace PoliNorError
 				var checkFallbackResult = CanHandle(ex);
 				if (checkFallbackResult == HandleCatchBlockResult.Success)
 				{
-					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(catchBlockProcessErrorInfo, ex, configAwait, token).ConfigureAwait(configAwait);
+					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext, configAwait, token).ConfigureAwait(configAwait);
 					result.AddBulkProcessorErrors(bulkProcessResult);
 					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkFallbackResult;
 				}

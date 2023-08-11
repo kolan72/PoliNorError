@@ -10,7 +10,7 @@ namespace PoliNorError
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 
-		public SimplePolicy(IBulkErrorProcessor processor = null) : this(new SimplePolicyProcessor(processor ?? new BulkErrorProcessor())) { }
+		public SimplePolicy(IBulkErrorProcessor processor = null) : this(new SimplePolicyProcessor(processor)) { }
 
 		public SimplePolicy(ISimplePolicyProcessor processor) : base(processor) => _simpleProcessor = processor;
 

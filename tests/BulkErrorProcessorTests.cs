@@ -12,70 +12,70 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_ProcessAsync_Return_Status_None_When_No_Processors()
 		{
-			var bulkProcessor = new BulkErrorProcessor();
-			var res =  await bulkProcessor.ProcessAsync(ProcessErrorInfo.FromRetry(1), new Exception(), CancellationToken.None);
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var res =  await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), CancellationToken.None);
 			Assert.IsTrue(!res.ProcessErrors.Any());
 		}
 
 		[Test]
 		public async Task Should_ProcessAsync_Return_Status_ProcessorException_When_ProcessorWithError()
 		{
-			var bulkProcessor = new BulkErrorProcessor();
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 
 			var mockedErrorProcessor = new Mock<IErrorProcessor>();
-			mockedErrorProcessor.Setup((t) => t.ProcessAsync(It.IsAny<Exception>(), It.IsAny<ProcessErrorInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Throws(new Exception());
+			mockedErrorProcessor.Setup((t) => t.ProcessAsync(It.IsAny<Exception>(), It.IsAny<ProcessingErrorInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Throws(new Exception());
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor.Object);
 
-			var res = await bulkProcessor.ProcessAsync(ProcessErrorInfo.FromRetry(1), new Exception(), It.IsAny<CancellationToken>());
+			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), It.IsAny<CancellationToken>());
 			Assert.IsTrue(res.ProcessErrors.Count() == 1);
 		}
 
 		[Test]
 		public async Task Should_ProcessAsync_Return_Status_Success_When_NoTimeUp_And_CorrectProcessor()
 		{
-			var bulkProcessor = new BulkErrorProcessor();
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 
 			var mockedErrorProcessor = new Mock<IErrorProcessor>();
-			mockedErrorProcessor.Setup((t) => t.ProcessAsync(It.IsAny<Exception>(), It.IsAny<ProcessErrorInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Exception()));
+			mockedErrorProcessor.Setup((t) => t.ProcessAsync(It.IsAny<Exception>(), It.IsAny<ProcessingErrorInfo>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Exception()));
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor.Object);
-			var res = await bulkProcessor.ProcessAsync(ProcessErrorInfo.FromRetry(1), new Exception(), It.IsAny<CancellationToken>());
+			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), It.IsAny<CancellationToken>());
 			Assert.IsTrue(!res.ProcessErrors.Any());
 		}
 
 		[Test]
 		public void Should_Process_Return_Status_None_When_No_Processors()
 		{
-			var bulkProcessor = new BulkErrorProcessor();
-			var res = bulkProcessor.Process(ProcessErrorInfo.FromRetry(1), new Exception(), CancellationToken.None);
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), CancellationToken.None);
 			Assert.IsTrue(!res.ProcessErrors.Any());
 		}
 
 		[Test]
 		public void Should_Process_Return_Status_ProcessorException_When_ProcessorWithError()
 		{
-			var bulkProcessor = new BulkErrorProcessor();
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 
 			var mockedErrorProcessor = new Mock<IErrorProcessor>();
-			mockedErrorProcessor.Setup((t) => t.Process(It.IsAny<Exception>(), It.IsAny<ProcessErrorInfo>(), It.IsAny<CancellationToken>())).Throws(new Exception());
+			mockedErrorProcessor.Setup((t) => t.Process(It.IsAny<Exception>(), It.IsAny<ProcessingErrorInfo>(), It.IsAny<CancellationToken>())).Throws(new Exception());
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor.Object);
 
-			var res = bulkProcessor.Process(ProcessErrorInfo.FromRetry(1), new Exception(), It.IsAny<CancellationToken>());
+			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), It.IsAny<CancellationToken>());
 			Assert.IsTrue(res.ProcessErrors.Count() == 1);
 		}
 
 		[Test]
 		public void Should_Process_Return_Status_Success_When_NoTimeUp_And_CorrectProcessor()
 		{
-			var bulkProcessor = new BulkErrorProcessor();
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 
 			var mockedErrorProcessor = new Mock<IErrorProcessor>();
-			mockedErrorProcessor.Setup((t) => t.Process(It.IsAny<Exception>(), It.IsAny<ProcessErrorInfo>(), It.IsAny<CancellationToken>())).Returns(new Exception());
+			mockedErrorProcessor.Setup((t) => t.Process(It.IsAny<Exception>(), It.IsAny<ProcessingErrorInfo>(), It.IsAny<CancellationToken>())).Returns(new Exception());
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor.Object);
-			var res = bulkProcessor.Process(ProcessErrorInfo.FromRetry(1), new Exception(), It.IsAny<CancellationToken>());
+			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), It.IsAny<CancellationToken>());
 			Assert.IsTrue(!res.ProcessErrors.Any());
 		}
 
@@ -83,13 +83,13 @@ namespace PoliNorError.Tests
 		public void Should_Process_NotCallOtherProcessor_If_Canceled()
 		{
 			var cancelTokenSource = new CancellationTokenSource();
-			var bulkProcessor = new BulkErrorProcessor();
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 			cancelTokenSource.CancelAfter(500);
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
 			bulkProcessor.AddProcessor(delayProcessor);
 			bulkProcessor.AddProcessor(new DefaultErrorProcessor());
 
-			var res = bulkProcessor.Process(ProcessErrorInfo.FromRetry(1), new Exception(), cancelTokenSource.Token);
+			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
 			Assert.IsTrue(res.ProcessErrors.Count() == 1);
 			Assert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().Equals(typeof(OperationCanceledException)));
 			Assert.IsTrue(res.IsCanceled);
@@ -99,13 +99,13 @@ namespace PoliNorError.Tests
 		public async Task Should_ProcessAsync_NotCallOtherProcessor_If_Canceled()
 		{
 			var cancelTokenSource = new CancellationTokenSource();
-			var bulkProcessor = new BulkErrorProcessor();
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 			cancelTokenSource.CancelAfter(500);
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
 			bulkProcessor.AddProcessor(delayProcessor);
 			bulkProcessor.AddProcessor(new DefaultErrorProcessor());
 
-			var res = await bulkProcessor.ProcessAsync(ProcessErrorInfo.FromRetry(1), new Exception(), cancelTokenSource.Token);
+			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
 			Assert.IsTrue(res.ProcessErrors.Count() == 1);
 			//				The real type here id TaskCanceledException.
 			Assert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().BaseType.Equals(typeof(OperationCanceledException)));

@@ -12,7 +12,7 @@ namespace PoliNorError
 		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
 
 		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false)
-			: base(bulkErrorProcessor)
+			: base(PolicyAlias.Retry, bulkErrorProcessor)
 		{
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
 		}
@@ -253,7 +253,7 @@ namespace PoliNorError
 				var checkRetryResult = CanRetry(ex, retryCountInfo, tryErrorCount);
 				if (checkRetryResult == HandleCatchBlockResult.Success)
 				{
-					var bulkProcessResult = _bulkErrorProcessor.Process(ProcessErrorInfo.FromRetry(tryErrorCount), ex, token);
+					var bulkProcessResult = _bulkErrorProcessor.Process(ex, ProcessingErrorContext.FromRetry(tryErrorCount), token);
 					result.AddBulkProcessorErrors(bulkProcessResult);
 					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkRetryResult;
 				}
@@ -277,7 +277,7 @@ namespace PoliNorError
 				var checkRetryResult = CanRetry(ex, retryCountInfo, tryErrorCount);
 				if (checkRetryResult == HandleCatchBlockResult.Success)
 				{
-					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ProcessErrorInfo.FromRetry(tryErrorCount), ex, configAwait, token).ConfigureAwait(configAwait);
+					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, ProcessingErrorContext.FromRetry(tryErrorCount), configAwait, token).ConfigureAwait(configAwait);
 					result.AddBulkProcessorErrors(bulkProcessResult);
 					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkRetryResult;
 				}
@@ -298,7 +298,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					_saveErrorProcessor.Process(ex, ProcessErrorInfo.FromRetry(tryErrorCount), token);
+					_saveErrorProcessor.Process(ex, ProcessingErrorInfo.FromRetry(tryErrorCount), token);
 					//We set it here to keep UnprocessedError from being lost.
 					result.UnprocessedError = ex;
 				}
@@ -319,7 +319,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					await _saveErrorProcessor.ProcessAsync(ex, ProcessErrorInfo.FromRetry(tryErrorCount), configureAwait, token).ConfigureAwait(configureAwait);
+					await _saveErrorProcessor.ProcessAsync(ex, ProcessingErrorInfo.FromRetry(tryErrorCount), configureAwait, token).ConfigureAwait(configureAwait);
 					//We set it here to keep UnprocessedError from being lost.
 					result.UnprocessedError = ex;
 				}
