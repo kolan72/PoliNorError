@@ -76,7 +76,11 @@ var result = new FallbackPolicy()
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
 The results of handling are stored in the [PolicyResult](#policyresult) class.  
+
 A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection). In this case, each delegate will be handled according to its policy.  
+
+You can also create a [`PolicyCollection`](#policycollection) (appeared in _version_ 2.0.0-rc2) for handling single delegate.  
+
 The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
 
 ### PolicyResult
@@ -371,7 +375,7 @@ The `PolicyDelegatesUnused` property contains a collection of policydelegates th
 
 For some purpurses  throw a special `PolicyDelegateCollectionHandleException` exception if the last policy in the collection fails may be useful. You can do it with the  `WithThrowOnLastFailed` method.
 
-### PolicyCollection (appeared in _version_ 2.0.0-rc2)
+### PolicyCollection
 Sometimes one delegate needs to be handled by many policies, and this can be done easily with the `PolicyCollection` class.  
 
 If, for instance, you'd like to read a file that's currently being used by another process, you could try two attempts and, if the error persists, copy the file to the temporary folder and access it from there:
