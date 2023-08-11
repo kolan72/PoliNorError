@@ -19,7 +19,7 @@ namespace PoliNorError
 
 		public virtual Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
-			bool waitResult = cancellationToken.WaitHandle.WaitOne(GetCurDelay(catchBlockProcessErrorInfo.CurrentRetryCount, error));
+			bool waitResult = cancellationToken.WaitHandle.WaitOne(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error));
 			if (waitResult)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
@@ -29,8 +29,26 @@ namespace PoliNorError
 
 		public virtual async Task<Exception> ProcessAsync(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
-			await Task.Delay(GetCurDelay(catchBlockProcessErrorInfo.CurrentRetryCount, error), cancellationToken).ConfigureAwait(configAwait);
+			await Task.Delay(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error), cancellationToken).ConfigureAwait(configAwait);
 			return error;
+		}
+
+		private static int GetRetryAttempt(ProcessingErrorInfo catchBlockProcessErrorInfo)
+		{
+			switch (catchBlockProcessErrorInfo)
+			{
+				case null:
+					return 0;
+				default:
+					if (catchBlockProcessErrorInfo.HasContext)
+					{
+						return catchBlockProcessErrorInfo.CurrentRetryCount;
+					}
+					else
+					{
+						return 0;
+					}
+			}
 		}
 
 		private int GetCurDelay(int retryAttempt, Exception ex)
