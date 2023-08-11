@@ -371,6 +371,36 @@ The `PolicyDelegatesUnused` property contains a collection of policydelegates th
 
 For some purpurses  throw a special `PolicyDelegateCollectionHandleException` exception if the last policy in the collection fails may be useful. You can do it with the  `WithThrowOnLastFailed` method.
 
+### PolicyCollection (appeared in _version_ 2.0.0-rc2)
+Sometimes one delegate needs to be handled by many policies, and this can be done easily with the `PolicyCollection` class.  
+
+If, for instance, you'd like to read a file that's currently being used by another process, you could try two attempts and, if the error persists, copy the file to the temporary folder and access it from there:
+```csharp
+			var result = PolicyCollection.Create()
+					.WithRetry(2) 
+					.WithFallback(() =>
+					{
+						var newFilePath = Path.Combine(Path.GetTempPath(),
+													 Path.GetFileName(filePath));
+						File.Copy(filePath, newFilePath, true);
+
+						return File.ReadAllLines(newFilePath);
+					})
+					.AddPolicyResultHandlerForAll<string[]>(pr => pr.Errors.ToList()
+																 .ForEach(ex => logger.Error(ex.Message))
+															)
+					//You can call `BuildCollectionHandlerFor(..)` method to build a collection handler
+					//that has a `IPolicyDelegateCollectionHandler<string[]>` type
+					//that can be passed somewhere for further handling
+					//or handle delegate in-place:
+					.HandleDelegate(() => File.ReadAllLines(filePath));
+
+			if (result.LastPolicyResult.IsSuccess)
+			{
+				result.Result.ToList().ForEach(l => Console.WriteLine(l));
+			}
+```
+
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow delegates to be called in a resilient manner.
 Each method calls corresponding policy method behind the scene.
