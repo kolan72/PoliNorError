@@ -311,6 +311,24 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Retry_CallWrappedFallbackPolicy_And_Handle_With_Success_Work_WinGenericFunc()
+		{
+			var fallbackPolicy = new FallbackPolicy().WithFallbackFunc((_) => 1);
+			int i = 0;
+			int retryAct()
+			{
+				i++;
+				throw new Exception();
+			}
+			var retryPol = new RetryPolicy(3);
+			retryPol.WrapPolicy(fallbackPolicy);
+			var outPolicyResult = retryPol.Handle(retryAct);
+			Assert.IsFalse(outPolicyResult.IsFailed);
+			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.First().Result.Result);
+		}
+
+		[Test]
 		public async Task Should_Fallback_HandleAsyncT_For_RetryPolicyWrappedByFallback_Policy_Work()
 		{
 			int i = 0;

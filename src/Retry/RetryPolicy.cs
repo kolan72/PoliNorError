@@ -93,7 +93,7 @@ namespace PoliNorError
 				Func<T> funcWrapped = wrapper.Handle;
 
 				retryResult = RetryProcessor.Retry(funcWrapped, RetryInfo, token);
-				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
+				retryResult.WrappedPolicyResults = wrapper.PolicyResults;
 			}
 
 			retryResult.SetPolicyName(PolicyName);
@@ -143,7 +143,7 @@ namespace PoliNorError
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
 
 				retryResult = await RetryProcessor.RetryAsync(funcWrapped, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
-				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
+				retryResult.WrappedPolicyResults = wrapper.PolicyResults;
 			}
 
 			retryResult.SetPolicyName(PolicyName);

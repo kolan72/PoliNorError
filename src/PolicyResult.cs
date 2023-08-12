@@ -144,6 +144,8 @@ namespace PoliNorError
 		}
 
 		public T Result { get; private set; }
+
+		public new IEnumerable<PolicyDelegateResult<T>> WrappedPolicyResults { get; internal set; }
 	}
 
 	public enum PolicyResultFailedReason

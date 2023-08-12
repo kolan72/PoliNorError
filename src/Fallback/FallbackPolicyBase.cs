@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,7 +103,7 @@ namespace PoliNorError
 
 				fallbackResult = _fallbackProcessor.Fallback(funcWrapped, fallBackFunc, token);
 
-				fallbackResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
+				fallbackResult.WrappedPolicyResults = wrapper.PolicyResults;
 			}
 
 			fallbackResult.SetPolicyName(PolicyName);
@@ -191,7 +190,7 @@ namespace PoliNorError
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
 
 				fallBackRes = await _fallbackProcessor.FallbackAsync(funcWrapped, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait);
-				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
+				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults;
 			}
 
 			fallBackRes.SetPolicyName(PolicyName);

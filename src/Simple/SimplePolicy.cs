@@ -56,7 +56,7 @@ namespace PoliNorError
 				Func<T> funcWrapped = wrapper.Handle;
 
 				retryResult = _simpleProcessor.Execute(funcWrapped, token);
-				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
+				retryResult.WrappedPolicyResults = wrapper.PolicyResults;
 			}
 
 			retryResult.SetPolicyName(PolicyName);
@@ -105,7 +105,7 @@ namespace PoliNorError
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
 
 				retryResult = await _simpleProcessor.ExecuteAsync(funcWrapped, configureAwait, token).ConfigureAwait(configureAwait);
-				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
+				retryResult.WrappedPolicyResults = wrapper.PolicyResults;
 			}
 
 			retryResult.SetPolicyName(PolicyName);

@@ -2,7 +2,7 @@
 
 namespace PoliNorError
 {
-	public class PolicyDelegateResult
+	public sealed class PolicyDelegateResult
 	{
 		public PolicyDelegateResult(PolicyResult result, string policyName, MethodInfo methodInfo)
 		{
@@ -32,12 +32,5 @@ namespace PoliNorError
 		public string PolicyName { get; }
 
 		public MethodInfo PolicyMethodInfo { get; }
-
-		internal PolicyDelegateResult ToPolicyDelegateResult()
-		{
-			return new PolicyDelegateResult(Result, PolicyName, PolicyMethodInfo);
-		}
-
-		public static implicit operator PolicyDelegateResult(PolicyDelegateResult<T> policyDelegateResult) => new PolicyDelegateResult(policyDelegateResult.Result, policyDelegateResult.PolicyName, policyDelegateResult.PolicyMethodInfo);
 	}
 }
