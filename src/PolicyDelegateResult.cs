@@ -24,7 +24,7 @@ namespace PoliNorError
 
 	public abstract class PolicyDelegateResultBase
 	{
-		public PolicyDelegateResultBase(string policyName, MethodInfo methodInfo)
+		protected PolicyDelegateResultBase(string policyName, MethodInfo methodInfo)
 		{
 			PolicyName = policyName;
 			PolicyMethodInfo = methodInfo;
