@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace PoliNorError
 {
-	public class PolicyDelegateResultErrors
+	internal class PolicyDelegateResultErrors
 	{
 		internal protected PolicyDelegateResultErrors(IEnumerable<Exception> errors, string policyName, MethodInfo policyMethodInfo)
 		{
@@ -25,7 +25,7 @@ namespace PoliNorError
 		}
 	}
 
-	public sealed class PolicyDelegateResultErrors<T> : PolicyDelegateResultErrors
+	internal sealed class PolicyDelegateResultErrors<T> : PolicyDelegateResultErrors
 	{
 		internal PolicyDelegateResultErrors(IEnumerable<Exception> errors, string policyName, MethodInfo policyMethodInfo, T result) : base(errors, policyName, policyMethodInfo)
 		{

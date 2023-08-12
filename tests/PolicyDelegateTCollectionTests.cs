@@ -21,7 +21,7 @@ namespace PoliNorError.Tests
 			policyDelegateCollection = policyDelegateCollection.WithThrowOnLastFailed();
 
 			var res = Assert.ThrowsAsync<PolicyDelegateCollectionException<int>>(async () => await policyDelegateCollection.HandleAllAsync());
-			Assert.IsTrue(res.ErrorResults.FirstOrDefault() == default);
+			Assert.IsTrue(res.GetResults().FirstOrDefault() == default);
 		}
 
 		[Test]
@@ -347,9 +347,9 @@ namespace PoliNorError.Tests
 			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
 			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
 
-			Assert.AreEqual(2, exception.ErrorResults.Count());
-			Assert.AreEqual(1, exception.ErrorResults.ToList()[0]);
-			Assert.AreEqual(2, exception.ErrorResults.ToList()[1]);
+			Assert.AreEqual(2, exception.GetResults().Count());
+			Assert.AreEqual(1, exception.GetResults().FirstOrDefault());
+			Assert.AreEqual(2, exception.GetResults().Skip(1).FirstOrDefault());
 		}
 
 		private IEnumerable<PolicyDelegateResultErrors<int>> GetTestPolicyDelegateResultErrorsCollection()

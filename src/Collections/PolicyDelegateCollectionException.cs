@@ -14,7 +14,7 @@ namespace PoliNorError
 
 		private string _message;
 
-		public PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResultErrors> policyHandledErrors, IPolicyDelegateResultErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
+		internal PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResultErrors> policyHandledErrors, IPolicyDelegateResultErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
 		{
 			_policyHandledErrors = policyHandledErrors;
 			_policyHandledErrorsConverter = policyHandledErrorsConverter ?? new DefaultPolicyDelegateResultErrorsConverter();
@@ -40,12 +40,12 @@ namespace PoliNorError
 	{
 		private readonly IEnumerable<PolicyDelegateResultErrors<T>> _policyHandledErrorsT;
 
-		public PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResultErrors<T>> policyHandledErrors, IPolicyDelegateResultErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
+		internal PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResultErrors<T>> policyHandledErrors, IPolicyDelegateResultErrorsToExceptionsConverter policyHandledErrorsConverter = null, IErrorsToStringAggregator errorsToStringAggregator = null)
 							: base(policyHandledErrors.Select(phe => phe.ToPolicyDelegateResultErrors()), policyHandledErrorsConverter, errorsToStringAggregator)
 		{
 			_policyHandledErrorsT = policyHandledErrors;
 		}
 
-		public IEnumerable<T> ErrorResults => _policyHandledErrorsT.Select(pher => pher.Result);
+		public IEnumerable<T> GetResults() => _policyHandledErrorsT.Select(pher => pher.Result).ToList();
 	}
 }

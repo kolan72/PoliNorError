@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace PoliNorError
 {
-	public interface IPolicyDelegateResultErrorsToExceptionsConverter
+	internal interface IPolicyDelegateResultErrorsToExceptionsConverter
 	{
 		IEnumerable<Exception> Convert(IEnumerable<PolicyDelegateResultErrors> policyHandledErrors);
 	}
