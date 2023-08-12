@@ -1,3 +1,19 @@
+## 2.0.0-rc5  
+
+- Add new `UseCustomErrorSaver` method to the `IRetryProcessor` interface.
+- Add `IRetryProcessor.UseCustomErrorSaverOf(...)` extensions methods.
+- Add `RetryPolicy.UseCustomErrorSaverOf` extensions methods.
+- Refactor `IPolicyProcessor.WithErrorProcessorOf<T>(...)` overloaded methods.
+- Rename `CatchBlockException.ProcessException` property to `ProcessingException`.
+- Add `CatchBlockException.ExceptionSource` property.
+- Change `IPolicyDelegateCollectionHandler<T>.HandleAsync` methods signature.
+- Rename `ProcessErrorInfo` class to `ProcessingErrorInfo`.
+- Change the method signature of the interfaces `IErrorProcessor` and `IBulkErrorProcessor`.
+- Add `PolicyResult.PolicyName` property.
+- Add `PolicyResult<T>.WrappedPolicyResults` property.
+- Made `GetResults()` method from `PolicyDelegateCollectionException.ErrorResults` property.
+
+
 ## 2.0.0-rc4  
 
 - Made `PolicyResult(<T>)` static creation methods internal.
