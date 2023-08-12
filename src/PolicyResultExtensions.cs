@@ -41,6 +41,12 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		internal static T SetPolicyName<T>(this T retryResult, string policyName) where T : PolicyResult
+		{
+			retryResult.PolicyName = policyName;
+			return retryResult;
+		}
+
 		internal static void SetFailedWithCatchBlockError(this PolicyResult result, Exception processException, Exception handlingException, CatchBlockExceptionSource errorSource = CatchBlockExceptionSource.Unknown)
 		{
 			result.AddCatchBlockError(new CatchBlockException(processException, handlingException, errorSource, true));

@@ -55,7 +55,7 @@ namespace PoliNorError
 			else
 			{
 				if (action == null)
-					return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper(_wrappedPolicy, action, token);
 				Action actionWrapped = wrapper.Handle;
@@ -63,7 +63,7 @@ namespace PoliNorError
 				fallBackRes = _fallbackProcessor.Fallback(actionWrapped, curFallback, token);
 				fallBackRes.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
-
+			fallBackRes.SetPolicyName(PolicyName);
 			HandlePolicyResult(fallBackRes, token);
 			return fallBackRes;
 		}
@@ -97,7 +97,7 @@ namespace PoliNorError
 			else
 			{
 				if (func == null)
-					return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token);
 				Func<T> funcWrapped = wrapper.Handle;
@@ -107,6 +107,7 @@ namespace PoliNorError
 				fallbackResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
 
+			fallbackResult.SetPolicyName(PolicyName);
 			HandlePolicyResult(fallbackResult, token);
 			return fallbackResult;
 		}
@@ -139,7 +140,7 @@ namespace PoliNorError
 			else
 			{
 				if (func == null)
-					return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task> funcWrapped = wrapper.HandleAsync;
@@ -149,6 +150,7 @@ namespace PoliNorError
 				fallBackRes.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
 
+			fallBackRes.SetPolicyName(PolicyName);
 			await HandlePolicyResultAsync(fallBackRes, configureAwait, token).ConfigureAwait(configureAwait);
 			return fallBackRes;
 		}
@@ -183,7 +185,7 @@ namespace PoliNorError
 			else
 			{
 				if (func == null)
-					return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
@@ -191,6 +193,8 @@ namespace PoliNorError
 				fallBackRes = await _fallbackProcessor.FallbackAsync(funcWrapped, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait);
 				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
+
+			fallBackRes.SetPolicyName(PolicyName);
 			await HandlePolicyResultAsync(fallBackRes, configureAwait).ConfigureAwait(configureAwait);
 			return fallBackRes;
 		}

@@ -63,6 +63,8 @@ namespace PoliNorError
 
 		public IEnumerable<PolicyDelegateResult> WrappedPolicyResults { get; internal set; }
 
+		public string PolicyName { get; internal set; }
+
 		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
 		{
 			IsFailed = true;

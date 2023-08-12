@@ -150,6 +150,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
 
 			wrappedPolicy.Verify((t) => t.Handle(act, default), Times.Exactly(3));
+			Assert.AreEqual(outPolicy.PolicyName, outPolicyResult.PolicyName);
 		}
 
 		[Test]
@@ -334,6 +335,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polResult.IsFailed);
 			Assert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
 			Assert.AreEqual(10, polResult.Result);
+			Assert.AreEqual(fallBackPolicy.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
@@ -422,6 +424,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(10, i);
 			Assert.IsFalse(polResult.IsFailed);
 			Assert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
+			Assert.AreEqual(fallBackPolicy.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]

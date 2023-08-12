@@ -62,7 +62,7 @@ namespace PoliNorError
 			else
 			{
 				if (action == null)
-					return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper(_wrappedPolicy, action, token);
 				Action actionWrapped = wrapper.Handle;
@@ -70,6 +70,8 @@ namespace PoliNorError
 				retryResult = RetryProcessor.Retry(actionWrapped, RetryInfo, token);
 				retryResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
+
+			retryResult.SetPolicyName(PolicyName);
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
 		}
@@ -85,7 +87,7 @@ namespace PoliNorError
 			else
 			{
 				if (func == null)
-					return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token);
 				Func<T> funcWrapped = wrapper.Handle;
@@ -93,6 +95,8 @@ namespace PoliNorError
 				retryResult = RetryProcessor.Retry(funcWrapped, RetryInfo, token);
 				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
+
+			retryResult.SetPolicyName(PolicyName);
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
 		}
@@ -108,7 +112,7 @@ namespace PoliNorError
 			else
 			{
 				if (func == null)
-					return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task> funcWrapped = wrapper.HandleAsync;
@@ -116,6 +120,8 @@ namespace PoliNorError
 				retryResult = await RetryProcessor.RetryAsync(funcWrapped, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
 				retryResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
 			}
+
+			retryResult.SetPolicyName(PolicyName);
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
 		}
@@ -131,7 +137,7 @@ namespace PoliNorError
 			else
 			{
 				if (func == null)
-					return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this));
+					return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
 				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token, configureAwait);
 				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
@@ -139,6 +145,8 @@ namespace PoliNorError
 				retryResult = await RetryProcessor.RetryAsync(funcWrapped, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
 				retryResult.WrappedPolicyResults = wrapper.PolicyResults.Select(pr => pr.ToPolicyDelegateResult());
 			}
+
+			retryResult.SetPolicyName(PolicyName);
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
 		}

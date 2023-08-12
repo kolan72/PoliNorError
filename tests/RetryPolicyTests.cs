@@ -48,6 +48,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
 			Assert.IsTrue(res.NoError);
+			Assert.AreEqual(retry.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -63,6 +64,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
 			Assert.IsTrue(res.NoError);
+			Assert.AreEqual(retry.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -77,6 +79,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
 			Assert.IsTrue(res.NoError);
+			Assert.AreEqual(retry.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -104,6 +107,7 @@ namespace PoliNorError.Tests
 			void act() => throw new Exception();
 			var polResult = retryPol.Handle(act, cancelTokenSource.Token);
 			Assert.IsTrue(polResult.IsCanceled);
+			Assert.AreEqual(retryPol.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
@@ -210,6 +214,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(retryResult.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			Assert.AreEqual(retryPolTest.PolicyName, retryResult.PolicyName);
 		}
 
 		[Test]
@@ -221,6 +226,7 @@ namespace PoliNorError.Tests
 			var retryResult = retryPolicy.Handle(null);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			Assert.AreEqual(retryPolicy.PolicyName, retryResult.PolicyName);
 		}
 
 		[Test]
@@ -232,6 +238,7 @@ namespace PoliNorError.Tests
 			var retryResult = await retryPolicy.HandleAsync(null);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			Assert.AreEqual(retryPolicy.PolicyName, retryResult.PolicyName);
 		}
 
 		[Test]
@@ -264,6 +271,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(retryResult.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			Assert.AreEqual(retryPolTest.PolicyName, retryResult.PolicyName);
 		}
 
 		[Test]
@@ -274,6 +282,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(retryResult.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			Assert.AreEqual(retryPolTest.PolicyName, retryResult.PolicyName);
 		}
 
 		[Test]
@@ -284,6 +293,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(retryResult.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			Assert.AreEqual(retryPolTest.PolicyName, retryResult.PolicyName);
 		}
 
 		[Test]
@@ -498,8 +508,9 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler((_) => i++);
 			}
-			policy.Handle(() => throw new Exception("Handle"));
+			var res = policy.Handle(() => throw new Exception("Handle"));
 			Assert.AreEqual(1, i);
+			Assert.AreEqual(policy.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -517,8 +528,9 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler<int>((_) => i++);
 			}
-			policy.Handle<int>(() => throw new Exception("Handle"));
+			var res = policy.Handle<int>(() => throw new Exception("Handle"));
 			Assert.AreEqual(1, i);
+			Assert.AreEqual(policy.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -536,8 +548,9 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 			}
-			await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
+			var res = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
 			Assert.AreEqual(1, i);
+			Assert.AreEqual(policy.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -555,8 +568,9 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
 			}
-			await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
+			var res = await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
 			Assert.AreEqual(1, i);
+			Assert.AreEqual(policy.PolicyName, res.PolicyName);
 		}
 
 		private class TestAsyncClass

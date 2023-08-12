@@ -13,7 +13,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Handle_Work_When_NoError()
 		{
-			var simple = new SimplePolicy();
+			const string polName = "StupidPolicy";
+			var simple = new SimplePolicy().WithPolicyName(polName);
 			void action() => Expression.Empty();
 
 			var res = simple.Handle(action);
@@ -21,6 +22,8 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(res.IsCanceled);
 			Assert.IsFalse(res.Errors.Any());
 			Assert.IsTrue(res.NoError);
+			Assert.AreEqual(polName, simple.PolicyName);
+			Assert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -45,6 +48,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 			Assert.NotNull(simpleResult.UnprocessedError);
+			Assert.AreEqual(simplePolTest.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -134,6 +138,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(res.Errors.Any());
 			Assert.IsTrue(res.NoError);
 			Assert.AreEqual(4, res.Result);
+			Assert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -159,6 +164,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 			Assert.NotNull(simpleResult.UnprocessedError);
+			Assert.AreEqual(retryPolTest.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -202,6 +208,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.IsCanceled);
 			Assert.AreEqual(false, res.Errors.Any());
 			Assert.IsTrue(res.NoError);
+			Assert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -213,6 +220,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 			Assert.NotNull(simpleResult.UnprocessedError);
+			Assert.AreEqual(simplePolTest.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -244,6 +252,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
 			wrappedPolicy.Verify((t) => t.HandleAsync(func, default, default), Times.AtLeastOnce);
+			Assert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
 		}
 
 		[Test]
@@ -259,6 +268,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, res.Errors.Any());
 			Assert.IsTrue(res.NoError);
 			Assert.AreEqual(4, res.Result);
+			Assert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -274,6 +284,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(res.Errors.Any());
 			Assert.IsFalse(res.NoError);
 			Assert.AreEqual(0, res.Result);
+			Assert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -285,6 +296,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
 			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 			Assert.NotNull(simpleResult.UnprocessedError);
+			Assert.AreEqual(simple.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -316,6 +328,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
 			wrappedPolicy.Verify((t) => t.HandleAsync(func, default, default), Times.Exactly(1));
+			Assert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
 		}
 
 		[TestCase("Test")]
@@ -395,7 +408,8 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler((_) => i++);
 			}
-			policy.Handle(() => throw new Exception("Handle"));
+			var polResult = policy.Handle(() => throw new Exception("Handle"));
+			Assert.AreEqual(policy.PolicyName, polResult.PolicyName);
 			Assert.AreEqual(1, i);
 		}
 
@@ -414,7 +428,8 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler<int>((_) => i++);
 			}
-			policy.Handle<int>(() => throw new Exception("Handle"));
+			var res = policy.Handle<int>(() => throw new Exception("Handle"));
+			Assert.AreEqual(policy.PolicyName, res.PolicyName);
 			Assert.AreEqual(1, i);
 		}
 
@@ -433,7 +448,8 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 			}
-			await policy.HandleAsync(async (_) => {await Task.Delay(1); throw new Exception("Handle"); });
+			var res = await policy.HandleAsync(async (_) => {await Task.Delay(1); throw new Exception("Handle"); });
+			Assert.AreEqual(policy.PolicyName, res.PolicyName);
 			Assert.AreEqual(1, i);
 		}
 
@@ -452,7 +468,8 @@ namespace PoliNorError.Tests
 			{
 				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
 			}
-			await policy.HandleAsync<int>(async(_) => {await Task.Delay(1); throw new Exception("Handle"); });
+			var res = await policy.HandleAsync<int>(async(_) => {await Task.Delay(1); throw new Exception("Handle"); });
+			Assert.AreEqual(policy.PolicyName, res.PolicyName);
 			Assert.AreEqual(1, i);
 		}
 	}
