@@ -2,32 +2,33 @@
 
 namespace PoliNorError
 {
-	public sealed class PolicyDelegateResult
+	public sealed class PolicyDelegateResult : PolicyDelegateResultBase
 	{
-		public PolicyDelegateResult(PolicyResult result, string policyName, MethodInfo methodInfo)
+		public PolicyDelegateResult(PolicyResult result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
 		{
 			Result = result;
-			PolicyName = policyName;
-			PolicyMethodInfo = methodInfo;
 		}
 
 		public PolicyResult Result { get; }
-
-		public string PolicyName { get; }
-
-		public MethodInfo PolicyMethodInfo { get; }
 	}
 
-	public sealed class PolicyDelegateResult<T>
+	public sealed class PolicyDelegateResult<T> : PolicyDelegateResultBase
 	{
-		public PolicyDelegateResult(PolicyResult<T> result, string policyName, MethodInfo methodInfo)
+		public PolicyDelegateResult(PolicyResult<T> result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
 		{
 			Result = result;
-			PolicyName = policyName;
-			PolicyMethodInfo = methodInfo;
 		}
 
 		public PolicyResult<T> Result { get; }
+	}
+
+	public abstract class PolicyDelegateResultBase
+	{
+		public PolicyDelegateResultBase(string policyName, MethodInfo methodInfo)
+		{
+			PolicyName = policyName;
+			PolicyMethodInfo = methodInfo;
+		}
 
 		public string PolicyName { get; }
 
