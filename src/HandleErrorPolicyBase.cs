@@ -95,8 +95,6 @@ namespace PoliNorError
 			}
 		}
 
-		internal DefaultErrorProcessor GetDefaultErrorProcessor(Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) => new DefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync);
-
 		public string PolicyName
 		{
 			get { return _policyName ?? GetType().Name; }
