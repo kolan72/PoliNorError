@@ -34,12 +34,12 @@ namespace PoliNorError
 			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(act);
 		}
 
-		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act, CancellationType convertType = CancellationType.Precancelable)
 		{
 			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(act, convertType);
 		}
 
-		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
 		{
 			policyDelegateInfos.SetResultHandler(func.ToCancelableFunc(convertType));
 		}

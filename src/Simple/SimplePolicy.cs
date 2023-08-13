@@ -121,7 +121,7 @@ namespace PoliNorError
 
 		public SimplePolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<SimplePolicy>(expression);
 
-		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult> action, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(action, convertType);
 		}
@@ -131,7 +131,7 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(action);
 		}
 
-		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(func, convertType);
 		}
@@ -141,7 +141,7 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(action, convertType);
 		}
@@ -151,7 +151,7 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(action);
 		}
 
-		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(func, convertType);
 		}

@@ -41,7 +41,7 @@ namespace PoliNorError
 			return policyCollection.WithFallbackInner(fallback, policyParams);
 		}
 
-		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Action fallback, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Action fallback, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallback, policyParams, convertType);
 		}
@@ -51,7 +51,7 @@ namespace PoliNorError
 			return policyCollection.WithFallbackInner(fallbackAsync, policyParams);
 		}
 
-		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Func<Task> fallbackAsync, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Func<Task> fallbackAsync, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallbackAsync, policyParams, convertType);
 		}
@@ -61,7 +61,7 @@ namespace PoliNorError
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams);
 		}
 
-		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<T> fallbackFunc, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<T> fallbackFunc, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams, convertType);
 		}
@@ -71,7 +71,7 @@ namespace PoliNorError
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams);
 		}
 
-		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<Task<T>> fallbackFunc, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<Task<T>> fallbackFunc, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams, convertType);
 		}

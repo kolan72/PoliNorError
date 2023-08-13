@@ -6,7 +6,7 @@ namespace PoliNorError
 {
 	public static class RetryPolicyExtensions
 	{
-		public static RetryPolicy UseCustomErrorSaverOf(this RetryPolicy policy, Action<Exception> saveError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable)
+		public static RetryPolicy UseCustomErrorSaverOf(this RetryPolicy policy, Action<Exception> saveError, CancellationType convertToCancelableFuncType = CancellationType.Precancelable)
 		{
 			policy.RetryProcessor.UseCustomErrorSaverOf(saveError, convertToCancelableFuncType);
 			return policy;
@@ -24,7 +24,7 @@ namespace PoliNorError
 			return policy;
 		}
 
-		public static RetryPolicy UseCustomErrorSaverOf(this RetryPolicy policy, Func<Exception, CancellationToken, Task> saveErrorAsync, Action<Exception> saveError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable)
+		public static RetryPolicy UseCustomErrorSaverOf(this RetryPolicy policy, Func<Exception, CancellationToken, Task> saveErrorAsync, Action<Exception> saveError, CancellationType convertToCancelableFuncType = CancellationType.Precancelable)
 		{
 			policy.RetryProcessor.UseCustomErrorSaverOf(saveErrorAsync, saveError, convertToCancelableFuncType);
 			return policy;

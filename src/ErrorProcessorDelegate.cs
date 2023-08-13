@@ -8,7 +8,7 @@ namespace PoliNorError
 	{
 		public static ErrorProcessorDelegate Default() => new ErrorProcessorDelegate();
 
-		public static ErrorProcessorDelegate From(Action<Exception> onBeforeProcessError, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static ErrorProcessorDelegate From(Action<Exception> onBeforeProcessError, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return new ErrorProcessorDelegate() { _configureFunc = _action1(onBeforeProcessError, convertType) };
 		}
@@ -18,7 +18,7 @@ namespace PoliNorError
 			return new ErrorProcessorDelegate() { _configureFunc = _action2(onBeforeProcessError) };
 		}
 
-		public static ErrorProcessorDelegate From(Func<Exception, Task> onBeforeProcessErrorAsync, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static ErrorProcessorDelegate From(Func<Exception, Task> onBeforeProcessErrorAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return new ErrorProcessorDelegate() { _configureFunc = _func1(onBeforeProcessErrorAsync, convertType) };
 		}
@@ -34,9 +34,9 @@ namespace PoliNorError
 
 		private Func<IPolicyBase, IPolicyBase> _configureFunc = fb => fb;
 
-		private readonly static Func<Action<Exception>, ConvertToCancelableFuncType, Func<IPolicyBase, IPolicyBase>> _action1 = (onBPE, convertType) => (fb) => fb.WithErrorProcessorOf(onBPE, convertType);
+		private readonly static Func<Action<Exception>, CancellationType, Func<IPolicyBase, IPolicyBase>> _action1 = (onBPE, convertType) => (fb) => fb.WithErrorProcessorOf(onBPE, convertType);
 		private readonly static Func<Action<Exception, CancellationToken>, Func<IPolicyBase, IPolicyBase>> _action2 = (onBPE) => (fb) => fb.WithErrorProcessorOf(onBPE);
-		private readonly static Func<Func<Exception, Task>, ConvertToCancelableFuncType, Func<IPolicyBase, IPolicyBase>> _func1 = (onBPE, convertType) => fb => fb.WithErrorProcessorOf(onBPE, convertType);
+		private readonly static Func<Func<Exception, Task>, CancellationType, Func<IPolicyBase, IPolicyBase>> _func1 = (onBPE, convertType) => fb => fb.WithErrorProcessorOf(onBPE, convertType);
 		private readonly static Func<Func<Exception, CancellationToken, Task>, Func<IPolicyBase, IPolicyBase>> _func2 = (onBPE) => (fb) => fb.WithErrorProcessorOf(onBPE);
 
 		internal IPolicyBase ConfigurePolicy(IPolicyBase fallbackPolicy)

@@ -55,12 +55,12 @@ namespace PoliNorError
 			return new PolicyDelegate<T>(errorPolicy);
 		}
 
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IPolicyBase
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> func, CancellationType convertType = CancellationType.Precancelable) where T : IPolicyBase
 		{
 			return WithErrorProcessorOf(errorPolicyBase, func.ToCancelableFunc(convertType));
 		}
 
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IPolicyBase
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception> action, CancellationType convertType = CancellationType.Precancelable) where T : IPolicyBase
 		{
 			return WithErrorProcessorOf(errorPolicyBase, action.ToCancelableAction(convertType));
 		}

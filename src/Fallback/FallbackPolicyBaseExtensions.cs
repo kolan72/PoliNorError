@@ -6,9 +6,9 @@ namespace PoliNorError
 {
 	internal static class FallbackPolicyBaseExtensions
 	{
-		internal static TFallback WithFallbackFunc<TFallback, T>(this TFallback fallback, Func<T> fallbackFunc, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where TFallback : FallbackPolicyBase
+		internal static TFallback WithFallbackFunc<TFallback, T>(this TFallback fallback, Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
 		{
-			return (convertType == ConvertToCancelableFuncType.Precancelable) ? WithFallbackFunc(fallback, fallbackFunc.ToPrecancelableFunc())
+			return (convertType == CancellationType.Precancelable) ? WithFallbackFunc(fallback, fallbackFunc.ToPrecancelableFunc())
 																				: WithFallbackFunc(fallback, fallbackFunc.ToCancelableFunc());
 		}
 
@@ -24,9 +24,9 @@ namespace PoliNorError
 			return fallback;
 		}
 
-		internal static TFallback WithAsyncFallbackFunc<TFallback, T>(this TFallback fallback, Func<Task<T>> fallbackAsync, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where TFallback : FallbackPolicyBase
+		internal static TFallback WithAsyncFallbackFunc<TFallback, T>(this TFallback fallback, Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
 		{
-			return (convertType == ConvertToCancelableFuncType.Precancelable) ? WithAsyncFallbackFunc(fallback, fallbackAsync.ToPrecancelableFunc())
+			return (convertType == CancellationType.Precancelable) ? WithAsyncFallbackFunc(fallback, fallbackAsync.ToPrecancelableFunc())
 																	: WithAsyncFallbackFunc(fallback, fallbackAsync.ToCancelableFunc());
 		}
 	}

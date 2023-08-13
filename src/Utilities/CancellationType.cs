@@ -1,6 +1,6 @@
 ﻿namespace PoliNorError
 {
-	public enum ConvertToCancelableFuncType
+	public enum CancellationType
 	{
 		Precancelable,
 		Cancelable

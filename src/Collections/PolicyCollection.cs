@@ -46,7 +46,7 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType = CancellationType.Precancelable)
 		{
 			this.SetResultHandler(act, convertType);
 			return this;
@@ -58,13 +58,13 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
 		{
 			this.SetResultHandler(func, convertType);
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType = CancellationType.Precancelable)
 		{
 			this.SetResultHandler(act, convertType);
 			return this;
@@ -76,7 +76,7 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType = CancellationType.Precancelable)
 		{
 			this.SetResultHandler(func, convertType);
 			return this;

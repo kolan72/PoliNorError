@@ -159,7 +159,7 @@ namespace PoliNorError
 
 		public RetryPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<RetryPolicy>(expression);
 
-		public RetryPolicy AddPolicyResultHandler(Action<PolicyResult> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public RetryPolicy AddPolicyResultHandler(Action<PolicyResult> action, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(action, convertType);
 		}
@@ -169,7 +169,7 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(action);
 		}
 
-		public RetryPolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public RetryPolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(func, convertType);
 		}
@@ -179,7 +179,7 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		public RetryPolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public RetryPolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(action, convertType);
 		}
@@ -189,7 +189,7 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(action);
 		}
 
-		public RetryPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public RetryPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.AddPolicyResultHandlerInner(func, convertType);
 		}

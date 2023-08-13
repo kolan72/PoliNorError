@@ -32,7 +32,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			action.InvokeWithFallback(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			action.InvokeWithFallback(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
@@ -73,7 +73,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			action.InvokeWithFallback(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			action.InvokeWithFallback(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
@@ -114,7 +114,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
@@ -155,7 +155,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;

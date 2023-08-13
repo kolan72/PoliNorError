@@ -71,7 +71,7 @@ namespace PoliNorError
 
 		public static IRetryProcessor ExcludeError(this IRetryProcessor retryProcessor, Expression<Func<Exception, bool>> handledErrorFilter) => retryProcessor.ExcludeError<IRetryProcessor>(handledErrorFilter);
 
-		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Action<Exception> saveError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable)
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Action<Exception> saveError, CancellationType convertToCancelableFuncType = CancellationType.Precancelable)
 		{
 			return UseCustomErrorSaverOf(retryProcessor, saveError.ToCancelableAction(convertToCancelableFuncType));
 		}
@@ -86,7 +86,7 @@ namespace PoliNorError
 			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessor(saveErrorAsync));
 		}
 
-		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> saveErrorAsync, Action<Exception> saveError, ConvertToCancelableFuncType convertToCancelableFuncType = ConvertToCancelableFuncType.Precancelable)
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> saveErrorAsync, Action<Exception> saveError, CancellationType convertToCancelableFuncType = CancellationType.Precancelable)
 		{
 			return UseCustomErrorSaverOf(retryProcessor, saveErrorAsync, saveError.ToCancelableAction(convertToCancelableFuncType));
 		}

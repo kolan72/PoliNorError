@@ -29,7 +29,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			func.InvokeWithRetry(retryCount, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			func.InvokeWithRetry(retryCount, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -61,7 +61,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			func.InvokeWithWaitAndRetry(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			func.InvokeWithWaitAndRetry(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -98,7 +98,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			func.InvokeWithWaitAndRetry(retryCount, retryFunc, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			func.InvokeWithWaitAndRetry(retryCount, retryFunc, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -129,7 +129,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await func.InvokeWithRetryAsync(retryCount, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			await func.InvokeWithRetryAsync(retryCount, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -160,7 +160,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await func.InvokeWithWaitAndRetryAsync(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			await func.InvokeWithWaitAndRetryAsync(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -192,7 +192,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await func.InvokeWithWaitAndRetryAsync(retryCount, retryFunc, ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+			await func.InvokeWithWaitAndRetryAsync(retryCount, retryFunc, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;

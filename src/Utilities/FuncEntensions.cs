@@ -51,9 +51,9 @@ namespace PoliNorError
 			return async (ct) => { await func(ct).ConfigureAwait(configureAwait); return default; };
 		}
 
-		public static Action<T, CancellationToken> ToCancelableAction<T>(this Action<T> action, ConvertToCancelableFuncType convertType)
+		public static Action<T, CancellationToken> ToCancelableAction<T>(this Action<T> action, CancellationType convertType)
 		{
-			if (convertType == ConvertToCancelableFuncType.Precancelable)
+			if (convertType == CancellationType.Precancelable)
 				return action.ToPrecancelableAction();
 			else
 				return action.ToCancelableAction();
@@ -69,9 +69,9 @@ namespace PoliNorError
 			return (ct) => Task.Run(action, ct).Wait(ct);
 		}
 
-		public static Action<CancellationToken> ToCancelableAction(this Action action, ConvertToCancelableFuncType convertType)
+		public static Action<CancellationToken> ToCancelableAction(this Action action, CancellationType convertType)
 		{
-			if (convertType == ConvertToCancelableFuncType.Precancelable)
+			if (convertType == CancellationType.Precancelable)
 				return action.ToPrecancelableAction();
 			else
 				return action.ToCancelableAction();
@@ -97,9 +97,9 @@ namespace PoliNorError
 			};
 		}
 
-		public static Func<T, CancellationToken, Task> ToCancelableFunc<T>(this Func<T, Task> fnTask, ConvertToCancelableFuncType convertType)
+		public static Func<T, CancellationToken, Task> ToCancelableFunc<T>(this Func<T, Task> fnTask, CancellationType convertType)
 		{
-			return (convertType == ConvertToCancelableFuncType.Precancelable) ? fnTask.ToPrecancelableFunc() : fnTask.ToCancelableFunc();
+			return (convertType == CancellationType.Precancelable) ? fnTask.ToPrecancelableFunc() : fnTask.ToCancelableFunc();
 		}
 
 		public static Func<T, CancellationToken, Task> ToCancelableFunc<T>(this Func<T, Task> fnTask)
@@ -107,9 +107,9 @@ namespace PoliNorError
 			return (t, ct) => fnTask(t).WithCancellation(ct);
 		}
 
-		public static Func<CancellationToken, Task> ToCancelableFunc(this Func<Task> fallbackAsync, ConvertToCancelableFuncType convertType)
+		public static Func<CancellationToken, Task> ToCancelableFunc(this Func<Task> fallbackAsync, CancellationType convertType)
 		{
-			return (convertType == ConvertToCancelableFuncType.Precancelable) ? fallbackAsync.ToPrecancelableFunc() : fallbackAsync.ToCancelableFunc();
+			return (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc() : fallbackAsync.ToCancelableFunc();
 		}
 
 		public static Func<CancellationToken, T> ToCancelableFunc<T>(this Func<T> func)

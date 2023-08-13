@@ -6,12 +6,12 @@ namespace PoliNorError
 {
 	internal static class FallbackInvokeParamsExtensions
 	{
-		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorDelegate invokeFallbackPolicyParams, Func<T> fallback, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorDelegate invokeFallbackPolicyParams, Func<T> fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)(invokeFallbackPolicyParams ?? ErrorProcessorDelegate.Default()).ConfigurePolicy(new FallbackPolicy().WithFallbackFunc(fallback, convertType));
 		}
 
-		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorDelegate invokeFallbackPolicyParams, Func<Task<T>> fallbackAsync, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorDelegate invokeFallbackPolicyParams, Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)(invokeFallbackPolicyParams ?? ErrorProcessorDelegate.Default()).ConfigurePolicy(new FallbackPolicy().WithAsyncFallbackFunc(fallbackAsync, convertType));
 		}
@@ -21,12 +21,12 @@ namespace PoliNorError
 			return (FallbackPolicy)(invokeFallbackPolicyParams ?? ErrorProcessorDelegate.Default()).ConfigurePolicy(new FallbackPolicy().WithAsyncFallbackFunc(fallbackAsync));
 		}
 
-		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorDelegate invokeFallbackPolicyParams, Func<Task> fallbackAsync, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorDelegate invokeFallbackPolicyParams, Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)(invokeFallbackPolicyParams ?? ErrorProcessorDelegate.Default()).ConfigurePolicy(new FallbackPolicy().WithAsyncFallbackFuncAndReturnSelf(fallbackAsync, convertType));
 		}
 
-		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorDelegate invokeFallbackPolicyParams, Action fallback, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorDelegate invokeFallbackPolicyParams, Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)(invokeFallbackPolicyParams ?? ErrorProcessorDelegate.Default()).ConfigurePolicy(new FallbackPolicy().WithFallbackActionAndReturnSelf(fallback, convertType));
 		}

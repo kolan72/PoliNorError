@@ -41,7 +41,7 @@ namespace PoliNorError
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc));
 		}
 
-		public static K WithFallbackInner<T, K>(this T t, Action fallback, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicyBase<K>
+		public static K WithFallbackInner<T, K>(this T t, Action fallback, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicyBase<K>
 		{
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToFallbackPolicy(fallback, convertType));
 		}
@@ -51,7 +51,7 @@ namespace PoliNorError
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToFallbackPolicy(fallback));
 		}
 
-		public static K WithFallbackInner<T, K, U>(this T t, Func<U> fallbackAsync, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicyBase<K>
+		public static K WithFallbackInner<T, K, U>(this T t, Func<U> fallbackAsync, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicyBase<K>
 		{
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
 		}
@@ -61,7 +61,7 @@ namespace PoliNorError
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToFallbackPolicy(fallbackAsync));
 		}
 
-		public static K WithFallbackInner<T, K>(this T t, Func<Task> fallbackAsync, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicyBase<K>
+		public static K WithFallbackInner<T, K>(this T t, Func<Task> fallbackAsync, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicyBase<K>
 		{
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
 		}
@@ -71,7 +71,7 @@ namespace PoliNorError
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToFallbackPolicy(fallbackAsync));
 		}
 
-		public static K WithFallbackInner<T, K, U>(this T t, Func<Task<U>> fallbackAsync, ErrorProcessorDelegate policyParams = null, ConvertToCancelableFuncType convertType = ConvertToCancelableFuncType.Precancelable) where T : IWithPolicyBase<K>
+		public static K WithFallbackInner<T, K, U>(this T t, Func<Task<U>> fallbackAsync, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicyBase<K>
 		{
 			return t.ToWithPolicyFunc<T, K>()(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
 		}

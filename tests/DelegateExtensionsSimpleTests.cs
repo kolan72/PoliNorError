@@ -39,7 +39,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-            action.InvokeWithSimple(ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+            action.InvokeWithSimple(ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
@@ -73,7 +73,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-            func.InvokeWithSimple(ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+            func.InvokeWithSimple(ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
@@ -109,7 +109,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-            await fnAsync.InvokeWithSimpleAsync(ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+            await fnAsync.InvokeWithSimpleAsync(ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
@@ -149,7 +149,7 @@ namespace PoliNorError.Tests
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-            await fn.InvokeWithSimpleAsync(ErrorProcessorDelegate.From(beforeProcessErrorAsync, ConvertToCancelableFuncType.Cancelable));
+            await fn.InvokeWithSimpleAsync(ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
