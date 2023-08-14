@@ -75,6 +75,7 @@
     <Compile Include="DelegateExtensionsTFallbackTests.cs" />
     <Compile Include="DelegateExtensionsTRetryTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />
+    <Compile Include="ErrorProcessorFromActionRunnerTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="FallBackFuncHoldersTests.cs" />
     <Compile Include="FallbackPolicyTests.cs" />
