@@ -64,6 +64,11 @@ namespace PoliNorError
 			return (ex, ct) => Task.Run(() => action(ex), ct).Wait(ct);
 		}
 
+		public static Action<T, K, CancellationToken> ToCancelableAction<T, K>(this Action<T, K> action)
+		{
+			return (ex, k, ct) => Task.Run(() => action(ex, k), ct).Wait(ct);
+		}
+
 		public static Action<CancellationToken> ToCancelableAction(this Action action)
 		{
 			return (ct) => Task.Run(action, ct).Wait(ct);
@@ -77,6 +82,11 @@ namespace PoliNorError
 				return action.ToCancelableAction();
 		}
 
+		public static Action<T, K, CancellationToken> ToCancelableAction<T, K>(this Func<T, K, Task> func)
+		{
+			return (e, k, ct) => func(e, k).Wait(ct);
+		}
+
 		public static Action<T, CancellationToken> ToPrecancelableAction<T>(this Action<T> action)
 		{
 			return (e, ct) =>
@@ -84,6 +94,26 @@ namespace PoliNorError
 				if (ct.IsCancellationRequested)
 					return;
 				action(e);
+			};
+		}
+
+		public static Action<T, K, CancellationToken> ToPrecancelableAction<T, K>(this Action<T, K> action)
+		{
+			return (e, k, ct) =>
+			{
+				if (ct.IsCancellationRequested)
+					return;
+				action(e, k);
+			};
+		}
+
+		public static Action<T, K, CancellationToken> ToPrecancelableAction<T, K>(this Func<T, K, Task> func)
+		{
+			return (e, k, ct) =>
+			{
+				if (ct.IsCancellationRequested)
+					return;
+				func(e, k).Wait();
 			};
 		}
 
@@ -105,6 +135,11 @@ namespace PoliNorError
 		public static Func<T, CancellationToken, Task> ToCancelableFunc<T>(this Func<T, Task> fnTask)
 		{
 			return (t, ct) => fnTask(t).WithCancellation(ct);
+		}
+
+		public static Func<T, K, CancellationToken, Task> ToCancelableFunc<T, K>(this Func<T, K, Task> fnTask)
+		{
+			return (t, k, ct) => fnTask(t,k).WithCancellation(ct);
 		}
 
 		public static Func<CancellationToken, Task> ToCancelableFunc(this Func<Task> fallbackAsync, CancellationType convertType)
@@ -148,6 +183,18 @@ namespace PoliNorError
 					return;
 				}
 				await fnTask();
+			};
+		}
+
+		public static Func<T, K, CancellationToken, Task> ToPrecancelableFunc<T, K>(this Func<T, K, Task> fnTask)
+		{
+			return async (t, k, ct) =>
+			{
+				if (ct.IsCancellationRequested)
+				{
+					return;
+				}
+				await fnTask(t, k);
 			};
 		}
 
