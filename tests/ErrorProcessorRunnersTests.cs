@@ -1,14 +1,11 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
-	public class ErrorProcessorFromActionRunnerTests
+	public class ErrorProcessorRunnersTests
 	{
 		[Test]
 		[TestCase(true)]
@@ -56,9 +53,14 @@ namespace PoliNorError.Tests
 			var cancelSource = new CancellationTokenSource();
 
 			var cancelableRunner = new ErrorProcessorFromSyncRunner<Unit>(act, CancellationType.Cancelable);
+
 			var resAsyncWithCancelTokenCancelable = await cancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
 			Assert.AreEqual(ErrorProcessorRunResul.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
 			Assert.AreEqual(1, i);
+
+			var resSyncWithCancelTokenCancelable = cancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
+			Assert.AreEqual(ErrorProcessorRunResul.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
+			Assert.AreEqual(2, i);
 
 			cancelSource.Dispose();
 		}
