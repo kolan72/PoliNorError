@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal class ErrorProcessorFromSyncRunner<T>
+	internal class ErrorProcessorFromSyncRunner<T> : IErrorProcessorRunner<T>
 	{
 		private readonly Action<Exception, T> _notCancelableAction;
 		private readonly Action<Exception, T, CancellationToken> _cancelableAction;

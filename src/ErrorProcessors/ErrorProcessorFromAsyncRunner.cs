@@ -2,9 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PoliNorError.ErrorProcessors
+namespace PoliNorError
 {
-	internal class ErrorProcessorFromAsyncRunner<T>
+	internal class ErrorProcessorFromAsyncRunner<T> : IErrorProcessorRunner<T>
 	{
 		private readonly Func<Exception, T, Task> _notCancelableFunc;
 		private readonly Func<Exception, T, CancellationToken, Task> _cancelableFunc;
