@@ -55,31 +55,69 @@ namespace PoliNorError
 			return new PolicyDelegate<T>(errorPolicy);
 		}
 
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> func, CancellationType convertType = CancellationType.Precancelable) where T : IPolicyBase
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception> actionProcessor) where T : IPolicyBase
 		{
-			return WithErrorProcessorOf(errorPolicyBase, func.ToCancelableFunc(convertType));
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(actionProcessor);
+			return errorPolicyBase;
 		}
 
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception> action, CancellationType convertType = CancellationType.Precancelable) where T : IPolicyBase
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception, CancellationToken> actionProcessor) where T : IPolicyBase
 		{
-			return WithErrorProcessorOf(errorPolicyBase, action.ToCancelableAction(convertType));
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(actionProcessor);
+			return errorPolicyBase;
 		}
 
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception, CancellationToken> onBeforeProcessError) where T : IPolicyBase => WithErrorProcessorOf(errorPolicyBase, onBeforeProcessError, null);
-
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyBase => WithErrorProcessorOf(errorPolicyBase, null, onBeforeProcessErrorAsync);
-
-		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) where T : IPolicyBase
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Action<Exception> actionProcessor, CancellationType cancellationType) where T : IPolicyBase
 		{
-			return WithErrorProcessor(errorPolicyBase, new DefaultErrorProcessor(onBeforeProcessError, onBeforeProcessErrorAsync));
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(actionProcessor, cancellationType);
+			return errorPolicyBase;
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> funcProcessor) where T : IPolicyBase
+		{
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(funcProcessor);
+			return errorPolicyBase;
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> funcProcessor, CancellationType convertToCancelableFuncType) where T : IPolicyBase
+		{
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(funcProcessor, convertToCancelableFuncType);
+			return errorPolicyBase;
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, CancellationToken, Task> funcProcessor) where T : IPolicyBase
+		{
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(funcProcessor);
+			return errorPolicyBase;
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor) where T : IPolicyBase
+		{
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor);
+			return errorPolicyBase;
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType convertToCancelableFuncType) where T : IPolicyBase
+		{
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, convertToCancelableFuncType);
+			return errorPolicyBase;
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor) where T : IPolicyBase
+		{
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor);
+			return errorPolicyBase;
+		}
+
+		public static T WithErrorProcessorOf<T>(this T errorPolicyBase, Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType convertToCancelableFuncType) where T : IPolicyBase
+		{
+			errorPolicyBase.PolicyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, convertToCancelableFuncType);
+			return errorPolicyBase;
 		}
 
 		public static T WithErrorProcessor<T>(this T errorPolicyBase, IErrorProcessor errorProcessor) where T : IPolicyBase
 		{
-			if (errorProcessor == null)
-				throw new ArgumentNullException(nameof(errorProcessor));
-
-			errorPolicyBase.PolicyProcessor.AddErrorProcessor(errorProcessor);
+			errorPolicyBase.PolicyProcessor.WithErrorProcessor(errorProcessor);
 			return errorPolicyBase;
 		}
 

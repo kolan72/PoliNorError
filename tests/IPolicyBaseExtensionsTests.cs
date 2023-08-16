@@ -23,7 +23,7 @@ namespace PoliNorError.Tests
 		{
 			void act(Exception _, CancellationToken __) => Expression.Empty();
 			var pol = new RetryPolicy(1).WithErrorProcessorOf(act);
-			Assert.AreEqual(typeof(DefaultErrorProcessor), pol.PolicyProcessor.FirstOrDefault()?.GetType());
+			Assert.AreEqual(typeof(DefaultErrorProcessorV2), pol.PolicyProcessor.FirstOrDefault()?.GetType());
 		}
 	}
 }
