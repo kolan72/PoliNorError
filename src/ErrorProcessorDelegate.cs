@@ -8,29 +8,36 @@ namespace PoliNorError
 	{
 		public static ErrorProcessorDelegate Default() => new ErrorProcessorDelegate();
 
-		public static ErrorProcessorDelegate From(Action<Exception> onBeforeProcessError, CancellationType convertType = CancellationType.Precancelable)
+		public static ErrorProcessorDelegate From(Action<Exception> funcProcessor, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return new ErrorProcessorDelegate() { _configureFunc = _action1(onBeforeProcessError, convertType) };
+			return new ErrorProcessorDelegate() { _configureFunc = _action1(funcProcessor, convertType) };
 		}
 
-		public static ErrorProcessorDelegate From(Action<Exception, CancellationToken> onBeforeProcessError)
+		public static ErrorProcessorDelegate From(Action<Exception, CancellationToken> funcProcessor)
 		{
-			return new ErrorProcessorDelegate() { _configureFunc = _action2(onBeforeProcessError) };
+			return new ErrorProcessorDelegate() { _configureFunc = _action2(funcProcessor) };
 		}
 
-		public static ErrorProcessorDelegate From(Func<Exception, Task> onBeforeProcessErrorAsync, CancellationType convertType = CancellationType.Precancelable)
+		public static ErrorProcessorDelegate From(Func<Exception, Task> funcProcessorAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return new ErrorProcessorDelegate() { _configureFunc = _func1(onBeforeProcessErrorAsync, convertType) };
+			return new ErrorProcessorDelegate() { _configureFunc = _func1(funcProcessorAsync, convertType) };
 		}
 
-		public static ErrorProcessorDelegate From(Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync)
+		public static ErrorProcessorDelegate From(Func<Exception, CancellationToken, Task> funcProcessorAsync)
 		{
-			return new ErrorProcessorDelegate() { _configureFunc = _func2(onBeforeProcessErrorAsync) };
+			return new ErrorProcessorDelegate() { _configureFunc = _func2(funcProcessorAsync) };
 		}
 
-		public static implicit operator ErrorProcessorDelegate(Action<Exception, CancellationToken> onBeforeProcessError) => From(onBeforeProcessError);
+		public static ErrorProcessorDelegate From(IErrorProcessor errorProcessor)
+		{
+			return new ErrorProcessorDelegate() { _configureFunc = _funcErrorProcessor(errorProcessor) };
+		}
 
-		public static implicit operator ErrorProcessorDelegate(Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) => From(onBeforeProcessErrorAsync);
+		public static implicit operator ErrorProcessorDelegate(Action<Exception, CancellationToken> funcProcessor) => From(funcProcessor);
+
+		public static implicit operator ErrorProcessorDelegate(Func<Exception, CancellationToken, Task> funcProcessorAsync) => From(funcProcessorAsync);
+
+		public static implicit operator ErrorProcessorDelegate(DefaultErrorProcessor errorProcessor) => From(errorProcessor);
 
 		private Func<IPolicyBase, IPolicyBase> _configureFunc = fb => fb;
 
@@ -38,6 +45,8 @@ namespace PoliNorError
 		private readonly static Func<Action<Exception, CancellationToken>, Func<IPolicyBase, IPolicyBase>> _action2 = (onBPE) => (fb) => fb.WithErrorProcessorOf(onBPE);
 		private readonly static Func<Func<Exception, Task>, CancellationType, Func<IPolicyBase, IPolicyBase>> _func1 = (onBPE, convertType) => fb => fb.WithErrorProcessorOf(onBPE, convertType);
 		private readonly static Func<Func<Exception, CancellationToken, Task>, Func<IPolicyBase, IPolicyBase>> _func2 = (onBPE) => (fb) => fb.WithErrorProcessorOf(onBPE);
+
+		private readonly static Func<IErrorProcessor, Func<IPolicyBase, IPolicyBase>> _funcErrorProcessor = (onBPE) => (fb) => fb.WithErrorProcessor(onBPE);
 
 		internal IPolicyBase ConfigurePolicy(IPolicyBase fallbackPolicy)
 		{

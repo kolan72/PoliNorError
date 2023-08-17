@@ -159,5 +159,19 @@ namespace PoliNorError.Tests
 
             Assert.AreEqual(5, i);
         }
+
+        [Test]
+        public void Should_Invoke_Work_When_Called_From_ErrorProcessor()
+        {
+            int i = 0;
+            Func<int> func = () => { i++; throw new Exception(); };
+
+            int i1 = 0;
+            var res = func.InvokeWithSimple(new DefaultErrorProcessor((_, __) => ++i1));
+
+            Assert.AreEqual(1, i1);
+            Assert.AreEqual(1, i);
+            Assert.IsTrue(res.Errors.Count() == 1);
+        }
     }
 }
