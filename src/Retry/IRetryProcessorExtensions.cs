@@ -78,22 +78,22 @@ namespace PoliNorError
 
 		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Action<Exception, CancellationToken> saveError)
 		{
-			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessor(saveError));
+			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessorV2(saveError));
 		}
 
 		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> saveErrorAsync)
 		{
-			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessor(saveErrorAsync));
+			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessorV2(saveErrorAsync));
 		}
 
 		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> saveErrorAsync, Action<Exception> saveError, CancellationType convertToCancelableFuncType = CancellationType.Precancelable)
 		{
-			return UseCustomErrorSaverOf(retryProcessor, saveErrorAsync, saveError.ToCancelableAction(convertToCancelableFuncType));
+			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessorV2(saveErrorAsync, saveError, convertToCancelableFuncType));
 		}
 
-		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, CancellationToken, Task> saveErrorAsync, Action<Exception, CancellationToken> saveError)
+		public static IRetryProcessor UseCustomErrorSaverOf(this IRetryProcessor retryProcessor, Func<Exception, Task> saveErrorAsync, Action<Exception> saveError)
 		{
-			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessor(saveError, saveErrorAsync));
+			return retryProcessor.UseCustomErrorSaver(new DefaultErrorProcessorV2(saveErrorAsync, saveError));
 		}
 	}
 }

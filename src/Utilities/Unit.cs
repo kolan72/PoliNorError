@@ -1,6 +1,6 @@
 ﻿namespace PoliNorError
 {
-	internal readonly struct Unit
+	public readonly struct Unit
 	{
 		public static readonly Unit Default = new Unit();
 	}

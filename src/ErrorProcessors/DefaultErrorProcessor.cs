@@ -4,15 +4,16 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	[Obsolete("Replaced to new class")]
 	public class DefaultErrorProcessor : IErrorProcessor
 	{
 		private readonly ExceptionDelegatesHelper _exceptionDelegatesHelper;
 
-		public DefaultErrorProcessor() : this(null, null){}
+		public DefaultErrorProcessor() : this(null, null) { }
 
-		public DefaultErrorProcessor(Action<Exception, CancellationToken> onBeforeProcessError) : this(onBeforeProcessError, null){}
+		public DefaultErrorProcessor(Action<Exception, CancellationToken> onBeforeProcessError) : this(onBeforeProcessError, null) { }
 
-		public DefaultErrorProcessor(Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) : this(null, onBeforeProcessErrorAsync){}
+		public DefaultErrorProcessor(Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) : this(null, onBeforeProcessErrorAsync) { }
 
 		public DefaultErrorProcessor(Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) => _exceptionDelegatesHelper = new ExceptionDelegatesHelper(onBeforeProcessError, onBeforeProcessErrorAsync);
 

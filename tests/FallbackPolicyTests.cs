@@ -256,21 +256,21 @@ namespace PoliNorError.Tests
 		public void Should_WithErrorProcessors_Add_ErrorProcessors()
 		{
 			var fallBack = new FallbackPolicy();
-			var fp = fallBack.WithErrorProcessor(new DefaultErrorProcessor())
-							 .WithErrorProcessor(new DefaultErrorProcessor())
-							 .WithErrorProcessor(new DefaultErrorProcessor());
+			var fp = fallBack.WithErrorProcessor(new DefaultErrorProcessorV2())
+							 .WithErrorProcessor(new DefaultErrorProcessorV2())
+							 .WithErrorProcessor(new DefaultErrorProcessorV2());
 			Assert.AreEqual(3, fp.PolicyProcessor.Count());
 
 			var fallBackWithAsync = fallBack.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
-			fallBackWithAsync.WithErrorProcessor(new DefaultErrorProcessor())
-							 .WithErrorProcessor(new DefaultErrorProcessor())
-							 .WithErrorProcessor(new DefaultErrorProcessor());
+			fallBackWithAsync.WithErrorProcessor(new DefaultErrorProcessorV2())
+							 .WithErrorProcessor(new DefaultErrorProcessorV2())
+							 .WithErrorProcessor(new DefaultErrorProcessorV2());
 			Assert.AreEqual(6, fp.PolicyProcessor.Count());
 
 			var fallBackFull = fallBackWithAsync.WithFallbackAction((_) => { });
-			fallBackFull.WithErrorProcessor(new DefaultErrorProcessor())
-							 .WithErrorProcessor(new DefaultErrorProcessor())
-							 .WithErrorProcessor(new DefaultErrorProcessor());
+			fallBackFull.WithErrorProcessor(new DefaultErrorProcessorV2())
+							 .WithErrorProcessor(new DefaultErrorProcessorV2())
+							 .WithErrorProcessor(new DefaultErrorProcessorV2());
 			Assert.AreEqual(9, fp.PolicyProcessor.Count());
 		}
 

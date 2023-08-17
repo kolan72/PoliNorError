@@ -30,7 +30,7 @@ namespace PoliNorError
 			return policy;
 		}
 
-		public static RetryPolicy UseCustomErrorSaverOf(this RetryPolicy policy, Func<Exception, CancellationToken, Task> saveErrorAsync, Action<Exception, CancellationToken> saveError)
+		public static RetryPolicy UseCustomErrorSaverOf(this RetryPolicy policy, Func<Exception, Task> saveErrorAsync, Action<Exception> saveError)
 		{
 			policy.RetryProcessor.UseCustomErrorSaverOf(saveErrorAsync, saveError);
 			return policy;

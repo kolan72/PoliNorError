@@ -52,7 +52,7 @@ namespace PoliNorError.Tests
 		{
 			var throwingExc = new ApplicationException();
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
-			bulkProcessor.AddProcessor(new DefaultErrorProcessor((_, __) => throw new Exception("Test")));
+			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2((_, __) => throw new Exception("Test")));
 
 			var processor = RetryProcessor.CreateDefault(bulkProcessor);
 			PolicyResult tryResCount = null;
@@ -82,8 +82,8 @@ namespace PoliNorError.Tests
 
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 
-			bulkProcessor.AddProcessor(new DefaultErrorProcessor((_, __) => cancelSource.Cancel()));
-			bulkProcessor.AddProcessor(new DefaultErrorProcessor((_, __) => { }));
+			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2((_, __) => cancelSource.Cancel()));
+			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2((_, __) => { }));
 
 			var processor = new DefaultRetryProcessor(bulkProcessor);
 

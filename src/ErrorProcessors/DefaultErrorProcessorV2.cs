@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal class DefaultErrorProcessorV2 : ErrorProcessorBase<Unit>
+	public class DefaultErrorProcessorV2 : ErrorProcessorBase<Unit>
 	{
 		internal DefaultErrorProcessorV2()
 		{

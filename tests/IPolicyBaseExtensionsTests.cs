@@ -12,9 +12,9 @@ namespace PoliNorError.Tests
 		public void Should_WithErrorProcessors_Add_ErrorProcessors()
 		{
 			var pol = new RetryPolicy(1)
-						.WithErrorProcessor(new DefaultErrorProcessor())
-						.WithErrorProcessor(new DefaultErrorProcessor())
-						.WithErrorProcessor(new DefaultErrorProcessor());
+						.WithErrorProcessor(new DefaultErrorProcessorV2())
+						.WithErrorProcessor(new DefaultErrorProcessorV2())
+						.WithErrorProcessor(new DefaultErrorProcessorV2());
 			Assert.AreEqual(3, ((DefaultRetryProcessor)pol.PolicyProcessor).Count());
 		}
 

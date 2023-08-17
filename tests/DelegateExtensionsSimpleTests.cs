@@ -167,7 +167,7 @@ namespace PoliNorError.Tests
             Func<int> func = () => { i++; throw new Exception(); };
 
             int i1 = 0;
-            var res = func.InvokeWithSimple(new DefaultErrorProcessor((_, __) => ++i1));
+            var res = func.InvokeWithSimple(new DefaultErrorProcessorV2((_, __) => ++i1));
 
             Assert.AreEqual(1, i1);
             Assert.AreEqual(1, i);
