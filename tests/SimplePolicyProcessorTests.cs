@@ -153,7 +153,7 @@ namespace PoliNorError.Tests
 		{
 			var cancelTokenSource = new CancellationTokenSource();
 			var processor = SimplePolicyProcessor.CreateDefault();
-			var res =  processor.WithErrorProcessorOf((_, __) => cancelTokenSource.Cancel())
+			var res =  processor.WithErrorProcessorOf((Exception _, CancellationToken __) => cancelTokenSource.Cancel())
 					 .Execute(() => throw new Exception(), cancelTokenSource.Token);
 			Assert.IsTrue(res.IsFailed);
 			Assert.IsTrue(res.IsCanceled);

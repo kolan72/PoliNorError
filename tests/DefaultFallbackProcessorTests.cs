@@ -76,7 +76,7 @@ namespace PoliNorError.Tests
 			int fallback(CancellationToken _) { i++; return i; }
 
 			var res = processor
-							.WithErrorProcessorOf((_, __) => {p++; cancelTokenSource.Cancel();})
+							.WithErrorProcessorOf((Exception _, CancellationToken __) => {p++; cancelTokenSource.Cancel();})
 							.Fallback(() => throw new Exception(), fallback, cancelTokenSource.Token);
 
 			Assert.IsTrue(res.IsFailed);
