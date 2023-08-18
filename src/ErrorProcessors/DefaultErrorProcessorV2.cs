@@ -6,10 +6,7 @@ namespace PoliNorError
 {
 	public class DefaultErrorProcessorV2 : ErrorProcessorBase<Unit>
 	{
-		internal DefaultErrorProcessorV2()
-		{
-			_noRunners = true;
-		}
+		internal DefaultErrorProcessorV2(){}
 
 		public DefaultErrorProcessorV2(Action<Exception> actionProcessor)
 		{
