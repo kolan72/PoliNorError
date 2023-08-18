@@ -39,6 +39,8 @@ namespace PoliNorError
 
 		public static implicit operator ErrorProcessorDelegate(BasicErrorProcessor errorProcessor) => From(errorProcessor);
 
+		public static implicit operator ErrorProcessorDelegate(DefaultErrorProcessor errorProcessor) => From(errorProcessor);
+
 		private Func<IPolicyBase, IPolicyBase> _configureFunc = fb => fb;
 
 		private readonly static Func<Action<Exception>, CancellationType, Func<IPolicyBase, IPolicyBase>> _action1 = (onBPE, convertType) => (fb) => fb.WithErrorProcessorOf(onBPE, convertType);
