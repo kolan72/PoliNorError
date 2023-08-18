@@ -177,7 +177,7 @@ namespace PoliNorError.Tests
 		{
 			var throwingExc = new ApplicationException();
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
-			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2((_, __) => throw new Exception("Test")));
+			bulkProcessor.AddProcessor(new BasicErrorProcessor((_, __) => throw new Exception("Test")));
 
 			var processor = RetryProcessor.CreateDefault(bulkProcessor);
 			PolicyResult tryResCount = null;
@@ -207,8 +207,8 @@ namespace PoliNorError.Tests
 
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 
-			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2((_, __) => cancelSource.Cancel()));
-			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2((_, __) => { }));
+			bulkProcessor.AddProcessor(new BasicErrorProcessor((_, __) => cancelSource.Cancel()));
+			bulkProcessor.AddProcessor(new BasicErrorProcessor((_, __) => { }));
 
 			var processor = new DefaultRetryProcessor(bulkProcessor);
 
@@ -238,7 +238,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_UseCustomErrorSaver_Work_When_No_Save_Error()
 		{
-			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new DefaultErrorProcessorV2((_, __) => { }));
+			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new BasicErrorProcessor((_, __) => { }));
 			int i = 0;
 			var res = processor.Retry(() => { i++; throw new Exception("Test"); }, 2);
 			Assert.AreEqual(3, i);
@@ -276,7 +276,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_UseCustomErrorSaver_Work_When_Has_Save_Error()
 		{
-			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new DefaultErrorProcessorV2((_, __) => throw new Exception("Saver exception")));
+			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaver(new BasicErrorProcessor((_, __) => throw new Exception("Saver exception")));
 			int i = 0;
 			var res = processor.Retry(() => { i++; throw new Exception("Test"); }, 2);
 			Assert.AreEqual(3, i);

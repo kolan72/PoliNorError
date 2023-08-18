@@ -37,7 +37,7 @@ namespace PoliNorError
 
 		public static implicit operator ErrorProcessorDelegate(Func<Exception, CancellationToken, Task> funcProcessorAsync) => From(funcProcessorAsync);
 
-		public static implicit operator ErrorProcessorDelegate(DefaultErrorProcessorV2 errorProcessor) => From(errorProcessor);
+		public static implicit operator ErrorProcessorDelegate(BasicErrorProcessor errorProcessor) => From(errorProcessor);
 
 		private Func<IPolicyBase, IPolicyBase> _configureFunc = fb => fb;
 

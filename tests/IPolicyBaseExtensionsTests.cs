@@ -12,9 +12,9 @@ namespace PoliNorError.Tests
 		public void Should_WithErrorProcessors_Add_ErrorProcessors()
 		{
 			var pol = new RetryPolicy(1)
-						.WithErrorProcessor(new DefaultErrorProcessorV2())
-						.WithErrorProcessor(new DefaultErrorProcessorV2())
-						.WithErrorProcessor(new DefaultErrorProcessorV2());
+						.WithErrorProcessor(new BasicErrorProcessor())
+						.WithErrorProcessor(new BasicErrorProcessor())
+						.WithErrorProcessor(new BasicErrorProcessor());
 			Assert.AreEqual(3, ((DefaultRetryProcessor)pol.PolicyProcessor).Count());
 		}
 
@@ -23,7 +23,7 @@ namespace PoliNorError.Tests
 		{
 			void act(Exception _, CancellationToken __) => Expression.Empty();
 			var pol = new RetryPolicy(1).WithErrorProcessorOf(act);
-			Assert.AreEqual(typeof(DefaultErrorProcessorV2), pol.PolicyProcessor.FirstOrDefault()?.GetType());
+			Assert.AreEqual(typeof(BasicErrorProcessor), pol.PolicyProcessor.FirstOrDefault()?.GetType());
 		}
 	}
 }

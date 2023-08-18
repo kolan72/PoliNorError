@@ -8,34 +8,34 @@ namespace PoliNorError
 	public static class IPolicyProcessorExtensions
 	{
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception> actionProcessor) where T : IPolicyProcessor
-						=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(actionProcessor));
+						=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(actionProcessor));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, CancellationToken> actionProcessor) where T : IPolicyProcessor
-						=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(actionProcessor));
+						=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(actionProcessor));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(actionProcessor, cancellationType));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(actionProcessor, cancellationType));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(funcProcessor));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(funcProcessor, cancellationType));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, cancellationType));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> funcProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(funcProcessor));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(funcProcessor, actionProcessor));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(funcProcessor, actionProcessor, cancellationType));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor, cancellationType));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(funcProcessor, actionProcessor));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor));
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessorV2(funcProcessor, actionProcessor, cancellationType));
+					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor, cancellationType));
 
 		public static T WithErrorProcessor<T>(this T policyProcessor, IErrorProcessor errorProcessor) where T : IPolicyProcessor
 		{

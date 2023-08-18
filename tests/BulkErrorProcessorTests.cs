@@ -87,7 +87,7 @@ namespace PoliNorError.Tests
 			cancelTokenSource.CancelAfter(500);
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
 			bulkProcessor.AddProcessor(delayProcessor);
-			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2());
+			bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
 			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
 			Assert.IsTrue(res.ProcessErrors.Count() == 1);
@@ -103,7 +103,7 @@ namespace PoliNorError.Tests
 			cancelTokenSource.CancelAfter(500);
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
 			bulkProcessor.AddProcessor(delayProcessor);
-			bulkProcessor.AddProcessor(new DefaultErrorProcessorV2());
+			bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
 			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
 			Assert.IsTrue(res.ProcessErrors.Count() == 1);

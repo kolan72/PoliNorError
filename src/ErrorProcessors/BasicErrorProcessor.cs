@@ -4,59 +4,59 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public class DefaultErrorProcessorV2 : ErrorProcessorBase<Unit>
+	public class BasicErrorProcessor : ErrorProcessorBase<Unit>
 	{
-		internal DefaultErrorProcessorV2(){}
+		internal BasicErrorProcessor(){}
 
-		public DefaultErrorProcessorV2(Action<Exception> actionProcessor)
+		public BasicErrorProcessor(Action<Exception> actionProcessor)
 		{
 			SetSyncRunner((Exception exc, Unit _) => actionProcessor(exc));
 		}
 
-		public DefaultErrorProcessorV2(Action<Exception, CancellationToken> actionProcessor)
+		public BasicErrorProcessor(Action<Exception, CancellationToken> actionProcessor)
 		{
 			SetSyncRunner((Exception exc, Unit _, CancellationToken ct) => actionProcessor(exc, ct));
 		}
 
-		public DefaultErrorProcessorV2(Action<Exception> actionProcessor, CancellationType actionCancellationType)
+		public BasicErrorProcessor(Action<Exception> actionProcessor, CancellationType actionCancellationType)
 		{
 			SetSyncRunner((Exception exc, Unit _) => actionProcessor(exc), actionCancellationType);
 		}
 
-		public DefaultErrorProcessorV2(Func<Exception, Task> funcProcessor)
+		public BasicErrorProcessor(Func<Exception, Task> funcProcessor)
 		{
 			SetAsyncRunner((Exception exc, Unit _) => funcProcessor(exc));
 		}
 
-		public DefaultErrorProcessorV2(Func<Exception, CancellationToken, Task> funcProcessor)
+		public BasicErrorProcessor(Func<Exception, CancellationToken, Task> funcProcessor)
 		{
 			SetAsyncRunner((Exception exc, Unit _, CancellationToken ct) => funcProcessor(exc, ct));
 		}
 
-		public DefaultErrorProcessorV2(Func<Exception, Task> funcProcessor, CancellationType funcCancellationType)
+		public BasicErrorProcessor(Func<Exception, Task> funcProcessor, CancellationType funcCancellationType)
 		{
 			SetAsyncRunner((Exception exc, Unit _) => funcProcessor(exc), funcCancellationType );
 		}
 
-		public DefaultErrorProcessorV2(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor)
+		public BasicErrorProcessor(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor)
 		{
 			SetAsyncRunner((Exception exc, Unit _, CancellationToken ct) => funcProcessor(exc, ct));
 			SetSyncRunner((Exception exc, Unit _) => actionProcessor(exc));
 		}
 
-		public DefaultErrorProcessorV2(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType actionCancellationType)
+		public BasicErrorProcessor(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType actionCancellationType)
 		{
 			SetAsyncRunner((Exception exc, Unit _, CancellationToken ct) => funcProcessor(exc, ct));
 			SetSyncRunner((Exception exc, Unit _) => actionProcessor(exc), actionCancellationType);
 		}
 
-		public DefaultErrorProcessorV2(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor)
+		public BasicErrorProcessor(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor)
 		{
 			SetAsyncRunner((Exception exc, Unit _) => funcProcessor(exc));
 			SetSyncRunner((Exception exc, Unit _) => actionProcessor(exc));
 		}
 
-		public DefaultErrorProcessorV2(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType funcAndActionCancellationType)
+		public BasicErrorProcessor(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType funcAndActionCancellationType)
 		{
 			SetAsyncRunner((Exception exc, Unit _) => funcProcessor(exc), funcAndActionCancellationType);
 			SetSyncRunner((Exception exc, Unit _) => actionProcessor(exc), funcAndActionCancellationType);
