@@ -4,29 +4,66 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	[Obsolete("Replaced to new class")]
-	public class DefaultErrorProcessor : IErrorProcessor
+	public class DefaultErrorProcessor : ErrorProcessorBase<ProcessingErrorInfo>
 	{
-		private readonly ExceptionDelegatesHelper _exceptionDelegatesHelper;
-
-		public DefaultErrorProcessor() : this(null, null) { }
-
-		public DefaultErrorProcessor(Action<Exception, CancellationToken> onBeforeProcessError) : this(onBeforeProcessError, null) { }
-
-		public DefaultErrorProcessor(Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) : this(null, onBeforeProcessErrorAsync) { }
-
-		public DefaultErrorProcessor(Action<Exception, CancellationToken> onBeforeProcessError, Func<Exception, CancellationToken, Task> onBeforeProcessErrorAsync) => _exceptionDelegatesHelper = new ExceptionDelegatesHelper(onBeforeProcessError, onBeforeProcessErrorAsync);
-
-		public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+		internal DefaultErrorProcessor()
 		{
-			_exceptionDelegatesHelper.Delegate(error, cancellationToken);
-			return error;
 		}
 
-		public async Task<Exception> ProcessAsync(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
+		public DefaultErrorProcessor(Action<Exception, ProcessingErrorInfo> actionProcessor)
 		{
-			await _exceptionDelegatesHelper.DelegateAsync(error, cancellationToken, configAwait).ConfigureAwait(configAwait);
-			return error;
+			SetSyncRunner(actionProcessor);
 		}
+
+		public DefaultErrorProcessor(Action<Exception, ProcessingErrorInfo, CancellationToken> actionProcessor)
+		{
+			SetSyncRunner(actionProcessor);
+		}
+
+		public DefaultErrorProcessor(Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType actionCancellationType)
+		{
+			SetSyncRunner(actionProcessor, actionCancellationType);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo, Task> funcProcessor)
+		{
+			SetAsyncRunner(funcProcessor);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor)
+		{
+			SetAsyncRunner(funcProcessor);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, CancellationType funcCancellationType)
+		{
+			SetAsyncRunner(funcProcessor, funcCancellationType);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			SetAsyncRunner(funcProcessor);
+			SetSyncRunner(actionProcessor);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType actionCancellationType)
+		{
+			SetAsyncRunner(funcProcessor);
+			SetSyncRunner(actionProcessor, actionCancellationType);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			SetAsyncRunner(funcProcessor);
+			SetSyncRunner(actionProcessor);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType funcAndActionCancellationType)
+		{
+			SetAsyncRunner(funcProcessor, funcAndActionCancellationType);
+			SetSyncRunner(actionProcessor, funcAndActionCancellationType);
+		}
+
+		protected override Func<ProcessingErrorInfo, ProcessingErrorInfo> ParameterConverter => (_) => _;
 	}
 }
