@@ -21,11 +21,11 @@ namespace PoliNorError.Tests
 			if (!withToken)
 			{
 				var resAsyncWithNoCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableActionNoToken, resAsyncWithNoCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resAsyncWithNoCancelToken);
 				Assert.AreEqual(1, i);
 
 				var resSyncWithNoCancelToken = notCancelableRunner.Run(ex, Unit.Default);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableActionNoToken, resSyncWithNoCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resSyncWithNoCancelToken);
 				Assert.AreEqual(2, i);
 			}
 			else
@@ -33,11 +33,11 @@ namespace PoliNorError.Tests
 				var cancelSource = new CancellationTokenSource();
 
 				var resSyncWithCancelToken = notCancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableActionTokenExists, resSyncWithCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resSyncWithCancelToken);
 				Assert.AreEqual(1, i);
 
 				var resAsyncWithCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableActionTokenExists, resAsyncWithCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resAsyncWithCancelToken);
 				Assert.AreEqual(2, i);
 
 				cancelSource.Dispose();
@@ -55,13 +55,40 @@ namespace PoliNorError.Tests
 			var cancelableRunner = new ErrorProcessorFromSyncRunner<Unit>(act, CancellationType.Cancelable);
 
 			var resAsyncWithCancelTokenCancelable = await cancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResul.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
+			Assert.AreEqual(ErrorProcessorRunResult.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
 			Assert.AreEqual(1, i);
 
 			var resSyncWithCancelTokenCancelable = cancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResul.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
+			Assert.AreEqual(ErrorProcessorRunResult.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
 			Assert.AreEqual(2, i);
 
+			cancelSource.Dispose();
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ErrorProcessorFromSyncRunner_Ctor_With_Action_With_Token_Always_Processed_As_Action(bool aSync)
+		{
+			int i = 0;
+			void act(Exception _, Unit __, CancellationToken ___) => ++i;
+			var ex = new Exception();
+			var cancelSource = new CancellationTokenSource();
+			var cancelableRunner = new ErrorProcessorFromSyncRunner<Unit>(act);
+
+			const ErrorProcessorRunResult runResult = ErrorProcessorRunResult.CancelableActionTokenExists;
+			if (aSync)
+			{
+				var resAsyncWithCancelTokenCancelable = await cancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
+				Assert.AreEqual(runResult, resAsyncWithCancelTokenCancelable);
+			}
+			else
+			{
+				var resSyncWithCancelTokenCancelable = cancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
+				Assert.AreEqual(runResult, resSyncWithCancelTokenCancelable);
+			}
+
+			Assert.AreEqual(1, i);
 			cancelSource.Dispose();
 		}
 
@@ -79,11 +106,11 @@ namespace PoliNorError.Tests
 			if (!withToken)
 			{
 				var resAsyncWithNoCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableFuncNoToken, resAsyncWithNoCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableFuncNoToken, resAsyncWithNoCancelToken);
 				Assert.AreEqual(1, i);
 
 				var resSyncWithNoCancelToken = notCancelableRunner.Run(ex, Unit.Default);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableActionNoToken, resSyncWithNoCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resSyncWithNoCancelToken);
 				Assert.AreEqual(2, i);
 			}
 			else
@@ -91,11 +118,11 @@ namespace PoliNorError.Tests
 				var cancelSource = new CancellationTokenSource();
 
 				var resSyncWithCancelToken = notCancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableActionTokenExists, resSyncWithCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resSyncWithCancelToken);
 				Assert.AreEqual(1, i);
 
 				var resAsyncWithCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResul.NotCancelableFuncTokenExists, resAsyncWithCancelToken);
+				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableFuncTokenExists, resAsyncWithCancelToken);
 				Assert.AreEqual(2, i);
 
 				cancelSource.Dispose();
@@ -114,11 +141,11 @@ namespace PoliNorError.Tests
 			var cancelableRunner = new ErrorProcessorFromAsyncRunner<Unit>(act, CancellationType.Cancelable);
 
 			var resAsyncWithCancelTokenCancelable = await cancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResul.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
+			Assert.AreEqual(ErrorProcessorRunResult.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
 			Assert.AreEqual(1, i);
 
 			var resSyncWithCancelTokenCancelable = cancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResul.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
+			Assert.AreEqual(ErrorProcessorRunResult.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
 			Assert.AreEqual(2, i);
 
 			cancelSource.Dispose();

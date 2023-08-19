@@ -31,7 +31,7 @@ namespace PoliNorError
 			_cancelableAction = (ex, t, tok) => cancelableFunc(ex, t, tok).Wait(tok);
 		}
 
-		public ErrorProcessorRunResul Run(Exception error, T t, CancellationToken token = default)
+		public ErrorProcessorRunResult Run(Exception error, T t, CancellationToken token = default)
 		{
 			if (token == default)
 			{
@@ -43,19 +43,19 @@ namespace PoliNorError
 			}
 		}
 
-		public async Task<ErrorProcessorRunResul> RunAsync(Exception error, T t, bool configAwait = false, CancellationToken token = default)
+		public async Task<ErrorProcessorRunResult> RunAsync(Exception error, T t, bool configAwait = false, CancellationToken token = default)
 		{
 			if (token == default)
 			{
 				if (NotCancelableFuncExists)
 				{
 					await _notCancelableFunc(error, t).ConfigureAwait(configAwait);
-					return ErrorProcessorRunResul.NotCancelableFuncNoToken;
+					return ErrorProcessorRunResult.NotCancelableFuncNoToken;
 				}
 				else
 				{
 					await _cancelableFunc(error, t, default).ConfigureAwait(configAwait);
-					return ErrorProcessorRunResul.CancelableFuncNoToken;
+					return ErrorProcessorRunResult.CancelableFuncNoToken;
 				}
 			}
 			else
@@ -63,12 +63,12 @@ namespace PoliNorError
 				if (CancelableFuncExists)
 				{
 					await _cancelableFunc(error, t, token).ConfigureAwait(configAwait);
-					return ErrorProcessorRunResul.CancelableFuncTokenExists;
+					return ErrorProcessorRunResult.CancelableFuncTokenExists;
 				}
 				else
 				{
 					await _notCancelableFunc(error, t).ConfigureAwait(configAwait);
-					return ErrorProcessorRunResul.NotCancelableFuncTokenExists;
+					return ErrorProcessorRunResult.NotCancelableFuncTokenExists;
 				}
 			}
 		}
@@ -93,31 +93,31 @@ namespace PoliNorError
 			}
 		}
 
-		private ErrorProcessorRunResul RunSyncIfTokenExists(Exception error, T t, CancellationToken token)
+		private ErrorProcessorRunResult RunSyncIfTokenExists(Exception error, T t, CancellationToken token)
 		{
 			if (CancelableActionExists)
 			{
 				_cancelableAction(error, t, token);
-				return ErrorProcessorRunResul.CancelableActionTokenExists;
+				return ErrorProcessorRunResult.CancelableActionTokenExists;
 			}
 			else
 			{
 				_notCancelableAction(error, t);
-				return ErrorProcessorRunResul.NotCancelableActionTokenExists;
+				return ErrorProcessorRunResult.NotCancelableActionTokenExists;
 			}
 		}
 
-		private ErrorProcessorRunResul RunIfNoToken(Exception error, T t)
+		private ErrorProcessorRunResult RunIfNoToken(Exception error, T t)
 		{
 			if (NotCancelableActionExists)
 			{
 				_notCancelableAction(error, t);
-				return ErrorProcessorRunResul.NotCancelableActionNoToken;
+				return ErrorProcessorRunResult.NotCancelableActionNoToken;
 			}
 			else
 			{
 				_cancelableAction(error, t, default);
-				return ErrorProcessorRunResul.CancelableActionNoToken;
+				return ErrorProcessorRunResult.CancelableActionNoToken;
 			}
 		}
 

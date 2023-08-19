@@ -1,6 +1,6 @@
 ﻿namespace PoliNorError
 {
-	internal enum ErrorProcessorRunResul
+	internal enum ErrorProcessorRunResult
 	{
 		CancelableActionNoToken,
 		CancelableActionTokenExists,
