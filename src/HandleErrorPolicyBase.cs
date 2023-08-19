@@ -21,10 +21,20 @@ namespace PoliNorError
 			PolicyProcessor = policyProcessor;
 		}
 
+		internal void AddAsyncHandler(Func<PolicyResult, Task> func)
+		{
+			AddAsyncHandler((pr, _) => func(pr));
+		}
+
 		internal void AddAsyncHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
 			var handler = new ASyncHandlerRunner(func, _handlers.Count);
 			_handlers.Add(handler);
+		}
+
+		internal void AddAsyncHandler<T>(Func<PolicyResult<T>, Task> func)
+		{
+			AddAsyncHandler<T>((pr, _) => func(pr));
 		}
 
 		internal void AddAsyncHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
@@ -33,10 +43,20 @@ namespace PoliNorError
 			_genericHandlers.Add(handler);
 		}
 
+		internal void AddSyncHandler(Action<PolicyResult> act)
+		{
+			AddSyncHandler((pr, _) => act(pr));
+		}
+
 		internal void AddSyncHandler(Action<PolicyResult, CancellationToken> act)
 		{
 			var handler = new SyncHandlerRunner(act, _handlers.Count);
 			_handlers.Add(handler);
+		}
+
+		internal void AddSyncHandler<T>(Action<PolicyResult<T>> act)
+		{
+			AddSyncHandler<T>((pr, _) => act(pr));
 		}
 
 		internal void AddSyncHandler<T>(Action<PolicyResult<T>, CancellationToken> act)

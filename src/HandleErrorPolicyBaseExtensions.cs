@@ -6,7 +6,13 @@ namespace PoliNorError
 {
 	public static class HandleErrorPolicyBaseExtensions
 	{
-		internal static T AddPolicyResultHandlerInner<T>(this T errorPolicyBase, Action<PolicyResult> action, CancellationType convertType = CancellationType.Precancelable) where T : HandleErrorPolicyBase
+		internal static T AddPolicyResultHandlerInner<T>(this T errorPolicyBase, Action<PolicyResult> action) where T : HandleErrorPolicyBase
+		{
+			errorPolicyBase.AddSyncHandler(action);
+			return errorPolicyBase;
+		}
+
+		internal static T AddPolicyResultHandlerInner<T>(this T errorPolicyBase, Action<PolicyResult> action, CancellationType convertType) where T : HandleErrorPolicyBase
 		{
 			return errorPolicyBase.AddPolicyResultHandlerInner(action.ToCancelableAction(convertType));
 		}
@@ -17,7 +23,13 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
-		internal static T AddPolicyResultHandlerInner<T>(this T errorPolicyBase, Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable) where T : HandleErrorPolicyBase
+		internal static T AddPolicyResultHandlerInner<T>(this T errorPolicyBase, Func<PolicyResult, Task> func) where T : HandleErrorPolicyBase
+		{
+			errorPolicyBase.AddAsyncHandler(func);
+			return errorPolicyBase;
+		}
+
+		internal static T AddPolicyResultHandlerInner<T>(this T errorPolicyBase, Func<PolicyResult, Task> func, CancellationType convertType) where T : HandleErrorPolicyBase
 		{
 			errorPolicyBase.AddPolicyResultHandlerInner(func.ToCancelableFunc(convertType));
 			return errorPolicyBase;
@@ -29,7 +41,13 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
-		internal static T AddPolicyResultHandlerInner<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, Task> func, CancellationType convertType = CancellationType.Precancelable) where T : HandleErrorPolicyBase
+		internal static T AddPolicyResultHandlerInner<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, Task> func) where T : HandleErrorPolicyBase
+		{
+			errorPolicyBase.AddAsyncHandler(func);
+			return errorPolicyBase;
+		}
+
+		internal static T AddPolicyResultHandlerInner<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, Task> func, CancellationType convertType) where T : HandleErrorPolicyBase
 		{
 			errorPolicyBase.AddPolicyResultHandlerInner(func.ToCancelableFunc(convertType));
 			return errorPolicyBase;
@@ -41,7 +59,13 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
-		internal static T AddPolicyResultHandlerInner<T, U>(this T errorPolicyBase, Action<PolicyResult<U>> action, CancellationType convertType = CancellationType.Precancelable) where T : HandleErrorPolicyBase
+		internal static T AddPolicyResultHandlerInner<T, U>(this T errorPolicyBase, Action<PolicyResult<U>> action) where T : HandleErrorPolicyBase
+		{
+			errorPolicyBase.AddSyncHandler(action);
+			return errorPolicyBase;
+		}
+
+		internal static T AddPolicyResultHandlerInner<T, U>(this T errorPolicyBase, Action<PolicyResult<U>> action, CancellationType convertType) where T : HandleErrorPolicyBase
 		{
 			return errorPolicyBase.AddPolicyResultHandlerInner(action.ToCancelableAction(convertType));
 		}

@@ -40,7 +40,12 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyWithAction>(expression);
 
-		public new FallbackPolicyWithAction AddPolicyResultHandler(Action<PolicyResult> action, CancellationType convertType = CancellationType.Precancelable)
+		public new FallbackPolicyWithAction AddPolicyResultHandler(Action<PolicyResult> action)
+		{
+			return this.AddPolicyResultHandlerInner(action);
+		}
+
+		public new FallbackPolicyWithAction AddPolicyResultHandler(Action<PolicyResult> action, CancellationType convertType)
 		{
 			return this.AddPolicyResultHandlerInner(action, convertType);
 		}
@@ -50,7 +55,12 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(action);
 		}
 
-		public new FallbackPolicyWithAction AddPolicyResultHandler(Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
+		public new FallbackPolicyWithAction AddPolicyResultHandler(Func<PolicyResult, Task> func)
+		{
+			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		public new FallbackPolicyWithAction AddPolicyResultHandler(Func<PolicyResult, Task> func, CancellationType convertType)
 		{
 			return this.AddPolicyResultHandlerInner(func, convertType);
 		}
@@ -60,7 +70,12 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		public new FallbackPolicyWithAction AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, CancellationType convertType = CancellationType.Precancelable)
+		public new FallbackPolicyWithAction AddPolicyResultHandler<T>(Action<PolicyResult<T>> action)
+		{
+			return this.AddPolicyResultHandlerInner(action);
+		}
+
+		public new FallbackPolicyWithAction AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, CancellationType convertType)
 		{
 			return this.AddPolicyResultHandlerInner(action, convertType);
 		}
@@ -70,7 +85,12 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(action);
 		}
 
-		public new FallbackPolicyWithAction AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType = CancellationType.Precancelable)
+		public new FallbackPolicyWithAction AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func)
+		{
+			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		public new FallbackPolicyWithAction AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
 			return this.AddPolicyResultHandlerInner(func, convertType);
 		}
