@@ -23,22 +23,22 @@ namespace PoliNorError
 
 		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithAsyncFallbackFuncAndReturnSelf(fallbackAsync, convertType));
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallbackAsync = fallbackAsync.ToCancelableFunc(convertType)});
 		}
 
 		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithFallbackActionAndReturnSelf(fallback, convertType));
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback.ToCancelableAction(convertType)});
 		}
 
 		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Action<CancellationToken> fallback)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithFallbackActionAndReturnSelf(fallback));
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback });
 		}
 
 		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<CancellationToken, Task> fallbackAsync)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithAsyncFallbackFuncAndReturnSelf(fallbackAsync));
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallbackAsync =  fallbackAsync });
 		}
 
 		public static FallbackPolicy ToFallbackPolicy<T>(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<CancellationToken, T> fallback)

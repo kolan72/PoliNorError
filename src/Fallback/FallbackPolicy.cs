@@ -106,29 +106,5 @@ namespace PoliNorError
 		{
 			return this.AddPolicyResultHandlerInner(func);
 		}
-
-		internal FallbackPolicy WithAsyncFallbackFuncAndReturnSelf(Func<CancellationToken, Task> fallbackAsync)
-		{
-			_fallbackAsync = fallbackAsync;
-			return this;
-		}
-
-		internal FallbackPolicy WithAsyncFallbackFuncAndReturnSelf(Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
-		{
-			_fallbackAsync = fallbackAsync.ToCancelableFunc(convertType);
-			return this;
-		}
-
-		internal FallbackPolicy WithFallbackActionAndReturnSelf(Action<CancellationToken> fallback)
-		{
-			_fallback = fallback;
-			return this;
-		}
-
-		internal FallbackPolicy WithFallbackActionAndReturnSelf(Action fallback, CancellationType convertType = CancellationType.Precancelable)
-		{
-			_fallback = fallback.ToCancelableAction(convertType);
-			return this;
-		}
 	}
 }
