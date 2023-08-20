@@ -76,7 +76,15 @@ namespace PoliNorError
 			}
 		}
 
-		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act, CancellationType convertType = CancellationType.Precancelable)
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act)
+		{
+			foreach (var policy in policies)
+			{
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(act);
+			}
+		}
+
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act, CancellationType convertType)
 		{
 			policies.SetResultHandler(act.ToCancelableAction(convertType));
 		}
@@ -89,7 +97,15 @@ namespace PoliNorError
 			}
 		}
 
-		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func, CancellationType convertType = CancellationType.Precancelable)
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func)
+		{
+			foreach (var policy in policies)
+			{
+				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
+			}
+		}
+
+		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
 			SetResultHandler(policies, func.ToCancelableFunc(convertType));
 		}

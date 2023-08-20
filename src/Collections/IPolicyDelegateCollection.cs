@@ -18,13 +18,17 @@ namespace PoliNorError
 
 		IPolicyDelegateCollection ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
 
+		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act);
+
 		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act);
 
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType = CancellationType.Precancelable);
+		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType);
+
+		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func);
 
 		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func);
 
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable);
+		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType);
 
 		IPolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null);
 
@@ -47,13 +51,17 @@ namespace PoliNorError
 
 		IPolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
 
+		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>> act);
+
 		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>, CancellationToken> act);
 
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>> act, CancellationType convertType = CancellationType.Precancelable);
+		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>> act, CancellationType convertType);
+
+		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, Task> func);
 
 		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, CancellationToken, Task> func);
 
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, Task> func, CancellationType convertType = CancellationType.Precancelable);
+		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, Task> func, CancellationType convertType);
 
 		IPolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null);
 

@@ -105,7 +105,13 @@ namespace PoliNorError
 			return this;
 		}
 
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType = CancellationType.Precancelable)
+		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act)
+		{
+			this.Select(pd => pd.Policy).SetResultHandler(act);
+			return this;
+		}
+
+		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType)
 		{
 			return AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
 		}
@@ -116,7 +122,13 @@ namespace PoliNorError
 			return this;
 		}
 
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
+		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func)
+		{
+			this.Select(pd => pd.Policy).SetResultHandler(func);
+			return this;
+		}
+
+		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType)
 		{
 			return AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
 		}

@@ -40,15 +40,27 @@ namespace PoliNorError
 			return this;
 		}
 
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act)
+		{
+			this.SetResultHandler(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType)
+		{
+			this.SetResultHandler(act, convertType);
+			return this;
+		}
+
 		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act)
 		{
 			this.SetResultHandler(act);
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType = CancellationType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func)
 		{
-			this.SetResultHandler(act, convertType);
+			this.SetResultHandler(func);
 			return this;
 		}
 
@@ -58,15 +70,15 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType)
 		{
 			this.SetResultHandler(func, convertType);
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType = CancellationType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act)
 		{
-			this.SetResultHandler(act, convertType);
+			this.SetResultHandler(act);
 			return this;
 		}
 
@@ -76,7 +88,19 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType = CancellationType.Precancelable)
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType)
+		{
+			this.SetResultHandler(act, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func)
+		{
+			this.SetResultHandler(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
 			this.SetResultHandler(func, convertType);
 			return this;
