@@ -384,7 +384,7 @@ namespace PoliNorError.Tests
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
 			var polDelCol = PolicyDelegateCollection<int>.Create();
-			var builder = polDelCol.WithRetry(1, ErrorProcessorDelegate.From(actionError))
+			var builder = polDelCol.WithRetry(1, PolicyErrorProcessor.From(actionError))
 								   .AndDelegate(() => throw new Exception("Test"))
 								   .WithRetry(1)
 								   .AndDelegate(() => throw new Exception("Test"));

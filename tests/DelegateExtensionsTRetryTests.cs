@@ -19,7 +19,7 @@ namespace PoliNorError.Tests
 
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
-			func.InvokeWithRetry(retryCount, ErrorProcessorDelegate.From(actionError));
+			func.InvokeWithRetry(retryCount, PolicyErrorProcessor.From(actionError));
 			Assert.AreEqual(1, i1);
 
 			int i2 = 0;
@@ -29,7 +29,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			func.InvokeWithRetry(retryCount, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			func.InvokeWithRetry(retryCount, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -51,7 +51,7 @@ namespace PoliNorError.Tests
 
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
-			func.InvokeWithWaitAndRetry(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(actionError));
+			func.InvokeWithWaitAndRetry(retryCount, TimeSpan.FromSeconds(0), PolicyErrorProcessor.From(actionError));
 			Assert.AreEqual(1, i1);
 
 			int i2 = 0;
@@ -61,7 +61,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			func.InvokeWithWaitAndRetry(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			func.InvokeWithWaitAndRetry(retryCount, TimeSpan.FromSeconds(0), PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -88,7 +88,7 @@ namespace PoliNorError.Tests
 				i1++;
 			}
 
-			func.InvokeWithWaitAndRetry(retryCount, retryFunc, ErrorProcessorDelegate.From(actionError));
+			func.InvokeWithWaitAndRetry(retryCount, retryFunc, PolicyErrorProcessor.From(actionError));
 			Assert.AreEqual(1, i1);
 
 			int i2 = 0;
@@ -98,7 +98,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			func.InvokeWithWaitAndRetry(retryCount, retryFunc, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			func.InvokeWithWaitAndRetry(retryCount, retryFunc, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -119,7 +119,7 @@ namespace PoliNorError.Tests
 
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
-			await func.InvokeWithRetryAsync(retryCount, ErrorProcessorDelegate.From(actionError));
+			await func.InvokeWithRetryAsync(retryCount, PolicyErrorProcessor.From(actionError));
 			Assert.AreEqual(1, i1);
 
 			int i2 = 0;
@@ -129,7 +129,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await func.InvokeWithRetryAsync(retryCount, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			await func.InvokeWithRetryAsync(retryCount, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -150,7 +150,7 @@ namespace PoliNorError.Tests
 
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
-			await func.InvokeWithWaitAndRetryAsync(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(actionError));
+			await func.InvokeWithWaitAndRetryAsync(retryCount, TimeSpan.FromSeconds(0), PolicyErrorProcessor.From(actionError));
 			Assert.AreEqual(1, i1);
 
 			int i2 = 0;
@@ -160,7 +160,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await func.InvokeWithWaitAndRetryAsync(retryCount, TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			await func.InvokeWithWaitAndRetryAsync(retryCount, TimeSpan.FromSeconds(0), PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -182,7 +182,7 @@ namespace PoliNorError.Tests
 
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
-			await func.InvokeWithWaitAndRetryAsync(retryCount, retryFunc, ErrorProcessorDelegate.From(actionError));
+			await func.InvokeWithWaitAndRetryAsync(retryCount, retryFunc, PolicyErrorProcessor.From(actionError));
 			Assert.AreEqual(1, i1);
 
 			int i2 = 0;
@@ -192,7 +192,7 @@ namespace PoliNorError.Tests
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await func.InvokeWithWaitAndRetryAsync(retryCount, retryFunc, ErrorProcessorDelegate.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			await func.InvokeWithWaitAndRetryAsync(retryCount, retryFunc, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.AreEqual(1, i3);
 
 			int i4 = 0;
@@ -217,7 +217,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource2 = new CancellationTokenSource();
 			cancelTokenSource2.CancelAfter(100);
 			void actionError(Exception _) { i1++; }
-			action.InvokeWithRetryInfinite(ErrorProcessorDelegate.From(actionError), cancelTokenSource2.Token);
+			action.InvokeWithRetryInfinite(PolicyErrorProcessor.From(actionError), cancelTokenSource2.Token);
 			Assert.IsTrue(i1 > 0);
 			cancelTokenSource.Dispose();
 			cancelTokenSource2.Dispose();
@@ -238,7 +238,7 @@ namespace PoliNorError.Tests
 			cancelTokenSource2.CancelAfter(100);
 			void actionError(Exception _) { i1++; }
 
-			action.InvokeWithWaitAndRetryInfinite(TimeSpan.FromSeconds(0), ErrorProcessorDelegate.From(actionError), cancelTokenSource2.Token);
+			action.InvokeWithWaitAndRetryInfinite(TimeSpan.FromSeconds(0), PolicyErrorProcessor.From(actionError), cancelTokenSource2.Token);
 			Assert.IsTrue(i1 > 0);
 			cancelTokenSource.Dispose();
 			cancelTokenSource2.Dispose();
@@ -261,7 +261,7 @@ namespace PoliNorError.Tests
 			cancelTokenSource2.CancelAfter(100);
 			void actionError(Exception _) { i1++; }
 
-			action.InvokeWithWaitAndRetryInfinite(retryFunc, ErrorProcessorDelegate.From(actionError), cancelTokenSource2.Token);
+			action.InvokeWithWaitAndRetryInfinite(retryFunc, PolicyErrorProcessor.From(actionError), cancelTokenSource2.Token);
 
 			Assert.IsTrue(i > 0);
 			Assert.IsTrue(i1 > 0);

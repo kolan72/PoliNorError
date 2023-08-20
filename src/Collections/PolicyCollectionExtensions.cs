@@ -6,77 +6,77 @@ namespace PoliNorError
 {
 	public static class PolicyCollectionExtensions
 	{
-		public static PolicyCollection WithRetry(this PolicyCollection policyCollection, int retryCount, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithRetry(this PolicyCollection policyCollection, int retryCount, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithRetryInner(retryCount, policyParams);
 		}
 
-		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, TimeSpan delay, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, TimeSpan delay, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithRetryInner(retryCount, delay, policyParams);
 		}
 
-		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithRetryInner(retryCount, delayOnRetryFunc, policyParams);
 		}
 
-		public static PolicyCollection WithInfiniteRetry(this PolicyCollection policyCollection, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithInfiniteRetry(this PolicyCollection policyCollection, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithRetryInner(policyParams);
 		}
 
-		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, TimeSpan delay, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, TimeSpan delay, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithRetryInner(delay, policyParams);
 		}
 
-		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, Func<int, Exception, TimeSpan> delayOnRetryFunc, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithRetryInner(delayOnRetryFunc, policyParams);
 		}
 
-		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Action<CancellationToken> fallback, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Action<CancellationToken> fallback, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithFallbackInner(fallback, policyParams);
 		}
 
-		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Action fallback, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
+		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Action fallback, PolicyErrorProcessor policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallback, policyParams, convertType);
 		}
 
-		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Func<CancellationToken, Task> fallbackAsync, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Func<CancellationToken, Task> fallbackAsync, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithFallbackInner(fallbackAsync, policyParams);
 		}
 
-		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Func<Task> fallbackAsync, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
+		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Func<Task> fallbackAsync, PolicyErrorProcessor policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallbackAsync, policyParams, convertType);
 		}
 
-		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<CancellationToken, T> fallbackFunc, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<CancellationToken, T> fallbackFunc, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams);
 		}
 
-		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<T> fallbackFunc, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
+		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<T> fallbackFunc, PolicyErrorProcessor policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams, convertType);
 		}
 
-		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<CancellationToken, Task<T>> fallbackFunc, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<CancellationToken, Task<T>> fallbackFunc, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams);
 		}
 
-		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<Task<T>> fallbackFunc, ErrorProcessorDelegate policyParams = null, CancellationType convertType = CancellationType.Precancelable)
+		public static PolicyCollection WithFallback<T>(this PolicyCollection policyCollection, Func<Task<T>> fallbackFunc, PolicyErrorProcessor policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return policyCollection.WithFallbackInner(fallbackFunc, policyParams, convertType);
 		}
 
-		public static PolicyCollection WithSimple(this PolicyCollection policyCollection, ErrorProcessorDelegate policyParams = null)
+		public static PolicyCollection WithSimple(this PolicyCollection policyCollection, PolicyErrorProcessor policyParams = null)
 		{
 			return policyCollection.WithSimpleInner(policyParams);
 		}
