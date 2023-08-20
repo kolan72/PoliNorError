@@ -57,4 +57,9 @@ namespace PoliNorError
 
 		private protected PolicyErrorProcessor() { }
 	}
+
+	internal static class PolicyErrorProcessorExtensions
+	{
+		public static PolicyErrorProcessor GetValueOrDefault(this PolicyErrorProcessor policyErrorProcessor) => policyErrorProcessor ?? PolicyErrorProcessor.Default();
+	}
 }

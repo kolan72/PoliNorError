@@ -4,7 +4,7 @@
 	{
 		public static SimplePolicy ToSimplePolicy(this PolicyErrorProcessor policyParams)
 		{
-			return (SimplePolicy)(policyParams ?? PolicyErrorProcessor.Default()).ConfigurePolicy(new SimplePolicy());
+			return (SimplePolicy)policyParams.GetValueOrDefault().ConfigurePolicy(new SimplePolicy());
 		}
 	}
 }

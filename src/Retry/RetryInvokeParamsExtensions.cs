@@ -6,7 +6,7 @@ namespace PoliNorError
 	{
 		public static RetryPolicy ToRetryPolicy(this PolicyErrorProcessor policyParams, int retryCount)
 		{
-			return (RetryPolicy)(policyParams ?? PolicyErrorProcessor.Default()).ConfigurePolicy(new RetryPolicy(retryCount));
+			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(new RetryPolicy(retryCount));
 		}
 
 		public static RetryPolicy ToRetryPolicyWithDelayProcessorOf(this PolicyErrorProcessor policyParams, int retryCount, TimeSpan delay)
@@ -21,7 +21,7 @@ namespace PoliNorError
 
 		public static RetryPolicy ToInfiniteRetryPolicy(this PolicyErrorProcessor policyParams)
 		{
-			return (RetryPolicy)(policyParams ?? PolicyErrorProcessor.Default()).ConfigurePolicy(RetryPolicy.InfiniteRetries());
+			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(RetryPolicy.InfiniteRetries());
 		}
 
 		public static RetryPolicy ToInfiniteRetryPolicyWithDelayProcessorOf(this PolicyErrorProcessor policyParams, TimeSpan delay)
