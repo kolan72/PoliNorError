@@ -24,7 +24,7 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			_fallbackAsync = convertType == CancellationType.Precancelable ? fallbackAsync.ToPrecancelableFunc() : fallbackAsync.ToCancelableFunc();
+			_fallbackAsync = fallbackAsync.ToCancelableFunc(convertType);
 			return this;
 		}
 

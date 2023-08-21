@@ -120,7 +120,7 @@ namespace PoliNorError
 			{
 				if (_fallback != null)
 				{
-					curFallbackAsync = _fallback.ToAsyncFunc();
+					curFallbackAsync = _fallback.ToTaskReturnFunc();
 				}
 				else
 				{
@@ -164,7 +164,7 @@ namespace PoliNorError
 			}
 			else if (HasFallbackFunc<T>())
 			{
-				fallBackAsyncFunc = _holders[typeof(T)].GetFallbackFunc<T>().ToAsyncFunc();
+				fallBackAsyncFunc = _holders[typeof(T)].GetFallbackFunc<T>().ToTaskReturnFunc();
 			}
 			else if (HasAsyncFallbackFunc())
 			{

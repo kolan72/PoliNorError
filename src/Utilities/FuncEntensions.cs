@@ -6,6 +6,20 @@ namespace PoliNorError
 {
 	internal static class FuncEntensions
 	{
+		public static Func<CancellationToken, Task> ToTaskReturnFunc(this Action<CancellationToken> action)
+		{
+			return (ct) =>
+			{
+				action(ct);
+				return Task.CompletedTask;
+			};
+		}
+
+		public static Func<CancellationToken, Task<T>> ToTaskReturnFunc<T>(this Func<CancellationToken, T> func)
+		{
+			return (ct) => Task.FromResult(func(ct));
+		}
+
 		public static Func<CancellationToken, Task> ToAsyncFunc(this Action<CancellationToken> action)
 		{
 			return (ct) =>

@@ -20,7 +20,7 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithFallbackAction(Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			_fallback = convertType == CancellationType.Precancelable ? fallback.ToPrecancelableAction() : fallback.ToCancelableAction();
+			_fallback = fallback.ToCancelableAction(convertType);
 			return this;
 		}
 
