@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class EnumerablePolicyDelegateBaseExtensions
+	internal static class EnumerablePolicyDelegateBaseExtensions
 	{
 		internal static bool AnyWithoutDelegate(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
@@ -27,26 +25,6 @@ namespace PoliNorError
 		internal static bool WithoutDelegateExistsAndLastWithDelegate(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
 			return policyDelegateInfos.LastOrDefault().IsNotNullAndWithDelegate() && policyDelegateInfos.AnyWithoutDelegate();
-		}
-
-		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult, CancellationToken> act)
-		{
-			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(act);
-		}
-
-		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act, CancellationType convertType = CancellationType.Precancelable)
-		{
-			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(act, convertType);
-		}
-
-		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, CancellationType convertType = CancellationType.Precancelable)
-		{
-			policyDelegateInfos.SetResultHandler(func.ToCancelableFunc(convertType));
-		}
-
-		internal static void SetResultHandler(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, CancellationToken, Task> func)
-		{
-			policyDelegateInfos.Select(pd => pd.Policy).SetResultHandler(func);
 		}
 
 		internal static PolicyDelegateHandleType GetHandleType(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
