@@ -14,7 +14,8 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction WithFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicyWithAction, T>(fallbackFunc);
 
-		public new FallbackPolicyWithAction WithFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackFunc<FallbackPolicyWithAction, T>(fallbackFunc, convertType);
+		public new FallbackPolicyWithAction WithFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable)
+			=> this.WithFallbackFunc<FallbackPolicyWithAction, T>(fallbackFunc, convertType);
 
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
 		{
@@ -24,19 +25,23 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			_fallbackAsync = fallbackAsync.ToCancelableFunc(convertType);
+			_fallbackAsync = fallbackAsync.ToCancelableFunc(convertType, true);
 			return this;
 		}
 
-		public new FallbackPolicyWithAction WithAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) => this.WithAsyncFallbackFunc<FallbackPolicyWithAction, T>(fallbackAsync, convertType);
+		public new FallbackPolicyWithAction WithAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
+			=> this.WithAsyncFallbackFunc<FallbackPolicyWithAction, T>(fallbackAsync, convertType);
 
-		public new FallbackPolicyWithAction WithAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicyWithAction, T>(fallbackAsync);
+		public new FallbackPolicyWithAction WithAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync)
+			=> this.WithAsyncFallbackFunc<FallbackPolicyWithAction, T>(fallbackAsync);
 
-		public new FallbackPolicyWithAction IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicyWithAction, TException>(func);
+		public new FallbackPolicyWithAction IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+			=> this.IncludeError<FallbackPolicyWithAction, TException>(func);
 
 		public new FallbackPolicyWithAction IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicyWithAction>(expression);
 
-		public new FallbackPolicyWithAction ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyWithAction, TException>(func);
+		public new FallbackPolicyWithAction ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+			=> this.ExcludeError<FallbackPolicyWithAction, TException>(func);
 
 		public new FallbackPolicyWithAction ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyWithAction>(expression);
 

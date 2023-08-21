@@ -8,7 +8,7 @@ namespace PoliNorError
 	{
 		internal static TFallback WithFallbackFunc<TFallback, T>(this TFallback fallback, Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
 		{
-			return WithFallbackFunc(fallback, (convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc() : fallbackFunc.ToCancelableFunc());
+			return WithFallbackFunc(fallback, (convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc());
 		}
 
 		internal static TFallback WithFallbackFunc<TFallback, T>(this TFallback fallback, Func<CancellationToken, T> fallbackFunc) where TFallback : FallbackPolicyBase
@@ -19,7 +19,7 @@ namespace PoliNorError
 
 		internal static TFallback WithAsyncFallbackFunc<TFallback, T>(this TFallback fallback, Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
 		{
-			return WithAsyncFallbackFunc(fallback, (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc() : fallbackAsync.ToCancelableFunc());
+			return WithAsyncFallbackFunc(fallback, (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc(true) : fallbackAsync.ToCancelableFunc());
 		}
 
 		internal static TFallback WithAsyncFallbackFunc<TFallback, T>(this TFallback fallback, Func<CancellationToken, Task<T>> fallbackAsync) where TFallback : FallbackPolicyBase

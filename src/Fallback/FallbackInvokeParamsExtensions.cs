@@ -28,7 +28,7 @@ namespace PoliNorError
 
 		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback.ToCancelableAction(convertType)});
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback.ToCancelableAction(convertType, true)});
 		}
 
 		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Action<CancellationToken> fallback)

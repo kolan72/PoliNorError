@@ -83,22 +83,37 @@ namespace PoliNorError
 			return (ex, k, ct) => Task.Run(() => action(ex, k), ct).Wait(ct);
 		}
 
+		public static Action<CancellationToken> ToCancelableAction(this Action action, CancellationType convertType, bool throwIfCanceled = false)
+		{
+			if (convertType == CancellationType.Precancelable)
+				return action.ToPrecancelableAction(throwIfCanceled);
+			else
+				return action.ToCancelableAction();
+		}
+
 		public static Action<CancellationToken> ToCancelableAction(this Action action)
 		{
 			return (ct) => Task.Run(action, ct).Wait(ct);
 		}
 
-		public static Action<CancellationToken> ToCancelableAction(this Action action, CancellationType convertType)
-		{
-			if (convertType == CancellationType.Precancelable)
-				return action.ToPrecancelableAction();
-			else
-				return action.ToCancelableAction();
-		}
-
 		public static Action<T, K, CancellationToken> ToCancelableAction<T, K>(this Func<T, K, Task> func)
 		{
 			return (e, k, ct) => func(e, k).Wait(ct);
+		}
+
+		public static Action<CancellationToken> ToPrecancelableAction(this Action action, bool throwIfCanceled = false)
+		{
+			return (ct) =>
+			{
+				if (ct.IsCancellationRequested)
+				{
+					if (throwIfCanceled)
+						throw new OperationCanceledException(ct);
+					else
+						return;
+				}
+				action();
+			};
 		}
 
 		public static Action<T, CancellationToken> ToPrecancelableAction<T>(this Action<T> action)
@@ -131,16 +146,6 @@ namespace PoliNorError
 			};
 		}
 
-		public static Action<CancellationToken> ToPrecancelableAction(this Action action)
-		{
-			return (ct) =>
-			{
-				if (ct.IsCancellationRequested)
-					return;
-				action();
-			};
-		}
-
 		public static Func<T, CancellationToken, Task> ToCancelableFunc<T>(this Func<T, Task> fnTask, CancellationType convertType)
 		{
 			return (convertType == CancellationType.Precancelable) ? fnTask.ToPrecancelableFunc() : fnTask.ToCancelableFunc();
@@ -156,9 +161,9 @@ namespace PoliNorError
 			return (t, k, ct) => fnTask(t,k).WithCancellation(ct);
 		}
 
-		public static Func<CancellationToken, Task> ToCancelableFunc(this Func<Task> fallbackAsync, CancellationType convertType)
+		public static Func<CancellationToken, Task> ToCancelableFunc(this Func<Task> fallbackAsync, CancellationType convertType, bool throwIfCanceled = false)
 		{
-			return (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc() : fallbackAsync.ToCancelableFunc();
+			return (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc(throwIfCanceled) : fallbackAsync.ToCancelableFunc();
 		}
 
 		public static Func<CancellationToken, T> ToCancelableFunc<T>(this Func<T> func)
@@ -176,25 +181,31 @@ namespace PoliNorError
 			return (ct) => fnTask().WithCancellation(ct);
 		}
 
-		public static Func<CancellationToken, T> ToPrecancelableFunc<T>(this Func<T> fnTask)
+		public static Func<CancellationToken, T> ToPrecancelableFunc<T>(this Func<T> fnTask, bool throwIfCanceled = false)
 		{
 			return (ct) =>
 			{
 				if (ct.IsCancellationRequested)
 				{
-					return default;
+					if (throwIfCanceled)
+						throw new OperationCanceledException(ct);
+					else
+						return default;
 				}
 				return fnTask();
 			};
 		}
 
-		public static Func<CancellationToken, Task> ToPrecancelableFunc(this Func<Task> fnTask)
+		public static Func<CancellationToken, Task> ToPrecancelableFunc(this Func<Task> fnTask, bool throwIfCanceled = false)
 		{
 			return async (ct) =>
 			{
 				if (ct.IsCancellationRequested)
 				{
-					return;
+					if (throwIfCanceled)
+						throw new OperationCanceledException(ct);
+					else
+						return;
 				}
 				await fnTask();
 			};
@@ -212,13 +223,16 @@ namespace PoliNorError
 			};
 		}
 
-		public static Func<CancellationToken, Task<T>> ToPrecancelableFunc<T>(this Func<Task<T>> fnTask)
+		public static Func<CancellationToken, Task<T>> ToPrecancelableFunc<T>(this Func<Task<T>> fnTask, bool throwIfCanceled = false)
 		{
 			return async (ct) =>
 			{
 				if (ct.IsCancellationRequested)
 				{
-					return default;
+					if (throwIfCanceled)
+						throw new OperationCanceledException(ct);
+					else
+						return default;
 				}
 				return await fnTask();
 			};

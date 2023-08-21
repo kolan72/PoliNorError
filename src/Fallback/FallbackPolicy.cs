@@ -32,7 +32,7 @@ namespace PoliNorError
 
 		public FallbackPolicyWithAction WithFallbackAction(Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return new FallbackPolicyWithAction(_fallbackProcessor) { _fallback = fallback.ToCancelableAction(convertType) };
+			return new FallbackPolicyWithAction(_fallbackProcessor) { _fallback = fallback.ToCancelableAction(convertType, true) };
 		}
 
 		public new FallbackPolicy WithFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicy, T>(fallbackFunc);
