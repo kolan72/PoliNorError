@@ -2,7 +2,7 @@
 
 namespace PoliNorError
 {
-	internal static class RetryInvokeParamsExtensions
+	internal static class RetryPolicyErrorProcessorExtensions
 	{
 		public static RetryPolicy ToRetryPolicy(this PolicyErrorProcessor policyParams, int retryCount)
 		{
