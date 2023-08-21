@@ -8,7 +8,12 @@ namespace PoliNorError
 	{
 		public static PolicyErrorProcessor Default() => new PolicyErrorProcessor();
 
-		public static PolicyErrorProcessor From(Action<Exception> funcProcessor, CancellationType convertType = CancellationType.Precancelable)
+		public static PolicyErrorProcessor From(Action<Exception> funcProcessor)
+		{
+			return new PolicyErrorProcessor() { _configureFunc = _action0(funcProcessor) };
+		}
+
+		public static PolicyErrorProcessor From(Action<Exception> funcProcessor, CancellationType convertType)
 		{
 			return new PolicyErrorProcessor() { _configureFunc = _action1(funcProcessor, convertType) };
 		}
@@ -18,7 +23,12 @@ namespace PoliNorError
 			return new PolicyErrorProcessor() { _configureFunc = _action2(funcProcessor) };
 		}
 
-		public static PolicyErrorProcessor From(Func<Exception, Task> funcProcessorAsync, CancellationType convertType = CancellationType.Precancelable)
+		public static PolicyErrorProcessor From(Func<Exception, Task> funcProcessorAsync)
+		{
+			return new PolicyErrorProcessor() { _configureFunc = _func0(funcProcessorAsync) };
+		}
+
+		public static PolicyErrorProcessor From(Func<Exception, Task> funcProcessorAsync, CancellationType convertType)
 		{
 			return new PolicyErrorProcessor() { _configureFunc = _func1(funcProcessorAsync, convertType) };
 		}
@@ -33,7 +43,11 @@ namespace PoliNorError
 			return new PolicyErrorProcessor() { _configureFunc = _funcErrorProcessor(errorProcessor) };
 		}
 
+		public static implicit operator PolicyErrorProcessor(Action<Exception> actProcessor) => From(actProcessor);
+
 		public static implicit operator PolicyErrorProcessor(Action<Exception, CancellationToken> funcProcessor) => From(funcProcessor);
+
+		public static implicit operator PolicyErrorProcessor(Func<Exception, Task> funcProcessorAsync) => From(funcProcessorAsync);
 
 		public static implicit operator PolicyErrorProcessor(Func<Exception, CancellationToken, Task> funcProcessorAsync) => From(funcProcessorAsync);
 
@@ -43,8 +57,10 @@ namespace PoliNorError
 
 		private Func<IPolicyBase, IPolicyBase> _configureFunc = fb => fb;
 
+		private readonly static Func<Action<Exception>, Func<IPolicyBase, IPolicyBase>> _action0 = (onBPE) => (fb) => fb.WithErrorProcessorOf(onBPE);
 		private readonly static Func<Action<Exception>, CancellationType, Func<IPolicyBase, IPolicyBase>> _action1 = (onBPE, convertType) => (fb) => fb.WithErrorProcessorOf(onBPE, convertType);
 		private readonly static Func<Action<Exception, CancellationToken>, Func<IPolicyBase, IPolicyBase>> _action2 = (onBPE) => (fb) => fb.WithErrorProcessorOf(onBPE);
+		private readonly static Func<Func<Exception, Task>, Func<IPolicyBase, IPolicyBase>> _func0 = (onBPE) => fb => fb.WithErrorProcessorOf(onBPE);
 		private readonly static Func<Func<Exception, Task>, CancellationType, Func<IPolicyBase, IPolicyBase>> _func1 = (onBPE, convertType) => fb => fb.WithErrorProcessorOf(onBPE, convertType);
 		private readonly static Func<Func<Exception, CancellationToken, Task>, Func<IPolicyBase, IPolicyBase>> _func2 = (onBPE) => (fb) => fb.WithErrorProcessorOf(onBPE);
 
