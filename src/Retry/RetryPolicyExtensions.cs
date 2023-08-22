@@ -65,5 +65,12 @@ namespace PoliNorError
 			policy.RetryProcessor.UseCustomErrorSaverOf(saveErrorAsync, saveError, convertToCancelableFuncType);
 			return policy;
 		}
+
+		internal static RetryPolicy ConfigureBy(this RetryPolicy policy, RetryErrorSaver retryErrorSaver)
+		{
+			if (retryErrorSaver is null)
+				return policy;
+			return retryErrorSaver.ConfigurePolicy(policy);
+		}
 	}
 }

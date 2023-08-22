@@ -210,14 +210,14 @@ namespace PoliNorError.Tests
 			Func<int> action = () => { i++; throw new Exception(); };
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
-			action.InvokeWithRetryInfinite(cancelTokenSource.Token);
+			action.InvokeWithRetryInfinite(token: cancelTokenSource.Token);
 			Assert.IsTrue(i > 0);
 
 			int i1 = 0;
 			var cancelTokenSource2 = new CancellationTokenSource();
 			cancelTokenSource2.CancelAfter(100);
 			void actionError(Exception _) { i1++; }
-			action.InvokeWithRetryInfinite(PolicyErrorProcessor.From(actionError), cancelTokenSource2.Token);
+			action.InvokeWithRetryInfinite(PolicyErrorProcessor.From(actionError), token: cancelTokenSource2.Token);
 			Assert.IsTrue(i1 > 0);
 			cancelTokenSource.Dispose();
 			cancelTokenSource2.Dispose();
@@ -230,7 +230,7 @@ namespace PoliNorError.Tests
 			Func<int> action = () => { i++; throw new Exception(); };
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
-			action.InvokeWithWaitAndRetryInfinite(TimeSpan.FromSeconds(0), cancelTokenSource.Token);
+			action.InvokeWithWaitAndRetryInfinite(TimeSpan.FromSeconds(0), token: cancelTokenSource.Token);
 			Assert.IsTrue(i > 0);
 
 			int i1 = 0;
@@ -238,7 +238,7 @@ namespace PoliNorError.Tests
 			cancelTokenSource2.CancelAfter(100);
 			void actionError(Exception _) { i1++; }
 
-			action.InvokeWithWaitAndRetryInfinite(TimeSpan.FromSeconds(0), PolicyErrorProcessor.From(actionError), cancelTokenSource2.Token);
+			action.InvokeWithWaitAndRetryInfinite(TimeSpan.FromSeconds(0), PolicyErrorProcessor.From(actionError), token: cancelTokenSource2.Token);
 			Assert.IsTrue(i1 > 0);
 			cancelTokenSource.Dispose();
 			cancelTokenSource2.Dispose();
@@ -254,14 +254,14 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
 
-			action.InvokeWithWaitAndRetryInfinite(retryFunc, cancelTokenSource.Token);
+			action.InvokeWithWaitAndRetryInfinite(retryFunc, token: cancelTokenSource.Token);
 
 			int i1 = 0;
 			var cancelTokenSource2 = new CancellationTokenSource();
 			cancelTokenSource2.CancelAfter(100);
 			void actionError(Exception _) { i1++; }
 
-			action.InvokeWithWaitAndRetryInfinite(retryFunc, PolicyErrorProcessor.From(actionError), cancelTokenSource2.Token);
+			action.InvokeWithWaitAndRetryInfinite(retryFunc, PolicyErrorProcessor.From(actionError), token: cancelTokenSource2.Token);
 
 			Assert.IsTrue(i > 0);
 			Assert.IsTrue(i1 > 0);
@@ -279,7 +279,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
 
-			await func.InvokeWithRetryInfiniteAsync(cancelTokenSource.Token);
+			await func.InvokeWithRetryInfiniteAsync(token: cancelTokenSource.Token);
 			Assert.IsTrue(i > 0);
 			cancelTokenSource.Dispose();
 		}
@@ -292,7 +292,7 @@ namespace PoliNorError.Tests
 
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
-			await func.InvokeWithWaitAndRetryInfiniteAsync(TimeSpan.FromSeconds(0), cancelTokenSource.Token);
+			await func.InvokeWithWaitAndRetryInfiniteAsync(TimeSpan.FromSeconds(0), token: cancelTokenSource.Token);
 			Assert.IsTrue(i > 0);
 			cancelTokenSource.Dispose();
 		}
@@ -306,7 +306,7 @@ namespace PoliNorError.Tests
 
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
-			await func.InvokeWithWaitAndRetryInfiniteAsync(retryFunc, cancelTokenSource.Token);
+			await func.InvokeWithWaitAndRetryInfiniteAsync(retryFunc, token: cancelTokenSource.Token);
 			Assert.IsTrue(i > 0);
 			cancelTokenSource.Dispose();
 		}
