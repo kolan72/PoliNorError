@@ -369,7 +369,7 @@ var result = PolicyDelegateCollection<int>.Create()
 ```
 The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
 
-Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(<T>)` class in turn is just a wrapper around `PolicyResult` that contains `PolicyDelegateInfo` class with information about policy and `MethodInfo` of delegate.  
+Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(T>)` class is a wrapper around `PolicyResult` that additionally contains `MethodInfo` of the delegate.  
 
 The `PolicyDelegatesUnused` property contains a collection of policydelegates that were not handled due to the reasons described above.  
 
