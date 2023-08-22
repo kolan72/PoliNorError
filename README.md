@@ -120,9 +120,10 @@ or synchronous  delegates
 
 , or a pair of delegates from both lists if you plan to use a policy in sync and async handling scenarios.  
 
-Note that the error processor is added to the *whole* policy or policy processor, so the `Process` or `ProcessAsync` method will be called depending on the execution type of handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
+Note that the error processor is added to the *whole* policy or policy processor, so its `Process` or `ProcessAsync` method will be called depending on the execution type of the policy handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
 
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.  
+
 Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate handling will be interrupted, and the `IsFailed` and `IsCanceled` properties of the `PolicyResult` will be set to true.
 
 ### Error filters
