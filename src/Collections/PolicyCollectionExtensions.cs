@@ -6,34 +6,34 @@ namespace PoliNorError
 {
 	public static class PolicyCollectionExtensions
 	{
-		public static PolicyCollection WithRetry(this PolicyCollection policyCollection, int retryCount, PolicyErrorProcessor policyParams = null)
+		public static PolicyCollection WithRetry(this PolicyCollection policyCollection, int retryCount, PolicyErrorProcessor policyParams = null, bool setFailedIfInvocationError = false, RetryErrorSaver errorSaver = null)
 		{
-			return policyCollection.WithRetryInner(retryCount, policyParams);
+			return policyCollection.WithRetryInner(retryCount, policyParams, setFailedIfInvocationError, errorSaver);
 		}
 
-		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, TimeSpan delay, PolicyErrorProcessor policyParams = null)
+		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, TimeSpan delay, PolicyErrorProcessor policyParams = null, bool setFailedIfInvocationError = false, RetryErrorSaver errorSaver = null)
 		{
-			return policyCollection.WithRetryInner(retryCount, delay, policyParams);
+			return policyCollection.WithRetryInner(retryCount, delay, policyParams, setFailedIfInvocationError, errorSaver);
 		}
 
-		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null)
+		public static PolicyCollection WithWaitAndRetry(this PolicyCollection policyCollection, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null, bool setFailedIfInvocationError = false, RetryErrorSaver errorSaver = null)
 		{
-			return policyCollection.WithRetryInner(retryCount, delayOnRetryFunc, policyParams);
+			return policyCollection.WithRetryInner(retryCount, delayOnRetryFunc, policyParams, setFailedIfInvocationError, errorSaver);
 		}
 
-		public static PolicyCollection WithInfiniteRetry(this PolicyCollection policyCollection, PolicyErrorProcessor policyParams = null)
+		public static PolicyCollection WithInfiniteRetry(this PolicyCollection policyCollection, PolicyErrorProcessor policyParams = null, bool setFailedIfInvocationError = false, RetryErrorSaver errorSaver = null)
 		{
-			return policyCollection.WithRetryInner(policyParams);
+			return policyCollection.WithRetryInner(policyParams, setFailedIfInvocationError, errorSaver);
 		}
 
-		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, TimeSpan delay, PolicyErrorProcessor policyParams = null)
+		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, TimeSpan delay, PolicyErrorProcessor policyParams = null, bool setFailedIfInvocationError = false, RetryErrorSaver errorSaver = null)
 		{
-			return policyCollection.WithRetryInner(delay, policyParams);
+			return policyCollection.WithRetryInner(delay, policyParams, setFailedIfInvocationError, errorSaver);
 		}
 
-		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null)
+		public static PolicyCollection WithWaitAndInfiniteRetry(this PolicyCollection policyCollection, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null, bool setFailedIfInvocationError = false, RetryErrorSaver errorSaver = null)
 		{
-			return policyCollection.WithRetryInner(delayOnRetryFunc, policyParams);
+			return policyCollection.WithRetryInner(delayOnRetryFunc, policyParams, setFailedIfInvocationError, errorSaver);
 		}
 
 		public static PolicyCollection WithFallback(this PolicyCollection policyCollection, Action<CancellationToken> fallback, PolicyErrorProcessor policyParams = null)
