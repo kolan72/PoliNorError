@@ -8,19 +8,19 @@ namespace PoliNorError
 {
 	public sealed class RetryPolicy : HandleErrorPolicyBase, IRetryPolicy, IWithErrorFilter<RetryPolicy>
 	{
-		public RetryPolicy(int retryCount, bool setFailedIfInvocationError = false) : this(retryCount, null, setFailedIfInvocationError) { }
+		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows) { }
 
-		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool setFailedIfInvocationError = false) : this(retryCount, null, setFailedIfInvocationError, action) { }
+		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows, action) { }
 
-		public RetryPolicy(int retryCount, IBulkErrorProcessor bulkErrorProcessor, bool setFailedIfInvocationError = false, Action<RetryCountInfoOptions> action = null) : this(new DefaultRetryProcessor(bulkErrorProcessor, setFailedIfInvocationError), retryCount, action) { }
+		public RetryPolicy(int retryCount, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null) : this(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows), retryCount, action) { }
 
 		public RetryPolicy(IRetryProcessor retryProcessor, int retryCount, Action<RetryCountInfoOptions> action = null) : this(retryProcessor, RetryCountInfo.Limited(retryCount, action)) { }
 
-		public static RetryPolicy InfiniteRetries(bool setFailedIfInvocationError = false) => InfiniteRetries(null, setFailedIfInvocationError);
+		public static RetryPolicy InfiniteRetries(bool failedIfSaveErrorThrows = false) => InfiniteRetries(null, failedIfSaveErrorThrows);
 
-		public static RetryPolicy InfiniteRetries(Action<RetryCountInfoOptions> action, bool setFailedIfInvocationError = false) => InfiniteRetries(null, setFailedIfInvocationError, action);
+		public static RetryPolicy InfiniteRetries(Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false) => InfiniteRetries(null, failedIfSaveErrorThrows, action);
 
-		public static RetryPolicy InfiniteRetries(IBulkErrorProcessor bulkErrorProcessor, bool setFailedIfInvocationError = false, Action<RetryCountInfoOptions> action = null) => InfiniteRetries(new DefaultRetryProcessor(bulkErrorProcessor, setFailedIfInvocationError), action);
+		public static RetryPolicy InfiniteRetries(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null) => InfiniteRetries(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows), action);
 
 		public static RetryPolicy InfiniteRetries(IRetryProcessor retryProcessor, Action<RetryCountInfoOptions> action) => new RetryPolicy(retryProcessor, RetryCountInfo.Infinite(action));
 
