@@ -105,13 +105,22 @@ If an error occurs within the catch block, it will be stored in the  `CatchBlock
 For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
 
 ### Error processors
-In the common case, an error processor is a class that implements the `IErrorProcessor` interface. For instance, the class `DelayErrorProcessor` specifies the duration of delay before proceeding with the error processing.  
+In the common case, an error processor is a class that implements the `IErrorProcessor` interface. For instance, the class `DelayErrorProcessor` specifies amount of delay time before continuing with the handling process.  
+
 You can add your object with the implementation  of `IErrorProcessor`  to a policy or policy processor by using the `WithErrorProcessor` method.  
-The easiest way to create and add an error processor is to use the `WithErrorProcessorOf` method with this list of delegates:
-- `Action<Exception>`
-- `Action<Exception, CancellationToken>`
+But the easiest way to add an error processor is to use the `WithErrorProcessorOf` method overloads with this list of asynchronous:
+
 - `Func<Exception, Task>`
 - `Func<Exception, CancellationToken, Task>`
+
+or synchronous  delegates
+
+- `Action<Exception>`
+- `Action<Exception, CancellationToken>`
+
+, or a pair of delegates from both lists if you plan to use a policy in sync and async handling scenarios.  
+
+Note that the error processor is added to the *whole* policy or policy processor, so the `Process` or `ProcessAsync` method will be called depending on the execution type of handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
 
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.  
 Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate handling will be interrupted, and the `IsFailed` and `IsCanceled` properties of the `PolicyResult` will be set to true.
