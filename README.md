@@ -31,7 +31,7 @@ Handling delegate is performed through the use of policy processors, which are c
 
 Within the catch block, the policy processor can contain [error processors](#error-processors) that can extra handle exceptions.  
 
-But before handling can start, [error filters](#error-filters) need to be satisfied.  
+But before error processing can start, [error filters](#error-filters) need to be satisfied.  
 
 So, the process of handling a delegate consists of checking error filters, running error processors and applying policy rules.  
 
