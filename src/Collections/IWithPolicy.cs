@@ -12,32 +12,32 @@ namespace PoliNorError
 	{
 		public static T WithRetryInner<T>(this T t, int retryCount, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToRetryPolicy(retryCount, failedIfSaveErrorThrows).ConfigureBy(errorSaver));
+			return t.WithPolicy(policyParams.ToRetryPolicy(retryCount, errorSaver, failedIfSaveErrorThrows));
 		}
 
 		public static T WithRetryInner<T>(this T t, int retryCount, TimeSpan delay, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delay, failedIfSaveErrorThrows).ConfigureBy(errorSaver));
+			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delay, errorSaver, failedIfSaveErrorThrows));
 		}
 
 		public static T WithRetryInner<T>(this T t, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delayOnRetryFunc, failedIfSaveErrorThrows).ConfigureBy(errorSaver));
+			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delayOnRetryFunc, errorSaver, failedIfSaveErrorThrows));
 		}
 
 		public static T WithRetryInner<T>(this T t, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToInfiniteRetryPolicy(failedIfSaveErrorThrows).ConfigureBy(errorSaver));
+			return t.WithPolicy(policyParams.ToInfiniteRetryPolicy(errorSaver, failedIfSaveErrorThrows));
 		}
 
 		public static T WithRetryInner<T>(this T t, TimeSpan delay, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delay, failedIfSaveErrorThrows).ConfigureBy(errorSaver));
+			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delay, errorSaver, failedIfSaveErrorThrows));
 		}
 
 		public static T WithRetryInner<T>(this T t, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc, failedIfSaveErrorThrows).ConfigureBy(errorSaver));
+			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc, errorSaver, failedIfSaveErrorThrows));
 		}
 
 		public static T WithFallbackInner<T>(this T t, Action<CancellationToken> fallback, PolicyErrorProcessor policyParams = null) where T : IWithPolicy<T>
