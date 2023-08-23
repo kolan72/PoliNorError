@@ -12,34 +12,34 @@ namespace PoliNorError
 
 	internal static class IWithPolicyBaseExtensions
 	{
-		public static K WithRetryInner<T, K>(this T t, int retryCount, PolicyErrorProcessor policyParams = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
+		public static K WithRetryInner<T, K>(this T t, int retryCount, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
 		{
-			return t.WithPolicy(policyParams.ToRetryPolicy(retryCount));
+			return t.WithPolicy(policyParams.ToRetryPolicy(retryCount, errorSaver, failedIfSaveErrorThrows));
 		}
 
-		public static K WithRetryInner<T, K>(this T t, int retryCount, TimeSpan delay, PolicyErrorProcessor policyParams = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
+		public static K WithRetryInner<T, K>(this T t, int retryCount, TimeSpan delay, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
 		{
-			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delay));
+			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delay, errorSaver, failedIfSaveErrorThrows));
 		}
 
-		public static K WithRetryInner<T, K>(this T t, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
+		public static K WithRetryInner<T, K>(this T t, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
 		{
-			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delayOnRetryFunc));
+			return t.WithPolicy(policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, delayOnRetryFunc, errorSaver, failedIfSaveErrorThrows));
 		}
 
-		public static K WithRetryInner<T, K>(this T t, PolicyErrorProcessor policyParams = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
+		public static K WithRetryInner<T, K>(this T t, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
 		{
-			return t.WithPolicy(policyParams.ToInfiniteRetryPolicy());
+			return t.WithPolicy(policyParams.ToInfiniteRetryPolicy(errorSaver, failedIfSaveErrorThrows));
 		}
 
-		public static K WithRetryInner<T, K>(this T t, TimeSpan delay, PolicyErrorProcessor policyParams = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
+		public static K WithRetryInner<T, K>(this T t, TimeSpan delay, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
 		{
-			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delay));
+			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delay, errorSaver, failedIfSaveErrorThrows));
 		}
 
-		public static K WithRetryInner<T, K>(this T t, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
+		public static K WithRetryInner<T, K>(this T t, Func<int, Exception, TimeSpan> delayOnRetryFunc, PolicyErrorProcessor policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
 		{
-			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc));
+			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc, errorSaver, failedIfSaveErrorThrows));
 		}
 
 		public static K WithFallbackInner<T, K>(this T t, Action fallback, PolicyErrorProcessor policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
