@@ -259,7 +259,7 @@ namespace PoliNorError.Tests
 			PolicyDelegate retrySI1 = retry.ToPolicyDelegate(async (_) => { await Task.Delay(1000); throw new Exception(); });
 			PolicyDelegate retrySI2 = retry.ToPolicyDelegate(async (_) => { await Task.Delay(1000); throw new Exception(); });
 
-			var res = await PolicyDelegateCollection.Create(retrySI1, retrySI2, fallbackSI).BuildCollectionHandler().HandleAsync(cancelTokenSource.Token);
+			var res = await PolicyDelegateCollection.Create(retrySI1, retrySI2, fallbackSI).BuildCollectionHandler().HandleAsync(token: cancelTokenSource.Token);
 			Assert.AreEqual(2, res.PolicyDelegatesUnused.Count());
 			Assert.AreEqual(1, res.PolicyDelegateResults.Count());
 		}
@@ -521,7 +521,7 @@ namespace PoliNorError.Tests
 
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
-			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(cancelSource.Token);
+			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
 			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
 			cancelSource.Dispose();
 		}
@@ -536,7 +536,7 @@ namespace PoliNorError.Tests
 
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
-			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(cancelSource.Token);
+			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
 			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
 			cancelSource.Dispose();
 		}
@@ -551,7 +551,7 @@ namespace PoliNorError.Tests
 
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
-			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(cancelSource.Token);
+			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
 			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
 			cancelSource.Dispose();
 		}
