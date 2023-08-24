@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace PoliNorError
 {
-	internal static class PolicyProcessorFiltering
+	internal static class PolicyProcessorErrorFiltering
 	{
 		internal static T IncludeError<T, TException>(this T policyProcessor, Func<TException, bool> func = null) where T : IPolicyProcessor where TException : Exception
 		{
