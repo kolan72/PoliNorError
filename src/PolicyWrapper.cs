@@ -31,8 +31,7 @@ namespace PoliNorError
 
 			_policyHandledResults.Add(new PolicyDelegateResult<T>(res, _policyBase.PolicyName, _func.Method));
 
-			if (res.IsFailed)
-				throw res.Errors.LastOrDefault();
+			ThrowIfFailed(res);
 
 			return res.Result;
 		}
@@ -43,8 +42,7 @@ namespace PoliNorError
 
 			_policyHandledResults.Add(new PolicyDelegateResult<T>(res, _policyBase.PolicyName, _funcAsync.Method));
 
-			if (res.IsFailed)
-				throw res.Errors.LastOrDefault();
+			ThrowIfFailed(res);
 
 			return res.Result;
 		}
@@ -79,8 +77,7 @@ namespace PoliNorError
 
 			_policyHandledResults.Add(new PolicyDelegateResult(res, _policyBase.PolicyName, _func.Method));
 
-			if (res.IsFailed)
-				throw res.Errors.LastOrDefault();
+			ThrowIfFailed(res);
 		}
 
 		internal void Handle()
@@ -89,10 +86,7 @@ namespace PoliNorError
 
 			_policyHandledResults.Add(new PolicyDelegateResult(res, _policyBase.PolicyName, _action.Method));
 
-			if (res.IsFailed)
-			{
-				throw res.Errors.LastOrDefault();
-			}
+			ThrowIfFailed(res);
 		}
 
 		internal IEnumerable<PolicyDelegateResult> PolicyDelegateResults
@@ -117,6 +111,17 @@ namespace PoliNorError
 		protected string GetExceptionMessage(IEnumerable<Exception> exceptions)
 		{
 			return $"Wrapped policy {_policyBase.PolicyName} excepions: {string.Join(";", exceptions.Select(exc => exc.Message))}";
+		}
+
+		protected void ThrowIfFailed(PolicyResult res)
+		{
+			if (res.IsFailed)
+			{
+				if (res.FailedReason != PolicyResultFailedReason.PolicyResultHandlerFailed)
+					throw res.UnprocessedError;
+				else
+					throw new PolicyResultHandlerFailedException();
+			}
 		}
 	}
 }

@@ -311,6 +311,22 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_OutPolicyResult_Contains_Errors_Of_PolicyResultHandlerFailedException_Type_When_Inner_PolicyResult_Was_SetFaiiled_By_PolicyResultHandler()
+		{
+			var fallbackPolicy = new FallbackPolicy().WithFallbackAction((_) => { }).AddPolicyResultHandler((pr) => pr.SetFailed());
+			int i = 0;
+			void retryAct()
+			{
+				i++;
+			}
+			var retryPol = new RetryPolicy(3);
+			retryPol.WrapPolicy(fallbackPolicy);
+			var outPolicyResult = retryPol.Handle(retryAct);
+			Assert.IsTrue(outPolicyResult.IsFailed);
+			Assert.IsTrue(outPolicyResult.Errors.All(err => err.GetType().Equals(typeof(PolicyResultHandlerFailedException))));
+		}
+
+		[Test]
 		public void Should_Retry_CallWrappedFallbackPolicy_And_Handle_With_Success_Work_WinGenericFunc()
 		{
 			var fallbackPolicy = new FallbackPolicy().WithFallbackFunc((_) => 1);
