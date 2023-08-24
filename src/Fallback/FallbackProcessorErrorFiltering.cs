@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace PoliNorError
 {
 	/// <summary>
-	///  Provides static methods to set error filters to IFallbackProcessor.
+	///  Provides extension methods to set error filters to IFallbackProcessor.
 	/// </summary>
 	public static class FallbackProcessorErrorFiltering
 	{

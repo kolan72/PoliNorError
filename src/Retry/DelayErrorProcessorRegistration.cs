@@ -3,7 +3,7 @@
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides static methods to add DelayErrorProcessor to IRetryProcessor.
+	/// Provides extension methods to add DelayErrorProcessor to IRetryProcessor.
 	/// </summary>
 	public static class DelayErrorProcessorRegistration
 	{

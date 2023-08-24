@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides a set of static methods to handle all <see cref="PolicyDelegate"/>s  or <see cref="PolicyDelegate{T}"/>s of <see cref="IPolicyDelegateCollection"/> or <see cref="IPolicyDelegateCollection{T}"/>.
+	/// Provides a set of extension methods to handle all <see cref="PolicyDelegate"/>s  or <see cref="PolicyDelegate{T}"/>s of <see cref="IPolicyDelegateCollection"/> or <see cref="IPolicyDelegateCollection{T}"/>.
 	/// </summary>
 	public static partial class PolicyDelegateCollectionHandling
 	{

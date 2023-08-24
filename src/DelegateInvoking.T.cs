@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides a set of static methods for calling delegates in a resilient manner
+	/// Provides a set of extension methods for calling delegates in a resilient manner
 	/// </summary>
 	public static partial class DelegateInvoking
 	{

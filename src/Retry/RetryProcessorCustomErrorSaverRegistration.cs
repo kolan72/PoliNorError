@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides static methods to add custom error saver to IRetryProcessor.
+	/// Provides extension methods to add custom error saver to IRetryProcessor.
 	/// </summary>
 	public static class RetryProcessorCustomErrorSaverRegistration
 	{

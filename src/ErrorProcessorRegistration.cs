@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides a set of static methods to add error processor to policy processor.
+	/// Provides a set of extension methods to add error processor to policy processor.
 	/// </summary>
 	public static class ErrorProcessorRegistration
 	{

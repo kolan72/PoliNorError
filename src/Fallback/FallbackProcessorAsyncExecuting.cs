@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	///	Provides static helper methods to invoke IFallbackProcessor.FallbackAsync methods when the configureAwait parameter is set to false.
+	///	Provides extension helper methods to invoke IFallbackProcessor.FallbackAsync methods when the configureAwait parameter is set to false.
 	/// </summary>
 	public static class FallbackProcessorAsyncExecuting
 	{

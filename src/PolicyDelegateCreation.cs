@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides a set of static methods to create a <see cref="PolicyDelegate"></see> or <see cref="PolicyDelegate{T}"/> from policy
+	/// Provides a set of extension methods to create a <see cref="PolicyDelegate"></see> or <see cref="PolicyDelegate{T}"/> from policy
 	/// </summary>
 	public static class PolicyDelegateCreation
 	{

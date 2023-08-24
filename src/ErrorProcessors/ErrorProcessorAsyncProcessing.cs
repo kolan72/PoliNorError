@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides static helper methods to invoke IErrorProcessor.ProcessAsync method when the configureAwait parameter is set to false.
+	/// Provides extension helper methods to invoke IErrorProcessor.ProcessAsync method when the configureAwait parameter is set to false.
 	/// </summary>
 	public static class ErrorProcessorAsyncProcessing
 	{

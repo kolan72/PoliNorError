@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides static helper methods to invoke IRetryProcessor.Retry or IRetryProcessor.RetryAsync methods
+	/// Provides extension helper methods to invoke IRetryProcessor.Retry or IRetryProcessor.RetryAsync methods
 	/// </summary>
 	public static class RetryProcessorExecuting
 	{

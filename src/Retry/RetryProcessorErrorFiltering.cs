@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace PoliNorError
 {
 	/// <summary>
-	///  Provides static methods to set error filters to IRetryProcessor.
+	///  Provides extension methods to set error filters to IRetryProcessor.
 	/// </summary>
 	public static class RetryProcessorErrorFiltering
 	{
