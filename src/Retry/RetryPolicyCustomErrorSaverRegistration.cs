@@ -4,7 +4,10 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class RetryPolicyExtensions
+	/// <summary>
+	/// Provides static methods to add custom error saver to RetryPolicy.
+	/// </summary>
+	public static class RetryPolicyCustomErrorSaverRegistration
 	{
 		public static RetryPolicy UseCustomErrorSaverOf(this RetryPolicy policy, Action<Exception> saveError)
 		{
