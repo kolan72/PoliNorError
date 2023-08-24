@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides methods to set error filters to ISimplePolicyProcessor.
+	/// Provides static methods to set error filters to ISimplePolicyProcessor.
 	/// </summary>
 	public static class SimplePolicyProcessorErrorFiltering
 	{

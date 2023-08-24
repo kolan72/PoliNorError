@@ -3,7 +3,7 @@
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides extra methods to build policy that inherits from <see cref="Policy"></see>
+	/// Provides extra static methods to build policy that inherits from <see cref="Policy"></see>
 	/// </summary>
 	public static class PolicyBuilding
 	{
