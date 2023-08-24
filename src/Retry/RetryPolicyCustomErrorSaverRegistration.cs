@@ -69,7 +69,7 @@ namespace PoliNorError
 			return policy;
 		}
 
-		internal static RetryPolicy ConfigureBy(this RetryPolicy policy, RetryErrorSaver retryErrorSaver)
+		internal static RetryPolicy ConfigureBy(this RetryPolicy policy, RetryErrorSaverParam retryErrorSaver)
 		{
 			if (retryErrorSaver is null)
 				return policy;

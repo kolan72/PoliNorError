@@ -6,32 +6,32 @@ namespace PoliNorError
 {
 	public partial class PolicyCollection
 	{
-		public PolicyCollection WithRetry(int retryCount, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null)
+		public PolicyCollection WithRetry(int retryCount, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return this.WithRetryInner(retryCount, policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
-		public PolicyCollection WithWaitAndRetry(int retryCount, TimeSpan delay, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null)
+		public PolicyCollection WithWaitAndRetry(int retryCount, TimeSpan delay, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return this.WithRetryInner(retryCount, delay, policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
-		public PolicyCollection WithWaitAndRetry(int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null)
+		public PolicyCollection WithWaitAndRetry(int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return this.WithRetryInner(retryCount, delayOnRetryFunc, policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
-		public PolicyCollection WithInfiniteRetry(ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null)
+		public PolicyCollection WithInfiniteRetry(ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return this.WithRetryInner(policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
-		public PolicyCollection WithWaitAndInfiniteRetry(TimeSpan delay, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null)
+		public PolicyCollection WithWaitAndInfiniteRetry(TimeSpan delay, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return this.WithRetryInner(delay, policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
-		public PolicyCollection WithWaitAndInfiniteRetry(Func<int, Exception, TimeSpan> delayOnRetryFunc, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaver errorSaver = null)
+		public PolicyCollection WithWaitAndInfiniteRetry(Func<int, Exception, TimeSpan> delayOnRetryFunc, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return this.WithRetryInner(delayOnRetryFunc, policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
