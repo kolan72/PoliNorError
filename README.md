@@ -230,7 +230,7 @@ To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
                                     .HandleAsync(async (ct) => 
                                                     await DoSomethingNearlyImpossibleAsync(ct), token);
 ```
-These methods create the `DelayErrorProcessor` object behind the scene.  
+These methods create the `DelayErrorProcessor` object behind the scenes.  
 The `WithWait` method also has overload that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.  
 
 Faulted retries errors saving is configuring by `Action<PolicyResult, Exception>` parameter of one of the constructors and by default save errors in `PolicyResult.Errors` collection. For huge numbers of retries, memory-related exceptions may occur, and the handling process will be interrupted. You can pass your own delegate to avoid this.  
@@ -344,7 +344,7 @@ With these methods
 - `WithSimple` (appeared in _version_ 2.0.0-alpha)
 
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
-Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scene, which calls delegates in sync or async manner or in the miscellaneous way.  
+Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner or in the miscellaneous way.  
 
 You can establish a common `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method. 
 These methods require the same delegates types as `PolicyResult` handlers.  
@@ -424,7 +424,7 @@ Furthermore, with the `PolicyCollection` :
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow delegates to be called in a resilient manner.
-Each method calls corresponding policy method behind the scene.
+Each method calls corresponding policy method behind the scenes.
 It is also possible to customize the calling by error processor delegates.
 For example, with error processor from `Func<Exception, CancellationToken, Task>`:
 ```csharp
@@ -479,7 +479,7 @@ The default value of `ConvertToCancelableFuncType` as a method argument is the `
 
 Note the methods `PolicyDelegateCollection....ForAll(commonDelegate)` of `PolicyCollection` and `PolicyDelegateCollection`  classes set the common delegate only for items that have already been added to the collection, not for items that will be added later.  
 
-For very large retry count memory-related error may occur. You can set "n-Time infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
+For very large retry count memory-related error may occur. You can set "n-times infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
 
 ```csharp
 var result = await PolicyDelegateCollection
