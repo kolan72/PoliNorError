@@ -38,7 +38,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(act);
+				(policy as Policy)?.AddPolicyResultHandlerInner(act);
 			}
 		}
 
@@ -51,7 +51,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(act);
+				(policy as Policy)?.AddPolicyResultHandlerInner(act);
 			}
 		}
 
@@ -59,7 +59,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
+				(policy as Policy)?.AddPolicyResultHandlerInner(func);
 			}
 		}
 
@@ -72,7 +72,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
+				(policy as Policy)?.AddPolicyResultHandlerInner(func);
 			}
 		}
 
@@ -80,7 +80,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(act);
+				(policy as Policy)?.AddPolicyResultHandlerInner(act);
 			}
 		}
 
@@ -93,7 +93,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(act);
+				(policy as Policy)?.AddPolicyResultHandlerInner(act);
 			}
 		}
 
@@ -101,7 +101,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
+				(policy as Policy)?.AddPolicyResultHandlerInner(func);
 			}
 		}
 
@@ -114,7 +114,7 @@ namespace PoliNorError
 		{
 			foreach (var policy in policies)
 			{
-				(policy as HandleErrorPolicyBase)?.AddPolicyResultHandlerInner(func);
+				(policy as Policy)?.AddPolicyResultHandlerInner(func);
 			}
 		}
 	}
