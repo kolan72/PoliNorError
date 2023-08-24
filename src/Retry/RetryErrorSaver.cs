@@ -6,8 +6,6 @@ namespace PoliNorError
 {
 	public class RetryErrorSaver
 	{
-		public static RetryErrorSaver Default() => new RetryErrorSaver();
-
 		public static RetryErrorSaver From(Action<Exception> funcProcessor)
 		{
 			return new RetryErrorSaver() { _configureFunc = _action0(funcProcessor) };

@@ -6,7 +6,7 @@ namespace PoliNorError
 {
 	public class PolicyErrorProcessor
 	{
-		public static PolicyErrorProcessor Default() => new PolicyErrorProcessor();
+		internal static PolicyErrorProcessor Default() => new PolicyErrorProcessor();
 
 		public static PolicyErrorProcessor From(Action<Exception> funcProcessor)
 		{
