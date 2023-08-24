@@ -13,7 +13,7 @@
 
 		public virtual bool DelegateExists => DelegateContainer?.DelegateExists == true;
 
-		public SyncPolicyDelegateType UseSync => GetSyncType();
+		public SyncPolicyDelegateType SyncType => GetSyncType();
 
 		public void ClearDelegate() => DelegateContainer?.ClearDelegate();
 

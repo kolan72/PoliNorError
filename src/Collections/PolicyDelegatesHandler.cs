@@ -26,7 +26,7 @@ namespace PoliNorError
 					break;
 				}
 
-				if (si.UseSync == SyncPolicyDelegateType.Sync)
+				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
 					curPolResult = si.Handle(token);
 				}
@@ -77,7 +77,7 @@ namespace PoliNorError
 					break;
 				}
 
-				if (si.UseSync == SyncPolicyDelegateType.Sync)
+				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
 					curPolResult = si.Handle(token);
 				}
@@ -176,7 +176,7 @@ namespace PoliNorError
 					break;
 				}
 
-				if (si.UseSync == SyncPolicyDelegateType.Sync)
+				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
 					curPolResult = si.Handle(token);
 				}
@@ -207,7 +207,7 @@ namespace PoliNorError
 					break;
 				}
 
-				if (si.UseSync == SyncPolicyDelegateType.Sync)
+				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
 					curPolResult = si.Handle(token);
 				}

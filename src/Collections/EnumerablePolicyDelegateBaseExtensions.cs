@@ -29,9 +29,9 @@ namespace PoliNorError
 
 		internal static PolicyDelegateHandleType GetHandleType(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
-			if (policyDelegateInfos.Any(si => si.UseSync == SyncPolicyDelegateType.Sync))
+			if (policyDelegateInfos.Any(si => si.SyncType == SyncPolicyDelegateType.Sync))
 			{
-				if (policyDelegateInfos.Any(si => si.UseSync == SyncPolicyDelegateType.Async))
+				if (policyDelegateInfos.Any(si => si.SyncType == SyncPolicyDelegateType.Async))
 				{
 					return PolicyDelegateHandleType.Misc;
 				}
