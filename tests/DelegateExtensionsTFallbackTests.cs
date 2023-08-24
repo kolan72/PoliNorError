@@ -18,7 +18,7 @@ namespace PoliNorError.Tests
             Assert.AreEqual(1, polResult.Result);
 
             int i1 = 0;
-            var polResult2 = action.InvokeWithFallback(fallback, PolicyErrorProcessor.From((Exception _) => i1++));
+            var polResult2 = action.InvokeWithFallback(fallback, ErrorProcessorParam.From((Exception _) => i1++));
             Assert.AreEqual(1, i1);
             Assert.AreEqual(1, polResult2.Result);
 
@@ -27,12 +27,12 @@ namespace PoliNorError.Tests
             {
 				i2++;
 			}
-			action.InvokeWithFallback(fallback, PolicyErrorProcessor.From(beforeFallbackErrorWithError));
+			action.InvokeWithFallback(fallback, ErrorProcessorParam.From(beforeFallbackErrorWithError));
             Assert.AreEqual(1, i2);
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			action.InvokeWithFallback(fallback, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			action.InvokeWithFallback(fallback, ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
@@ -59,7 +59,7 @@ namespace PoliNorError.Tests
 				i1++;
 			}
 
-			action.InvokeWithFallback(fallback, PolicyErrorProcessor.From(beforeFallbackError));
+			action.InvokeWithFallback(fallback, ErrorProcessorParam.From(beforeFallbackError));
             Assert.AreEqual(1, i1);
 
             int i2 = 0;
@@ -68,17 +68,17 @@ namespace PoliNorError.Tests
 				i2++;
 			}
 
-			action.InvokeWithFallback(fallback, PolicyErrorProcessor.From(beforeFallbackErrorWithError));
+			action.InvokeWithFallback(fallback, ErrorProcessorParam.From(beforeFallbackErrorWithError));
             Assert.AreEqual(1, i2);
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			action.InvokeWithFallback(fallback, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			action.InvokeWithFallback(fallback, ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
 			Task beforeProcessErrorWithCancelAsync(Exception _, CancellationToken __) { i4++; return Task.CompletedTask; }
-			action.InvokeWithFallback(fallback, PolicyErrorProcessor.From(beforeProcessErrorWithCancelAsync));
+			action.InvokeWithFallback(fallback, ErrorProcessorParam.From(beforeProcessErrorWithCancelAsync));
             Assert.AreEqual(1, i4);
 
             Assert.AreEqual(5, i);
@@ -100,7 +100,7 @@ namespace PoliNorError.Tests
 				i1++;
 			}
 
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeFallbackError));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeFallbackError));
             Assert.AreEqual(1, i1);
 
             int i2 = 0;
@@ -109,17 +109,17 @@ namespace PoliNorError.Tests
 				i2++;
 			}
 
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeFallbackErrorWithError));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeFallbackErrorWithError));
             Assert.AreEqual(1, i2);
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
 			Task beforeProcessErrorWithCancelAsync(Exception _, CancellationToken __) { i4++; return Task.CompletedTask; }
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeProcessErrorWithCancelAsync));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeProcessErrorWithCancelAsync));
             Assert.AreEqual(1, i4);
 
             Assert.AreEqual(5, i);
@@ -141,7 +141,7 @@ namespace PoliNorError.Tests
 				i1++;
 			}
 
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeFallbackError));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeFallbackError));
             Assert.AreEqual(1, i1);
 
             int i2 = 0;
@@ -150,17 +150,17 @@ namespace PoliNorError.Tests
 				i2++;
 			}
 
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeFallbackErrorWithError));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeFallbackErrorWithError));
             Assert.AreEqual(1, i2);
 
             int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
             Assert.AreEqual(1, i3);
 
             int i4 = 0;
 			Task beforeProcessErrorWithCancelAsync(Exception _, CancellationToken __) { i4++; return Task.CompletedTask; }
-			await fn.InvokeWithFallbackAsync(fallback, PolicyErrorProcessor.From(beforeProcessErrorWithCancelAsync));
+			await fn.InvokeWithFallbackAsync(fallback, ErrorProcessorParam.From(beforeProcessErrorWithCancelAsync));
             Assert.AreEqual(1, i4);
 
             Assert.AreEqual(5, i);

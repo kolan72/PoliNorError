@@ -6,42 +6,42 @@ namespace PoliNorError
 {
 	internal static class FallbackPolicyErrorProcessorExtensions
 	{
-		public static FallbackPolicy ToFallbackPolicy<T>(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<T> fallback, CancellationType convertType = CancellationType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorParam invokeFallbackPolicyParams, Func<T> fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithFallbackFunc(fallback, convertType));
 		}
 
-		public static FallbackPolicy ToFallbackPolicy<T>(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorParam invokeFallbackPolicyParams, Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithAsyncFallbackFunc(fallbackAsync, convertType));
 		}
 
-		public static FallbackPolicy ToFallbackPolicy<T>(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<CancellationToken, Task<T>> fallbackAsync)
+		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorParam invokeFallbackPolicyParams, Func<CancellationToken, Task<T>> fallbackAsync)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithAsyncFallbackFunc(fallbackAsync));
 		}
 
-		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallbackAsync = fallbackAsync.ToCancelableFunc(convertType)});
 		}
 
-		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Action fallback, CancellationType convertType = CancellationType.Precancelable)
+		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback.ToCancelableAction(convertType, true)});
 		}
 
-		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Action<CancellationToken> fallback)
+		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Action<CancellationToken> fallback)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback });
 		}
 
-		public static FallbackPolicy ToFallbackPolicy(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<CancellationToken, Task> fallbackAsync)
+		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Func<CancellationToken, Task> fallbackAsync)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallbackAsync =  fallbackAsync });
 		}
 
-		public static FallbackPolicy ToFallbackPolicy<T>(this PolicyErrorProcessor invokeFallbackPolicyParams, Func<CancellationToken, T> fallback)
+		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorParam invokeFallbackPolicyParams, Func<CancellationToken, T> fallback)
 		{
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy().WithFallbackFunc(fallback));
 		}

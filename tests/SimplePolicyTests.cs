@@ -380,13 +380,13 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_InvokeParams_ToSimplePolicy_Work()
 		{
-			PolicyErrorProcessor invokeParamsNull = null;
+			ErrorProcessorParam invokeParamsNull = null;
 			var policyFromNull = invokeParamsNull.ToSimplePolicy();
 			Assert.IsNotNull(policyFromNull);
 			Assert.IsInstanceOf<SimplePolicy>(policyFromNull);
 			Assert.AreEqual(0, policyFromNull.PolicyProcessor.Count());
 
-			PolicyErrorProcessor invokeParamsFromAction = PolicyErrorProcessor.From((_, __) => Expression.Empty());
+			ErrorProcessorParam invokeParamsFromAction = ErrorProcessorParam.From((_, __) => Expression.Empty());
 			var policyFromAction = invokeParamsFromAction.ToSimplePolicy();
 			Assert.IsNotNull(policyFromAction);
 			Assert.IsInstanceOf<SimplePolicy>(policyFromAction);
