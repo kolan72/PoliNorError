@@ -419,7 +419,9 @@ If, for instance, you'd like to read a file that's currently being used by anoth
 Furthermore, with the `PolicyCollection` :
 
 - You can call the `BuildCollectionHandlerFor(commonDelegate)`  method to obtain the `IPolicyDelegateCollectionHandler(<T>)` interface and pass it somewhere as a dependency injection parameter.  
-- If you want to create a `PolicyDelegateCollection` based on the collection of policies you just created, for example, to handle other delegates, you can call the `ToPolicyDelegateCollection(commonDelegate)` method.  Each element of the new collection will consist of a common delegate `commonDelegate` and one of the policies that have been added to `PolicyCollection` object.
+- If you want to create a `PolicyDelegateCollection` based on the collection of policies you just created, for example, to handle other delegates, you can call the `ToPolicyDelegateCollection(commonDelegate)` method.  Each element of the new collection will consist of a common delegate `commonDelegate` and one of the policies that have been added to `PolicyCollection` object.  
+
+The `PolicyCollection` class has the same options for filtering errors and adding `PolicyResult` handlers as the `PolicyDelegateCollection` class.
 
 
 ### Calling Func and Action delegates in a resilient manner
