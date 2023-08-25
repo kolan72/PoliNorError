@@ -89,10 +89,11 @@ Later on, the policy processor will try to process error and populate the other 
 
 The most crucial property is the `IsFailed` property. If it equals `true`, the delegate was not able to be handled.  
 It can happen due to these reasons:
+-   The delegate  to handle is null.
 -   Policy rules failed.
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
--   A critical error has occurred within the catch block, specifically related to the calling of the saving error delegate for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
- -   Cancellation occurs after the first call of the delegate you handle.
+-   A critical error has occurred within the catch block, specifically related to the saving error for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
+ -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.  
  
 When the policy processor finishes his work and is run within a policy, you can use a `PolicyResult` handler to set `IsFailed` to true if handling cannot be accepted as a success.  
 Having `IsFailed` true, you can check the `UnprocessedError` property (appeared in version 2.0.0-rc3) to see if there was an exception that was not handled properly within the catch block.
