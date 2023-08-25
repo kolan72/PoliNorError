@@ -426,41 +426,32 @@ The `PolicyCollection` class has the same options for filtering errors and addin
 
 
 ### Calling Func and Action delegates in a resilient manner
-There are delegate extension methods that allow delegates to be called in a resilient manner.
-Each method calls corresponding policy method behind the scenes.
-It is also possible to customize the calling by error processor delegates.
-For example, with error processor from `Func<Exception, CancellationToken, Task>`:
-```csharp
-        Func<Exception, CancellationToken, Task> errorSaveFunc =  async(ex, ct) 
-                                                                            => await errorSaver.SaveAsync(ex, ct);
-        Task<PolicyResult<string>> GetUserEmailWithFallbackAsync(
-                                                                Func<CancellationToken, Task<string>> emailFunc, CancellationToken token)
-        {
-            return emailFunc.InvokeWithFallbackAsync(async(ct) => 
-                                                                await UserManager.GetFallbackEmailAsync(ct), 
-                                                                errorSaveFunc, token);
-        }
-        //Somewhere in your code
-        public async Task SendUserEmailAsync(CancellationToken token)
-        {
-            var res = await GetUserEmailWithFallbackAsync(async(ct) => await UserManager.GetUserEmailAsync(ct), token);
-            if (res.IsSuccess)
-                await emailSender.SendEmailAsync(res.Result, token);
-            }
-        }
-```
-If you want to use cancellation possibility for not cancelable error processor method use `RetryErrorProcessor` or `FallbackErrorProcessor` helper classes, for example :
+There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
+Each method calls corresponding policy method behind the scenes.  
+These methods have parameters that the policy is usually configured by, excluding error filters and `PolicyResult` handlers. Only one error processor is supported and can be set up by a parameter of type `ErrorProcessorParam`. This helper class helps to reduce the number of invoking method overloads, for example:
 
 ```csharp
-          Action action = () => SendEmail("someuser@somedomain.com");
-	  Action<Exception> actionError = (ex) => logger.Error(ex.Message));
-	  action.InvokeWithRetry(retryCount, 
-			                     RetryErrorProcessor.From(actionError, 
-			                                              ConvertToCancelableFuncType.Cancelable)
-			                     );
+			Action action = () => SendEmail("someuser@somedomain.com");
+
+			//For the error processor created from the BasicErrorProcessor class
+			action.InvokeWithRetry(2,						
+									new BasicErrorProcessor(logger.Error)
+									);
+
+			//For the error processor created from the Action<Exception> delegate:
+			action.InvokeWithRetry(2,
+									//Or (ErrorProcessorParam)logger.Error
+									ErrorProcessorParam.From(logger.Error)
+									);
+
+			//For the error processor created from the FuncException, Task> delegate: 
+			action.InvokeWithRetry(2,
+									//Or (ErrorProcessorParam)errorSaver.SaveChangesAsync
+									ErrorProcessorParam.From(errorSaver.SaveChangesAsync)
+									);
 ```
 
-Full list of extensions methods:
+Full list of extensions methods names:
 
 - `InvokeWithRetry(Async)`
 - `InvokeWithWaitAndRetry(Async)`
