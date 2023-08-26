@@ -63,15 +63,15 @@ For fallback using default fallback policy processor:
 ```csharp
 var result = FallbackProcessor
                            .CreateDefault()
-                           .ForError<ObjectDisposedException>()
+                           .IncludeError<ObjectDisposedException>()
                            .WithErrorProcessorOf((ex) => logger.Error(ex.Message))
                            .Fallback(someDisposableObj.SomeMethod, 
-                                    (_) => new SomeFallbackObj().SomeFallbackMethod());
+                                    (_) => new SomeFallbackClass().SomeFallbackMethod());
 ```
 With [`FallbackPolicy`](#fallbackpolicy):
 ```csharp
 var result = new FallbackPolicy()
-                             .ForError<ObjectNotFoundException>()
+                             .IncludeError<ObjectNotFoundException>()
                              .WithFallbackFunc<Email>(() => UserManager.GetGuestEmail())
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
@@ -132,7 +132,7 @@ If no filter is set, the delegate will try to be handled with any exception.
 You can specify error filter for policy or policy processor:
 ```csharp
  var result = new FallbackPolicy()
-                                .ForError<SqlException>() //IncludeError<SqlException>() since version 2.0.0-alpha
+                                .IncludeError<SqlException>() 
                                 .ExcludeError<SqlException>(ex => ex.Number == 1205)
                                 .WithFallbackAction(() => cmd2.ExecuteNonQuery())
                                 .Handle(() => cmd1.ExecuteNonQuery());
@@ -334,7 +334,6 @@ With these methods
 - `WithPolicyDelagate`
 - `WithPolicyAndDelegate`
 - `AndDelegate` (set delegate to last `PolicyDelegate` object in the collection)
-- `WithCommonDelegate` (deprecated since _version_ 2.0.0-rc2 version)
 
  or specific policy-related extensions methods and their overloads:
 - `WithRetry`
@@ -347,8 +346,8 @@ With these methods
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner or in the miscellaneous way.  
 
-You can establish a common `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method. 
-These methods require the same delegates types as `PolicyResult` handlers.  
+You can establish a common `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method.  
+These methods require the same delegates types as `PolicyResult` handlers for policy.  
 
 This is an example of how to add retry policies and delegates with common `PolicyResult` handler(example for _version_ 2.0.0-rc2 version):
 ```csharp
@@ -369,13 +368,14 @@ var result = PolicyDelegateCollection<IConnection>.Create()
 						}
                         .HandleAll();
 ```
-You can use ExcludeError and ForError methods to set filters on the entire collection(example for _version_ 1.0.4 version):
+You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters on the entire collection:
 ```csharp
 var result = PolicyDelegateCollection<int>.Create()
                          .WithRetry(5)
-                         .WithFallback(() => cmd2.ExecuteNonQuery())
-                         .WithCommonDelegate(() => cmd1.ExecuteNonQuery())
-                         .ForError<SqlException>((ex) => ex.Number == 1205)
+						 .AndDelegate(() => cmd1.ExecuteNonQuery())
+                         .WithFallback(() => (Int32)cmd3.ExecuteScalar())
+                         .AndDelegate(() => cmd2.ExecuteNonQuery())
+                         .ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
                          .HandleAll();
 ```
 The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
