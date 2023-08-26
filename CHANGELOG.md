@@ -1,3 +1,15 @@
+## 2.0.0
+
+- Rename the `ErrorProcessorDelegate` class to `ErrorProcessorParam`.
+- Add the `RetryErrorSaverParam` class and use it in the `DelegateInvoking(T)` and `PolicyDelegateCollectionRegistrar` classes for extensions methods.
+- Rename the `PolicyDelegateBase.UseSync` property to `SyncType`.
+- Support not cancelable `PolicyResult` handlers for policies, `PolicyCollection` and `PolicyDelegateCollection(<T>)` classes.
+- Add new `WithErrorProcessorOf` extensions methods to `IPolicyProcessor` and `IPolicyBase` interfaces.
+- The existed `DefaultErrorProcessor` class was renamed to `BasicErrorProcessor`, the new `DefaultErrorProcessor`was added.
+- Rename the `ConvertToCancelableFuncType` enum to `CancellationType`.
+- Some classes for extensions methods was renamed, splitted or dropped.
+
+
 ## 2.0.0-rc5  
 
 - Add new `UseCustomErrorSaver` method to the `IRetryProcessor` interface.
