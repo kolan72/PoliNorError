@@ -371,20 +371,20 @@ var result = PolicyDelegateCollection<IConnection>.Create()
 You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters on the entire collection:
 ```csharp
 var result = PolicyDelegateCollection<int>.Create()
-                         .WithRetry(5)
-						 .AndDelegate(() => cmd1.ExecuteNonQuery())
-                         .WithFallback(() => (Int32)cmd3.ExecuteScalar())
-                         .AndDelegate(() => cmd2.ExecuteNonQuery())
-                         .ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
-                         .HandleAll();
+                        .WithRetry(5)
+						.AndDelegate(() => cmd1.ExecuteNonQuery())
+                        .WithFallback(() => (Int32)cmd3.ExecuteScalar())
+                        .AndDelegate(() => cmd2.ExecuteNonQuery())
+                        .ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
+                        .HandleAll();
 ```
 The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
 
-Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(T>)` class is a wrapper around `PolicyResult` that additionally contains `MethodInfo` of the delegate.  
+Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(<T>)` class is a wrapper around `PolicyResult` that additionally contains `MethodInfo` of the delegate.  
 
 The `PolicyDelegatesUnused` property contains a collection of policydelegates that were not handled due to the reasons described above.  
 
-For some purpurses  throw a special `PolicyDelegateCollectionHandleException` exception if the last policy in the collection fails may be useful. You can do it with the  `WithThrowOnLastFailed` method.
+It is possible to throw an exception if handling of the last element in the collection fails. This can be done with the `WithThrowOnLastFailed` method, which throws a special `PolicyDelegateCollectionHandleException` exception.
 
 ### PolicyCollection
 Sometimes one delegate needs to be handled by many policies, and this can be done easily with the `PolicyCollection` class.  
