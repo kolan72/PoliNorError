@@ -373,10 +373,10 @@ You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters
 var result = PolicyDelegateCollection<int>.Create()
 					.WithRetry(5)
 					.AndDelegate(() => cmd1.ExecuteNonQuery())
-                	.WithFallback(() => (Int32)cmd3.ExecuteScalar())
-                	.AndDelegate(() => cmd2.ExecuteNonQuery())
-                	.ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
-                	.HandleAll();
+					.WithFallback(() => (Int32)cmd3.ExecuteScalar())
+					.AndDelegate(() => cmd2.ExecuteNonQuery())
+					.ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
+					.HandleAll();
 ```
 The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
 
