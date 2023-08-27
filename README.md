@@ -240,8 +240,8 @@ For testing purposes there is a `RetryPolicy` constructor that has `Action<Retry
 `RetryPolicy` can be customized of your implementation of `IRetryProcessor` interface.  
 
 ### FallbackPolicy
-The policy rule for the `FallbackPolicy` is that it can't handle error when the fallback delegate throws an exception. 
-If it happens, the `IsFailed` property of the `PolicyResult` object will be set to true. This exception will be wrapped up in a `CatchBlockException` exception with the `IsCritical` property set to true.  
+The policy rule for the `FallbackPolicy` is that it can't handle error when the fallback delegate throws an exception.  
+If it happens, this exception will be wrapped up in a `CatchBlockException` exception with the `IsCritical` property set to true, which will be saved in the `CatchBlockErrors` property of the `PolicyResult` object. Additionally, the `PolicyResult.IsFailed` property will be set to true.  
 You can setup this policy for different return types:
 ```csharp
   var userFallbackPolicy = new FallbackPolicy()
