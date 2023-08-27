@@ -234,9 +234,7 @@ To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
 These methods create the `DelayErrorProcessor` object behind the scenes.  
 The `WithWait` method also has overload that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.  
 
-Faulted retries errors saving is configuring by `Action<PolicyResult, Exception>` parameter of one of the constructors and by default save errors in `PolicyResult.Errors` collection.  
-For huge numbers of retries, memory-related exceptions, such as `OutOfMemoryException`, may occur while saving handling exceptions in the `PolicyResult.Errors` property.  
-This exception will be handled, wrapped up in a `CatchBlockException`, and saved in the `PolicyResult.CatchBlockErrors`.  
+For huge numbers of retries, memory-related exceptions, such as `OutOfMemoryException`, may occur while saving handling exceptions in the `PolicyResult.Errors` property. This exception will be handled, wrapped up in a `CatchBlockException`, and saved in the `PolicyResult.CatchBlockErrors`.  
 If you want to interrupt the handling process after that, create a Retry policy or processor with the `failedIfSaveErrorThrow` parameter set to true.  
 
 Moreover, you can also customize error saving by calling the `UseCustomErrorSaver` or `UseCustomErrorSaverOf` methods to save errors elsewhere.  
