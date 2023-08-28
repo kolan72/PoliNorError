@@ -93,9 +93,11 @@ It can happen due to these reasons:
 -   Policy rules failed.
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
 -   A critical error has occurred within the catch block, specifically related to the saving error for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
- -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.  
+ -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.
+ -  If the handling result cannot be accepted as a success, and a policy is in use, you can set `IsFailed` to true in a `PolicyResult` handler.  
  
-When the policy processor finishes his work and is run within a policy, you can use a `PolicyResult` handler to set `IsFailed` to true if handling cannot be accepted as a success.  
+To find out why `IsFailed` was set to true, there is a property called `FailedReason`. It equals `PolicyResultFailedReason.DelegateIsNull` and `PolicyResultFailedReason.PolicyResultHandlerFailed` for the first and last cases, respectively, and `PolicyResultFailedReason.PolicyProcessorFailed` for the others.  
+
 Having `IsFailed` true, you can check the `UnprocessedError` property (appeared in version 2.0.0-rc3) to see if there was an exception that was not handled properly within the catch block.
 
 The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
