@@ -101,7 +101,7 @@ To find out why `IsFailed` was set to true, there is a property called `FailedRe
 Having `IsFailed` true, you can check the `UnprocessedError` property (appeared in version 2.0.0-rc3) to see if there was an exception that was not handled properly within the catch block.
 
 The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
-Check the  `NoError`  property to ensure that there were no errors in handling delegate at all.  
+The `NoError` property makes sure that there were no exceptions at all when calling the handling delegate.  
 
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
 
