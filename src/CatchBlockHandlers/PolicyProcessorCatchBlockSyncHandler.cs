@@ -4,45 +4,29 @@ using static PoliNorError.PolicyProcessor;
 
 namespace PoliNorError
 {
-	internal abstract class PolicyProcessorCatchBlockSyncHandler<T>
+	internal abstract class PolicyProcessorCatchBlockSyncHandler<T> : PolicyProcessorCatchBlockHandlerBase<T>
 	{
-		private readonly PolicyResult _policyResult;
-		private readonly CancellationToken _cancellationToken;
-		private readonly IBulkErrorProcessor _bulkErrorProcessor;
-		private readonly ICanHandleChecker<T> _canHandleChecker;
-
-		protected PolicyProcessorCatchBlockSyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, ICanHandleChecker<T> canHandleChecker, CancellationToken cancellationToken)
+		protected PolicyProcessorCatchBlockSyncHandler(PolicyResult policyResult, ICanHandleChecker<T> canHandleChecker, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken)
+			:base(policyResult, canHandleChecker, bulkErrorProcessor, cancellationToken)
 		{
-			_policyResult = policyResult;
-			_bulkErrorProcessor = bulkErrorProcessor;
-			_canHandleChecker = canHandleChecker;
-			_cancellationToken = cancellationToken;
 		}
 
 		public HandleCatchBlockResult Handle(Exception ex, ErrorContext<T> errorContext = null)
 		{
-			if (_cancellationToken.IsCancellationRequested)
-			{
-				return HandleCatchBlockResult.Canceled;
-			}
-			var checkFallbackResult = _canHandleChecker.CanHandle(ex, errorContext);
-			if (checkFallbackResult == HandleCatchBlockResult.Success)
-			{
-				var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), _cancellationToken);
-				_policyResult.AddBulkProcessorErrors(bulkProcessResult);
-				return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkFallbackResult;
-			}
-			else
-			{
-				return checkFallbackResult;
-			}
+			var (Result, CanProcess) = PreHandle(ex, errorContext);
+			if (!CanProcess)
+				return Result;
+
+			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), _cancellationToken);
+
+			return PostHandle(bulkProcessResult, Result);
 		}
 	}
 
 	internal class DefaultPolicyProcessorCatchBlockSyncHandler : PolicyProcessorCatchBlockSyncHandler<Unit>
 	{
 		public DefaultPolicyProcessorCatchBlockSyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, ExceptionFilter exceptionFilter, CancellationToken cancellationToken)
-														  : base(policyResult, bulkErrorProcessor, new DefalutCanHandleChecker(exceptionFilter), cancellationToken)
+														  : base(policyResult, new DefalutCanHandleChecker(exceptionFilter), bulkErrorProcessor, cancellationToken)
 		{}
 	}
 }
