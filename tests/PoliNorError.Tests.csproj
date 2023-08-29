@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BulkErrorProcessorTests.cs" />
+    <Compile Include="CatchBlockSyncHandlersTests.cs" />
     <Compile Include="DefaultFallbackProcessorAsyncTests.cs" />
     <Compile Include="DefaultFallbackProcessorTests.cs" />
     <Compile Include="DefaultRetryProcessorAsyncTests.cs" />
