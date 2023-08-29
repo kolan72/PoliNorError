@@ -9,19 +9,24 @@ namespace PoliNorError
 		private readonly SyncHandlerRunner _syncHandlerRunnerInner;
 		public override bool SyncRun => true;
 
+		private readonly Type _type;
+
 		public static SyncHandlerRunnerT Create<T>(Action<PolicyResult<T>, CancellationToken> act, int num)
 		{
 			void actArg(PolicyResult pr, CancellationToken ct) => act((PolicyResult<T>)pr, ct);
-			return new SyncHandlerRunnerT(new SyncHandlerRunner(actArg, num), num);
+			return new SyncHandlerRunnerT(new SyncHandlerRunner(actArg, num), num, typeof(T));
 		}
 
-		private SyncHandlerRunnerT(SyncHandlerRunner syncHandlerRunner, int num) : base(num)
+		private SyncHandlerRunnerT(SyncHandlerRunner syncHandlerRunner, int num, Type type) : base(num)
 		{
 			_syncHandlerRunnerInner = syncHandlerRunner;
+			_type = type;
 		}
 
 		public void Run<T>(PolicyResult<T> policyResult, CancellationToken token = default)
 		{
+			if (typeof(T) != _type)
+				return;
 			_syncHandlerRunnerInner.Run(policyResult, token);
 		}
 
