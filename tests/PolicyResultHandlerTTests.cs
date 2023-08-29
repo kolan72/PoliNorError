@@ -89,5 +89,31 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(res.IsFailed);
 			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
 		}
+
+		[Test]
+		public void Should_No_PolicyResultHandlingErrors_If_SyncPolicyResultHandler_For_OtherType_Than_PolicyResult_Result()
+		{
+			var result = PolicyCollection.Create()
+					.WithRetry(2)
+					.WithFallback(() => new List<string>() { "1", "2" })
+					.AddPolicyResultHandlerForAll<List<string>>(_ => { })
+					.AddPolicyResultHandlerForAll<int>(_ => { })
+					.HandleDelegate<List<string>>(() => throw new Exception("Test"));
+
+			Assert.AreEqual(0, result.LastPolicyResult.PolicyResultHandlingErrors.Count());
+		}
+
+		[Test]
+		public async Task Should_No_PolicyResultHandlingErrors_If_ASyncPolicyResultHandler_For_OtherType_Than_PolicyResult_Result()
+		{
+			var result = await PolicyCollection.Create()
+					.WithRetry(2)
+					.WithFallback(() => new List<string>() { "1", "2" })
+					.AddPolicyResultHandlerForAll<List<string>>(async (_, __) => await Task.Delay(1))
+					.AddPolicyResultHandlerForAll<int>(async (_, __) => await Task.Delay(1))
+					.HandleDelegateAsync<List<string>>(() => throw new Exception("Test"));
+
+			Assert.AreEqual(0, result.LastPolicyResult.PolicyResultHandlingErrors.Count());
+		}
 	}
 }
