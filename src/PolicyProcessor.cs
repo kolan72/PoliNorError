@@ -27,7 +27,7 @@ namespace PoliNorError
 		public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => ErrorFilter.ExcludedErrorFilters;
 
 		public ExceptionFilter ErrorFilter { get; } = new ExceptionFilter();
-
+		[Obsolete("Switch to CatchBlockHandlers")]
 		protected void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, CancellationToken token, ProcessingErrorContext  errorContext = null)
 		{
 			result.ChangeByHandleCatchBlockResult(CanHandleCatchBlock());
@@ -51,7 +51,7 @@ namespace PoliNorError
 				}
 			}
 		}
-
+		[Obsolete("Switch to CatchBlockHandlers")]
 		protected async Task HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, CancellationToken token, bool configAwait, ProcessingErrorContext errorContext = null)
 		{
 			result.ChangeByHandleCatchBlockResult(await CanHandleCatchBlockAsync().ConfigureAwait(configAwait));
@@ -82,6 +82,25 @@ namespace PoliNorError
 				return HandleCatchBlockResult.FailedByErrorFilter;
 			else
 				return HandleCatchBlockResult.Success;
+		}
+
+		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+		{
+			return new PolicyProcessorCatchBlockSyncHandler<T> (policyResult,
+																_bulkErrorProcessor,
+																token,
+																ErrorFilter.GetCanHandle(),
+																policyRuleFunc);
+		}
+
+		internal PolicyProcessorCatchBlockAsyncHandler<T> GetCatchBlockAsyncHandler<T>(PolicyResult policyResult, bool configAwait, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+		{
+			return new PolicyProcessorCatchBlockAsyncHandler<T>(policyResult,
+																_bulkErrorProcessor,
+																configAwait,
+																token,
+																ErrorFilter.GetCanHandle(),
+																policyRuleFunc);
 		}
 
 		protected Func<Exception, bool> GetCanHandle()
