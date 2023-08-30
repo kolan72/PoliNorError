@@ -353,7 +353,8 @@ With these methods
 - `WithSimple` (appeared in _version_ 2.0.0-alpha)
 
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
-Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner or in the miscellaneous way.  
+Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner.  
+You can also use the `BuildCollectionHandler()` method to obtain the `IPolicyDelegateCollectionHandler(T)` interface with the aforementioned methods and pass it somewhere as a dependency injection parameter.  
 
 You can establish a common `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method.  
 These methods require the same delegates types as `PolicyResult` handlers for policy.  
