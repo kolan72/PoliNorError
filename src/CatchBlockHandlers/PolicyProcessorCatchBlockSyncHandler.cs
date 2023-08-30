@@ -4,10 +4,10 @@ using static PoliNorError.PolicyProcessor;
 
 namespace PoliNorError
 {
-	internal abstract class PolicyProcessorCatchBlockSyncHandler<T> : PolicyProcessorCatchBlockHandlerBase<T>
+	internal class PolicyProcessorCatchBlockSyncHandler<T> : PolicyProcessorCatchBlockHandlerBase<T>
 	{
-		protected PolicyProcessorCatchBlockSyncHandler(PolicyResult policyResult, ICanHandleChecker<T> canHandleChecker, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken)
-			:base(policyResult, canHandleChecker, bulkErrorProcessor, cancellationToken)
+		public PolicyProcessorCatchBlockSyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+			:base(policyResult, bulkErrorProcessor, cancellationToken, errorFilterFunc, policyRuleFunc)
 		{
 		}
 
@@ -21,12 +21,5 @@ namespace PoliNorError
 
 			return PostHandle(bulkProcessResult, Result);
 		}
-	}
-
-	internal class DefaultPolicyProcessorCatchBlockSyncHandler : PolicyProcessorCatchBlockSyncHandler<Unit>
-	{
-		public DefaultPolicyProcessorCatchBlockSyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, ExceptionFilter exceptionFilter, CancellationToken cancellationToken)
-														  : base(policyResult, new DefalutCanHandleChecker(exceptionFilter), bulkErrorProcessor, cancellationToken)
-		{}
 	}
 }

@@ -8,15 +8,18 @@ namespace PoliNorError
 	{
 		protected readonly PolicyResult _policyResult;
 		protected readonly CancellationToken _cancellationToken;
-		protected readonly ICanHandleChecker<T> _canHandleChecker;
 		protected readonly IBulkErrorProcessor _bulkErrorProcessor;
 
-		protected PolicyProcessorCatchBlockHandlerBase(PolicyResult policyResult, ICanHandleChecker<T> canHandleChecker, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken)
+		private readonly Func<Exception, bool> _errorFilterFunc;
+		private readonly Func<ErrorContext<T>, bool> _policyRuleFunc;
+
+		protected PolicyProcessorCatchBlockHandlerBase(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, bool> policyRuleFunc = null)
 		{
 			_policyResult = policyResult;
-			_canHandleChecker = canHandleChecker;
 			_cancellationToken = cancellationToken;
 			_bulkErrorProcessor = bulkErrorProcessor;
+			_errorFilterFunc = errorFilterFunc;
+			_policyRuleFunc = policyRuleFunc ?? ((_) => true);
 		}
 
 		protected (HandleCatchBlockResult Result, bool CanProcess) PreHandle(Exception ex, ErrorContext<T> errorContext)
@@ -25,11 +28,21 @@ namespace PoliNorError
 			{
 				return (HandleCatchBlockResult.Canceled, false);
 			}
-			var checkFallbackResult = _canHandleChecker.CanHandle(ex, errorContext);
+			var checkFallbackResult = CanHandle(ex, errorContext);
 			if (checkFallbackResult != HandleCatchBlockResult.Success)
 				return (checkFallbackResult, false);
 			else
 				return (HandleCatchBlockResult.Success, true);
+		}
+
+		private HandleCatchBlockResult CanHandle(Exception ex, ErrorContext<T> errorContext)
+		{
+			if (!_errorFilterFunc(ex))
+				return HandleCatchBlockResult.FailedByErrorFilter;
+			else if (!_policyRuleFunc(errorContext))
+				return HandleCatchBlockResult.FailedByPolicyRules;
+			else
+				return HandleCatchBlockResult.Success;
 		}
 
 		protected HandleCatchBlockResult PostHandle(BulkProcessResult bulkProcessResult, HandleCatchBlockResult resultIfNotCanceled)

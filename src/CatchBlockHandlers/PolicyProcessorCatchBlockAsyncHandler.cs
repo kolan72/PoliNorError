@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal abstract class PolicyProcessorCatchBlockAsyncHandler<T> : PolicyProcessorCatchBlockHandlerBase<T>
+	internal class PolicyProcessorCatchBlockAsyncHandler<T> : PolicyProcessorCatchBlockHandlerBase<T>
 	{
 		private readonly bool _configAwait;
 
-		protected PolicyProcessorCatchBlockAsyncHandler(PolicyResult policyResult, ICanHandleChecker<T> canHandleChecker, IBulkErrorProcessor bulkErrorProcessor, bool configAwait, CancellationToken cancellationToken) : base(policyResult, canHandleChecker, bulkErrorProcessor, cancellationToken)
+		public PolicyProcessorCatchBlockAsyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, bool configAwait, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+				: base(policyResult, bulkErrorProcessor, cancellationToken, errorFilterFunc, policyRuleFunc)
 		{
 			_configAwait = configAwait;
 		}
