@@ -51,5 +51,39 @@ namespace PoliNorError.Tests
 				Assert.AreEqual(HandleCatchBlockResult.Canceled, res2);
 			}
 		}
+
+		[Test]
+		[TestCase(3, HandleCatchBlockResult.FailedByPolicyRules, true)]
+		[TestCase(1, HandleCatchBlockResult.Success, true)]
+		[TestCase(3, HandleCatchBlockResult.FailedByPolicyRules, false)]
+		[TestCase(1, HandleCatchBlockResult.Success, false)]
+		public async Task Should_PolicyProcessorCatchBlockHandler_When_ErrorContext_CanNotBeHandled_Returns_FailedByPolicyRules(int retryCount, HandleCatchBlockResult result, bool sync)
+		{
+			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Simple);
+			bulkProcessor.AddProcessor(new BasicErrorProcessor());
+			var filter = new PolicyProcessor.ExceptionFilter();
+
+			if (sync)
+			{
+				var handler = new PolicyProcessorCatchBlockSyncHandler<RetryContext>(new PolicyResult(),
+																 bulkProcessor,
+																 default,
+																 filter.GetCanHandle(),
+																 (exCtx) => exCtx.Context.CurrentRetryCount < 2
+																 );
+				Assert.AreEqual(result, handler.Handle(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
+			}
+			else
+			{
+				var handler = new PolicyProcessorCatchBlockAsyncHandler<RetryContext>(new PolicyResult(),
+															 bulkProcessor,
+															 false,
+															 default,
+															 filter.GetCanHandle(),
+															 (exCtx) => exCtx.Context.CurrentRetryCount < 2
+															 );
+				Assert.AreEqual(result, await handler.HandleAsync(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
+			}
+		}
 	}
 }
