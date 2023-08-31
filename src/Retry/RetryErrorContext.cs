@@ -2,6 +2,8 @@
 {
 	internal class RetryErrorContext : ErrorContext<RetryContext>
 	{
+		public RetryErrorContext(int tryCount) : this(new RetryContext(tryCount)){}
+
 		public RetryErrorContext(RetryContext retryContext):base(retryContext){}
 
 		public override ProcessingErrorContext ToProcessingErrorContext()
