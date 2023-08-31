@@ -294,7 +294,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleAllAsync_Instant_Cancellation_Be_IsCanceled_ForSync()
+		public async Task Should_HandleAllAsync_With_Instant_Cancellation_Work()
 		{
 			var polInfo1 = new RetryPolicy(1).ToPolicyDelegate<int>(() => { Task.Delay(TimeSpan.FromMilliseconds(1)).GetAwaiter().GetResult(); throw new Exception("1"); });
 			var polInfo2 = new RetryPolicy(1).ToPolicyDelegate<int>(() => { Task.Delay(TimeSpan.FromMilliseconds(1)).GetAwaiter().GetResult(); throw new Exception("2"); });
@@ -304,7 +304,7 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection<int>.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.HandleAllAsync(cancelSource.Token);
-			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
+			Assert.IsFalse(result.Any());
 			cancelSource.Dispose();
 		}
 
@@ -399,6 +399,17 @@ namespace PoliNorError.Tests
 			var polDelCol = PolicyDelegateCollection<int>.Create();
 			polDelCol.WithSimple();
 			Assert.AreEqual(1, polDelCol.Count());
+		}
+
+		[Test]
+		public void Should_Handling_Empty_PolicyDelegateCollectionT_When_Cancellation_Has_Already_Occured_DoesNotThrow()
+		{
+			var polDelegateCollection = PolicyDelegateCollection<int>.Create();
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				Assert.DoesNotThrowAsync(async () => await PolicyDelegatesHandler.HandleAllBySyncType((PolicyDelegateCollection<int>)polDelegateCollection, PolicyDelegateHandleType.Sync, cts.Token));
+			}
 		}
 
 		private class TestClass
