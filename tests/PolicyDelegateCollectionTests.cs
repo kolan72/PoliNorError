@@ -527,7 +527,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleAllAsync_Instant_Cancellation_Be_IsCanceled_ForAsync()
+		public async Task Should_HandleAllAsync_Instant_Cancellation_Work_ForAsync()
 		{
 			var polInfo1 = new RetryPolicy(1).ToPolicyDelegate(async (_) => { await Task.Delay(TimeSpan.FromMilliseconds(1)); throw new Exception("1"); });
 			var polInfo2 = new RetryPolicy(1).ToPolicyDelegate(async (_) => { await Task.Delay(TimeSpan.FromMilliseconds(1)); throw new Exception("2"); });
@@ -537,12 +537,12 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
-			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
+			Assert.IsFalse(result.Any());
 			cancelSource.Dispose();
 		}
 
 		[Test]
-		public async Task Should_HandleAllAsync_Instant_Cancellation_Be_IsCanceled_ForMisc()
+		public async Task Should_HandleAllAsync_Instant_Cancellation_Work_ForMisc()
 		{
 			var polInfo1 = new RetryPolicy(1).ToPolicyDelegate(() => { Task.Delay(TimeSpan.FromMilliseconds(1)).GetAwaiter().GetResult(); throw new Exception("1"); });
 			var polInfo2 = new RetryPolicy(1).ToPolicyDelegate(async (_) => { await Task.Delay(TimeSpan.FromMilliseconds(1)); throw new Exception("2"); });
@@ -552,12 +552,12 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
-			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
+			Assert.IsFalse(result.Any());
 			cancelSource.Dispose();
 		}
 
 		[Test]
-		public void Should_HandleAll_Instant_Cancellation_Be_IsCanceled()
+		public void Should_HandleAll_Instant_Cancellation_Work_ForMisc()
 		{
 			var polInfo1 = new RetryPolicy(1).ToPolicyDelegate(() => { Task.Delay(TimeSpan.FromMilliseconds(1)).GetAwaiter().GetResult(); throw new Exception("1"); });
 			var polInfo2 = new RetryPolicy(1).ToPolicyDelegate(async (_) => { await Task.Delay(TimeSpan.FromMilliseconds(1)); throw new Exception("2"); });
@@ -569,7 +569,7 @@ namespace PoliNorError.Tests
 									.BuildCollectionHandler()
 									.Handle(cancelSource.Token);
 
-			Assert.AreEqual(true, result.LastPolicyResult.IsCanceled);
+			Assert.IsFalse(result.Any());
 			cancelSource.Dispose();
 		}
 
