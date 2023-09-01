@@ -66,7 +66,7 @@ namespace PoliNorError
 					}
 
 					result.ChangeByHandleCatchBlockResult(handler
-														  .Handle(ex, new RetryErrorContext(tryCount)));
+														.Handle(ex, new RetryErrorContext(tryCount)));
 					if (!result.IsFailed)
 						tryCount++;
 				}
@@ -129,7 +129,7 @@ namespace PoliNorError
 						break;
 					}
 					result.ChangeByHandleCatchBlockResult(handler
-														  .Handle(ex, new RetryErrorContext(tryCount)));
+														.Handle(ex, new RetryErrorContext(tryCount)));
 					if (!result.IsFailed)
 						tryCount++;
 				}
