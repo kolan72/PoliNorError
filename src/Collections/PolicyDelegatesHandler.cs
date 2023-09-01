@@ -25,7 +25,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult();
+					curPolResult.SetCanceled();
 					break;
 				}
 
@@ -39,7 +40,8 @@ namespace PoliNorError
 					curPolResult = policyResult;
 					if (IsCanceled)
 					{
-						handledResults.AddPolicyDelegateResultCanceled(si);
+						curPolResult = new PolicyResult();
+						curPolResult.SetCanceled();
 						break;
 					}
 				}
@@ -79,7 +81,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult<T>();
+					curPolResult.SetCanceled();
 					break;
 				}
 
@@ -93,7 +96,8 @@ namespace PoliNorError
 					curPolResult = policyResult;
 					if (IsCanceled)
 					{
-						handledResults.AddPolicyDelegateResultCanceled(si);
+						curPolResult = new PolicyResult<T>();
+						curPolResult.SetCanceled();
 						break;
 					}
 				}
@@ -186,7 +190,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult<T>();
+					curPolResult.SetCanceled();
 					break;
 				}
 
@@ -213,7 +218,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult();
+					curPolResult.SetCanceled();
 					break;
 				}
 
@@ -238,7 +244,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult();
+					curPolResult.SetCanceled();
 					break;
 				}
 
@@ -269,7 +276,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult<T>();
+					curPolResult.SetCanceled();
 					break;
 				}
 
@@ -300,7 +308,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult<T>();
+					curPolResult.SetCanceled();
 					break;
 				}
 				curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
@@ -323,7 +332,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
-					curPolResult = handledResults.AddPolicyDelegateResultCanceled(si);
+					curPolResult = new PolicyResult();
+					curPolResult.SetCanceled();
 					break;
 				}
 				curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
