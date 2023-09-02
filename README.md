@@ -115,13 +115,18 @@ But the easiest way to add an error processor is to use the `WithErrorProcessorO
 
 - `Func<Exception, Task>`
 - `Func<Exception, CancellationToken, Task>`
+- `Func<Exception, ProcessingErrorInfo, Task>`
+- `Func<Exception, ProcessingErrorInfo, CancellationToken, Task>`
 
 or synchronous  delegates
 
 - `Action<Exception>`
 - `Action<Exception, CancellationToken>`
+- `Action<Exception, ProcessingErrorInfo>`
+- `Action<Exception, ProcessingErrorInfo, CancellationToken>`
 
 , or a pair of delegates from both lists if you plan to use a policy in sync and async handling scenarios.  
+The last two delegates have the `ProcessingErrorInfo` argument. This type contains a policy alias and may also contain the current context of the policy processor, such as the current retry for the `RetryPolicy`.
 
 Note that the error processor is added to the *whole* policy or policy processor, so its `Process` or `ProcessAsync` method will be called depending on the execution type of the policy handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
 
