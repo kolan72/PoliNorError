@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,11 +9,7 @@ namespace PoliNorError
 	{
 		IPolicyDelegateCollection WithPolicyDelegate(PolicyDelegate errorPolicy);
 
-		IPolicyDelegateCollection IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
-
 		IPolicyDelegateCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
-
-		IPolicyDelegateCollection ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
 
 		IPolicyDelegateCollection ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
 
@@ -43,11 +38,7 @@ namespace PoliNorError
 	{
 		IPolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy);
 
-		IPolicyDelegateCollection<T> IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
-
 		IPolicyDelegateCollection<T> IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
-
-		IPolicyDelegateCollection<T> ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
 
 		IPolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
 

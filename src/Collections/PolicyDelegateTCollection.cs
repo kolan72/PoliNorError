@@ -81,21 +81,9 @@ namespace PoliNorError
 			return this;
 		}
 
-		public IPolicyDelegateCollection<T> IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
-		{
-			this.AddIncludedErrorFilter(handledErrorFilter);
-			return this;
-		}
-
 		public IPolicyDelegateCollection<T> IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilter(func);
-			return this;
-		}
-
-		public IPolicyDelegateCollection<T> ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
-		{
-			this.AddExcludedErrorFilter(handledErrorFilter);
 			return this;
 		}
 
