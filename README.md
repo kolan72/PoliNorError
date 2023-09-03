@@ -150,8 +150,8 @@ If filter conditions are unsatisfied, error handling break and set both the `IsF
 
 ### PolicyResult handlers
 
-When handling delegate by policy you can add so-called `PolicyResult` handlers using one of the method named  `WithPolicyResultHandler` (`AddPolicyResultHandler` since _version_ 2.0.0-alpha).  
- These methods accept delegate as a parameter and can extra handle `PolicyResult`:
+When you handle delegate by policy, you can add `PolicyResult` handlers to it using `AddPolicyResultHandler` method overloads.  
+The full list of delegates that can be accepted as arguments for these methods:
 
 - `Action<PolicyResult>`
 - `Action<PolicyResult, CancellationToken>`
@@ -218,6 +218,7 @@ private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
 ```
 
 Exceptions in a `PolicyResult` handler are allowed and stored in `PolicyResultHandlingErrors` property without affecting other `PolicyResult` properties.  
+If a cancellation occurs at the stage of the `PolicyResult` handling, the process of running the `PolicyResult` handlers will not be interrupted.  
 
 ### RetryPolicy
 The policy rule for the `RetryPolicy` is that it can handle exceptions only until the number of permitted retries does not exceed, so it is the most crucial parameter and is set in policy constructor.  
