@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +76,40 @@ namespace PoliNorError
 		public static IPolicyDelegateCollection<T> ExcludeErrorForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			policyDelegateCollection.AddExcludedErrorFilter(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>> act)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>> act, CancellationType convertType)
+		{
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>, CancellationToken> act)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<PolicyResult<T>, Task> func)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(func);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<PolicyResult<T>, Task> func, CancellationType convertType)
+		{
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(func);
 			return policyDelegateCollection;
 		}
 	}

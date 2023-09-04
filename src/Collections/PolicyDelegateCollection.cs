@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -90,40 +89,6 @@ namespace PoliNorError
 		public IPolicyDelegateCollection ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddExcludedErrorFilter(func);
-			return this;
-		}
-
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act)
-		{
-			this.Select(pd => pd.Policy).SetResultHandler(act);
-			return this;
-		}
-
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType)
-		{
-			return AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
-		}
-
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act)
-		{
-			this.Select(pd => pd.Policy).SetResultHandler(act);
-			return this;
-		}
-
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func)
-		{
-			this.Select(pd => pd.Policy).SetResultHandler(func);
-			return this;
-		}
-
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType)
-		{
-			return AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
-		}
-
-		public IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func)
-		{
-			this.Select(pd => pd.Policy).SetResultHandler(func);
 			return this;
 		}
 
