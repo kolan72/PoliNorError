@@ -25,6 +25,8 @@ namespace PoliNorError
 			var result = PolicyResult.ForSync();
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
+			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
+
 			int tryCount = retryCountInfo.StartTryCount;
 			do
 			{
@@ -62,8 +64,10 @@ namespace PoliNorError
 					{
 						break;
 					}
-					var handleResult = HandleCatchBlockAndChangeResult(ex, result, retryCountInfo, tryCount, token);
-					if (!handleResult.IsFailed)
+
+					result.ChangeByHandleCatchBlockResult(handler
+														.Handle(ex, new RetryErrorContext(tryCount)));
+					if (!result.IsFailed)
 						tryCount++;
 				}
 			}
@@ -83,6 +87,8 @@ namespace PoliNorError
 
 			var result = PolicyResult<T>.ForSync();
 			result.ErrorsNotUsed = ErrorsNotUsed;
+
+			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -122,8 +128,9 @@ namespace PoliNorError
 					{
 						break;
 					}
-					var handleResult = HandleCatchBlockAndChangeResult(ex, result, retryCountInfo, tryCount, token);
-					if (!handleResult.IsFailed)
+					result.ChangeByHandleCatchBlockResult(handler
+														.Handle(ex, new RetryErrorContext(tryCount)));
+					if (!result.IsFailed)
 						tryCount++;
 				}
 			}
@@ -138,6 +145,8 @@ namespace PoliNorError
 
 			var result = PolicyResult.InitByConfigureAwait(configureAwait);
 			result.ErrorsNotUsed = ErrorsNotUsed;
+
+			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -172,8 +181,8 @@ namespace PoliNorError
 					{
 						break;
 					}
-					var handleResult = await HandleCatchBlockAndChangeResultAsync(ex, result, retryCountInfo, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
-					if (!handleResult.IsFailed)
+					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, new RetryErrorContext(tryCount)).ConfigureAwait(configureAwait));
+					if (!result.IsFailed)
 						Interlocked.Increment(ref tryCount);
 				}
 			}
@@ -188,6 +197,8 @@ namespace PoliNorError
 
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 			result.ErrorsNotUsed = ErrorsNotUsed;
+
+			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
 
 			int tryCount = retryCountInfo.StartTryCount;
 			do
@@ -223,8 +234,8 @@ namespace PoliNorError
 					{
 						break;
 					}
-					var handleResult = await HandleCatchBlockAndChangeResultAsync(ex, result, retryCountInfo, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
-					if (!handleResult.IsFailed)
+					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, new RetryErrorContext(tryCount)).ConfigureAwait(configureAwait));
+					if (!result.IsFailed)
 						Interlocked.Increment(ref tryCount);
 				}
 			}
@@ -239,54 +250,6 @@ namespace PoliNorError
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
-
-		private PolicyResult HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, RetryCountInfo retryCountInfo, int tryErrorCount, CancellationToken token)
-		{
-			result.ChangeByHandleCatchBlockResult(CanHandleCatchBlock());
-			return result;
-			HandleCatchBlockResult CanHandleCatchBlock()
-			{
-				if (token.IsCancellationRequested)
-				{
-					return HandleCatchBlockResult.Canceled;
-				}
-				var checkRetryResult = CanRetry(ex, retryCountInfo, tryErrorCount);
-				if (checkRetryResult == HandleCatchBlockResult.Success)
-				{
-					var bulkProcessResult = _bulkErrorProcessor.Process(ex, ProcessingErrorContext.FromRetry(tryErrorCount), token);
-					result.AddBulkProcessorErrors(bulkProcessResult);
-					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkRetryResult;
-				}
-				else
-				{
-					return checkRetryResult;
-				}
-			}
-		}
-
-		private async Task<PolicyResult> HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, RetryCountInfo retryCountInfo, int tryErrorCount, bool configAwait, CancellationToken token)
-		{
-			result.ChangeByHandleCatchBlockResult(await CanHandleCatchBlockAsync().ConfigureAwait(configAwait));
-			return result;
-			async Task<HandleCatchBlockResult> CanHandleCatchBlockAsync()
-			{
-				if (token.IsCancellationRequested)
-				{
-					return HandleCatchBlockResult.Canceled;
-				}
-				var checkRetryResult = CanRetry(ex, retryCountInfo, tryErrorCount);
-				if (checkRetryResult == HandleCatchBlockResult.Success)
-				{
-					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, ProcessingErrorContext.FromRetry(tryErrorCount), configAwait, token).ConfigureAwait(configAwait);
-					result.AddBulkProcessorErrors(bulkProcessResult);
-					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkRetryResult;
-				}
-				else
-				{
-					return checkRetryResult;
-				}
-			}
-		}
 
 		private void SaveError(PolicyResult result, Exception ex, int tryErrorCount, CancellationToken token)
 		{
@@ -341,16 +304,6 @@ namespace PoliNorError
 				result.AddCatchBlockError(new CatchBlockException(errorProcessorEx, ex, CatchBlockExceptionSource.ErrorSaver));
 			}
 			result.UnprocessedError = ex;
-		}
-
-		private HandleCatchBlockResult CanRetry(Exception exception, RetryCountInfo retryCountInfo, int curErrorsCount)
-		{
-			if (!GetCanHandle()(exception))
-				return HandleCatchBlockResult.FailedByErrorFilter;
-			else if (!retryCountInfo.CanRetry(curErrorsCount))
-				return HandleCatchBlockResult.FailedByPolicyRules;
-			else
-				return HandleCatchBlockResult.Success;
 		}
 	}
 }

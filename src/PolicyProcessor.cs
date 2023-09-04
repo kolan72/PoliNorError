@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace PoliNorError
 {
@@ -28,65 +27,23 @@ namespace PoliNorError
 
 		public ExceptionFilter ErrorFilter { get; } = new ExceptionFilter();
 
-		protected void HandleCatchBlockAndChangeResult(Exception ex, PolicyResult result, CancellationToken token, ProcessingErrorContext  errorContext = null)
+		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
 		{
-			result.ChangeByHandleCatchBlockResult(CanHandleCatchBlock());
-
-			HandleCatchBlockResult CanHandleCatchBlock()
-			{
-				if (token.IsCancellationRequested)
-				{
-					return HandleCatchBlockResult.Canceled;
-				}
-				var checkFallbackResult = CanHandle(ex);
-				if (checkFallbackResult == HandleCatchBlockResult.Success)
-				{
-					var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext, token);
-					result.AddBulkProcessorErrors(bulkProcessResult);
-					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkFallbackResult;
-				}
-				else
-				{
-					return checkFallbackResult;
-				}
-			}
+			return new PolicyProcessorCatchBlockSyncHandler<T> (policyResult,
+																_bulkErrorProcessor,
+																token,
+																ErrorFilter.GetCanHandle(),
+																policyRuleFunc);
 		}
 
-		protected async Task HandleCatchBlockAndChangeResultAsync(Exception ex, PolicyResult result, CancellationToken token, bool configAwait, ProcessingErrorContext errorContext = null)
+		internal PolicyProcessorCatchBlockAsyncHandler<T> GetCatchBlockAsyncHandler<T>(PolicyResult policyResult, bool configAwait, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
 		{
-			result.ChangeByHandleCatchBlockResult(await CanHandleCatchBlockAsync().ConfigureAwait(configAwait));
-
-			async Task<HandleCatchBlockResult> CanHandleCatchBlockAsync()
-			{
-				if (token.IsCancellationRequested)
-				{
-					return HandleCatchBlockResult.Canceled;
-				}
-				var checkFallbackResult = CanHandle(ex);
-				if (checkFallbackResult == HandleCatchBlockResult.Success)
-				{
-					var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext, configAwait, token).ConfigureAwait(configAwait);
-					result.AddBulkProcessorErrors(bulkProcessResult);
-					return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : checkFallbackResult;
-				}
-				else
-				{
-					return checkFallbackResult;
-				}
-			}
-		}
-
-		internal HandleCatchBlockResult CanHandle(Exception exception)
-		{
-			if (!GetCanHandle()(exception))
-				return HandleCatchBlockResult.FailedByErrorFilter;
-			else
-				return HandleCatchBlockResult.Success;
-		}
-
-		protected Func<Exception, bool> GetCanHandle()
-		{
-			return ErrorFilter.GetCanHandle();
+			return new PolicyProcessorCatchBlockAsyncHandler<T>(policyResult,
+																_bulkErrorProcessor,
+																configAwait,
+																token,
+																ErrorFilter.GetCanHandle(),
+																policyRuleFunc);
 		}
 
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();

@@ -39,7 +39,9 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, token);
+
+				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
+													 .Handle(ex, EmptyErrorContext.Default()));
 			}
 			return result;
 		}
@@ -74,7 +76,9 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				HandleCatchBlockAndChangeResult(ex, result, token);
+
+				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
+													 .Handle(ex, EmptyErrorContext.Default()));
 			}
 			return result;
 		}
@@ -104,7 +108,8 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, token, configureAwait).ConfigureAwait(configureAwait);
+				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
+															.HandleAsync(ex, EmptyErrorContext.Default()).ConfigureAwait(configureAwait));
 			}
 			return result;
 		}
@@ -135,7 +140,8 @@ namespace PoliNorError
 			catch (Exception ex)
 			{
 				result.AddError(ex);
-				await HandleCatchBlockAndChangeResultAsync(ex, result, token, configureAwait).ConfigureAwait(configureAwait);
+				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
+															.HandleAsync(ex, EmptyErrorContext.Default()).ConfigureAwait(configureAwait));
 			}
 			return result;
 		}

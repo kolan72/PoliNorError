@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,25 +9,9 @@ namespace PoliNorError
 	{
 		IPolicyDelegateCollection WithPolicyDelegate(PolicyDelegate errorPolicy);
 
-		IPolicyDelegateCollection IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
-
 		IPolicyDelegateCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
 
-		IPolicyDelegateCollection ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
-
 		IPolicyDelegateCollection ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
-
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act);
-
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act);
-
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType);
-
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func);
-
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func);
-
-		IPolicyDelegateCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType);
 
 		IPolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null);
 
@@ -43,25 +26,9 @@ namespace PoliNorError
 	{
 		IPolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy);
 
-		IPolicyDelegateCollection<T> IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
-
 		IPolicyDelegateCollection<T> IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
 
-		IPolicyDelegateCollection<T> ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter);
-
 		IPolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception;
-
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>> act);
-
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>, CancellationToken> act);
-
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Action<PolicyResult<T>> act, CancellationType convertType);
-
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, Task> func);
-
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, CancellationToken, Task> func);
-
-		IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll(Func<PolicyResult<T>, Task> func, CancellationType convertType);
 
 		IPolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null);
 

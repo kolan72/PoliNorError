@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError
 {
 	/// <summary>
-	/// Provides a set of extension methods to add policy or policy and a delegate to <see cref="IPolicyDelegateCollection"/> or <see cref="IPolicyDelegateCollection{T}"/>.
+	/// Provides a set of extension methods to add policy, policy and a delegate, error filter or PolicyResult handler to <see cref="IPolicyDelegateCollection"/> or <see cref="IPolicyDelegateCollection{T}"/>.
 	/// </summary>
 	public static partial class PolicyDelegateCollectionRegistrar
 	{
@@ -66,6 +68,52 @@ namespace PoliNorError
 		public static INeedDelegateCollection WithSimple(this IPolicyDelegateCollection policyDelegateCollection, ErrorProcessorParam policyParams = null)
 		{
 			return policyDelegateCollection.WithSimpleInner<IPolicyDelegateCollection, INeedDelegateCollection>(policyParams);
+		}
+
+		public static IPolicyDelegateCollection IncludeErrorForAll(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).AddIncludedErrorFilter(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection ExcludeErrorForAll(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).AddExcludedErrorFilter(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act, CancellationType convertType)
+		{
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(act.ToCancelableAction(convertType));
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult, CancellationToken> act)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, Task> func)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(func);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, Task> func, CancellationType convertType)
+		{
+			return policyDelegateCollection.AddPolicyResultHandlerForAll(func.ToCancelableFunc(convertType));
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, CancellationToken, Task> func)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(func);
+			return policyDelegateCollection;
 		}
 	}
 }
