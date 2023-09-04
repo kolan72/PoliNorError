@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -66,6 +68,18 @@ namespace PoliNorError
 		public static INeedDelegateCollection WithSimple(this IPolicyDelegateCollection policyDelegateCollection, ErrorProcessorParam policyParams = null)
 		{
 			return policyDelegateCollection.WithSimpleInner<IPolicyDelegateCollection, INeedDelegateCollection>(policyParams);
+		}
+
+		public static IPolicyDelegateCollection IncludeErrorForAll(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).AddIncludedErrorFilter(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection ExcludeErrorForAll(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.Select(pd => pd.Policy).AddExcludedErrorFilter(handledErrorFilter);
+			return policyDelegateCollection;
 		}
 	}
 }
