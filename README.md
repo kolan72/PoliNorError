@@ -7,14 +7,15 @@ PoliNorError is a library that provides error handling capabilities through Retr
 Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 
 ## Key Features
-- Implements two commonly used resiliency patterns - Retry and Fallback
-- Put emphasize on error handling within the catch block
-- Extensibility: error handling within the catch block can be extended by error processors 
-- Simplicity: one policy type for sync and async, and a generic and not generic delegate
-- Composability: policies and delegates can be composed into a single `PolicyDelegateCollection`
-- Flexible filters can be set for errors that should be handled
-- Policy can be wrapped by other policy
-- Func and Action delegates can be called in a resilient manner
+- Implements two commonly used resiliency patterns - Retry and Fallback.
+- Also provides `SimplePolicy` for simple handling.
+- Put emphasize on error handling within the catch block.
+- Extensibility: error handling within the catch block can be extended by error processors.
+- Simplicity: one policy type for sync and async, and a generic and not generic delegate.
+- Composability: policies and delegates can be composed into a single `PolicyDelegateCollection`.
+- Flexible filters can be set for errors that should be handled.
+- Policy can be wrapped by other policy.
+- Func and Action delegates can be called in a resilient manner.
 - Convenient API with methods with minimum of optional parameters.
 - High Test Coverage.
 - Targets .NET Standard 2.0+
