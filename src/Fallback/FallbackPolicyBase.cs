@@ -29,7 +29,6 @@ namespace PoliNorError
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
-			PolicyResult fallBackRes = null;
 			Action<CancellationToken> curFallback = null;
 			if (_fallback == null)
 			{
@@ -47,22 +46,16 @@ namespace PoliNorError
 				curFallback = _fallback;
 			}
 
-			if (_wrappedPolicy == null)
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
+			if (Act == null && Wrapper != null)
 			{
-				fallBackRes = _fallbackProcessor.Fallback(action, curFallback, token);
+				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 			}
-			else
-			{
-				if (action == null)
-					return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 
-				var wrapper = new PolicyWrapper(_wrappedPolicy, action, token);
-				Action actionWrapped = wrapper.Handle;
+			var fallBackRes = _fallbackProcessor.Fallback(Act, curFallback, token)
+								.SetWrappedPolicyResults(Wrapper)
+								.SetPolicyName(PolicyName);
 
-				fallBackRes = _fallbackProcessor.Fallback(actionWrapped, curFallback, token);
-				fallBackRes.WrappedPolicyResults = wrapper.PolicyDelegateResults;
-			}
-			fallBackRes.SetPolicyName(PolicyName);
 			HandlePolicyResult(fallBackRes, token);
 			return fallBackRes;
 		}
@@ -87,33 +80,22 @@ namespace PoliNorError
 				fallBackFunc = DefaulFallbackFunc<T>();
 			}
 
-			PolicyResult<T> fallbackResult = null;
-
-			if (_wrappedPolicy == null)
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
+			if (Fn == null && Wrapper != null)
 			{
-				fallbackResult = _fallbackProcessor.Fallback(func, fallBackFunc, token);
-			}
-			else
-			{
-				if (func == null)
-					return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
-
-				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token);
-				Func<T> funcWrapped = wrapper.Handle;
-
-				fallbackResult = _fallbackProcessor.Fallback(funcWrapped, fallBackFunc, token);
-
-				fallbackResult.WrappedPolicyResults = wrapper.PolicyResults;
+				return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 			}
 
-			fallbackResult.SetPolicyName(PolicyName);
+			var fallbackResult = _fallbackProcessor.Fallback(Fn, fallBackFunc, token)
+									.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
+
 			HandlePolicyResult(fallbackResult, token);
 			return fallbackResult;
 		}
 
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			PolicyResult fallBackRes = null;
 			Func<CancellationToken, Task> curFallbackAsync = null;
 
 			if (_fallbackAsync == null)
@@ -132,24 +114,16 @@ namespace PoliNorError
 				curFallbackAsync = _fallbackAsync;
 			}
 
-			if (_wrappedPolicy == null)
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
+			if (Fn == null && Wrapper != null)
 			{
-				fallBackRes = await _fallbackProcessor.FallbackAsync(func, curFallbackAsync, configureAwait, token).ConfigureAwait(configureAwait);
-			}
-			else
-			{
-				if (func == null)
-					return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
-
-				var wrapper = new PolicyWrapper(_wrappedPolicy, func, token, configureAwait);
-				Func<CancellationToken, Task> funcWrapped = wrapper.HandleAsync;
-
-				fallBackRes = await _fallbackProcessor.FallbackAsync(funcWrapped, curFallbackAsync, configureAwait, token).ConfigureAwait(configureAwait);
-
-				fallBackRes.WrappedPolicyResults = wrapper.PolicyDelegateResults;
+				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 			}
 
-			fallBackRes.SetPolicyName(PolicyName);
+			var fallBackRes = (await _fallbackProcessor.FallbackAsync(Fn, curFallbackAsync, configureAwait, token).ConfigureAwait(configureAwait))
+				.SetWrappedPolicyResults(Wrapper)
+				.SetPolicyName(PolicyName);
+
 			await HandlePolicyResultAsync(fallBackRes, configureAwait, token).ConfigureAwait(configureAwait);
 			return fallBackRes;
 		}
@@ -175,25 +149,16 @@ namespace PoliNorError
 				fallBackAsyncFunc = DefaulFallbackAsyncFunc<T>();
 			}
 
-			PolicyResult<T> fallBackRes = null;
-
-			if (_wrappedPolicy == null)
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
+			if (Fn == null && Wrapper != null)
 			{
-				fallBackRes = await _fallbackProcessor.FallbackAsync(func, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait);
-			}
-			else
-			{
-				if (func == null)
-					return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
-
-				var wrapper = new PolicyWrapper<T>(_wrappedPolicy, func, token, configureAwait);
-				Func<CancellationToken, Task<T>> funcWrapped = wrapper.HandleAsync;
-
-				fallBackRes = await _fallbackProcessor.FallbackAsync(funcWrapped, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait);
-				fallBackRes.WrappedPolicyResults = wrapper.PolicyResults;
+				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
 			}
 
-			fallBackRes.SetPolicyName(PolicyName);
+			var fallBackRes = (await _fallbackProcessor.FallbackAsync(Fn, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait))
+				.SetWrappedPolicyResults(Wrapper)
+				.SetPolicyName(PolicyName);
+
 			await HandlePolicyResultAsync(fallBackRes, configureAwait).ConfigureAwait(configureAwait);
 			return fallBackRes;
 		}

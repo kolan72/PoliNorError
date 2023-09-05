@@ -249,5 +249,23 @@ namespace PoliNorError
 			var handlePolicyResultErrors = exs.Select((ex) => new PolicyResultHandlingException(ex));
 			policyResult.AddHandleResultErrors(handlePolicyResultErrors);
 		}
+
+		internal static PolicyResult SetWrappedPolicyResults(this PolicyResult policyResult, PolicyWrapper wrapper)
+		{
+			if (wrapper != null)
+			{
+				policyResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
+			}
+			return policyResult;
+		}
+
+		internal static PolicyResult<T> SetWrappedPolicyResults<T>(this PolicyResult<T> policyResult, PolicyWrapper<T> wrapper)
+		{
+			if (wrapper != null)
+			{
+				policyResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
+			}
+			return policyResult;
+		}
 	}
 }
