@@ -53,6 +53,11 @@ namespace PoliNorError
 			result.SetFailedInner();
 		}
 
+		internal static T WithNoDelegateException<T>(this T retryResult) where T : PolicyResult
+		{
+			return retryResult.SetFailedWithError(new NoDelegateException());
+		}
+
 		internal async static Task<PolicyResult> HandleResultMisc(this PolicyResult policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, bool configureAwait, CancellationToken token)
 		{
 			var curRes = policyRetryResult;
