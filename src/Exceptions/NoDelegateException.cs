@@ -3,10 +3,13 @@
 namespace PoliNorError
 {
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
 	public class NoDelegateException : Exception
 	{
+		internal NoDelegateException() : this("The delegate to handle is null.") {}
+
 		public NoDelegateException(string msg) : base(msg){}
-		public NoDelegateException(IPolicyBase policy)  : this($"Delegate for policy {policy.PolicyName} was not set."){}
+		public NoDelegateException(IPolicyBase policy)  : this(GetExceptionMessage(policy.PolicyName)) {}
+
+		private static string GetExceptionMessage(string policyName) => $"Delegate for policy {policyName} was not set.";
 	}
 }

@@ -14,24 +14,14 @@ namespace PoliNorError
 			return ToRetryPolicy(policyParams, retryCount, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
 		}
 
-		public static RetryPolicy ToRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, int retryCount, TimeSpan delay, bool failedIfSaveErrorThrows = false)
-		{
-			return policyParams.ToRetryPolicy(retryCount, failedIfSaveErrorThrows).WithWait(delay);
-		}
-
 		public static RetryPolicy ToRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, int retryCount, TimeSpan delay, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
 		{
-			return ToRetryPolicyWithDelayProcessorOf(policyParams, retryCount, delay, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
-		}
-
-		public static RetryPolicy ToRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, bool failedIfSaveErrorThrows = false)
-		{
-			return policyParams.ToRetryPolicy(retryCount, failedIfSaveErrorThrows).WithWait(delayOnRetryFunc);
+			return policyParams.ToRetryPolicy(retryCount, failedIfSaveErrorThrows).WithWait(delay).ConfigureBy(errorSaver);
 		}
 
 		public static RetryPolicy ToRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
 		{
-			return ToRetryPolicyWithDelayProcessorOf(policyParams, retryCount, delayOnRetryFunc, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
+			return policyParams.ToRetryPolicy(retryCount, failedIfSaveErrorThrows).WithWait(delayOnRetryFunc).ConfigureBy(errorSaver);
 		}
 
 		public static RetryPolicy ToInfiniteRetryPolicy(this ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false)
@@ -44,24 +34,14 @@ namespace PoliNorError
 			return ToInfiniteRetryPolicy(policyParams, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
 		}
 
-		public static RetryPolicy ToInfiniteRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, TimeSpan delay, bool failedIfSaveErrorThrows = false)
-		{
-			return policyParams.ToInfiniteRetryPolicy(failedIfSaveErrorThrows).WithWait(delay);
-		}
-
 		public static RetryPolicy ToInfiniteRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, TimeSpan delay, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
 		{
-			return ToInfiniteRetryPolicyWithDelayProcessorOf(policyParams, delay, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
-		}
-
-		public static RetryPolicy ToInfiniteRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, Func<int, Exception, TimeSpan> delayOnRetryFunc, bool failedIfSaveErrorThrows = false)
-		{
-			return policyParams.ToInfiniteRetryPolicy(failedIfSaveErrorThrows).WithWait(delayOnRetryFunc);
+			return policyParams.ToInfiniteRetryPolicy(failedIfSaveErrorThrows).WithWait(delay).ConfigureBy(errorSaver);
 		}
 
 		public static RetryPolicy ToInfiniteRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, Func<int, Exception, TimeSpan> delayOnRetryFunc, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
 		{
-			return ToInfiniteRetryPolicyWithDelayProcessorOf(policyParams, delayOnRetryFunc, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
+			return policyParams.ToInfiniteRetryPolicy(failedIfSaveErrorThrows).WithWait(delayOnRetryFunc).ConfigureBy(errorSaver);
 		}
 	}
 }

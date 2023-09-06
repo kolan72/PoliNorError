@@ -53,6 +53,16 @@ namespace PoliNorError
 			result.SetFailedInner();
 		}
 
+		internal static T WithNoDelegateException<T>(this T retryResult) where T : PolicyResult
+		{
+			return retryResult.SetFailedWithError(new NoDelegateException());
+		}
+
+		internal static T WithNoDelegateExceptionAndPolicyNameFrom<T>(this T retryResult, IPolicyBase policy) where T : PolicyResult
+		{
+			return retryResult.SetFailedWithError(new NoDelegateException(policy)).SetPolicyName(policy.PolicyName);
+		}
+
 		internal async static Task<PolicyResult> HandleResultMisc(this PolicyResult policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, bool configureAwait, CancellationToken token)
 		{
 			var curRes = policyRetryResult;
@@ -248,6 +258,24 @@ namespace PoliNorError
 		{
 			var handlePolicyResultErrors = exs.Select((ex) => new PolicyResultHandlingException(ex));
 			policyResult.AddHandleResultErrors(handlePolicyResultErrors);
+		}
+
+		internal static PolicyResult SetWrappedPolicyResults(this PolicyResult policyResult, PolicyWrapper wrapper)
+		{
+			if (wrapper != null)
+			{
+				policyResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
+			}
+			return policyResult;
+		}
+
+		internal static PolicyResult<T> SetWrappedPolicyResults<T>(this PolicyResult<T> policyResult, PolicyWrapper<T> wrapper)
+		{
+			if (wrapper != null)
+			{
+				policyResult.WrappedPolicyResults = wrapper.PolicyDelegateResults;
+			}
+			return policyResult;
 		}
 	}
 }

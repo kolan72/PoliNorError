@@ -47,7 +47,7 @@ namespace PoliNorError
 			return res.Result;
 		}
 
-		internal IEnumerable<PolicyDelegateResult<T>> PolicyResults
+		internal IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults
 		{
 			get { return _policyHandledResults; }
 		}

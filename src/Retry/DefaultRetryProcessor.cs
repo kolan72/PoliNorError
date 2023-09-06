@@ -20,7 +20,7 @@ namespace PoliNorError
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
 			if (action == null)
-				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(action)}' is null."));
+				return new PolicyResult().WithNoDelegateException();
 
 			var result = PolicyResult.ForSync();
 			result.ErrorsNotUsed = ErrorsNotUsed;
@@ -78,7 +78,7 @@ namespace PoliNorError
 		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
 			if (func == null)
-				return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+				return new PolicyResult<T>().WithNoDelegateException();
 
 			if (typeof(T).Equals(typeof(Task)) || typeof(T).IsSubclassOf(typeof(Task)))
 			{
@@ -141,7 +141,7 @@ namespace PoliNorError
 		public async Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
-				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+				return new PolicyResult().WithNoDelegateException();
 
 			var result = PolicyResult.InitByConfigureAwait(configureAwait);
 			result.ErrorsNotUsed = ErrorsNotUsed;
@@ -193,7 +193,7 @@ namespace PoliNorError
 		public async Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
-				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException($"The argument '{nameof(func)}' is null."));
+				return new PolicyResult<T>().WithNoDelegateException();
 
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 			result.ErrorsNotUsed = ErrorsNotUsed;
