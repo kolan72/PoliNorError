@@ -55,7 +55,7 @@ namespace PoliNorError
 			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 			if (Act == null && Wrapper != null)
 			{
-				return PolicyResult.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
 			var retryResult = RetryProcessor.Retry(Act, RetryInfo, token)
@@ -71,7 +71,7 @@ namespace PoliNorError
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 			if (Fn == null && Wrapper != null)
 			{
-				return PolicyResult<T>.ForSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
+				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
 			var retryResult = RetryProcessor.Retry(Fn, RetryInfo, token)
@@ -87,7 +87,7 @@ namespace PoliNorError
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
 			{
-				return PolicyResult.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
 			var retryResult = (await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait))
@@ -103,7 +103,7 @@ namespace PoliNorError
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
 			{
-				return PolicyResult<T>.ForNotSync().SetFailedWithError(new NoDelegateException(this)).SetPolicyName(PolicyName);
+				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
 			var retryResult = (await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait))
