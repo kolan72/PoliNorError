@@ -13,7 +13,7 @@ namespace PoliNorError
 		public PolicyResult Execute(Action action, CancellationToken token = default)
 		{
 			if (action == null)
-				return GetPolicyResultForSyncWithNoDelegateException();
+				return new PolicyResult().WithNoDelegateException();
 
 			PolicyResult result = PolicyResult.ForSync();
 
@@ -49,7 +49,7 @@ namespace PoliNorError
 		public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default)
 		{
 			if (func == null)
-				return GetPolicyResultForSyncWithNoDelegateException<T>();
+				return new PolicyResult<T>().WithNoDelegateException();
 
 			var result = PolicyResult<T>.ForSync();
 
@@ -86,7 +86,7 @@ namespace PoliNorError
 		public async Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
-				return GetPolicyResultForNotSyncWithNoDelegateException();
+				return new PolicyResult().WithNoDelegateException();
 
 			PolicyResult result = PolicyResult.InitByConfigureAwait(configureAwait);
 
@@ -117,7 +117,7 @@ namespace PoliNorError
 		public async Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
-				return GetPolicyResultForNotSyncWithNoDelegateException<T>();
+				return new PolicyResult<T>().WithNoDelegateException();
 
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 

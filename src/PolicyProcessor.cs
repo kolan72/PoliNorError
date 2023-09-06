@@ -46,14 +46,6 @@ namespace PoliNorError
 																policyRuleFunc);
 		}
 
-		protected PolicyResult GetPolicyResultForSyncWithNoDelegateException() => PolicyResult.ForSync().WithNoDelegateException();
-
-		protected PolicyResult<T> GetPolicyResultForSyncWithNoDelegateException<T>() => PolicyResult<T>.ForSync().WithNoDelegateException();
-
-		protected PolicyResult GetPolicyResultForNotSyncWithNoDelegateException() => PolicyResult.ForNotSync().WithNoDelegateException();
-
-		protected PolicyResult<T> GetPolicyResultForNotSyncWithNoDelegateException<T>() => PolicyResult<T>.ForNotSync().WithNoDelegateException();
-
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
