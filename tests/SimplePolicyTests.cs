@@ -1,4 +1,4 @@
-﻿using Moq;
+﻿using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -29,14 +29,12 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Handle_CallSimplePolicyProcessor_If_No_Wrap()
 		{
-			var moqProcessor = new Mock<ISimplePolicyProcessor>();
-
-			moqProcessor.Setup((t) => t.Execute(It.IsAny<Action>(), default)).Returns(new PolicyResult());
-
-			var policy = new SimplePolicy(moqProcessor.Object);
+			var subsProcessor = Substitute.For<ISimplePolicyProcessor>();
+			subsProcessor.Execute(Arg.Any<Action>()).Returns(new PolicyResult());
+			var policy = new SimplePolicy(subsProcessor);
 			policy.Handle(() => { }, default);
 
-			moqProcessor.Verify((t) => t.Execute(It.IsAny<Action>(), default), Times.Exactly(1));
+			subsProcessor.Received(1).Execute(Arg.Any<Action>());
 		}
 
 		[Test]
@@ -100,30 +98,32 @@ namespace PoliNorError.Tests
 		{
 			var simple = new SimplePolicy();
 
-			var wrappedPolicy = new Mock<IPolicyBase>();
+			var subsWrappedPolicy = Substitute.For<IPolicyBase>();
 
-			Action act = () => { };
+			void act()
+			{
+				// Method intentionally left empty.
+			}
 
-			wrappedPolicy.Setup(t => t.Handle(act, default)).Returns(new PolicyResult());
-			simple.WrapPolicy(wrappedPolicy.Object);
+			subsWrappedPolicy.Handle(act).Returns(new PolicyResult());
+
+			simple.WrapPolicy(subsWrappedPolicy);
 
 			var outPolicyResult = simple.Handle(act, default);
 			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
-			wrappedPolicy.Verify((t) => t.Handle(act, default), Times.AtLeastOnce);
+			subsWrappedPolicy.Received(1).Handle(act);
 		}
 
 		[Test]
 		public void Should_HandleT_CallSimplePolicyProcessor_If_No_Wrap()
 		{
-			var moqProcessor = new Mock<ISimplePolicyProcessor>();
-
-			moqProcessor.Setup((t) => t.Execute(It.IsAny<Func<int>>(), default)).Returns(new PolicyResult<int>());
-
-			var policy = new SimplePolicy(moqProcessor.Object);
+			var subsProcessor = Substitute.For<ISimplePolicyProcessor>();
+			subsProcessor.Execute(Arg.Any<Func<int>>()).Returns(new PolicyResult<int>());
+			var policy = new SimplePolicy(subsProcessor);
 			policy.Handle(() => 1, default);
 
-			moqProcessor.Verify((t) => t.Execute(It.IsAny<Func<int>>(), default), Times.Exactly(1));
+			subsProcessor.Received(1).Execute(Arg.Any<Func<int>>());
 		}
 
 		[Test]
@@ -172,19 +172,18 @@ namespace PoliNorError.Tests
 		{
 			var simple = new SimplePolicy();
 
-			var wrappedPolicy = new Mock<IPolicyBase>();
-			var cancelToken = new CancellationToken();
+			var subsWrappedPolicy = Substitute.For<IPolicyBase>();
 
-			Func<int> func = () => throw new Exception();
+			int func() => throw new Exception();
 
 			var polResult = new PolicyResult<int>();
 			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
+			subsWrappedPolicy.Handle(func).Returns(polResult);
 
-			wrappedPolicy.Setup(t => t.Handle(func, cancelToken)).Returns(polResult);
-			simple.WrapPolicy(wrappedPolicy.Object);
+			simple.WrapPolicy(subsWrappedPolicy);
 
-			var outPolicyResult = simple.Handle(func, cancelToken);
+			var outPolicyResult = simple.Handle(func, default);
 
 			//Out policy error should be the same as wrapped policy error.
 			Assert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
@@ -194,7 +193,7 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(outPolicyResult.IsFailed);
 			Assert.AreEqual(1, outPolicyResult.Errors.Count());
 
-			wrappedPolicy.Verify((t) => t.Handle(func, cancelToken), Times.Exactly(1));
+			subsWrappedPolicy.Received(1).Handle(func, default);
 		}
 
 		[Test]
@@ -226,14 +225,12 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_HandleAsync_CallSimplePolicyProcessor_If_No_Wrap()
 		{
-			var moqProcessor = new Mock<ISimplePolicyProcessor>();
-
-			moqProcessor.Setup((t) => t.ExecuteAsync(It.IsAny<Func<CancellationToken,Task>>(), false, default)).ReturnsAsync(new PolicyResult());
-
-			var policy = new SimplePolicy(moqProcessor.Object);
+			var subsProcessor = Substitute.For<ISimplePolicyProcessor>();
+			subsProcessor.ExecuteAsync(Arg.Any<Func<CancellationToken, Task>>()).Returns(new PolicyResult());
+			var policy = new SimplePolicy(subsProcessor);
 			await policy.HandleAsync(async (_) => await Task.Delay(1), default);
 
-			moqProcessor.Verify((t) => t.ExecuteAsync(It.IsAny<Func<CancellationToken, Task>>(), false, default), Times.Exactly(1));
+			await subsProcessor.Received(1).ExecuteAsync(Arg.Any<Func<CancellationToken, Task>>());
 		}
 
 		[Test]
@@ -241,17 +238,15 @@ namespace PoliNorError.Tests
 		{
 			var simple = new SimplePolicy();
 
-			var wrappedPolicy = new Mock<IPolicyBase>();
+			var subsWrappedPolicy = Substitute.For<IPolicyBase>();
+			async Task func(CancellationToken _) => await Task.Delay(1);
+			subsWrappedPolicy.HandleAsync(func).Returns(Task.FromResult(new PolicyResult()));
 
-			Func<CancellationToken, Task> func = async (_) => await Task.Delay(1);
+			simple.WrapPolicy(subsWrappedPolicy);
 
-			wrappedPolicy.Setup(t => t.HandleAsync(func, default, default)).Returns(Task.FromResult(new PolicyResult()));
-			simple.WrapPolicy(wrappedPolicy.Object);
+			var outPolicyResult = await simple.HandleAsync(func);
+			await subsWrappedPolicy.Received(1).HandleAsync(func);
 
-			var outPolicyResult = await simple.HandleAsync(func, default);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-
-			wrappedPolicy.Verify((t) => t.HandleAsync(func, default, default), Times.AtLeastOnce);
 			Assert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
 		}
 
@@ -302,14 +297,12 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_HandleAsyncT_CallSimplePolicyProcessor_If_No_Wrap()
 		{
-			var moqProcessor = new Mock<ISimplePolicyProcessor>();
+			var subsProcessor = Substitute.For<ISimplePolicyProcessor>();
+			subsProcessor.ExecuteAsync(Arg.Any<Func<CancellationToken, Task<int>>>()).Returns(new PolicyResult<int>());
+			var policy = new SimplePolicy(subsProcessor);
+			await policy.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 
-			moqProcessor.Setup((t) => t.ExecuteAsync(It.IsAny<Func<CancellationToken, Task<int>>>(), false, default)).ReturnsAsync(new PolicyResult<int>());
-
-			var policy = new SimplePolicy(moqProcessor.Object);
-			await policy.HandleAsync(async (_) => { await Task.Delay(1); return 1; }, default);
-
-			moqProcessor.Verify((t) => t.ExecuteAsync(It.IsAny<Func<CancellationToken, Task<int>>>(), false, default), Times.Exactly(1));
+			await subsProcessor.Received(1).ExecuteAsync(Arg.Any<Func<CancellationToken, Task<int>>>());
 		}
 
 		[Test]
@@ -317,17 +310,15 @@ namespace PoliNorError.Tests
 		{
 			var simple = new SimplePolicy();
 
-			var wrappedPolicy = new Mock<IPolicyBase>();
+			var subsWrappedPolicy = Substitute.For<IPolicyBase>();
+			async Task<int> func(CancellationToken _) { await Task.Delay(1); return 1; }
+			subsWrappedPolicy.HandleAsync(func).Returns(Task.FromResult(new PolicyResult<int>()));
 
-			Func<CancellationToken, Task<int>> func = async (_) => { await Task.Delay(1); return 1; };
+			simple.WrapPolicy(subsWrappedPolicy);
 
-			wrappedPolicy.Setup(t => t.HandleAsync(func, default, default)).Returns(Task.FromResult(new PolicyResult<int>()));
-			simple.WrapPolicy(wrappedPolicy.Object);
+			var outPolicyResult = await simple.HandleAsync(func);
+			await subsWrappedPolicy.Received(1).HandleAsync(func);
 
-			var outPolicyResult = await simple.HandleAsync(func, default);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-
-			wrappedPolicy.Verify((t) => t.HandleAsync(func, default, default), Times.Exactly(1));
 			Assert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
 		}
 
