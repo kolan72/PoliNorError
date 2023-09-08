@@ -5,6 +5,7 @@
 		Unknown,
 		ErrorSaver,
 		ErrorProcessor,
-		PolicyRule
+		PolicyRule,
+		ErrorFilter
 	}
 }

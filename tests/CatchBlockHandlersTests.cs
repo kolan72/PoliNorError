@@ -1,11 +1,12 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
-	internal class CatchBlockSyncHandlersTests
+	internal class CatchBlockHandlersTests
 	{
 		[Test]
 		public void Should_PolicyProcessorCatchBlockSyncHandler_Be_Cancelable()
@@ -84,6 +85,29 @@ namespace PoliNorError.Tests
 															 );
 				Assert.AreEqual(result, await handler.HandleAsync(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
 			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Exception_In_ErrorFilters_Be_Stored_In_CatchBlockErrors(bool include)
+		{
+			var simplePolicy = new SimplePolicy();
+			bool testFn(Exception _) => throw new Exception("Error in filter");
+			if (include)
+			{
+				simplePolicy.IncludeError((Func<Exception, bool>)testFn);
+			}
+			else
+			{
+				simplePolicy.ExcludeError((Func<Exception, bool>)testFn);
+			}
+			void action() => throw new Exception("Test");
+			var res = simplePolicy.Handle(action);
+			Assert.IsTrue(res.ErrorFilterUnsatisfied);
+			Assert.NotNull(res.UnprocessedError);
+			Assert.AreEqual(1, res.CatchBlockErrors.Count());
+			Assert.AreEqual(CatchBlockExceptionSource.ErrorFilter, res.CatchBlockErrors.FirstOrDefault().ExceptionSource);
 		}
 	}
 }
