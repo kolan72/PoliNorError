@@ -37,7 +37,7 @@ namespace PoliNorError
 
 		private HandleCatchBlockResult CanHandle(Exception ex, ErrorContext<T> errorContext)
 		{
-			if (!_errorFilterFunc(ex))
+			if (!RunErrorFilterFunc(ex))
 				return HandleCatchBlockResult.FailedByErrorFilter;
 			else if (!_policyRuleFunc(errorContext))
 				return HandleCatchBlockResult.FailedByPolicyRules;
@@ -49,6 +49,19 @@ namespace PoliNorError
 		{
 			_policyResult.AddBulkProcessorErrors(bulkProcessResult);
 			return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : resultIfNotCanceled;
+		}
+
+		private bool RunErrorFilterFunc(Exception ex)
+		{
+			try
+			{
+				return _errorFilterFunc(ex);
+			}
+			catch (Exception exIn)
+			{
+				_policyResult.SetFailedWithCatchBlockError(exIn, ex, CatchBlockExceptionSource.ErrorFilter);
+				return false;
+			}
 		}
 	}
 }
