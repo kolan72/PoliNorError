@@ -1,3 +1,13 @@
+## 2.0.5
+
+- Reduce parameter passing overhead for policy processors.
+- Fix two issues related to cancellation when handling the `PolicyDelegateCollection(<T>)` (#4, #11).
+- Fix bug that caused a generic policy result handler to throw an exception when the delegate return type was different than the type of handler(#5). 
+- Fix the bug with an unhandled  exception if the error filter throws(#19) and add new enum member `CatchBlockExceptionSource.ErrorFilter`.
+- Some  methods of `IPolicyDelegateCollection (<T>)` are now extensions methods.
+- DRY refactoring for policies and policy processors.
+
+
 ## 2.0.0
 
 - Rename the `ErrorProcessorDelegate` class to `ErrorProcessorParam`.

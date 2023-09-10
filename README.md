@@ -193,7 +193,7 @@ For example, if you wish to remove large folders from your disk when there is le
 						{
 							if (pr.NoError)
 							{
-								logger.Info($"Total available space: {pr.Result} bytes");
+								logger.Info("Total available space: {freeSpace} bytes", pr.Result);
 							}
 						});
 
@@ -303,7 +303,7 @@ var fileNotFoundPolicy = new SimplePolicy()
 						{
 							if (pr.NoError)
 							{
-								logger.Info($"Result: {pr.Result}");
+								logger.Info("Result: {text}", pr.Result);
 							}
 							if (pr.IsFailed)
 							{
@@ -488,12 +488,12 @@ In certain scenarios, for example, where a large number of retries are required,
 ### Nuances of using the library
 All default policy processor classes that implement `IPolicyProcessor`  will handle the `OperationCanceledException` exception in a policy-specific way if the token is different from the one passed as argument. Otherwise, only the `PolicyResult`s properties `IsFailed` and `IsCanceled` will be set to `true` and handling will exit.  
 
-Some library methods accept delegate argument that are not cancelable, but can still be canceled. Such methods also have an extra `ConvertToCancelableFuncType` argument type that shows how cancellation will be performed.
-The default value of `ConvertToCancelableFuncType` as a method argument is the `Precancelable`, means that the delegate will not be executed if the token has already been canceled. If its equals `Cancelable`, a new task that supports cancellation will be used.  
+Some library methods accept delegate argument that are not cancelable, but can still be canceled. Such methods also have an extra `CancellationType` argument type that shows how cancellation will be performed.
+The default value of `CancellationType` as a method argument is the `Precancelable`, means that the delegate will not be executed if the token has already been canceled. If its equals `Cancelable`, a new task that supports cancellation will be used.  
 
 Note the methods `PolicyDelegateCollection....ForAll(commonDelegate)` of `PolicyCollection` and `PolicyDelegateCollection`  classes set the common delegate only for items that have already been added to the collection, not for items that will be added later.  
 
-For very large retry count memory-related error may occur. You can set "n-times infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
+For a very large retry count the `OutOfMemoryException` exception may occur. You can set "n-times infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
 
 ```csharp
 var result = await PolicyDelegateCollection
