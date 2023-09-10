@@ -193,7 +193,7 @@ For example, if you wish to remove large folders from your disk when there is le
 						{
 							if (pr.NoError)
 							{
-								logger.Info($"Total available space: {pr.Result} bytes");
+								logger.Info("Total available space: {freeSpace} bytes", pr.Result);
 							}
 						});
 
@@ -303,7 +303,7 @@ var fileNotFoundPolicy = new SimplePolicy()
 						{
 							if (pr.NoError)
 							{
-								logger.Info($"Result: {pr.Result}");
+								logger.Info("Result: {text}", pr.Result);
 							}
 							if (pr.IsFailed)
 							{
