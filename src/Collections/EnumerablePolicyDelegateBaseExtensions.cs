@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PoliNorError
 {
@@ -64,6 +66,36 @@ namespace PoliNorError
 		internal static void AddExcludedErrorFilter<TException>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<TException, bool> func = null) where TException : Exception
 		{
 			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilter(func);
+		}
+
+		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act)
+		{
+			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act);
+		}
+
+		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act, CancellationType cancellationType)
+		{
+			AddPolicyResultHandlerForLastInner(policyDelegateInfos, act.ToCancelableAction(cancellationType));
+		}
+
+		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult, CancellationToken> act)
+		{
+			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act);
+		}
+
+		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func)
+		{
+			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func);
+		}
+
+		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, CancellationType convertType)
+		{
+			AddPolicyResultHandlerForLastInner(policyDelegateInfos, func.ToCancelableFunc(convertType));
+		}
+
+		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, CancellationToken, Task> func)
+		{
+			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func);
 		}
 
 		internal static void ThrowIfInconsistency(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, PolicyDelegateBase newDelegateInfo)
