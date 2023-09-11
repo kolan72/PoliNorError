@@ -16,7 +16,7 @@ Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 - Flexible filters can be set for errors that should be handled.
 - Policy can be wrapped by other policy.
 - Func and Action delegates can be called in a resilient manner.
-- Catches exceptions everywhere, not just from handling delegate, but also in error filters, error processors, and  `PolicyResult` handlers.
+- Catches exceptions not only thrown by a delegate, but also in error filters, error processors, and `PolicyResult` handlers.
 - Convenient API with methods with minimum of optional parameters.
 - High Test Coverage.
 - Targets .NET Standard 2.0+
