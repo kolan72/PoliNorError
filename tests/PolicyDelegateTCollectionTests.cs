@@ -353,6 +353,107 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(2, exception.GetResults().Skip(1).FirstOrDefault());
 		}
 
+		[Test]
+		public async Task Should_AddPolicyResultHandlerForLast_Work()
+		{
+			int i = 0;
+			void action(PolicyResult<int> pr)
+			{
+				i++;
+				pr.SetFailed();
+			}
+
+			int j = 0;
+			void actionWithCancelType(PolicyResult<int> pr)
+			{
+				j++;
+				pr.SetFailed();
+			}
+
+			int k = 0;
+			void actionWithCancellation(PolicyResult<int> pr, CancellationToken _)
+			{
+				k++;
+				pr.SetFailed();
+			}
+
+			int l = 0;
+			async Task func(PolicyResult<int> pr)
+			{
+				l++;
+				await Task.Delay(1);
+				pr.SetFailed();
+			}
+
+			int m = 0;
+			async Task funcWithCancelType(PolicyResult<int> pr)
+			{
+				m++;
+				await Task.Delay(1);
+				pr.SetFailed();
+			}
+
+			int n = 0;
+			async Task funcWithCancellation(PolicyResult<int> pr, CancellationToken _)
+			{
+				n++;
+				await Task.Delay(1);
+				pr.SetFailed();
+			}
+
+			var polDelegates = PolicyDelegateCollection<int>.Create()
+							.WithRetry(1)
+							.AndDelegate(() => throw new Exception("Test"))
+							.WithFallback((_) => 1)
+							.AndDelegate(() => throw new Exception("Test"))
+
+							.AddPolicyResultHandlerForLast(action)
+
+							.WithRetry(1)
+							.AndDelegate(() => throw new Exception("Test"))
+							.WithFallback((_) => 1)
+							.AndDelegate(() => throw new Exception("Test"))
+
+							.AddPolicyResultHandlerForLast(actionWithCancelType, CancellationType.Precancelable)
+
+							.WithRetry(1)
+							.AndDelegate(() => throw new Exception("Test"))
+							.WithFallback((_) => 1)
+							.AndDelegate(() => throw new Exception("Test"))
+
+							.AddPolicyResultHandlerForLast(actionWithCancellation)
+
+							.WithRetry(1)
+							.AndDelegate(() => throw new Exception("Test"))
+							.WithFallback((_) => 1)
+							.AndDelegate(() => throw new Exception("Test"))
+
+							.AddPolicyResultHandlerForLast(func)
+
+							.WithRetry(1)
+							.AndDelegate(() => throw new Exception("Test"))
+							.WithFallback((_) => 1)
+							.AndDelegate(() => throw new Exception("Test"))
+
+							.AddPolicyResultHandlerForLast(funcWithCancelType, CancellationType.Precancelable)
+
+							.WithRetry(1)
+							.AndDelegate(() => throw new Exception("Test"))
+							.WithFallback((_) => 1)
+							.AndDelegate(() => throw new Exception("Test"))
+
+							.AddPolicyResultHandlerForLast(funcWithCancellation)
+							;
+
+			await polDelegates.BuildCollectionHandler().HandleAsync();
+			Assert.AreEqual(1, i);
+			Assert.AreEqual(1, j);
+			Assert.AreEqual(1, k);
+			Assert.AreEqual(1, l);
+			Assert.AreEqual(1, m);
+			Assert.AreEqual(1, n);
+		}
+
 		private IEnumerable<PolicyDelegateResultErrors<int>> GetTestPolicyDelegateResultErrorsCollection()
 		{
 			var policy = new RetryPolicy(1);

@@ -115,5 +115,41 @@ namespace PoliNorError
 			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(func);
 			return policyDelegateCollection;
 		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act, CancellationType convertType)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act, convertType);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult, CancellationToken> act)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, Task> func)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, Task> func, CancellationType convertType)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func, convertType);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, CancellationToken, Task> func)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func);
+			return policyDelegateCollection;
+		}
 	}
 }
