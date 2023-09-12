@@ -112,5 +112,41 @@ namespace PoliNorError
 			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(func);
 			return policyDelegateCollection;
 		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>> act)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>> act, CancellationType convertType)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act, convertType);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>, CancellationToken> act)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<PolicyResult<T>, Task> func)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<PolicyResult<T>, Task> func, CancellationType convertType)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func, convertType);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func);
+			return policyDelegateCollection;
+		}
 	}
 }
