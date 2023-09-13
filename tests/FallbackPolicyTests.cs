@@ -888,5 +888,13 @@ namespace PoliNorError.Tests
 			fallBackPol.WithPolicyName(polName);
 			Assert.AreEqual(polName, fallBackPol.PolicyName);
 		}
+
+		[Test]
+		public void Should_WrapThrow_If_More_Than_One()
+		{
+			var fallBackPol = new FallbackPolicy();
+			fallBackPol.WrapPolicy(new SimplePolicy());
+			Assert.Throws<NotImplementedException>(() => fallBackPol.WrapPolicy(new SimplePolicy()));
+		}
 	}
 }
