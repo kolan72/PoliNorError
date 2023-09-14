@@ -1,12 +1,9 @@
-﻿using Moq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using static PoliNorError.BulkErrorProcessor;
 using static PoliNorError.Tests.DelayTimeErrorProcessorTests;
 
 namespace PoliNorError.Tests
