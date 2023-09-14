@@ -1,11 +1,8 @@
-﻿using Moq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
-using static PoliNorError.BulkErrorProcessor;
 
 namespace PoliNorError.Tests
 {
@@ -61,12 +58,12 @@ namespace PoliNorError.Tests
 			if (isGeneric)
 			{
 				async Task<int> save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
-				tryResCount = await processor.RetryAsync(save, plannedRetryCount, It.IsAny<CancellationToken>());
+				tryResCount = await processor.RetryAsync(save, plannedRetryCount, default);
 			}
 			else
 			{
 				async Task save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
-				tryResCount = await processor.RetryAsync(save, plannedRetryCount, It.IsAny<CancellationToken>());
+				tryResCount = await processor.RetryAsync(save, plannedRetryCount, default);
 			}
 
 			Assert.AreEqual(plannedRetryCount + 1, tryResCount.Errors.Count());
