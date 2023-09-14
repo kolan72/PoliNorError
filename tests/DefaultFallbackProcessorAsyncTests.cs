@@ -1,4 +1,4 @@
-﻿using Moq;
+﻿using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -148,13 +148,15 @@ namespace PoliNorError.Tests
 			var throwingExc = new ApplicationException();
 			int i = 0;
 			async Task save(CancellationToken _) { await Task.Delay(1); throw throwingExc; }
-			var mockedBulkProcessor = new Mock<IBulkErrorProcessor>();
-			mockedBulkProcessor.Setup((t) => t.ProcessAsync(throwingExc, It.IsAny<ProcessingErrorContext>(),  It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+
+			var mockedBulkProcessor = Substitute.For<IBulkErrorProcessor>();
+
+			mockedBulkProcessor.ProcessAsync(throwingExc, Arg.Any<ProcessingErrorContext>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(
 				new BulkProcessResult(throwingExc, new List<ErrorProcessorException>() { new ErrorProcessorException(new Exception(), null, ProcessStatus.Canceled) })));
 
 			async Task fallback(CancellationToken _) { await Task.Delay(1); i++; }
 
-			var processor = new DefaultFallbackProcessor(mockedBulkProcessor.Object);
+			var processor = new DefaultFallbackProcessor(mockedBulkProcessor);
 
 			var tryResCount = await processor.FallbackAsync(save, fallback);
 
