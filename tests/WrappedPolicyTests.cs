@@ -164,16 +164,16 @@ namespace PoliNorError.Tests
 			var subsPolicy = Substitute.For<IPolicyBase>();
 			var cancelToken = new CancellationToken();
 
-			Func<CancellationToken, Task<int>> act = async (_) => { await Task.Delay(1); throw new Exception(); };
+			async Task<int> func(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
 
 			var polResult = new PolicyResult<int>();
 			polResult.SetFailedInner();
 			polResult.AddError(new Exception("Wrapped exception"));
 
-			subsPolicy.HandleAsync(act, default, cancelToken).Returns(Task.FromResult(polResult));
+			subsPolicy.HandleAsync(func, default, cancelToken).Returns(Task.FromResult(polResult));
 			fallback.WrapPolicy(subsPolicy);
 
-			var outPolicyResult = await fallback.HandleAsync(act, false, cancelToken);
+			var outPolicyResult = await fallback.HandleAsync(func, false, cancelToken);
 
 			//Out policy error should be the same as wrapped policy error.
 			Assert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
@@ -183,7 +183,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(false, outPolicyResult.IsFailed);
 			Assert.AreEqual(1, outPolicyResult.Errors.Count());
 
-			await subsPolicy.Received(1).HandleAsync(act, default, cancelToken);
+			await subsPolicy.Received(1).HandleAsync(func, default, cancelToken);
 		}
 
 		[Test]
@@ -192,7 +192,7 @@ namespace PoliNorError.Tests
 			var outPolicy = new RetryPolicy(2);
 
 			var subsPolicy = Substitute.For<IPolicyBase>();
-			Func<CancellationToken, Task<int>> act = (_) => throw new Exception();
+			Task<int> act(CancellationToken _) => throw new Exception();
 
 			var polResult = PolicyResult<int>.ForNotSync();
 			polResult.SetFailedInner();
@@ -383,7 +383,7 @@ namespace PoliNorError.Tests
 			var subsPolicy = Substitute.For<IPolicyBase>();
 			var cancelToken = new CancellationToken();
 
-			Func<int> act = () => 56;
+			int act() => 56;
 
 			subsPolicy.Handle(act, cancelToken).Returns(new PolicyResult<int>());
 			fallback.WrapPolicy(subsPolicy);
@@ -402,7 +402,7 @@ namespace PoliNorError.Tests
 
 			var subsPolicy = Substitute.For<IPolicyBase>();
 
-			Func<CancellationToken, Task> func = async (_) => { await Task.Delay(1); throw new Exception(); };
+			async Task func(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
 
 			var polResult = PolicyResult.ForNotSync();
 			polResult.SetFailedInner();
@@ -424,7 +424,7 @@ namespace PoliNorError.Tests
 
 			var subsPolicy = Substitute.For<IPolicyBase>();
 
-			Func<CancellationToken, Task> func = async (_) => await Task.Delay(1);
+			async Task func(CancellationToken _) => await Task.Delay(1);
 
 			subsPolicy.HandleAsync(func, default, default).Returns(Task.FromResult(new PolicyResult()));
 			fallBackPol.WrapPolicy(subsPolicy);
@@ -470,7 +470,10 @@ namespace PoliNorError.Tests
 
 			var subsPolicy = Substitute.For<IPolicyBase>();
 
-			Action act = () => { };
+			void act()
+			{
+				// Method intentionally left empty.
+			}
 
 			subsPolicy.Handle(act, default).Returns(new PolicyResult());
 			fallbackPolicy.WrapPolicy(subsPolicy);
@@ -489,7 +492,7 @@ namespace PoliNorError.Tests
 
 			var subsPolicy = Substitute.For<IPolicyBase>();
 
-			Action act = () => throw new Exception();
+			void act() => throw new Exception();
 
 			var polResult = PolicyResult.ForSync();
 			polResult.SetFailedInner();
@@ -572,7 +575,7 @@ namespace PoliNorError.Tests
 			var subsPolicy = Substitute.For<IPolicyBase>();
 			var cancelToken = new CancellationToken();
 
-			Func<CancellationToken, Task<int>> act = (_) => Task.FromResult(56);
+			Task<int> act(CancellationToken _) => Task.FromResult(56);
 
 			subsPolicy.HandleAsync(act, default, cancelToken).Returns(Task.FromResult(new PolicyResult<int>()));
 			fallback.WrapPolicy(subsPolicy);
