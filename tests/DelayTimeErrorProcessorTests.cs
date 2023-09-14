@@ -1,4 +1,4 @@
-﻿using Moq;
+﻿using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Diagnostics;
@@ -28,23 +28,25 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_BeCalled_SleepProvider_In_ProcessMethod()
+		public void Should_SleepProvider_BeCalled_In_ProcessMethod()
 		{
-			var funcMock = new Mock<Func<int, Exception, TimeSpan>>();
-			funcMock.Setup((f) => f(It.IsAny<int>(), It.IsAny<Exception>()));
-			var delayProcessor = new DelayErrorProcessor(funcMock.Object);
-			delayProcessor.Process(new Exception(), ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
-			funcMock.Verify((f) => f(It.IsAny<int>(), It.IsAny<Exception>()), Times.Once);
+			var funcMock = Substitute.For<Func<int, Exception, TimeSpan>>();
+			funcMock(Arg.Any<int>(), Arg.Any<Exception>()).Returns(new TimeSpan());
+			var delayProcessor = new DelayErrorProcessor(funcMock);
+			var exc = new Exception();
+			delayProcessor.Process(exc, ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
+			funcMock.Received(1)(0, exc);
 		}
 
 		[Test]
 		public async Task Should_SleepProvider_BeCalled_In_ProcessAsyncMethod()
 		{
-			var funcMock = new Mock<Func<int, Exception, TimeSpan>>();
-			funcMock.Setup((f) => f(It.IsAny<int>(), It.IsAny<Exception>()));
-			var delayProcessor = new DelayErrorProcessor(funcMock.Object);
-			await delayProcessor.ProcessAsync(new Exception(), ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
-			funcMock.Verify((f) => f(It.IsAny<int>(), It.IsAny<Exception>()), Times.Once);
+			var funcMock = Substitute.For<Func<int, Exception, TimeSpan>>();
+			funcMock(Arg.Any<int>(), Arg.Any<Exception>()).Returns(new TimeSpan());
+			var delayProcessor = new DelayErrorProcessor(funcMock);
+			var exc = new Exception();
+			await delayProcessor.ProcessAsync(exc, ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
+			funcMock.Received(1)(0, exc);
 		}
 
 		[Test]

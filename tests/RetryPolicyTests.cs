@@ -1,11 +1,11 @@
-﻿using Moq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Diagnostics;
+using NSubstitute;
 
 namespace PoliNorError.Tests
 {
@@ -85,16 +85,14 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Handle_CallRetryProcessor_If_No_Wrap()
 		{
-			var moqProcessor = new Mock<IRetryProcessor>();
-
 			var rci = new RetryCountInfo(2, null, 0);
+			var subsProcessor = Substitute.For<IRetryProcessor>();
+			subsProcessor.Retry(Arg.Any<Action>(), rci).Returns(new PolicyResult());
 
-			moqProcessor.Setup((t) => t.Retry(It.IsAny<Action>(), rci, default)).Returns(new PolicyResult());
-
-			var policy = new RetryPolicy(moqProcessor.Object, rci);
+			var policy = new RetryPolicy(subsProcessor, rci);
 			policy.Handle(() => { }, default);
 
-			moqProcessor.Verify((t) => t.Retry(It.IsAny<Action>(), rci, default), Times.Exactly(1));
+			subsProcessor.Received(1).Retry(Arg.Any<Action>(), rci);
 		}
 
 		[Test]
