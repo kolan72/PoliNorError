@@ -169,7 +169,7 @@ namespace PoliNorError.Tests
 
 			var res = await polDelegates.HandleAllAsync();
 			Assert.AreEqual(0, res.Result);
-			Assert.AreEqual(true, res.LastPolicyResult.IsFailed);
+			Assert.AreEqual(true, res.IsFailed);
 		}
 
 		[Test]
@@ -235,7 +235,7 @@ namespace PoliNorError.Tests
 
 			var result = polDelegateCol.BuildCollectionHandler().Handle();
 			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(true, result.LastPolicyResult.IsFailed);
+			Assert.AreEqual(true, result.IsFailed);
 		}
 
 		[Test]
@@ -247,7 +247,7 @@ namespace PoliNorError.Tests
 
 			var result = polDelegateCol.BuildCollectionHandler().Handle();
 			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(true, result.LastPolicyResult.IsFailed);
+			Assert.AreEqual(true, result.IsFailed);
 		}
 
 		[Test]

@@ -584,7 +584,7 @@ namespace PoliNorError.Tests
 							.BuildCollectionHandler()
 							.Handle();
 			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(true, result.LastPolicyResult.IsFailed);
+			Assert.AreEqual(true, result.IsFailed);
 		}
 
 		[Test]
@@ -598,7 +598,7 @@ namespace PoliNorError.Tests
 							.Handle();
 
 			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(true, result.LastPolicyResult.IsFailed);
+			Assert.AreEqual(true, result.IsFailed);
 		}
 
 		[Test]
