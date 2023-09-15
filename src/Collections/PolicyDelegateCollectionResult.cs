@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,6 +17,10 @@ namespace PoliNorError
 		public IEnumerable<PolicyDelegate> PolicyDelegatesUnused { get; }
 
 		public PolicyResult LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
+
+		public bool IsFailed => PolicyDelegateResults.LastOrDefault()?.Result.IsFailed == true;
+
+		public bool IsSuccess => PolicyDelegateResults.LastOrDefault()?.Result.IsSuccess == true;
 
 		public IEnumerator<PolicyDelegateResult> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
@@ -45,6 +48,10 @@ namespace PoliNorError
 		}
 
 		public PolicyResult<T> LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
+
+		public bool IsFailed => PolicyDelegateResults.LastOrDefault()?.Result.IsFailed == true;
+
+		public bool IsSuccess => PolicyDelegateResults.LastOrDefault()?.Result.IsSuccess == true;
 
 		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
