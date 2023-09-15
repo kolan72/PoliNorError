@@ -514,6 +514,27 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_PolicyDelegateCollectionResult_IsFailed_Equals_False_For_Empty_Collection()
+		{
+			var collectionResult = new PolicyDelegateCollectionResult<int>(new List<PolicyDelegateResult<int>>(), new List<PolicyDelegate<int>>());
+			Assert.IsFalse(collectionResult.IsFailed);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, false)]
+		public void Should_PolicyDelegateCollectionResult_IsFailed_Equals_LastPolicyResult_IsFailed_For_NotEmpty_Collection(bool failed, bool res)
+		{
+			var lastPolResult = new PolicyResult<int>();
+			if (failed)
+			{
+				lastPolResult.SetFailed();
+			}
+			var collectionResult = new PolicyDelegateCollectionResult<int>(new List<PolicyDelegateResult<int>>() { new PolicyDelegateResult<int>(lastPolResult, "", null) }, new List<PolicyDelegate<int>>());
+			Assert.AreEqual(res, collectionResult.IsFailed);
+		}
+
 		private class TestClass
 		{
 			public void Save()

@@ -750,6 +750,27 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(1, n);
 		}
 
+		[Test]
+		public void Should_PolicyDelegateCollectionResult_IsFailed_Equals_False_For_Empty_Collection()
+		{
+			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), new List<PolicyDelegate>());
+			Assert.IsFalse(collectionResult.IsFailed);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, false)]
+		public void Should_PolicyDelegateCollectionResult_IsFailed_Equals_LastPolicyResult_IsFailed_For_NotEmpty_Collection(bool failed, bool res)
+		{
+			var lastPolResult = new PolicyResult();
+			if (failed)
+			{
+				lastPolResult.SetFailed();
+			}
+			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>() { new PolicyDelegateResult(lastPolResult, "", null) }, new List<PolicyDelegate>());
+			Assert.AreEqual(res, collectionResult.IsFailed);
+		}
+
 		private IEnumerable<PolicyDelegateResultErrors> GetTestPolicyDelegateResultErrorsCollection()
 		{
 			var policy = new RetryPolicy(1);
