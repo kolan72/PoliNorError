@@ -758,6 +758,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_PolicyDelegateCollectionResult_IsSuccess_Equals_False_For_Empty_Collection()
+		{
+			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), new List<PolicyDelegate>());
+			Assert.IsFalse(collectionResult.IsSuccess);
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(false, false)]
 		public void Should_PolicyDelegateCollectionResult_IsFailed_Equals_LastPolicyResult_IsFailed_For_NotEmpty_Collection(bool failed, bool res)
@@ -769,6 +776,30 @@ namespace PoliNorError.Tests
 			}
 			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>() { new PolicyDelegateResult(lastPolResult, "", null) }, new List<PolicyDelegate>());
 			Assert.AreEqual(res, collectionResult.IsFailed);
+		}
+
+		[Test]
+		[TestCase(true, true, false)]
+		[TestCase(false, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		public void Should_PolicyDelegateCollectionResult_IsSuccess_Equals_LastPolicyResult_IsSuccess_For_NotEmpty_Collection(bool failed, bool canceled, bool res)
+		{
+			var lastPolResult = new PolicyResult();
+			if (failed && canceled)
+			{
+				lastPolResult.SetFailedAndCanceled();
+			}
+			else if (failed)
+			{
+				lastPolResult.SetFailed();
+			}
+			else if (canceled)
+			{
+				lastPolResult.SetCanceled();
+			}
+			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>() { new PolicyDelegateResult(lastPolResult, "", null) }, new List<PolicyDelegate>());
+			Assert.AreEqual(res, collectionResult.IsSuccess);
 		}
 
 		private IEnumerable<PolicyDelegateResultErrors> GetTestPolicyDelegateResultErrorsCollection()

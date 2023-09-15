@@ -20,6 +20,8 @@ namespace PoliNorError
 
 		public bool IsFailed => PolicyDelegateResults.LastOrDefault()?.Result.IsFailed == true;
 
+		public bool IsSuccess => PolicyDelegateResults.LastOrDefault()?.Result.IsSuccess == true;
+
 		public IEnumerator<PolicyDelegateResult> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -48,6 +50,8 @@ namespace PoliNorError
 		public PolicyResult<T> LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
 
 		public bool IsFailed => PolicyDelegateResults.LastOrDefault()?.Result.IsFailed == true;
+
+		public bool IsSuccess => PolicyDelegateResults.LastOrDefault()?.Result.IsSuccess == true;
 
 		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
