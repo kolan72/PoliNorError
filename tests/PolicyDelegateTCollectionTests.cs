@@ -33,7 +33,7 @@ namespace PoliNorError.Tests
 			policyDelegateCollection = policyDelegateCollection.WithFallback(func).AndDelegate(taskSave);
 			var res = await policyDelegateCollection.HandleAllAsync();
 			Assert.AreEqual(6, res.Result);
-			Assert.AreEqual(true, res.LastPolicyResult.IsSuccess);
+			Assert.AreEqual(true, res.IsSuccess);
 		}
 
 		[Test]
@@ -46,7 +46,7 @@ namespace PoliNorError.Tests
 										  .WithFallback(func).AndDelegate(taskSave);
 			var res = await policyDelegateCollection.HandleAllAsync(new CancellationToken());
 			Assert.AreEqual(6, res.Result);
-			Assert.AreEqual(true, res.LastPolicyResult.IsSuccess);
+			Assert.AreEqual(true, res.IsSuccess);
 		}
 
 		[Test]
