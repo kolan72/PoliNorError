@@ -92,7 +92,7 @@ Later on, the policy processor will try to process error and populate the other 
 The most crucial property is the `IsFailed` property. If it equals `true`, the delegate was not able to be handled.  
 It can happen due to these reasons:
 -   The delegate  to handle is null.
--   Policy rules failed.
+-   The exception cannot be handled due to policy rules.
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
 -   A critical error has occurred within the catch block, specifically related to the saving error for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
  -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.
