@@ -6,7 +6,7 @@ namespace PoliNorError
 {
 	public class PolicyDelegateCollectionResult : IEnumerable<PolicyDelegateResult>
 	{
-		public PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused)
+		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused)
 		{
 			PolicyDelegateResults = policyHandledResults;
 			PolicyDelegatesUnused = policyDelegatesUnused;
@@ -29,7 +29,7 @@ namespace PoliNorError
 
 	public class PolicyDelegateCollectionResult<T> : IEnumerable<PolicyDelegateResult<T>>
 	{
-		public PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused)
+		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused)
         {
 			PolicyDelegateResults = policyHandledResultsT;
 			PolicyDelegatesUnused = policyDelegatesUnused;
