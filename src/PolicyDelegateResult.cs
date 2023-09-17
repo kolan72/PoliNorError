@@ -4,7 +4,7 @@ namespace PoliNorError
 {
 	public sealed class PolicyDelegateResult : PolicyDelegateResultBase
 	{
-		public PolicyDelegateResult(PolicyResult result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
+		internal PolicyDelegateResult(PolicyResult result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
 		{
 			Result = result;
 		}
@@ -14,7 +14,7 @@ namespace PoliNorError
 
 	public sealed class PolicyDelegateResult<T> : PolicyDelegateResultBase
 	{
-		public PolicyDelegateResult(PolicyResult<T> result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
+		internal PolicyDelegateResult(PolicyResult<T> result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
 		{
 			Result = result;
 		}
