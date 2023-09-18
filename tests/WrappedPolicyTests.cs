@@ -586,5 +586,27 @@ namespace PoliNorError.Tests
 
 			await subsPolicy.Received(1).HandleAsync(act, default, cancelToken);
 		}
+
+		[Test]
+		public void Should_WrapUp_Returns_OuterPolicy_That_Can_Be_Handled()
+		{
+			var subsPolicy = Substitute.For<IPolicyBase>();
+
+			void act() => throw new Exception();
+
+			var polResult = PolicyResult.ForSync();
+			polResult.SetFailedInner();
+			polResult.AddError(new Exception("Wrapped exception"));
+
+			subsPolicy.Handle(act).Returns(polResult);
+
+			const string SIMPLE_WRAPPER_POLICY = "SimpleWrapperPolicy";
+
+			var outPolicyResult = subsPolicy.WrapUp(new SimplePolicy().WithPolicyName(SIMPLE_WRAPPER_POLICY)).OuterPolicy.Handle(act);
+			subsPolicy.Received(1).Handle(act);
+
+			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			Assert.AreEqual(SIMPLE_WRAPPER_POLICY, outPolicyResult.PolicyName);
+		}
 	}
 }
