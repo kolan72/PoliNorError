@@ -17,6 +17,11 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
+		public static OuterPolicyRegistrar<TWrapperPolicy> WrapUp<TWrapperPolicy>(this IPolicyBase policyBase, TWrapperPolicy wrapperPolicy) where TWrapperPolicy : Policy
+		{
+			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, policyBase);
+		}
+
 		public static T WithPolicyName<T>(this T errorPolicyBase, string policyName) where T : Policy
 		{
 			errorPolicyBase.PolicyName = policyName;
