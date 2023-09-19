@@ -608,5 +608,32 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 			Assert.AreEqual(SIMPLE_WRAPPER_POLICY, outPolicyResult.PolicyName);
 		}
+
+		[Test]
+		public void Should_OuterPolicy_After_Double_WrapUp_Can_Be_Handled()
+		{
+			var subsPolicy = Substitute.For<IPolicyBase>();
+
+			void act() => throw new Exception();
+
+			var polResult = PolicyResult.ForSync();
+			polResult.SetFailedInner();
+			polResult.AddError(new Exception("Wrapped exception"));
+
+			subsPolicy.Handle(act).Returns(polResult);
+
+			const string WRAPPER_POLICY_1 = "WrapperPolicy1";
+			const string WRAPPER_POLICY_2 = "WrapperPolicy2";
+
+			var outPolicyResult = subsPolicy.WrapUp(new RetryPolicy(1).WithPolicyName(WRAPPER_POLICY_1))
+											.OuterPolicy
+											.WrapUp(new RetryPolicy(1).WithPolicyName(WRAPPER_POLICY_2))
+											.OuterPolicy
+											.Handle(act);
+			subsPolicy.Received(4).Handle(act);
+			Assert.AreEqual(2, outPolicyResult.WrappedPolicyResults.Count());
+			Assert.AreEqual(WRAPPER_POLICY_2, outPolicyResult.PolicyName);
+			Assert.AreEqual(WRAPPER_POLICY_1, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.PolicyName);
+		}
 	}
 }

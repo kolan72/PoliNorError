@@ -17,9 +17,16 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
-		public static OuterPolicyRegistrar<TWrapperPolicy> WrapUp<TWrapperPolicy>(this IPolicyBase policyBase, TWrapperPolicy wrapperPolicy) where TWrapperPolicy : Policy
+		/// <summary>
+		/// Returns an <see cref="OuterPolicyRegistrar{Policy}"></see> with the <see cref="OuterPolicyRegistrar{Policy}.OuterPolicy"></see> that wraps the current policy.
+		/// </summary>
+		/// <typeparam name="TWrapperPolicy"></typeparam>
+		/// <param name="policy">The policy that will be wrapped</param>
+		/// <param name="wrapperPolicy">The policy that will wrap the current policy</param>
+		/// <returns></returns>
+		public static OuterPolicyRegistrar<TWrapperPolicy> WrapUp<TWrapperPolicy>(this IPolicyBase policy, TWrapperPolicy wrapperPolicy) where TWrapperPolicy : Policy
 		{
-			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, policyBase);
+			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, policy);
 		}
 
 		public static T WithPolicyName<T>(this T errorPolicyBase, string policyName) where T : Policy
