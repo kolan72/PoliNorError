@@ -635,5 +635,12 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(WRAPPER_POLICY_2, outPolicyResult.PolicyName);
 			Assert.AreEqual(WRAPPER_POLICY_1, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.PolicyName);
 		}
+
+		[Test]
+		public void Should_WrapUp_By_NullPolicy_Throw()
+		{
+			var subsPolicy = Substitute.For<IPolicyBase>();
+			Assert.Throws<ArgumentNullException>(() => subsPolicy.WrapUp<SimplePolicy>(null));
+		}
 	}
 }

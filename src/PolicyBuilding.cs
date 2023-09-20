@@ -26,6 +26,10 @@ namespace PoliNorError
 		/// <returns></returns>
 		public static OuterPolicyRegistrar<TWrapperPolicy> WrapUp<TWrapperPolicy>(this IPolicyBase policy, TWrapperPolicy wrapperPolicy) where TWrapperPolicy : Policy
 		{
+			if(wrapperPolicy == null)
+			{
+				throw new ArgumentNullException(nameof(wrapperPolicy));
+			}
 			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, policy);
 		}
 
