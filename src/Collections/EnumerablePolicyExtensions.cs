@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,6 +117,71 @@ namespace PoliNorError
 			{
 				(policy as Policy)?.AddPolicyResultHandlerInner(func);
 			}
+		}
+
+		internal static Policy LastPolicy(this IEnumerable<IPolicyBase> policies)
+		{
+			return policies.LastOrDefault() as Policy;
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act, CancellationType convertType)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(act, convertType);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Action<PolicyResult, CancellationToken> act)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func, CancellationType convertType)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(func, convertType);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, CancellationToken, Task> func)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act, CancellationType convertType)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(act, convertType);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>, CancellationToken> act)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func, CancellationType convertType)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(func, convertType);
+		}
+
+		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
 		}
 	}
 }

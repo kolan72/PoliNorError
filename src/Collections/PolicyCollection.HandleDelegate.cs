@@ -22,7 +22,6 @@ namespace PoliNorError
 		/// Handles a delegate by creating a <see cref ="IPolicyDelegateCollectionHandler"/> handler from a  <see cref="IPolicyDelegateCollection"/> with a common delegate <paramref name="func"/>
 		/// and calling  the <see cref ="IPolicyDelegateCollectionHandler.Handle"/> method.
 		/// </summary>
-		/// <typeparam name="T">The type of the result</typeparam>
 		/// <param name="func">The delegate to handle</param>
 		/// <param name="token">A cancellation token to cancel handling</param>
 		/// <returns></returns>
