@@ -338,7 +338,7 @@ namespace PoliNorError.Tests
 				if (crossSync)
 				{
 					resultCount = (await polCollection.HandleDelegateAsync(() => throw new Exception("Test1"))).Count();
-					resultCountIfNoError = (await polCollection.HandleDelegateAsync(() => {})).Count();
+					 resultCountIfNoError = (await polCollection.HandleDelegateAsync(() => {})).Count();
 				}
 				else
 				{
@@ -349,6 +349,191 @@ namespace PoliNorError.Tests
 
 			Assert.AreEqual(2, resultCount);
 			Assert.AreEqual(1, resultCountIfNoError);
+		}
+
+		[Test]
+		public void Should_AddPolicyResultHandlerForLast_Not_Throw_For_EmptyCollection()
+		{
+			var polCollection = PolicyCollection.Create();
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast((_) => { }));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast((_, __) => { }));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast((_) => { }, CancellationType.Precancelable));
+
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast((_) => Task.CompletedTask));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast((_, __) => Task.CompletedTask));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast((_) => Task.CompletedTask, CancellationType.Precancelable));
+
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => { }));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_, __) => { }));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => { }, CancellationType.Precancelable));
+
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => Task.CompletedTask));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_, __) => Task.CompletedTask));
+			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => Task.CompletedTask, CancellationType.Precancelable));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_AddPolicyResultHandlerForLast_Work(bool generic)
+		{
+			var funcsProvider = new FuncsAndResultsProvider<PolicyResult>();
+			var funcsProviderGen = new FuncsAndResultsProvider<PolicyResult<int>>();
+
+			FuncsAndResultsProviderBase resBase = null;
+			if (generic)
+			{
+				resBase = funcsProviderGen;
+			}
+			else
+			{
+				resBase = funcsProvider;
+			}
+
+			var polCollection = PolicyCollection.Create();
+
+			for (int i = 0; i < 6; i++)
+			{
+				polCollection
+								.WithRetry(1)
+								.WithFallback((_) => { });
+				switch (i)
+				{
+					case 0:
+						if (generic)
+						{
+							polCollection.AddPolicyResultHandlerForLast<int>(funcsProviderGen.Act);
+						}
+						else
+						{
+							polCollection.AddPolicyResultHandlerForLast(funcsProvider.Act);
+						}
+
+						break;
+					case 1:
+						if (generic)
+						{
+							polCollection.AddPolicyResultHandlerForLast<int>(funcsProviderGen.ActionWithCancelType, CancellationType.Precancelable);
+						}
+						else
+						{
+							polCollection.AddPolicyResultHandlerForLast(funcsProvider.ActionWithCancelType, CancellationType.Precancelable);
+						}
+
+						break;
+					case 2:
+						if (generic)
+						{
+							polCollection.AddPolicyResultHandlerForLast<int>(funcsProviderGen.ActionWithCancellation);
+						}
+						else
+						{
+							polCollection.AddPolicyResultHandlerForLast(funcsProvider.ActionWithCancellation);
+						}
+
+						break;
+					case 3:
+						if (generic)
+						{
+							polCollection.AddPolicyResultHandlerForLast<int>(funcsProviderGen.Fun);
+						}
+						else
+						{
+							polCollection.AddPolicyResultHandlerForLast(funcsProvider.Fun);
+						}
+
+						break;
+					case 4:
+						if (generic)
+						{
+							polCollection.AddPolicyResultHandlerForLast<int>(funcsProviderGen.FuncWithCancelType, CancellationType.Precancelable);
+						}
+						else
+						{
+							polCollection.AddPolicyResultHandlerForLast(funcsProvider.FuncWithCancelType, CancellationType.Precancelable);
+						}
+
+						break;
+					case 5:
+						if (generic)
+						{
+							polCollection.AddPolicyResultHandlerForLast<int>(funcsProviderGen.FuncWithCancellation);
+						}
+						else
+						{
+							polCollection.AddPolicyResultHandlerForLast(funcsProvider.FuncWithCancellation);
+						}
+
+						break;
+				}
+			}
+			if (generic)
+				await polCollection.HandleDelegateAsync<int>(() => throw new Exception("Test"));
+			else
+				await polCollection.HandleDelegateAsync(() => throw new Exception("Test"));
+
+			Assert.AreEqual(1, resBase.i);
+			Assert.AreEqual(1, resBase.j);
+			Assert.AreEqual(1, resBase.k);
+			Assert.AreEqual(1, resBase.l);
+			Assert.AreEqual(1, resBase.m);
+			Assert.AreEqual(1, resBase.n);
+		}
+
+		private class FuncsAndResultsProviderBase
+		{
+			public int i;
+			public int j;
+			public int k;
+			public int l;
+			public int m;
+			public int n;
+		}
+
+		private class FuncsAndResultsProvider<TPolicyResult> : FuncsAndResultsProviderBase where TPolicyResult : PolicyResult
+		{
+			public void Act(TPolicyResult pr)
+				{
+					i++;
+					pr.SetFailed();
+				}
+
+			public void ActionWithCancelType(TPolicyResult pr)
+				{
+					j++;
+					pr.SetFailed();
+				}
+
+#pragma warning disable S1172 // Unused method parameters should be removed
+			public void ActionWithCancellation(TPolicyResult pr, CancellationToken _)
+#pragma warning restore S1172 // Unused method parameters should be removed
+			{
+					k++;
+					pr.SetFailed();
+				}
+
+			public async Task Fun(TPolicyResult pr)
+				{
+					l++;
+					await Task.Delay(1);
+					pr.SetFailed();
+				}
+
+			public async Task FuncWithCancelType(TPolicyResult pr)
+				{
+					m++;
+					await Task.Delay(1);
+					pr.SetFailed();
+				}
+
+#pragma warning disable S1172 // Unused method parameters should be removed
+			public async Task FuncWithCancellation(TPolicyResult pr, CancellationToken _)
+#pragma warning restore S1172 // Unused method parameters should be removed
+			{
+					n++;
+					await Task.Delay(1);
+					pr.SetFailed();
+				}
 		}
 	}
 }

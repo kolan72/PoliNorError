@@ -112,6 +112,78 @@ namespace PoliNorError
 			return this;
 		}
 
+		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult> act, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult, CancellationToken> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Func<PolicyResult, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Func<PolicyResult, Task> func, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Func<PolicyResult, CancellationToken, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Action<PolicyResult<T>> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Action<PolicyResult<T>> act, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Action<PolicyResult<T>, CancellationToken> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Func<PolicyResult<T>, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilter(func);

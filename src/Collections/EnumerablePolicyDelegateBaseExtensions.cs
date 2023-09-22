@@ -68,66 +68,6 @@ namespace PoliNorError
 			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilter(func);
 		}
 
-		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult> act, CancellationType cancellationType)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act, cancellationType);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult, CancellationToken> act)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, Task> func, CancellationType convertType)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func, convertType);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult, CancellationToken, Task> func)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner<T>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult<T>> act)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner<T>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult<T>> act, CancellationType convertType)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act, convertType);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner<T>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Action<PolicyResult<T>, CancellationToken> act)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(act);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner<T>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult<T>, Task> func)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner<T>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult<T>, Task> func, CancellationType convertType)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func, convertType);
-		}
-
-		internal static void AddPolicyResultHandlerForLastInner<T>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<PolicyResult<T>, CancellationToken, Task> func)
-		{
-			(policyDelegateInfos.LastOrDefault()?.Policy as Policy)?.AddPolicyResultHandlerInner(func);
-		}
-
 		internal static void ThrowIfInconsistency(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, PolicyDelegateBase newDelegateInfo)
 		{
 			if (policyDelegateInfos.WithDelegateExistsAndLastAndNewWithoutDelegate(newDelegateInfo))

@@ -118,37 +118,37 @@ namespace PoliNorError
 
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act)
 		{
-			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act);
+			policyDelegateCollection.GetPolicies().AddPolicyResultHandlerToLastPolicyInner(act);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act, CancellationType convertType)
 		{
-			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act, convertType);
+			policyDelegateCollection.GetPolicies().AddPolicyResultHandlerToLastPolicyInner(act, convertType);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult, CancellationToken> act)
 		{
-			policyDelegateCollection.AddPolicyResultHandlerForLastInner(act);
+			policyDelegateCollection.GetPolicies().AddPolicyResultHandlerToLastPolicyInner(act);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, Task> func)
 		{
-			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func);
+			policyDelegateCollection.GetPolicies().AddPolicyResultHandlerToLastPolicyInner(func);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, Task> func, CancellationType convertType)
 		{
-			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func, convertType);
+			policyDelegateCollection.GetPolicies().AddPolicyResultHandlerToLastPolicyInner(func, convertType);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, CancellationToken, Task> func)
 		{
-			policyDelegateCollection.AddPolicyResultHandlerForLastInner(func);
+			policyDelegateCollection.GetPolicies().AddPolicyResultHandlerToLastPolicyInner(func);
 			return policyDelegateCollection;
 		}
 	}
