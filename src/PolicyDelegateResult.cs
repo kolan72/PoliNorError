@@ -4,7 +4,7 @@ namespace PoliNorError
 {
 	public sealed class PolicyDelegateResult : PolicyDelegateResultBase
 	{
-		internal PolicyDelegateResult(PolicyResult result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
+		internal PolicyDelegateResult(PolicyResult result, string policyName, MethodInfo methodInfo) : base(result, policyName, methodInfo)
 		{
 			Result = result;
 		}
@@ -14,7 +14,7 @@ namespace PoliNorError
 
 	public sealed class PolicyDelegateResult<T> : PolicyDelegateResultBase
 	{
-		internal PolicyDelegateResult(PolicyResult<T> result, string policyName, MethodInfo methodInfo) : base(policyName, methodInfo)
+		internal PolicyDelegateResult(PolicyResult<T> result, string policyName, MethodInfo methodInfo) : base(result, policyName, methodInfo)
 		{
 			Result = result;
 		}
@@ -24,14 +24,20 @@ namespace PoliNorError
 
 	public abstract class PolicyDelegateResultBase
 	{
-		protected PolicyDelegateResultBase(string policyName, MethodInfo methodInfo)
+		protected PolicyDelegateResultBase(PolicyResult policyResult, string policyName, MethodInfo methodInfo)
 		{
 			PolicyName = policyName;
 			PolicyMethodInfo = methodInfo;
+			IsFailed = policyResult.IsFailed;
+			IsSuccess = policyResult.IsSuccess;
 		}
 
 		public string PolicyName { get; }
 
 		public MethodInfo PolicyMethodInfo { get; }
+
+		public bool IsFailed { get; }
+
+		public bool IsSuccess { get; }
 	}
 }
