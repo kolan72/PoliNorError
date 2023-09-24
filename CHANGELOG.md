@@ -1,3 +1,16 @@
+
+## 2.4.0
+
+- Add `IPolicyDelegateCollection(<T>).AddPolicyResultHandlerForLast` and  `PolicyCollection.AddPolicyResultHandlerForLast` methods.
+- Add `PolicyDelegateResult(<T>).IsFailed`, `PolicyDelegateCollectionResult(<T>).IsFailed` properties.
+- Add `PolicyDelegateResult(<T>).IsSuccess`, `PolicyDelegateCollectionResult(<T>).IsSuccess` properties. 
+- Add `IPolicyBase.WrapUp` extension method.
+- Changes that are non-breaking in the signature of `PolicyCollection.HandleDelegate(Async)(<T>)`  methods and add documentation.
+- `PolicyDelegateResult(<T>)` classes' constructors were made internal.
+- `PolicyDelegateCollectionResult(<T>)` classes' constructors were internal.
+- Get rid of 'Moq' in tests.
+
+
 ## 2.0.5
 
 - Reduce parameter passing overhead for policy processors.
