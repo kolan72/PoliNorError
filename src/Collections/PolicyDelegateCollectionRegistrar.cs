@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -149,6 +150,12 @@ namespace PoliNorError
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForLast(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, CancellationToken, Task> func)
 		{
 			policyDelegateCollection.GetPolicies().AddPolicyResultHandlerToLastPolicyInner(func);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection WithThrowOnLastFailed(this IPolicyDelegateCollection policyDelegateCollection, Func<IEnumerable<PolicyDelegateResult>, Exception> func = null)
+		{
+			policyDelegateCollection.WithThrowOnLastFailed(new DefaultPolicyDelegateResultsToErrorConverter(func));
 			return policyDelegateCollection;
 		}
 	}
