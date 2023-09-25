@@ -364,7 +364,7 @@ you can further construct a collection in a fluent manner and call `HandleAll` o
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner.  
 You can also use the `BuildCollectionHandler()` method to obtain the `IPolicyDelegateCollectionHandler(T)` interface with the aforementioned methods and pass it somewhere as a dependency injection parameter.  
 
-You can establish a common `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method.  
+You can establish a `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method and for the last element by using the `AddPolicyResultHandlerForLast`(since _version_ 2.4.0) method.  
 These methods require the same delegates types as `PolicyResult` handlers for policy.  
 
 This is an example of how to add retry policies and delegates with common `PolicyResult` handler(example for _version_ 2.0.0-rc2 version):
@@ -386,6 +386,38 @@ var result = PolicyDelegateCollection<IConnection>.Create()
 						}
                         .HandleAll();
 ```
+The example in the  [`PolicyResult` handlers](#policyresult-handlers) chapter could be rewritten to use a different approach by using the `AddPolicyResultHandlerForLast` method:
+```csharp
+var freeSpaceResult = PolicyDelegateCollection<long>.Create()
+						  .WithSimple()
+						  .AndDelegate(GetFreeSpace)
+						  .AddPolicyResultHandlerForLast((pr) =>
+						  {
+							  if (pr.NoError)
+							  {
+								  if (pr.Result < 40000000000)
+									  //If free space is not enough we pass handling to the next PolicyDelegate in the collection:
+									  pr.SetFailed();
+								  else
+									  logger.Info("Free space is ok");
+							  }
+						  })
+						  .WithSimple((ErrorProcessorParam)logger.Error)
+						  .AndDelegate(() =>
+						  {
+							  DeleteLargeFolders();
+							  return GetFreeSpace();
+						  })
+						  .AddPolicyResultHandlerForLast((pr) =>
+						  {
+							  if (pr.NoError)
+							  {
+								  logger.Info($"Total available space: {pr.Result} bytes");
+							  }
+						  })
+						  .HandleAll();
+```
+
 You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters on the entire collection:
 ```csharp
 var result = PolicyDelegateCollection<int>.Create()
