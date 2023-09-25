@@ -25,6 +25,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_WithThrowOnLastFailed_Throw_When_Setup_By_Func()
+		{
+			var retry = new RetryPolicy(2);
+
+			int actSave() { throw new Exception("Test"); }
+			var retrySI = retry.ToPolicyDelegate(actSave);
+
+			var policyDelegateCollection = PolicyDelegateCollection<int>.Create(retrySI).WithThrowOnLastFailed((_) => new InvalidOperationException());
+			Assert.ThrowsAsync<InvalidOperationException>(async () => await policyDelegateCollection.HandleAllAsync());
+		}
+
+		[Test]
 		public async Task Should_Handle_For_FallbackFuncInExtensions_Work()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection<int>.Create();
