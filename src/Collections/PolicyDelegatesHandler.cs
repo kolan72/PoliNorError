@@ -8,7 +8,7 @@ namespace PoliNorError
 {
 	internal static class PolicyDelegatesHandler
     {
-		internal static (IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) HandleAllForceSync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) HandleAllForceSync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
 			if (!policyDelegateInfos.Any())
@@ -64,7 +64,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult) HandleAllForceSync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult) HandleAllForceSync<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>();
 			if (!policyDelegateInfos.Any())
@@ -120,7 +120,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleAllBySyncType(PolicyDelegateCollection policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
+		internal static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleAllBySyncType(IEnumerable<PolicyDelegate> policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
 		{
 			if (!policyDelegateInfos.Any())
 				return (new FlexSyncEnumerable<PolicyDelegateResult>(), null);
@@ -147,7 +147,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllBySyncType<T>(PolicyDelegateCollection<T> policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
+		internal static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllBySyncType<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
 		{
 			if (!policyDelegateInfos.Any())
 				return (new FlexSyncEnumerable<PolicyDelegateResult<T>>(), null);
@@ -174,7 +174,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult) HandleWhenAllSync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult) HandleWhenAllSync<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>();
 			if (!policyDelegateInfos.Any())
@@ -202,7 +202,7 @@ namespace PoliNorError
 			return (handledResults, curPolResult);
 		}
 
-		internal static (IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) HandleWhenAllSync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) HandleWhenAllSync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
 			if (!policyDelegateInfos.Any())
@@ -230,7 +230,7 @@ namespace PoliNorError
 			return (handledResults, curPolResult);
 		}
 
-		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleAllMisc(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleAllMisc(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!configureAwait);
 			PolicyResult curPolResult = null;
@@ -262,7 +262,7 @@ namespace PoliNorError
 			return (handledResults, curPolResult);
 		}
 
-		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllMisc<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleAllMisc<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>(configureAwait);
 			PolicyResult<T> curPolResult = null;
@@ -294,7 +294,7 @@ namespace PoliNorError
 			return (handledResults, curPolResult);
 		}
 
-		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleWhenAllAsync<T>(PolicyDelegateCollection<T> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, PolicyResult<T> PolResult)> HandleWhenAllAsync<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>(!configureAwait);
 			PolicyResult<T> curPolResult = null;
@@ -318,7 +318,7 @@ namespace PoliNorError
 			return (handledResults, curPolResult);
 		}
 
-		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleWhenAllAsync(PolicyDelegateCollection policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
+		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult)> HandleWhenAllAsync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!configureAwait);
 			PolicyResult curPolResult = null;
