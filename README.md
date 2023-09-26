@@ -331,7 +331,22 @@ For wrap policy by other policy use `WrapPolicy` method, for example:
             fallBackPolicy.WrapPolicy(wrapppedPolicy);
             var polResult = fallBackPolicy.Handle(() => connectionFactory1.CreateConnection());
 ```
-Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property.
+Alternately, you could use the bottom-up approach and, after configuring the policy that will be wrapped, switch to the wrapper policy by using the `WrapUp` method (since _version_ 2.4.0):  
+```csharp
+var wrapperPolicyResult = await new RetryPolicy(2)
+						.WithErrorProcessorOf(logger.Error)
+						//We wrap up the current RetryPolicy by FallbackPolicy
+						.WrapUp(new FallbackPolicy()
+							.WithAsyncFallbackFunc(SendAlarmEmailAsync))
+						//and switch to the last one here,
+						.OuterPolicy
+						//where we can further configure it 
+						.WithPolicyName("WrapperPolicy")
+						 //before handling a delegate
+						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
+```
+Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.
+
 
 ### PolicyDelegate
 A `PolicyDelegate` just pack delegate with a policy into a single object.
