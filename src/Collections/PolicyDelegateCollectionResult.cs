@@ -10,6 +10,8 @@ namespace PoliNorError
 		{
 			PolicyDelegateResults = policyHandledResults;
 			PolicyDelegatesUnused = policyDelegatesUnused;
+			IsFailed = PolicyDelegateResults.GetLastResultFailed();
+			IsSuccess = PolicyDelegateResults.GetLastResultSuccess();
 		}
 
 		public IEnumerable<PolicyDelegateResult> PolicyDelegateResults { get; }
@@ -18,9 +20,9 @@ namespace PoliNorError
 
 		public PolicyResult LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
 
-		public bool IsFailed => PolicyDelegateResults.GetLastResultFailed();
+		public bool IsFailed { get; }
 
-		public bool IsSuccess => PolicyDelegateResults.GetLastResultSuccess();
+		public bool IsSuccess { get; }
 
 		public IEnumerator<PolicyDelegateResult> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
@@ -33,6 +35,8 @@ namespace PoliNorError
         {
 			PolicyDelegateResults = policyHandledResultsT;
 			PolicyDelegatesUnused = policyDelegatesUnused;
+			IsFailed = PolicyDelegateResults.GetLastResultFailed();
+			IsSuccess = PolicyDelegateResults.GetLastResultSuccess();
 		}
 
 		public IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults { get; }
@@ -49,9 +53,9 @@ namespace PoliNorError
 
 		public PolicyResult<T> LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
 
-		public bool IsFailed => PolicyDelegateResults.GetLastResultFailed();
+		public bool IsFailed { get; }
 
-		public bool IsSuccess => PolicyDelegateResults.GetLastResultSuccess();
+		public bool IsSuccess { get; }
 
 		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
