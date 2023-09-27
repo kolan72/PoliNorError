@@ -476,7 +476,7 @@ If, for instance, you'd like to read a file that's currently being used by anoth
 		//or handle delegate in place:
 		.HandleDelegate(() => File.ReadAllLines(filePath));
 
-	if (result.LastPolicyResult.IsSuccess)
+	if (result.LastPolicyResult.IsSuccess) /*Or simply if(result.IsSuccess) since 2.4.0 version*/
 	{
 		result.Result.ToList().ForEach(l => Console.WriteLine(l));
 	}
