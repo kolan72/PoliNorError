@@ -30,6 +30,7 @@ namespace PoliNorError
 			PolicyMethodInfo = methodInfo;
 			IsFailed = policyResult.IsFailed;
 			IsSuccess = policyResult.IsSuccess;
+			IsCanceled = policyResult.IsCanceled;
 		}
 
 		public string PolicyName { get; }
@@ -39,5 +40,7 @@ namespace PoliNorError
 		public bool IsFailed { get; }
 
 		public bool IsSuccess { get; }
+
+		public bool IsCanceled { get; }
 	}
 }

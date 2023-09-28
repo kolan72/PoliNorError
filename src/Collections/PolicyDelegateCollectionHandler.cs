@@ -17,7 +17,7 @@ namespace PoliNorError
 		public PolicyDelegateCollectionResult Handle(CancellationToken token = default)
 		{
 			PolicyDelegateHandleType handleType = _policyDelegates.GetHandleType();
-			(IEnumerable<PolicyDelegateResult> HandleResults, PolicyResult PolResult) result;
+			(IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState) result;
 			if (handleType == PolicyDelegateHandleType.Sync)
 			{
 				result = PolicyDelegatesHandler.HandleWhenAllSync(_policyDelegates, token);
@@ -26,7 +26,7 @@ namespace PoliNorError
 			{
 				result = PolicyDelegatesHandler.HandleAllForceSync(_policyDelegates, token);
 			}
-			return GetResultOrThrow(result.HandleResults, result.PolResult?.IsFailed);
+			return GetResultOrThrow(result.HandleResults, result.lastPolicyResultState.IsFailed);
 		}
 
 		public async Task<PolicyDelegateCollectionResult> HandleAsync(bool configAwait = false, CancellationToken token = default)
