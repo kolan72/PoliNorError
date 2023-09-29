@@ -17,9 +17,6 @@ namespace PoliNorError
 
 		public async Task RunAsync(PolicyResult policyResult, CancellationToken token = default)
 		{
-			if (token.IsCancellationRequested)
-				return;
-
 			bool wasNotFailed = false;
 			if (!policyResult.IsFailed)
 				wasNotFailed = true;

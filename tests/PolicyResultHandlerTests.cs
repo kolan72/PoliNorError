@@ -92,5 +92,29 @@ namespace PoliNorError.Tests
 			var res = retryPolicy.Handle(() => { });
 			Assert.IsTrue(res.PolicyResultHandlingErrors.Count() == 1);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_PolicyResult_Handler_Call_PolicyResult_SetFailed_Method_Even_Token_Have_Already_Canceled_And_The_Handling_Was_Successful(bool sync)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				PolicyResult res = null;
+				var simplePolicy = new SimplePolicy();
+				if (sync)
+				{
+					simplePolicy.AddPolicyResultHandler((pr) => pr.SetFailed());
+					res = simplePolicy.Handle(() => cts.Cancel(), cts.Token);
+				}
+				else
+				{
+					simplePolicy.AddPolicyResultHandler(async (pr) => { await Task.Delay(1); pr.SetFailed(); });
+					res = await simplePolicy.HandleAsync(async (_) => { await Task.Delay(1); cts.Cancel(); }, cts.Token);
+				}
+
+				Assert.IsTrue(res.IsFailed);
+			}
+		}
 	}
 }

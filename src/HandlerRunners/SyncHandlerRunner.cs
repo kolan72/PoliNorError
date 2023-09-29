@@ -17,8 +17,6 @@ namespace PoliNorError
 
 		public void Run(PolicyResult policyResult, CancellationToken token = default)
 		{
-			if (token.IsCancellationRequested)
-				return;
 			bool wasNotFailed = false;
 			if (!policyResult.IsFailed)
 				wasNotFailed = true;
