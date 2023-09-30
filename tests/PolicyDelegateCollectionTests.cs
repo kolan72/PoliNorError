@@ -92,17 +92,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_DefaultPolicyDelegateResultErrorsConverter_Convert()
-		{
-			var converter = new DefaultPolicyDelegateResultErrorsConverter();
-			var exceptions = converter.Convert(GetTestPolicyDelegateResultErrorsCollection().ToList());
-
-			var excList = exceptions.ToList();
-			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.", excList[0].Message);
-			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", excList[1].Message);
-		}
-
-		[Test]
 		public async Task Should_SetLastPolicyInfoDelegate_Work()
 		{
 			var testClass = new TestAsyncClass();
@@ -516,11 +505,10 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_PolicyDelegateCollectionHandleException_GetCorrectMessage()
 		{
-			var handledErrors = GetTestPolicyDelegateResultErrorsCollection();
+			var handledErrors = GetTestPolicyDelegateResultCollection();
 			var exception = new PolicyDelegateCollectionException(handledErrors);
 
-			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
-			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
+			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.;", exception.Message);
 		}
 
 		[Test]
@@ -814,7 +802,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(res, collectionResult.IsSuccess);
 		}
 
-		private IEnumerable<PolicyDelegateResultErrors> GetTestPolicyDelegateResultErrorsCollection()
+		private IEnumerable<PolicyDelegateResult> GetTestPolicyDelegateResultCollection()
 		{
 			var policy = new RetryPolicy(1);
 			var ts = new TestClass();
@@ -825,16 +813,14 @@ namespace PoliNorError.Tests
 			polResult.AddError(new Exception("Test"));
 
 			var handledResult = new PolicyDelegateResult(polResult, policy.PolicyName, policySyncInfo.GetMethodInfo());
-			var polHandledError = PolicyDelegateResultErrors.FromDelegateResult(handledResult);
 
 			var policySyncInfo2 = policy.ToPolicyDelegate(ts.Save);
 			var polResult2 = new PolicyResult();
 			polResult.AddError(new Exception("Test2"));
 
 			var handledResult2 = new PolicyDelegateResult(polResult2, policy.PolicyName, policySyncInfo2.GetMethodInfo());
-			var polHandledError2 = PolicyDelegateResultErrors.FromDelegateResult(handledResult2);
 
-			return new List<PolicyDelegateResultErrors>() { polHandledError, polHandledError2 };
+			return new List<PolicyDelegateResult>() { handledResult, handledResult2 };
 		}
 
 		private class TestClass
