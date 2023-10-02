@@ -8,6 +8,19 @@ namespace PoliNorError
 {
 	internal static class PolicyDelegatesHandler
     {
+		internal static (IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState) HandleAllSync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default)
+		{
+			PolicyDelegateHandleType handleType = policyDelegateInfos.GetHandleType();
+			if (handleType == PolicyDelegateHandleType.Sync)
+			{
+				return HandleWhenAllReallySync(policyDelegateInfos, token);
+			}
+			else
+			{
+				return HandleAllForceSync(policyDelegateInfos, token);
+			}
+		}
+
 		internal static (IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState) HandleAllForceSync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
@@ -121,7 +134,7 @@ namespace PoliNorError
 				case PolicyDelegateHandleType.Sync:
 					try
 					{
-						return await Task.Run(() => HandleWhenAllSync(policyDelegateInfos, token), token).ConfigureAwait(configureAwait);
+						return await Task.Run(() => HandleWhenAllReallySync(policyDelegateInfos, token), token).ConfigureAwait(configureAwait);
 					}
 					catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 					{
@@ -190,7 +203,7 @@ namespace PoliNorError
 			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
 		}
 
-		internal static (IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState) HandleWhenAllSync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default)
+		internal static (IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState) HandleWhenAllReallySync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default)
 		{
 			var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
 			if (!policyDelegateInfos.Any())

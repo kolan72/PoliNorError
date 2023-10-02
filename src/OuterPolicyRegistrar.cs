@@ -9,7 +9,7 @@
 		internal OuterPolicyRegistrar(TWrapperPolicy wrapperPolicy, IPolicyBase policyBase)
 		{
 			OuterPolicy = wrapperPolicy;
-			OuterPolicy._wrappedPolicy = policyBase;
+			OuterPolicy.SetWrap(policyBase);
 		}
 
 		/// <summary>

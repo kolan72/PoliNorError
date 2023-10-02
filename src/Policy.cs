@@ -9,7 +9,9 @@ namespace PoliNorError
 	{
 		protected string _policyName;
 
-		internal IPolicyBase _wrappedPolicy;
+		private IPolicyBase _wrappedPolicy;
+
+		private PolicyWrapperFactory _policyWrapperFactory;
 
 		private readonly List<IHandlerRunner> _handlers;
 		private readonly List<IHandlerRunnerT> _genericHandlers;
@@ -115,6 +117,16 @@ namespace PoliNorError
 			}
 		}
 
+		internal void SetWrap(IPolicyBase policyToWrap)
+		{
+			if (_wrappedPolicy != null)
+			{
+				throw new NotImplementedException("More than one wrapped policy is not supported.");
+			}
+			_policyWrapperFactory = new PolicyWrapperFactory(policyToWrap);
+			_wrappedPolicy = policyToWrap;
+		}
+
 		internal (Action Act, PolicyWrapper Wrapper) WrapDelegateIfNeed(Action action, CancellationToken token)
 		{
 			if (_wrappedPolicy == null)
@@ -126,7 +138,7 @@ namespace PoliNorError
 				if (action == null)
 					return (null, null);
 
-				var wrapper = new PolicyWrapper(_wrappedPolicy, action, token);
+				var wrapper = _policyWrapperFactory.CreateWrapper(action, token);
 				return (wrapper.Handle, wrapper);
 			}
 		}
@@ -158,7 +170,7 @@ namespace PoliNorError
 				if (fn == null)
 					return (null, null);
 
-				var wrapper = new PolicyWrapper(_wrappedPolicy, fn, token, configureAwait);
+				var wrapper = _policyWrapperFactory.CreateWrapper(fn, token, configureAwait);
 				return (wrapper.HandleAsync, wrapper);
 			}
 		}

@@ -9,11 +9,7 @@ namespace PoliNorError
 	{
 		public static T WrapPolicy<T>(this T errorPolicyBase, IPolicyBase wrappedPolicy) where T : Policy
 		{
-			if (errorPolicyBase._wrappedPolicy != null)
-			{
-				throw new NotImplementedException("More than one wrapped policy is not supported.");
-			}
-			errorPolicyBase._wrappedPolicy = wrappedPolicy;
+			errorPolicyBase.SetWrap(wrappedPolicy);
 			return errorPolicyBase;
 		}
 
