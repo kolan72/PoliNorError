@@ -9,19 +9,22 @@ namespace PoliNorError
 	{
 		private readonly Func<CancellationToken, Task<T>> _funcAsync;
 		private readonly Func<T> _func;
+		private readonly IPolicyBase _policyBase;
 
 		private readonly FlexSyncEnumerable<PolicyDelegateResult<T>> _policyHandledResults;
 
-		internal PolicyWrapper(IPolicyBase policyBase, Func<CancellationToken, Task<T>> funcAsync, CancellationToken token, bool configureAwait) : base(policyBase, token, configureAwait)
+		internal PolicyWrapper(IPolicyBase policyBase, Func<CancellationToken, Task<T>> funcAsync, CancellationToken token, bool configureAwait) : base(token, configureAwait)
 		{
 			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>(!configureAwait);
 			_funcAsync = funcAsync;
+			_policyBase = policyBase;
 		}
 
-		internal PolicyWrapper(IPolicyBase policyBase, Func<T> func, CancellationToken token) : base(policyBase, token)
+		internal PolicyWrapper(IPolicyBase policyBase, Func<T> func, CancellationToken token) : base(token)
 		{
 			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult<T>>();
 			_func = func;
+			_policyBase = policyBase;
 		}
 
 		internal T Handle()

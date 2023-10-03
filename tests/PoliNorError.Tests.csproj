@@ -83,6 +83,7 @@
     <Compile Include="FallBackFuncHoldersTests.cs" />
     <Compile Include="FallbackPolicyTests.cs" />
     <Compile Include="FuncExtensionsTests.cs" />
+    <Compile Include="PolicyCollectionWrapUpTests.cs" />
     <Compile Include="PolicyResultHandlerTests.cs" />
     <Compile Include="HandlerRunnerTests.cs" />
     <Compile Include="InfiniteRetryTests.cs" />

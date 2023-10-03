@@ -127,9 +127,18 @@ namespace PoliNorError
 			_wrappedPolicy = policyToWrap;
 		}
 
+		internal void SetWrap(IEnumerable<IPolicyBase> policies, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
+		{
+			if (_policyWrapperFactory != null)
+			{
+				throw new ArgumentException("More than one wrapped PolicyCollection is not supported.");
+			}
+			_policyWrapperFactory = new PolicyWrapperFactory(policies, throwOnWrappedCollectionFailed);
+		}
+
 		internal (Action Act, PolicyWrapper Wrapper) WrapDelegateIfNeed(Action action, CancellationToken token)
 		{
-			if (_wrappedPolicy == null)
+			if (_policyWrapperFactory == null)
 			{
 				return (action, null);
 			}
@@ -161,7 +170,7 @@ namespace PoliNorError
 
 		internal (Func<CancellationToken, Task> Fn, PolicyWrapper Wrapper) WrapDelegateIfNeed(Func<CancellationToken, Task> fn, CancellationToken token, bool configureAwait)
 		{
-			if (_wrappedPolicy == null)
+			if (_policyWrapperFactory == null)
 			{
 				return (fn, null);
 			}

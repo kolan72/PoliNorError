@@ -8,12 +8,21 @@ namespace PoliNorError
 	internal class PolicyWrapperFactory
 	{
 		private readonly IPolicyBase _wrappedPolicy;
-		protected readonly IEnumerable<IPolicyBase> _polices;
+
+		private readonly IEnumerable<IPolicyBase> _wrappePolices;
+		private readonly ThrowOnWrappedCollectionFailed _throwOnWrappedCollectionFailed;
 
 		internal PolicyWrapperFactory(IPolicyBase wrappedPolicy)
 		{
 			_wrappedPolicy = wrappedPolicy;
 			WrapSinglePolicy = true;
+		}
+
+		internal PolicyWrapperFactory(IEnumerable<IPolicyBase> wrappePolices, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
+		{
+			_wrappePolices = wrappePolices;
+			_throwOnWrappedCollectionFailed = throwOnWrappedCollectionFailed;
+			WrapSinglePolicy = false;
 		}
 
 		internal PolicyWrapper CreateWrapper(Action action, CancellationToken token)
@@ -24,7 +33,7 @@ namespace PoliNorError
 			}
 			else
 			{
-				throw new NotImplementedException();
+				return new PolicyWrapperCollection(_wrappePolices, action, token, _throwOnWrappedCollectionFailed);
 			}
 		}
 
@@ -36,7 +45,7 @@ namespace PoliNorError
 			}
 			else
 			{
-				throw new NotImplementedException();
+				return new PolicyWrapperCollection(_wrappePolices, func, token, _throwOnWrappedCollectionFailed, configureAwait);
 			}
 		}
 

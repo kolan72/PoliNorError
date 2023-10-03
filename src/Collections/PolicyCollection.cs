@@ -282,6 +282,18 @@ namespace PoliNorError
 			return ToPolicyDelegateCollection(func).BuildCollectionHandler();
 		}
 
+		/// <summary>
+		/// Returns an <see cref="OuterPolicyRegistrar{Policy}"></see> with the <see cref="OuterPolicyRegistrar{Policy}.OuterPolicy"></see> that wraps the current PolicyCollection.
+		/// </summary>
+		/// <typeparam name="TWrapperPolicy"></typeparam>
+		/// <param name="wrapperPolicy">>The policy that will wrap the current policy</param>
+		/// <param name="throwOnWrappedCollectionFailed">Shows how an exception will be generated if the last policy in the PolicyCollection fails.</param>
+		/// <returns></returns>
+		public OuterPolicyRegistrar<TWrapperPolicy> WrapUp<TWrapperPolicy>(TWrapperPolicy wrapperPolicy, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.LastError) where TWrapperPolicy : Policy
+		{
+			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, this, throwOnWrappedCollectionFailed);
+		}
+
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<IPolicyBase> GetEnumerator() => _policies.GetEnumerator();
 	}

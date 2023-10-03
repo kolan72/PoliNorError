@@ -8,11 +8,23 @@ namespace PoliNorError
 {
 	internal class PolicyWrapperSingle : PolicyWrapper
 	{
-		internal PolicyWrapperSingle(IPolicyBase policyBase, Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait): base(policyBase, func, token, configureAwait)
-		{}
+		protected IPolicyBase _policyBase;
+		internal PolicyWrapperSingle(IPolicyBase policyBase, Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait)
+			: base(func, token, configureAwait)
+		{
+			SetPolicyParam(policyBase);
+		}
 
-		internal PolicyWrapperSingle(IPolicyBase policyBase, Action action, CancellationToken token) : base(policyBase, action, token)
-		{}
+		internal PolicyWrapperSingle(IPolicyBase policyBase, Action action, CancellationToken token)
+			: base(action, token)
+		{
+			SetPolicyParam(policyBase);
+		}
+
+		private void SetPolicyParam(IPolicyBase policyBase)
+		{
+			_policyBase = policyBase;
+		}
 
 		internal override async Task  HandleAsync(CancellationToken token)
 		{
@@ -35,11 +47,27 @@ namespace PoliNorError
 
 	internal class PolicyWrapperCollection : PolicyWrapper
 	{
-		public PolicyWrapperCollection(IPolicyBase policyBase, Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait) : base(policyBase, func, token, configureAwait)
-		{}
+		protected IEnumerable<IPolicyBase> _polices;
 
-		public PolicyWrapperCollection(IPolicyBase policyBase, Action action, CancellationToken token) : base(policyBase, action, token)
-		{ }
+		private ThrowOnWrappedCollectionFailed _throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.None;
+
+		public PolicyWrapperCollection(IEnumerable<IPolicyBase> policies, Func<CancellationToken, Task> func, CancellationToken token, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed, bool configureAwait)
+			: base(func, token, configureAwait)
+		{
+			SetPoliciesParams(policies, throwOnWrappedCollectionFailed);
+		}
+
+		public PolicyWrapperCollection(IEnumerable<IPolicyBase> policies, Action action, CancellationToken token, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
+			: base(action, token)
+		{
+			SetPoliciesParams(policies, throwOnWrappedCollectionFailed);
+		}
+
+		private void SetPoliciesParams(IEnumerable<IPolicyBase> policies, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
+		{
+			_polices = policies;
+			_throwOnWrappedCollectionFailed = throwOnWrappedCollectionFailed;
+		}
 
 		internal override void Handle()
 		{
@@ -55,12 +83,28 @@ namespace PoliNorError
 
 		internal override async Task HandleAsync(CancellationToken token)
 		{
-			var polDelegates = _polices.Select(pi => pi.ToPolicyDelegate(_action));
+			var polDelegates = _polices.Select(pi => pi.ToPolicyDelegate(_func));
 			PolicyDelegateHandleType handleType = polDelegates.GetHandleType();
 			var (HandleResults, lastPolicyResultState) = await PolicyDelegatesHandler.HandleAllBySyncType(polDelegates, handleType, token, _configureAwait).ConfigureAwait(_configureAwait);
 			if (lastPolicyResultState.IsFailed == true)
 			{
 				ThrowIfCollectionFailed(HandleResults);
+			}
+		}
+
+		protected void ThrowIfCollectionFailed(IEnumerable<PolicyDelegateResult> results)
+		{
+			if (_throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.LastError)
+			{
+				ThrowIfFailed(results.LastOrDefault()?.Result);
+			}
+			else if (results.LastOrDefault()?.Result.FailedReason != PolicyResultFailedReason.PolicyResultHandlerFailed)
+			{
+				throw new PolicyDelegateCollectionException(results);
+			}
+			else
+			{
+				throw new PolicyResultHandlerFailedException();
 			}
 		}
 	}
@@ -71,25 +115,13 @@ namespace PoliNorError
 		protected readonly Action _action;
 		protected readonly FlexSyncEnumerable<PolicyDelegateResult>.IWrapper _policyHandledResults;
 
-		private protected PolicyWrapper(IEnumerable<IPolicyBase> policies, Func<CancellationToken, Task> func, CancellationToken token, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed, bool configureAwait) : base(policies, token, throwOnWrappedCollectionFailed, configureAwait)
+		private protected PolicyWrapper(Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait) : base(token, configureAwait)
 		{
 			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!_configureAwait);
 			_func = func;
 		}
 
-		private protected PolicyWrapper(IPolicyBase policyBase, Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait) : base(policyBase, token, configureAwait)
-		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!_configureAwait);
-			_func = func;
-		}
-
-		private protected PolicyWrapper(IEnumerable<IPolicyBase> policies, Action action, CancellationToken token, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed) : base(policies, token, throwOnWrappedCollectionFailed)
-		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
-			_action = action;
-		}
-
-		private protected PolicyWrapper(IPolicyBase policyBase, Action action, CancellationToken token) : base(policyBase, token)
+		private protected PolicyWrapper(Action action, CancellationToken token) : base(token)
 		{
 			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
 			_action = action;

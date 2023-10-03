@@ -12,6 +12,12 @@
 			OuterPolicy.SetWrap(policyBase);
 		}
 
+		internal OuterPolicyRegistrar(TWrapperPolicy wrapperPolicy, PolicyCollection policies, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
+		{
+			OuterPolicy = wrapperPolicy;
+			OuterPolicy.SetWrap(policies, throwOnWrappedCollectionFailed);
+		}
+
 		/// <summary>
 		/// Returns a  wrapper policy that has wrapped the other policy.
 		/// </summary>
