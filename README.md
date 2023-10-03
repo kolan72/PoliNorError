@@ -345,6 +345,8 @@ var wrapperPolicyResult = await new RetryPolicy(2)
 						 //before handling a delegate
 						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
 ```
+Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` if an exception happens or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
+
 Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.
 
 
