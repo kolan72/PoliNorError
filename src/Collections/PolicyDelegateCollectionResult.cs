@@ -47,7 +47,7 @@ namespace PoliNorError
 		{
 			get
 			{
-				return LastPolicyResult != null ? LastPolicyResult.Result : default;
+				return LastPolicyResult.GetResultOrDefault();
 			}
 		}
 

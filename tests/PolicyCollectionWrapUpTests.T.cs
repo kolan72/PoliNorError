@@ -1,6 +1,8 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
@@ -10,17 +12,17 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
 		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
-		public void Should_PolicyCollection_WrapUp_For_Action_Has_Correct_Exception_In_PolicyResult(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
+		public void Should_PolicyCollection_WrapUp_For_Func_Has_Correct_Exception_In_PolicyResult(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = CreatePolicyCollectionToTest()
 												.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 												.OuterPolicy
-												.Handle(() => throw new IndexOutOfRangeException("Test"));
+												.Handle<int>(() => throw new IndexOutOfRangeException("Test"));
 
 			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.CollectionError)
 			{
-				Assert.AreEqual(typeof(PolicyDelegateCollectionException), result.Errors.FirstOrDefault()?.GetType());
-				Assert.AreEqual(7, ((PolicyDelegateCollectionException)result.Errors.FirstOrDefault()).InnerExceptions.Count());
+				Assert.AreEqual(typeof(PolicyDelegateCollectionException<int>), result.Errors.FirstOrDefault()?.GetType());
+				Assert.AreEqual(7, ((PolicyDelegateCollectionException<int>)result.Errors.FirstOrDefault()).InnerExceptions.Count());
 			}
 			else
 			{
@@ -31,7 +33,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
-		public void Should_PolicyCollection_WrapUp_For_Action_Has_Correct_PolicyResult_When_NoException(bool empty)
+		public void Should_PolicyCollection_WrapUp_For_Func_Has_Correct_PolicyResult_When_NoException(bool empty)
 		{
 			var collection = PolicyCollection.Create();
 			if (!empty)
@@ -41,19 +43,20 @@ namespace PoliNorError.Tests
 
 			var result = collection.WrapUp(new SimplePolicy())
 												.OuterPolicy
-												.Handle(() => { });
+												.Handle(() => 1);
 			Assert.IsFalse(result.Errors.Any());
 			Assert.IsNotNull(result.WrappedPolicyResults);
+			Assert.AreEqual(empty ? 0 : 1, result.Result);
 		}
 
 		[Test]
-		public void Should_PolicyCollection_WrapUp_For_Action_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		public void Should_PolicyCollection_WrapUp_For_Func_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
 		{
 			var result = CreatePolicyCollectionToTest()
-											.AddPolicyResultHandlerForAll(pr => pr.SetFailed())
+											.AddPolicyResultHandlerForAll<int>(pr => pr.SetFailed())
 											.WrapUp(new SimplePolicy())
 											.OuterPolicy
-											.Handle(() => { });
+											.Handle(() => 1);
 
 			Assert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
 		}
@@ -61,17 +64,17 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
 		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
-		public async Task Should_PolicyCollection_WrapUp_For_AsyncFunc_Has_Correct_Exception_In_PolicyResult(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
+		public async Task Should_PolicyCollection_WrapUp_For_AsyncFuncT_Has_Correct_Exception_In_PolicyResult(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = await CreatePolicyCollectionToTest()
 												.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 												.OuterPolicy
-												.HandleAsync(async(_) => { await Task.Delay(1); throw new IndexOutOfRangeException("Test"); });
+												.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new IndexOutOfRangeException("Test"); });
 
 			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.CollectionError)
 			{
-				Assert.AreEqual(typeof(PolicyDelegateCollectionException), result.Errors.FirstOrDefault()?.GetType());
-				Assert.AreEqual(7, ((PolicyDelegateCollectionException)result.Errors.FirstOrDefault()).InnerExceptions.Count());
+				Assert.AreEqual(typeof(PolicyDelegateCollectionException<int>), result.Errors.FirstOrDefault()?.GetType());
+				Assert.AreEqual(7, ((PolicyDelegateCollectionException<int>)result.Errors.FirstOrDefault()).InnerExceptions.Count());
 			}
 			else
 			{
@@ -82,7 +85,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
-		public async Task Should_PolicyCollection_WrapUp_For_AsyncFunc_Has_Correct_PolicyResult_When_NoException(bool empty)
+		public async Task Should_PolicyCollection_WrapUp_For_AsyncFuncT_Has_Correct_PolicyResult_When_NoException(bool empty)
 		{
 			var collection = PolicyCollection.Create();
 			if (!empty)
@@ -92,23 +95,22 @@ namespace PoliNorError.Tests
 
 			var result = await collection.WrapUp(new SimplePolicy())
 												.OuterPolicy
-												.HandleAsync(async (_) => await Task.Delay(1));
+												.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 			Assert.IsFalse(result.Errors.Any());
 			Assert.IsNotNull(result.WrappedPolicyResults);
+			Assert.AreEqual(empty ? 0 : 1, result.Result);
 		}
 
 		[Test]
-		public async Task Should_PolicyCollection_WrapUp_For_AsyncFunc_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		public async Task Should_PolicyCollection_WrapUp_For_AsyncFuncT_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
 		{
 			var result = await CreatePolicyCollectionToTest()
-											.AddPolicyResultHandlerForAll(pr => pr.SetFailed())
+											.AddPolicyResultHandlerForAll<int>(pr => pr.SetFailed())
 											.WrapUp(new SimplePolicy())
 											.OuterPolicy
-											.HandleAsync(async (_) => await Task.Delay(1));
+											.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 
 			Assert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
 		}
-
-		private PolicyCollection CreatePolicyCollectionToTest() => PolicyCollection.Create().WithRetry(2).WithRetry(3);
 	}
 }

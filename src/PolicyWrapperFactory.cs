@@ -49,6 +49,30 @@ namespace PoliNorError
 			}
 		}
 
+		internal PolicyWrapper<T> CreateWrapper<T>(Func<T> fn, CancellationToken token)
+		{
+			if (WrapSinglePolicy)
+			{
+				return new PolicyWrapperSingle<T>(_wrappedPolicy, fn, token);
+			}
+			else
+			{
+				return new PolicyWrapperCollection<T>(_wrappePolices, fn, token, _throwOnWrappedCollectionFailed);
+			}
+		}
+
+		internal PolicyWrapper<T> CreateWrapper<T>(Func<CancellationToken, Task<T>> fn, CancellationToken token, bool configureAwait)
+		{
+			if (WrapSinglePolicy)
+			{
+				return new PolicyWrapperSingle<T>(_wrappedPolicy, fn, token, configureAwait);
+			}
+			else
+			{
+				return new PolicyWrapperCollection<T>(_wrappePolices, fn, token, _throwOnWrappedCollectionFailed, configureAwait);
+			}
+		}
+
 		protected bool WrapSinglePolicy { get; }
 	}
 }

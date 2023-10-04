@@ -76,7 +76,7 @@ namespace PoliNorError
 					}
 					else
 					{
-					   await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
+						await handler.RunAsync(curRes, token).ConfigureAwait(configureAwait);
 					}
 				}
 				catch (Exception ex)
@@ -188,7 +188,7 @@ namespace PoliNorError
 				{
 					if (handler.SyncRun)
 					{
-					   handler.Run(curRes, token);
+						handler.Run(curRes, token);
 					}
 					else
 					{
@@ -277,5 +277,7 @@ namespace PoliNorError
 			}
 			return policyResult;
 		}
+
+		internal static T GetResultOrDefault<T>(this PolicyResult<T> policyResult) => policyResult != null ? policyResult.Result : default;
 	}
 }
