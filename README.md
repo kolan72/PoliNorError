@@ -345,7 +345,7 @@ var wrapperPolicyResult = await new RetryPolicy(2)
 						 //before handling a delegate
 						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
 ```
-Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` if an exception happens or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
+Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
 
 Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.
 
@@ -362,6 +362,8 @@ var result = policyDelegate.Handle();
 ```
 
 ### PolicyDelegateCollection
+The `PolicyDelegateCollection(T)` class is a collection of a `PolicyDelegate(<T>)` that uses `List<PolicyDelegate(<T>)>` as an inner storage and implements the `IEnumerable<PolicyDelegate(<T>)>` interface.  
+
 You can create `PolicyDelegateCollection(<T>)` by using `Create` method.  
 With these methods
 - `WithPolicy` (create the `PolicyDelegate` with a policy but without a delegate)
@@ -377,7 +379,10 @@ With these methods
 - `WithFallback`
 - `WithSimple` (appeared in _version_ 2.0.0-alpha)
 
-you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
+you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.  
+
+Handling `PolicyDelegateCollection(<T>)` is merely calling the `Handle(Async(<T>))` method for each element in the collection one by one, while the current policy `IsFailed` equals true and no cancellation occurs.
+
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner.  
 You can also use the `BuildCollectionHandler()` method to obtain the `IPolicyDelegateCollectionHandler(T)` interface with the aforementioned methods and pass it somewhere as a dependency injection parameter.  
 
@@ -444,8 +449,7 @@ var result = PolicyDelegateCollection<int>.Create()
 					.AndDelegate(() => cmd2.ExecuteNonQuery())
 					.ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
 					.HandleAll();
-```
-The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
+``` 
 
 Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(<T>)` class is a wrapper around `PolicyResult` that additionally contains `MethodInfo` of the delegate.  
 
