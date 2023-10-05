@@ -285,7 +285,7 @@ If you try to handle a generic func delegate without a corresponding fallback de
 Note that error processors for fallback policies run *before* calling fallback delegate. This lets you cancel before calling the fallback delegate if you need to, but if you want to get fallback faster, don't add long-running error processors.  
 `FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
 
-### SimplePolicy (appeared in _version_ 2.0.0-alpha)
+### SimplePolicy
 The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  
 For example, you could create a policy for copying or reading a file with a warning on the `FileNotFoundException` and logging an error for the other exceptions:  
 ```csharp
@@ -321,6 +321,9 @@ var copyResult = fileNotFoundPolicy
 var readAllTextResult = fileNotFoundPolicy
 				    .Handle(() => File.ReadAllText(source));
 ```
+
+Note that for `SimplePolicy`  the `PolicyResult.IsSuccess` property will always be true if an exception satisfies the filters and no cancellation occurs.  
+Therefore, when handling generic delegates, it's better to check the `NoError` property instead of the `IsSuccess` property to get the `PolicyResult.Result`.
 
 ### Policy wrap
 For wrap policy by other policy use `WrapPolicy` method, for example:
