@@ -384,8 +384,13 @@ With these methods
 
 you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.  
 
-Handling `PolicyDelegateCollection(<T>)` is merely calling the `Handle(Async(<T>))` method for each element in the collection one by one, while the current policy `IsFailed` equals true and no cancellation occurs.
+Handling `PolicyDelegateCollection(<T>)` is merely calling the `Handle(Async(<T>))` method for each element in the collection one by one, while the current policy `IsFailed` equals true and no cancellation occurs.  
+```
+PolicyDelegate_1_handling —— Failed ——> PolicyDelegate_2_handling —— Failed ——> ..
+  |                                     |
+  | —— Success_Or_Canceled ——> Exit     | —— Success_Or_Canceled ——> Exit
 
+```
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner.  
 You can also use the `BuildCollectionHandler()` method to obtain the `IPolicyDelegateCollectionHandler(T)` interface with the aforementioned methods and pass it somewhere as a dependency injection parameter.  
 
