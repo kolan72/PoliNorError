@@ -391,6 +391,8 @@ PolicyDelegate_1_handling —— Failed ——> PolicyDelegate_2_handling ——
   | —— Success_Or_Canceled ——> Exit     | —— Success_Or_Canceled ——> Exit
 
 ```
+In a certain sense, it is remarkably similar to wrapping current Policy1 with a `Fallback` policy that uses the appropriate `PolicyDelegate2.Handle(Async)(<T>)` method as a fallback delegate, handling Delegate1, but storing all handling results in a flat collection of the `PolicyDelegateResult` object.  
+
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner.  
 You can also use the `BuildCollectionHandler()` method to obtain the `IPolicyDelegateCollectionHandler(T)` interface with the aforementioned methods and pass it somewhere as a dependency injection parameter.  
 
