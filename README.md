@@ -323,7 +323,8 @@ var readAllTextResult = fileNotFoundPolicy
 ```
 
 Note that for `SimplePolicy`  the `PolicyResult.IsSuccess` property will always be true if an exception satisfies the filters and no cancellation occurs.  
-Therefore, when handling generic delegates, it's better to check the `NoError` property instead of the `IsSuccess` property to get the `PolicyResult.Result`.
+Therefore, when handling generic delegates, it's better to check the `NoError` property instead of the `IsSuccess` property to get the `PolicyResult.Result`.  
+Note also, that the `SimplePolicy` can be helpful for exiting from the `PolicyDelegateCollection` handling soon, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.
 
 ### Policy wrap
 For wrap policy by other policy use `WrapPolicy` method, for example:
