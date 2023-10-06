@@ -431,7 +431,15 @@ var freeSpaceResult = PolicyDelegateCollection<long>.Create()
 									  //If free space is not enough we pass handling to the next PolicyDelegate in the collection:
 									  pr.SetFailed();
 								  else
+									  //Exit from further handling with info in log
 									  logger.Info("Free space is ok");
+							  }
+							  else
+							  {
+								  //Exit from further handling with error in log
+								  logger.Error(pr.Errors.FirstOrDefault(), 
+										"The handling was exited due to the {@policy} successfully handled exception.", 
+										pr.PolicyName);
 							  }
 						  })
 						  .WithSimple((ErrorProcessorParam)logger.Error)
@@ -449,6 +457,7 @@ var freeSpaceResult = PolicyDelegateCollection<long>.Create()
 						  })
 						  .HandleAll();
 ```
+Note that when an exception occurs on getting free space, we exit from further handling due to `SimplePolicy` with an error message in the log.  
 
 You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters on the entire collection:
 ```csharp
