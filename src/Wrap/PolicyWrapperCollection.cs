@@ -6,45 +6,6 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal class PolicyWrapperSingle : PolicyWrapper
-	{
-		protected IPolicyBase _policyBase;
-		internal PolicyWrapperSingle(IPolicyBase policyBase, Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait)
-			: base(func, token, configureAwait)
-		{
-			SetPolicyParam(policyBase);
-		}
-
-		internal PolicyWrapperSingle(IPolicyBase policyBase, Action action, CancellationToken token)
-			: base(action, token)
-		{
-			SetPolicyParam(policyBase);
-		}
-
-		private void SetPolicyParam(IPolicyBase policyBase)
-		{
-			_policyBase = policyBase;
-		}
-
-		internal override async Task  HandleAsync(CancellationToken token)
-		{
-			var res = await _policyBase.HandleAsync(_func, _configureAwait, token).ConfigureAwait(_configureAwait);
-
-			_policyHandledResults.Add(new PolicyDelegateResult(res, _policyBase.PolicyName, _func.Method));
-
-			ThrowIfFailed(res);
-		}
-
-		internal override void Handle()
-		{
-			var res = _policyBase.Handle(_action, _token);
-
-			_policyHandledResults.Add(new PolicyDelegateResult(res, _policyBase.PolicyName, _action.Method));
-
-			ThrowIfFailed(res);
-		}
-	}
-
 	internal class PolicyWrapperCollection : PolicyWrapper
 	{
 		protected IEnumerable<IPolicyBase> _polices;
@@ -106,34 +67,6 @@ namespace PoliNorError
 			{
 				throw new PolicyResultHandlerFailedException();
 			}
-		}
-	}
-
-	internal  abstract class PolicyWrapper : PolicyWrapperBase
-	{
-		protected readonly Func<CancellationToken, Task> _func;
-		protected readonly Action _action;
-		protected readonly FlexSyncEnumerable<PolicyDelegateResult>.IWrapper _policyHandledResults;
-
-		private protected PolicyWrapper(Func<CancellationToken, Task> func, CancellationToken token, bool configureAwait) : base(token, configureAwait)
-		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>(!_configureAwait);
-			_func = func;
-		}
-
-		private protected PolicyWrapper(Action action, CancellationToken token) : base(token)
-		{
-			_policyHandledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
-			_action = action;
-		}
-
-		internal abstract Task HandleAsync(CancellationToken token);
-
-		internal abstract void Handle();
-
-		internal IEnumerable<PolicyDelegateResult> PolicyDelegateResults
-		{
-			get { return _policyHandledResults; }
 		}
 	}
 }
