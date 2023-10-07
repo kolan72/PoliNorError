@@ -285,7 +285,7 @@ If you try to handle a generic func delegate without a corresponding fallback de
 Note that error processors for fallback policies run *before* calling fallback delegate. This lets you cancel before calling the fallback delegate if you need to, but if you want to get fallback faster, don't add long-running error processors.  
 `FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
 
-### SimplePolicy (appeared in _version_ 2.0.0-alpha)
+### SimplePolicy
 The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  
 For example, you could create a policy for copying or reading a file with a warning on the `FileNotFoundException` and logging an error for the other exceptions:  
 ```csharp
@@ -322,6 +322,10 @@ var readAllTextResult = fileNotFoundPolicy
 				    .Handle(() => File.ReadAllText(source));
 ```
 
+Note that for `SimplePolicy`  the `PolicyResult.IsSuccess` property will always be true if an exception satisfies the filters and no cancellation occurs.  
+Therefore, when handling generic delegates, it's better to check the `NoError` property instead of the `IsSuccess` property to get the `PolicyResult.Result`.  
+Note also, that the `SimplePolicy` can be helpful for exiting from the `PolicyDelegateCollection` handling soon, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.
+
 ### Policy wrap
 For wrap policy by other policy use `WrapPolicy` method, for example:
 ```csharp
@@ -345,6 +349,8 @@ var wrapperPolicyResult = await new RetryPolicy(2)
 						 //before handling a delegate
 						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
 ```
+Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
+
 Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.
 
 
@@ -360,6 +366,8 @@ var result = policyDelegate.Handle();
 ```
 
 ### PolicyDelegateCollection
+The `PolicyDelegateCollection(T)` class is a collection of a `PolicyDelegate(<T>)` that uses `List<PolicyDelegate(<T>)>` as an inner storage and implements the `IEnumerable<PolicyDelegate(<T>)>` interface.  
+
 You can create `PolicyDelegateCollection(<T>)` by using `Create` method.  
 With these methods
 - `WithPolicy` (create the `PolicyDelegate` with a policy but without a delegate)
@@ -375,7 +383,17 @@ With these methods
 - `WithFallback`
 - `WithSimple` (appeared in _version_ 2.0.0-alpha)
 
-you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.
+you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.  
+
+Handling `PolicyDelegateCollection(<T>)` is merely calling the `Handle(Async(<T>))` method for each element in the collection one by one, while the current policy `IsFailed` equals true and no cancellation occurs.  
+```
+PolicyDelegate_1_handling —— Failed ——> PolicyDelegate_2_handling —— Failed ——> ..
+  |                                     |
+  | —— Success_Or_Canceled ——> Exit     | —— Success_Or_Canceled ——> Exit
+
+```
+In a certain sense, it is remarkably similar to wrapping current Policy1 with a `Fallback` policy that uses the appropriate `PolicyDelegate2.Handle(Async)(<T>)` method as a fallback delegate, handling Delegate1, but storing all handling results in a flat collection of the `PolicyDelegateResult` object.  
+
 Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner.  
 You can also use the `BuildCollectionHandler()` method to obtain the `IPolicyDelegateCollectionHandler(T)` interface with the aforementioned methods and pass it somewhere as a dependency injection parameter.  
 
@@ -414,7 +432,15 @@ var freeSpaceResult = PolicyDelegateCollection<long>.Create()
 									  //If free space is not enough we pass handling to the next PolicyDelegate in the collection:
 									  pr.SetFailed();
 								  else
+									  //Exit from further handling with info in log
 									  logger.Info("Free space is ok");
+							  }
+							  else
+							  {
+								  //Exit from further handling with error in log
+								  logger.Error(pr.Errors.FirstOrDefault(), 
+										"The handling was exited due to the {@policy} successfully handled exception.", 
+										pr.PolicyName);
 							  }
 						  })
 						  .WithSimple((ErrorProcessorParam)logger.Error)
@@ -432,6 +458,7 @@ var freeSpaceResult = PolicyDelegateCollection<long>.Create()
 						  })
 						  .HandleAll();
 ```
+Note that when an exception occurs on getting free space, we exit from further handling due to `SimplePolicy` with an error message in the log.  
 
 You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters on the entire collection:
 ```csharp
@@ -442,8 +469,7 @@ var result = PolicyDelegateCollection<int>.Create()
 					.AndDelegate(() => cmd2.ExecuteNonQuery())
 					.ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
 					.HandleAll();
-```
-The process of handling policydelegates in collection will only continue if there has been no cancellation and the current policy handling has been unsuccessful (i.e. `IsFailed` of `PolicyResult` equals to `true`).  
+``` 
 
 Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(<T>)` class is a wrapper around `PolicyResult` that additionally contains `MethodInfo` of the delegate.  
 
