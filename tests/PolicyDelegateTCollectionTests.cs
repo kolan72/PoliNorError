@@ -354,10 +354,9 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_PolicyDelegateCollectionHandleException_GetCorrectMessage()
 		{
-			var handledErrors = GetTestPolicyDelegateResultErrorsCollection();
+			var handledErrors = GetTestPolicyDelegateResultCollection();
 			var exception = new PolicyDelegateCollectionException<int>(handledErrors);
 
-			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
 			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.", exception.Message);
 
 			Assert.AreEqual(2, exception.GetResults().Count());
@@ -466,7 +465,7 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(1, n);
 		}
 
-		private IEnumerable<PolicyDelegateResultErrors<int>> GetTestPolicyDelegateResultErrorsCollection()
+		private IEnumerable<PolicyDelegateResult<int>> GetTestPolicyDelegateResultCollection()
 		{
 			var policy = new RetryPolicy(1);
 			var ts = new TestClass();
@@ -478,18 +477,15 @@ namespace PoliNorError.Tests
 			polResult.SetResult(1);
 
 			var handledResult = new PolicyDelegateResult<int>(polResult, policy.PolicyName, policySyncInfo.GetMethodInfo());
-			var polHandledError = PolicyDelegateResultErrors<int>.FromDelegateResult(handledResult);
 
 			var policySyncInfo2 = policy.ToPolicyDelegate(ts.Save);
-
 			var polResult2 = new PolicyResult<int>();
 			polResult2.AddError(new Exception("Test2"));
 			polResult2.SetResult(2);
 
 			var handledResult2 = new PolicyDelegateResult<int>(polResult2, policy.PolicyName, policySyncInfo2.GetMethodInfo());
-			var polHandledError2 = PolicyDelegateResultErrors<int>.FromDelegateResult(handledResult2);
 
-			return new List<PolicyDelegateResultErrors<int>>() { polHandledError, polHandledError2 };
+			return new List<PolicyDelegateResult<int>>() { handledResult, handledResult2 };
 		}
 
 		[Test]

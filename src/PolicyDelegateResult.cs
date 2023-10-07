@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace PoliNorError
 {
@@ -30,6 +32,8 @@ namespace PoliNorError
 			PolicyMethodInfo = methodInfo;
 			IsFailed = policyResult.IsFailed;
 			IsSuccess = policyResult.IsSuccess;
+			IsCanceled = policyResult.IsCanceled;
+			Errors = policyResult.Errors;
 		}
 
 		public string PolicyName { get; }
@@ -39,5 +43,9 @@ namespace PoliNorError
 		public bool IsFailed { get; }
 
 		public bool IsSuccess { get; }
+
+		public bool IsCanceled { get; }
+
+		public IEnumerable<Exception> Errors { get; }
 	}
 }

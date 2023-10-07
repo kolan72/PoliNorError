@@ -166,7 +166,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(TimeSpan.FromMilliseconds(50));
 
-			async Task func(CancellationToken _) { await Task.Delay(100, cancelTokenSource.Token); }
+			async Task func(CancellationToken _) { await Task.Delay(110, cancelTokenSource.Token); }
 
 			var polResult = await retryPol.HandleAsync(func, cancelTokenSource.Token);
 			Assert.IsTrue(polResult.IsCanceled);

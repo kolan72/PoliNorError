@@ -76,7 +76,7 @@ namespace PoliNorError
 		public IPolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null)
 		{
 			_terminated = true;
-			_errorConverter = errorConverter ?? new PolicyDelegateResultsToErrorConverter();
+			_errorConverter = errorConverter ?? new DefaultPolicyDelegateResultsToErrorConverter((pdrs) => new PolicyDelegateCollectionException(pdrs));
 			return this;
 		}
 
