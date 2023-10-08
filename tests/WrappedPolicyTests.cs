@@ -642,5 +642,77 @@ namespace PoliNorError.Tests
 			var subsPolicy = Substitute.For<IPolicyBase>();
 			Assert.Throws<ArgumentNullException>(() => subsPolicy.WrapUp<SimplePolicy>(null));
 		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(true, true)]
+		[TestCase(false, false)]
+		[TestCase(false, true)]
+		public void Should_ResetWrap_Really_Reset(bool sync, bool generic)
+		{
+			var wrappedPolicy = new SimplePolicy().WrapUp(new FallbackPolicy()).OuterPolicy;
+
+			Action act =() => throw new Exception();
+			Func<int> func = () => throw new Exception();
+			Func<CancellationToken, Task> asyncAct = async (_) => await Task.Delay(1);
+			Func<CancellationToken, Task<int>> asyncFuncT = async (_) => { await Task.Delay(1); return 1; };
+
+			PolicyWrapperBase wrapper = null;
+
+			Action actWrapped = null;
+			Func<int> funcWrapped = null;
+			Func<CancellationToken, Task> asyncActWrapped = null;
+			Func<CancellationToken, Task<int>> asyncFuncTWrapped = null;
+
+			if (sync)
+			{
+				RunSync(false);
+			}
+			else
+			{
+				RunASync(false);
+			}
+
+			wrappedPolicy.ResetWrap();
+
+			if (sync)
+			{
+				RunSync(true);
+			}
+			else
+			{
+				RunASync(true);
+			}
+
+			void RunSync(bool res)
+			{
+				if (!generic)
+				{
+					(actWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(act, default);
+					Assert.AreEqual(res, act.Equals(actWrapped));
+				}
+				else
+				{
+					(funcWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(func, default);
+					Assert.AreEqual(res, func.Equals(funcWrapped));
+				}
+				Assert.AreEqual(res, wrapper == null);
+			}
+
+			void RunASync(bool res)
+			{
+				if (!generic)
+				{
+					(asyncActWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(asyncAct, default, false);
+					Assert.AreEqual(res, asyncAct.Equals(asyncActWrapped));
+				}
+				else
+				{
+					(asyncFuncTWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(asyncFuncT, default, false);
+					Assert.AreEqual(res, asyncFuncT.Equals(asyncFuncTWrapped));
+				}
+				Assert.AreEqual(res, wrapper == null);
+			}
+		}
 	}
 }

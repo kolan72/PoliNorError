@@ -197,6 +197,11 @@ namespace PoliNorError
 			}
 		}
 
+		public void ResetWrap()
+		{
+			_policyWrapperFactory = null;
+		}
+
 		public string PolicyName
 		{
 			get { return _policyName ?? GetType().Name; }
