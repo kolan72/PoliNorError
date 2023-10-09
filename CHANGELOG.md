@@ -1,3 +1,13 @@
+## 2.6.1
+
+- Introduce `PolicyCollection.WrapUp`method.
+- Introduce `Policy.ResetWrap` method.
+- Fix issue (#43) when the `PolicyResult.SetFailed` method is not called in a policy result handler due to previous cancellation.
+- Add `PolicyDelegateCollection(<T>).WithThrowOnLastFailed` extensions methods with `Func<IEnumerable<PolicyDelegateResult(<T>)>, Exception>` as a parameter.
+- The `PolicyDelegateCollectionResult`'s `IsFailed` and `IsSuccess` properties are set once in the constructor now.
+- Add `PolicyDelegateResult(<T>).IsCanceled` and `PolicyDelegateResult(<T>).Errors` properties.
+- Remove redundant `PolicyDelegateCollectionException` - related internal classes.
+
 
 ## 2.4.0
 
