@@ -11,82 +11,76 @@ namespace PoliNorError
 
 		private PolicyWrapperFactory _policyWrapperFactory;
 
-		private readonly List<IHandlerRunner> _handlers;
-		private readonly List<IHandlerRunnerT> _genericHandlers;
+		private readonly PolicyResultHandlerCollection _policyResultHandlerCollection;
 
 		private protected Policy(IPolicyProcessor policyProcessor)
 		{
-			_handlers = new List<IHandlerRunner>();
-			_genericHandlers = new List<IHandlerRunnerT>();
+			_policyResultHandlerCollection = new PolicyResultHandlerCollection();
 			PolicyProcessor = policyProcessor;
 		}
 
 		internal void AddAsyncHandler(Func<PolicyResult, Task> func)
 		{
-			AddAsyncHandler((pr, _) => func(pr));
+			_policyResultHandlerCollection.AddHandler(func);
 		}
 
 		internal void AddAsyncHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
-			var handler = new ASyncHandlerRunner(func, _handlers.Count);
-			_handlers.Add(handler);
+			_policyResultHandlerCollection.AddHandler(func);
 		}
 
 		internal void AddAsyncHandler<T>(Func<PolicyResult<T>, Task> func)
 		{
-			AddAsyncHandler<T>((pr, _) => func(pr));
+			_policyResultHandlerCollection.AddHandler(func);
 		}
 
 		internal void AddAsyncHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			var handler = ASyncHandlerRunnerT.Create(func, _handlers.Count);
-			_genericHandlers.Add(handler);
+			_policyResultHandlerCollection.AddHandler(func);
 		}
 
 		internal void AddSyncHandler(Action<PolicyResult> act)
 		{
-			AddSyncHandler((pr, _) => act(pr));
+			_policyResultHandlerCollection.AddHandler(act);
 		}
 
 		internal void AddSyncHandler(Action<PolicyResult, CancellationToken> act)
 		{
-			var handler = new SyncHandlerRunner(act, _handlers.Count);
-			_handlers.Add(handler);
+			_policyResultHandlerCollection.AddHandler(act);
 		}
 
 		internal void AddSyncHandler<T>(Action<PolicyResult<T>> act)
 		{
-			AddSyncHandler<T>((pr, _) => act(pr));
+			_policyResultHandlerCollection.AddHandler(act);
 		}
 
 		internal void AddSyncHandler<T>(Action<PolicyResult<T>, CancellationToken> act)
 		{
-			var handler = SyncHandlerRunnerT.Create(act, _handlers.Count);
-			_genericHandlers.Add(handler);
+			_policyResultHandlerCollection.AddHandler(act);
 		}
 
 		protected PolicyResult<T> HandlePolicyResult<T>(PolicyResult<T> policyRetryResult, CancellationToken token)
 		{
-			return policyRetryResult.HandleResultForceSync(_genericHandlers, token);
+			return policyRetryResult.HandleResultForceSync(_policyResultHandlerCollection.GenericHandlers, token);
 		}
 
 		protected PolicyResult HandlePolicyResult(PolicyResult policyRetryResult, CancellationToken token)
 		{
-			return policyRetryResult.HandleResultForceSync(_handlers, token);
+			return policyRetryResult.HandleResultForceSync(_policyResultHandlerCollection.Handlers, token);
 		}
 
 		protected async Task HandlePolicyResultAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
-			switch (_handlers.MapToSyncType())
+			switch (_policyResultHandlerCollection.Handlers.MapToSyncType())
 			{
 				case HandlerRunnerSyncType.Sync:
-					policyRetryResult.HandleResultSync(_handlers, token);
+					policyRetryResult.HandleResultSync(_policyResultHandlerCollection.Handlers, token);
 					break;
 				case HandlerRunnerSyncType.Misc:
-					await policyRetryResult.HandleResultMisc(_handlers, configureAwait, token).ConfigureAwait(configureAwait);
+					await policyRetryResult.HandleResultMisc(_policyResultHandlerCollection.Handlers, configureAwait, token).ConfigureAwait(configureAwait);
 					break;
 				case HandlerRunnerSyncType.Async:
-					await policyRetryResult.HandleResultAsync(_handlers, configureAwait, token).ConfigureAwait(configureAwait);
+					await policyRetryResult.HandleResultAsync(_policyResultHandlerCollection.Handlers, configureAwait, token).ConfigureAwait(configureAwait);
 					break;
 				case HandlerRunnerSyncType.None:
 					break;
@@ -97,16 +91,16 @@ namespace PoliNorError
 
 		protected async Task HandlePolicyResultAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
-			switch (_genericHandlers.MapToSyncType())
+			switch (_policyResultHandlerCollection.GenericHandlers.MapToSyncType())
 			{
 				case HandlerRunnerSyncType.Sync:
-					policyRetryResult.HandleResultSync(_genericHandlers, token);
+					policyRetryResult.HandleResultSync(_policyResultHandlerCollection.GenericHandlers, token);
 					break;
 				case HandlerRunnerSyncType.Misc:
-					await policyRetryResult.HandleResultMisc(_genericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
+					await policyRetryResult.HandleResultMisc(_policyResultHandlerCollection.GenericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
 					break;
 				case HandlerRunnerSyncType.Async:
-					await policyRetryResult.HandleResultAsync(_genericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
+					await policyRetryResult.HandleResultAsync(_policyResultHandlerCollection.GenericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
 					break;
 				case HandlerRunnerSyncType.None:
 					break;
