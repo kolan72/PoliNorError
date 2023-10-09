@@ -326,33 +326,6 @@ Note that for `SimplePolicy`  the `PolicyResult.IsSuccess` property will always 
 Therefore, when handling generic delegates, it's better to check the `NoError` property instead of the `IsSuccess` property to get the `PolicyResult.Result`.  
 Note also, that the `SimplePolicy` can be helpful for exiting from the `PolicyDelegateCollection` handling soon, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.
 
-### Policy wrap
-For wrap policy by other policy use `WrapPolicy` method, for example:
-```csharp
-	    var wrapppedPolicy = new RetryPolicy(3).ExcludeError<BrokerUnreachableException>();
-            var fallBackPolicy = new FallbackPolicy()
-                                            .WithFallbackFunc(() => connectionFactory2.CreateConnection());
-            fallBackPolicy.WrapPolicy(wrapppedPolicy);
-            var polResult = fallBackPolicy.Handle(() => connectionFactory1.CreateConnection());
-```
-Alternately, you could use the bottom-up approach and, after configuring the policy that will be wrapped, switch to the wrapper policy by using the `WrapUp` method (since _version_ 2.4.0):  
-```csharp
-var wrapperPolicyResult = await new RetryPolicy(2)
-						.WithErrorProcessorOf(logger.Error)
-						//We wrap up the current RetryPolicy by FallbackPolicy
-						.WrapUp(new FallbackPolicy()
-							.WithAsyncFallbackFunc(SendAlarmEmailAsync))
-						//and switch to the last one here,
-						.OuterPolicy
-						//where we can further configure it 
-						.WithPolicyName("WrapperPolicy")
-						 //before handling a delegate
-						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
-```
-Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
-
-Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.
-
 
 ### PolicyDelegate
 A `PolicyDelegate` just pack delegate with a policy into a single object.
@@ -516,6 +489,66 @@ Furthermore, with the `PolicyCollection` :
 - If you want to create a `PolicyDelegateCollection` based on the collection of policies you just created, for example, to handle other delegates, you can call the `ToPolicyDelegateCollection(commonDelegate)` method.  Each element of the new collection will consist of a common delegate `commonDelegate` and one of the policies that have been added to `PolicyCollection` object.  
 
 The `PolicyCollection` class has the same options for filtering errors and adding `PolicyResult` handlers as the `PolicyDelegateCollection` class.
+
+
+### Policy wrap
+For wrap policy by other policy use `WrapPolicy` method, for example:
+```csharp
+	    var wrapppedPolicy = new RetryPolicy(3).ExcludeError<BrokerUnreachableException>();
+            var fallBackPolicy = new FallbackPolicy()
+                                            .WithFallbackFunc(() => connectionFactory2.CreateConnection());
+            fallBackPolicy.WrapPolicy(wrapppedPolicy);
+            var polResult = fallBackPolicy.Handle(() => connectionFactory1.CreateConnection());
+```
+Alternately, you could use the bottom-up approach and, after configuring the policy that will be wrapped, switch to the wrapper policy by using the `WrapUp` method (since _version_ 2.4.0):  
+```csharp
+var wrapperPolicyResult = await new RetryPolicy(2)
+						.WithErrorProcessorOf(logger.Error)
+						//We wrap up the current RetryPolicy by FallbackPolicy
+						.WrapUp(new FallbackPolicy()
+							.WithAsyncFallbackFunc(SendAlarmEmailAsync))
+						//and switch to the last one here,
+						.OuterPolicy
+						//where we can further configure it 
+						.WithPolicyName("WrapperPolicy")
+						 //before handling a delegate
+						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
+```
+Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
+
+Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.  
+
+The example in the  [`PolicyCollection`](#policycollection) chapter could be rewritten to use a different approach by using the `WrapUp` method as well:  
+```csharp
+var policyResult = new RetryPolicy(2)
+		.WrapUp(new FallbackPolicy())
+		.OuterPolicy
+		.WithFallbackFunc(() =>
+		{
+			var newFilePath = Path.Combine(Path.GetTempPath(),
+										 Path.GetFileName(filePath));
+			File.Copy(filePath, newFilePath, true);
+
+			return File.ReadAllLines(newFilePath);
+		})
+		.AddPolicyResultHandler<string[]>((pr) => {
+			if (!pr.NoError && pr.IsSuccess) 
+				Console.WriteLine("The file was copied into the Temp directory");
+		})
+		.Handle(() => File.ReadAllLines(filePath));
+
+policyResult
+	//Use this property to get exceptions that occur when RetryPolicy tries to handle the delegate.
+	.WrappedPolicyResults
+	.SelectMany(pd => pd.Result.Errors)
+	.ToList()
+	.ForEach(ex => logger.Error(ex.Message));
+
+if (policyResult.IsSuccess)
+{
+	policyResult.Result.ToList().ForEach(l => Console.WriteLine(l));
+}
+```
 
 
 ### Calling Func and Action delegates in a resilient manner
