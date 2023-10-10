@@ -131,7 +131,7 @@ namespace PoliNorError
 
 		public static T WithErrorProcessor<T>(this T errorPolicyBase, IErrorProcessor errorProcessor) where T : IPolicyBase
 		{
-			errorPolicyBase.PolicyProcessor.WithErrorProcessor(errorProcessor);
+			errorPolicyBase.PolicyProcessor.AddErrorProcessor(errorProcessor);
 			return errorPolicyBase;
 		}
 	}
