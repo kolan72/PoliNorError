@@ -549,7 +549,41 @@ if (policyResult.IsSuccess)
 	policyResult.Result.ToList().ForEach(l => Console.WriteLine(l));
 }
 ```
+You can wrap up a `PolicyCollection` itself using the `WrapUp` method as well (since _version_ 2.6.1).
+```csharp
+//It is a stop policy, which halts the handling of the next policy delegate if the file is not found.
+var notFoundPolicy = new SimplePolicy()
+	.IncludeError<FileNotFoundException>()
+	.WithErrorProcessorOf((ex) => logger.Warning(ex.Message));
 
+var polCollectionResult = PolicyCollection
+	.Create()
+	.WithPolicy(notFoundPolicy)
+	.WithRetry(2)
+	.AddPolicyResultHandlerForLast<string[]>(pr =>
+		pr.Errors.ToList()
+		.ForEach(ex => logger.Error(ex.Message)))
+	.WrapUp(new FallbackPolicy())
+	.OuterPolicy
+	.WithFallbackFunc(() =>
+	{
+		var newFilePath = Path.Combine(Path.GetTempPath(),
+									 Path.GetFileName(filePath));
+		File.Copy(filePath, newFilePath, true);
+
+		return File.ReadAllLines(newFilePath);
+	})
+	.AddPolicyResultHandler<string[]>((pr) => {
+		if (!pr.NoError && pr.IsSuccess)
+			Console.WriteLine("The file was copied into the Temp directory");
+	})
+	.Handle(() => File.ReadAllLines(filePath));
+
+if (polCollectionResult.IsSuccess)
+{
+	polCollectionResult.Result?.ToList().ForEach(l => Console.WriteLine(l));
+}
+```
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
