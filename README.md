@@ -514,7 +514,7 @@ var wrapperPolicyResult = await new RetryPolicy(2)
 						 //before handling a delegate
 						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
 ```
-Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
+Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing its `PolicyResult.UnprocessedError` if it fails or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
 
 Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.  
 
@@ -583,6 +583,31 @@ if (polCollectionResult.IsSuccess)
 {
 	polCollectionResult.Result?.ToList().ForEach(l => Console.WriteLine(l));
 }
+```
+The `PolicyCollection.WrapUp` method has an optional parameter of type `ThrowOnWrappedCollectionFailed`, that by default is set to `ThrowOnWrappedCollectionFailed.LastError`  with behind the scenes throwing `PolicyResult.UnprocessedError` of failed policy (usually the last one in the `PolicyCollection`).  
+
+You can use `ThrowOnWrappedCollectionFailed.CollectionError` if you want to deal with all the exceptions that happen when `PolicyCollection` handles delegate. In this case, the `PolicyDelegateCollectionException(<T>)` will be thrown as a result of failed handling of wrapped `PolicyCollection`.  
+
+For example, there is a service that should not be used if there are multiple `TimeoutExceptions` within a certain time period.  
+Your strategy may be to repeat a certain number of attempts with a second interval, then with the half-minute interval, and then repeat this set of attempts after an hour.
+But only if the maximum number of `TimeoutException`s were not exceeded:
+```csharp
+var result = await PolicyCollection.Create()
+		.WithWaitAndRetry(7, TimeSpan.FromSeconds(1), (ErrorProcessorParam)logger.Error)
+		.WithWaitAndRetry(3, TimeSpan.FromSeconds(30), (ErrorProcessorParam)logger.Error)
+		//Use `ThrowOnWrappedCollectionFailed.CollectionError`
+		.WrapUp(new RetryPolicy(1), ThrowOnWrappedCollectionFailed.CollectionError)
+		.OuterPolicy
+		//Limit the number of `TimeoutException`s.
+		.ExcludeError<PolicyDelegateCollectionException>((pe) 
+			=> pe.InnerExceptions.OfType<TimeoutException>().Count() > 8)
+		.WithWait(TimeSpan.FromHours(1))
+		.AddPolicyResultHandler((pr) =>
+		{
+			if (pr.ErrorFilterUnsatisfied)
+				logger.Warning("The tries were interrupted because the maximum number of TimeoutExceptions was exceeded.");
+		})
+		.HandleAsync((ct) => service.DoSomethingAsync(ct));
 ```
 
 ### Calling Func and Action delegates in a resilient manner
