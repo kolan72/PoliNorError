@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public interface IBulkErrorProcessor : IEnumerable<IErrorProcessor>
+	public interface IBulkErrorProcessor : IEnumerable<IErrorProcessor>, ICanAddErrorProcessor
 	{
 		void AddProcessor(IErrorProcessor errorProcessor);
 		Task<BulkErrorProcessor.BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default);
