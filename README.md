@@ -607,7 +607,7 @@ var result = await PolicyCollection.Create()
 			if (pr.ErrorFilterUnsatisfied)
 				logger.Warning("The tries were interrupted because the maximum number of TimeoutExceptions was exceeded.");
 		})
-		.HandleAsync((ct) => service.DoSomethingAsync(ct));
+		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct));
 ```
 
 ### Calling Func and Action delegates in a resilient manner
