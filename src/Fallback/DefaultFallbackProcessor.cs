@@ -6,7 +6,11 @@ namespace PoliNorError
 {
 	public sealed class DefaultFallbackProcessor : PolicyProcessor, IFallbackProcessor
 	{
-		public DefaultFallbackProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Fallback, bulkErrorProcessor) { }
+		private readonly EmptyErrorContext _emptyErrorContext;
+		public DefaultFallbackProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Fallback, bulkErrorProcessor)
+		{
+			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default : EmptyErrorContext.DefaultFallback;
+		}
 
 		public PolicyResult Fallback(Action action, Action<CancellationToken> fallback, CancellationToken token = default)
 		{
@@ -38,7 +42,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													.Handle(ex, EmptyErrorContext.Default));
+													.Handle(ex, _emptyErrorContext));
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -78,7 +82,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													.Handle(ex, EmptyErrorContext.Default));
+													.Handle(ex, _emptyErrorContext));
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -113,7 +117,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-													.HandleAsync(ex, EmptyErrorContext.Default).ConfigureAwait(configureAwait));
+													.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
@@ -149,7 +153,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-													.HandleAsync(ex, EmptyErrorContext.Default).ConfigureAwait(configureAwait));
+													.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);

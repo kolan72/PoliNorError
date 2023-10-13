@@ -9,12 +9,22 @@ namespace PoliNorError
 		private IErrorProcessor _saveErrorProcessor;
 		private readonly bool _failedIfSaveErrorThrows;
 
+		private readonly Func<int, RetryErrorContext> _retryErrorContextCreator;
+
 		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
 
 		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false)
 			: base(PolicyAlias.Retry, bulkErrorProcessor)
 		{
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
+			if (_isPolicyAliasSet)
+			{
+				_retryErrorContextCreator = CreateRetryErrorContextWhenAliasSet;
+			}
+			else
+			{
+				_retryErrorContextCreator = CreateRetryErrorContextWhenAliasNotSet;
+			}
 		}
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
@@ -66,7 +76,7 @@ namespace PoliNorError
 					}
 
 					result.ChangeByHandleCatchBlockResult(handler
-														.Handle(ex, new RetryErrorContext(tryCount)));
+														.Handle(ex, _retryErrorContextCreator(tryCount)));
 					if (!result.IsFailed)
 						tryCount++;
 				}
@@ -129,7 +139,7 @@ namespace PoliNorError
 						break;
 					}
 					result.ChangeByHandleCatchBlockResult(handler
-														.Handle(ex, new RetryErrorContext(tryCount)));
+														.Handle(ex, _retryErrorContextCreator(tryCount)));
 					if (!result.IsFailed)
 						tryCount++;
 				}
@@ -181,7 +191,7 @@ namespace PoliNorError
 					{
 						break;
 					}
-					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, new RetryErrorContext(tryCount)).ConfigureAwait(configureAwait));
+					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, _retryErrorContextCreator(tryCount)).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
 						Interlocked.Increment(ref tryCount);
 				}
@@ -234,7 +244,7 @@ namespace PoliNorError
 					{
 						break;
 					}
-					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, new RetryErrorContext(tryCount)).ConfigureAwait(configureAwait));
+					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, _retryErrorContextCreator(tryCount)).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
 						Interlocked.Increment(ref tryCount);
 				}
@@ -247,6 +257,16 @@ namespace PoliNorError
 		{
 			_saveErrorProcessor = saveErrorProcessor ?? throw new ArgumentNullException(nameof(saveErrorProcessor), "Custom error saver cannot be null.");
 			return this;
+		}
+
+		private RetryErrorContext CreateRetryErrorContextWhenAliasSet(int tryCount)
+		{
+			return new RetryErrorContext(tryCount);
+		}
+
+		private RetryErrorContext CreateRetryErrorContextWhenAliasNotSet(int tryCount)
+		{
+			return new RetryErrorContext(tryCount, false);
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;

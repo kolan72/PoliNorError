@@ -14,12 +14,16 @@
 
 	internal sealed class EmptyErrorContext : ErrorContext<Unit>
 	{
-		private static EmptyErrorContext _defaultContext = new EmptyErrorContext();
+		public static EmptyErrorContext Default { get; } = new EmptyErrorContext();
 
-		public static EmptyErrorContext Default => _defaultContext;
+		public static EmptyErrorContext DefaultFallback { get; } = new EmptyErrorContext() { PolicyKind = PolicyAlias.Fallback };
+
+		public static EmptyErrorContext DefaultSimple { get; } = new EmptyErrorContext() { PolicyKind = PolicyAlias.Simple };
 
 		private EmptyErrorContext() : base(Unit.Default){}
 
-		public override ProcessingErrorContext ToProcessingErrorContext() => new ProcessingErrorContext();
+		public PolicyAlias PolicyKind { get; private set; } = PolicyAlias.NotSet;
+
+		public override ProcessingErrorContext ToProcessingErrorContext() => new ProcessingErrorContext(PolicyKind);
 	}
 }
