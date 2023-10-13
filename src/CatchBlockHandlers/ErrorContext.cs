@@ -14,7 +14,9 @@
 
 	internal sealed class EmptyErrorContext : ErrorContext<Unit>
 	{
-		public static EmptyErrorContext Default() => new EmptyErrorContext();
+		private static EmptyErrorContext _defaultContext = new EmptyErrorContext();
+
+		public static EmptyErrorContext Default => _defaultContext;
 
 		private EmptyErrorContext() : base(Unit.Default){}
 
