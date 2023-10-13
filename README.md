@@ -326,33 +326,6 @@ Note that for `SimplePolicy`  the `PolicyResult.IsSuccess` property will always 
 Therefore, when handling generic delegates, it's better to check the `NoError` property instead of the `IsSuccess` property to get the `PolicyResult.Result`.  
 Note also, that the `SimplePolicy` can be helpful for exiting from the `PolicyDelegateCollection` handling soon, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.
 
-### Policy wrap
-For wrap policy by other policy use `WrapPolicy` method, for example:
-```csharp
-	    var wrapppedPolicy = new RetryPolicy(3).ExcludeError<BrokerUnreachableException>();
-            var fallBackPolicy = new FallbackPolicy()
-                                            .WithFallbackFunc(() => connectionFactory2.CreateConnection());
-            fallBackPolicy.WrapPolicy(wrapppedPolicy);
-            var polResult = fallBackPolicy.Handle(() => connectionFactory1.CreateConnection());
-```
-Alternately, you could use the bottom-up approach and, after configuring the policy that will be wrapped, switch to the wrapper policy by using the `WrapUp` method (since _version_ 2.4.0):  
-```csharp
-var wrapperPolicyResult = await new RetryPolicy(2)
-						.WithErrorProcessorOf(logger.Error)
-						//We wrap up the current RetryPolicy by FallbackPolicy
-						.WrapUp(new FallbackPolicy()
-							.WithAsyncFallbackFunc(SendAlarmEmailAsync))
-						//and switch to the last one here,
-						.OuterPolicy
-						//where we can further configure it 
-						.WithPolicyName("WrapperPolicy")
-						 //before handling a delegate
-						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
-```
-Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing `PolicyResult.UnprocessedError` or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
-
-Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.
-
 
 ### PolicyDelegate
 A `PolicyDelegate` just pack delegate with a policy into a single object.
@@ -517,6 +490,125 @@ Furthermore, with the `PolicyCollection` :
 
 The `PolicyCollection` class has the same options for filtering errors and adding `PolicyResult` handlers as the `PolicyDelegateCollection` class.
 
+
+### Policy wrap
+For wrap policy by other policy use `WrapPolicy` method, for example:
+```csharp
+	    var wrapppedPolicy = new RetryPolicy(3).ExcludeError<BrokerUnreachableException>();
+            var fallBackPolicy = new FallbackPolicy()
+                                            .WithFallbackFunc(() => connectionFactory2.CreateConnection());
+            fallBackPolicy.WrapPolicy(wrapppedPolicy);
+            var polResult = fallBackPolicy.Handle(() => connectionFactory1.CreateConnection());
+```
+Alternately, you could use the bottom-up approach and, after configuring the policy that will be wrapped, switch to the wrapper policy by using the `WrapUp` method (since _version_ 2.4.0):  
+```csharp
+var wrapperPolicyResult = await new RetryPolicy(2)
+						.WithErrorProcessorOf(logger.Error)
+						//We wrap up the current RetryPolicy by FallbackPolicy
+						.WrapUp(new FallbackPolicy()
+							.WithAsyncFallbackFunc(SendAlarmEmailAsync))
+						//and switch to the last one here,
+						.OuterPolicy
+						//where we can further configure it 
+						.WithPolicyName("WrapperPolicy")
+						 //before handling a delegate
+						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
+```
+Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing its `PolicyResult.UnprocessedError` if it fails or `PolicyResultHandlerFailedException` exception if the `SetFailed` method was called in a `PolicyResult` handler.
+
+Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.  
+
+The example in the  [`PolicyCollection`](#policycollection) chapter could be rewritten to use a different approach by using the `WrapUp` method as well:  
+```csharp
+var policyResult = new RetryPolicy(2)
+		.WrapUp(new FallbackPolicy())
+		.OuterPolicy
+		.WithFallbackFunc(() =>
+		{
+			var newFilePath = Path.Combine(Path.GetTempPath(),
+										 Path.GetFileName(filePath));
+			File.Copy(filePath, newFilePath, true);
+
+			return File.ReadAllLines(newFilePath);
+		})
+		.AddPolicyResultHandler<string[]>((pr) => {
+			if (!pr.NoError && pr.IsSuccess) 
+				Console.WriteLine("The file was copied into the Temp directory");
+		})
+		.Handle(() => File.ReadAllLines(filePath));
+
+policyResult
+	//Use this property to get exceptions that occur when RetryPolicy tries to handle the delegate.
+	.WrappedPolicyResults
+	.SelectMany(pd => pd.Result.Errors)
+	.ToList()
+	.ForEach(ex => logger.Error(ex.Message));
+
+if (policyResult.IsSuccess)
+{
+	policyResult.Result.ToList().ForEach(l => Console.WriteLine(l));
+}
+```
+You can wrap up a `PolicyCollection` itself using the `WrapUp` method as well (since _version_ 2.6.1).
+```csharp
+//It is a stop policy, which halts the handling of the next policy delegate if the file is not found.
+var notFoundPolicy = new SimplePolicy()
+	.IncludeError<FileNotFoundException>()
+	.WithErrorProcessorOf((ex) => logger.Warning(ex.Message));
+
+var polCollectionResult = PolicyCollection
+	.Create()
+	.WithPolicy(notFoundPolicy)
+	.WithRetry(2)
+	.AddPolicyResultHandlerForLast<string[]>(pr =>
+		pr.Errors.ToList()
+		.ForEach(ex => logger.Error(ex.Message)))
+	.WrapUp(new FallbackPolicy())
+	.OuterPolicy
+	.WithFallbackFunc(() =>
+	{
+		var newFilePath = Path.Combine(Path.GetTempPath(),
+									 Path.GetFileName(filePath));
+		File.Copy(filePath, newFilePath, true);
+
+		return File.ReadAllLines(newFilePath);
+	})
+	.AddPolicyResultHandler<string[]>((pr) => {
+		if (!pr.NoError && pr.IsSuccess)
+			Console.WriteLine("The file was copied into the Temp directory");
+	})
+	.Handle(() => File.ReadAllLines(filePath));
+
+if (polCollectionResult.IsSuccess)
+{
+	polCollectionResult.Result?.ToList().ForEach(l => Console.WriteLine(l));
+}
+```
+The `PolicyCollection.WrapUp` method has an optional parameter of type `ThrowOnWrappedCollectionFailed`, that by default is set to `ThrowOnWrappedCollectionFailed.LastError`  with behind the scenes throwing `PolicyResult.UnprocessedError` of failed policy (usually the last one in the `PolicyCollection`).  
+
+You can use `ThrowOnWrappedCollectionFailed.CollectionError` if you want to deal with all the exceptions that happen when `PolicyCollection` handles delegate. In this case, the `PolicyDelegateCollectionException(<T>)` will be thrown as a result of failed handling of wrapped `PolicyCollection`.  
+
+For example, there is a service that should not be used if there are multiple `TimeoutExceptions` within a certain time period.  
+Your strategy may be to repeat a certain number of attempts with a second interval, then with the half-minute interval, and then repeat this set of attempts after an hour.
+But only if the maximum number of `TimeoutException`s were not exceeded:
+```csharp
+var result = await PolicyCollection.Create()
+		.WithWaitAndRetry(7, TimeSpan.FromSeconds(1), (ErrorProcessorParam)logger.Error)
+		.WithWaitAndRetry(3, TimeSpan.FromSeconds(30), (ErrorProcessorParam)logger.Error)
+		//Use `ThrowOnWrappedCollectionFailed.CollectionError`
+		.WrapUp(new RetryPolicy(1), ThrowOnWrappedCollectionFailed.CollectionError)
+		.OuterPolicy
+		//Limit the number of `TimeoutException`s.
+		.ExcludeError<PolicyDelegateCollectionException>((pe) 
+			=> pe.InnerExceptions.OfType<TimeoutException>().Count() > 8)
+		.WithWait(TimeSpan.FromHours(1))
+		.AddPolicyResultHandler((pr) =>
+		{
+			if (pr.ErrorFilterUnsatisfied)
+				logger.Warning("The tries were interrupted because the maximum number of TimeoutExceptions was exceeded.");
+		})
+		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct));
+```
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
