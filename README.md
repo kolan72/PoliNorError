@@ -609,6 +609,7 @@ var result = await PolicyCollection.Create()
 		})
 		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct));
 ```
+You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
