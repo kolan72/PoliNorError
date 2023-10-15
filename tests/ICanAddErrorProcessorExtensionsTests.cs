@@ -83,6 +83,9 @@ namespace PoliNorError.Tests
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), (_) => Expression.Empty(), CancellationType.Precancelable);
 			Assert.AreEqual(errorProcessorsCount++, v.Count);
 
+			v.WithErrorProcessor(new DefaultErrorProcessor());
+			Assert.AreEqual(errorProcessorsCount++, v.Count);
+
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), CancellationType.Precancelable);
 			Assert.AreEqual(errorProcessorsCount, v.Count);
 		}
@@ -97,6 +100,8 @@ namespace PoliNorError.Tests
 		{
 			private readonly BulkErrorProcessor _processor = new BulkErrorProcessor(PolicyAlias.Simple);
 			public int Count => _processor.Count();
+
+			public void WithErrorProcessor(IErrorProcessor errorProcessor) => _processor.WithErrorProcessor(new DefaultErrorProcessor());
 
 			public void WithErrorProcessorOf(Action<Exception, CancellationToken> actionProcessor)
 			{
@@ -203,6 +208,8 @@ namespace PoliNorError.Tests
 		{
 			private readonly SimplePolicyProcessor _processor = new SimplePolicyProcessor();
 			public int Count => _processor.Count();
+
+			public void WithErrorProcessor(IErrorProcessor errorProcessor) => _processor.WithErrorProcessor(errorProcessor);
 
 			public void WithErrorProcessorOf(Action<Exception, CancellationToken> actionProcessor)
 			{
@@ -327,6 +334,7 @@ namespace PoliNorError.Tests
 			void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor);
 			void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType);
 			void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, CancellationType cancellationType);
+			void WithErrorProcessor(IErrorProcessor errorProcessor);
 			int Count { get; }
 		}
 	}

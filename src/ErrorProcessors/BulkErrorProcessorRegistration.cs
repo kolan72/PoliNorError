@@ -67,5 +67,8 @@ namespace PoliNorError
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType) where T : IBulkErrorProcessor
 						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType, _addErrorProcessorAction);
+
+		public static T WithErrorProcessor<T>(this T policyProcessor, IErrorProcessor errorProcessor) where T : IBulkErrorProcessor
+						=> policyProcessor.WithErrorProcessor(errorProcessor, _addErrorProcessorAction);
 	}
 }
