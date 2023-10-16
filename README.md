@@ -14,7 +14,7 @@ Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 - Simplicity: one policy type for sync and async, and a generic and not generic delegate.
 - Composability: policies and delegates can be composed into a single `PolicyDelegateCollection`.
 - Flexible filters can be set for errors that should be handled.
-- Policy can be wrapped by other policy.
+- A policy or a collection of policies can be wrapped by another.
 - Func and Action delegates can be called in a resilient manner.
 - Catches exceptions not only thrown by a delegate, but also in error filters, error processors, and `PolicyResult` handlers.
 - Convenient API with methods with minimum of optional parameters.
@@ -609,6 +609,7 @@ var result = await PolicyCollection.Create()
 		})
 		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct));
 ```
+You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
