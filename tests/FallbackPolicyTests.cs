@@ -340,6 +340,9 @@ namespace PoliNorError.Tests
 			Assert.IsFalse(polResult.IsCanceled);
 			Assert.IsTrue(polResult.Errors.Count() == 1);
 			Assert.AreEqual(0, polResult.CatchBlockErrors.Count());
+			Assert.IsFalse(polResult.NoError);
+			Assert.IsTrue(polResult.IsSuccess);
+			Assert.IsTrue(polResult.IsPolicySuccess);
 			Assert.AreEqual(fallback.PolicyName, polResult.PolicyName);
 		}
 
