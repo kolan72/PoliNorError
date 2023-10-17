@@ -109,6 +109,32 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
 		}
 
+		[Test]
+		public async Task Should_PolicyCollection_WrapUp_For_AsyncFunc_Has_Correct_PolicyResult_When_Exception()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			var result = await collection.WrapUp(new SimplePolicy())
+							.OuterPolicy
+							.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Test"); });
+			Assert.IsTrue(result.WrappedPolicyResults.Any());
+		}
+
+		[Test]
+		public void Should_PolicyCollection_WrapUp_For_Action_Has_Correct_PolicyResult_When_Exception()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			var result = collection.WrapUp(new SimplePolicy())
+							.OuterPolicy
+							.Handle(() => throw new Exception("Test"));
+			Assert.IsTrue(result.WrappedPolicyResults.Any());
+		}
+
 		private PolicyCollection CreatePolicyCollectionToTest() => PolicyCollection.Create().WithRetry(2).WithRetry(3);
 	}
 }

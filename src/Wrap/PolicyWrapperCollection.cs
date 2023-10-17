@@ -47,6 +47,9 @@ namespace PoliNorError
 			var polDelegates = _polices.Select(pi => pi.ToPolicyDelegate(_func));
 			PolicyDelegateHandleType handleType = polDelegates.GetHandleType();
 			var (HandleResults, lastPolicyResultState) = await PolicyDelegatesHandler.HandleAllBySyncType(polDelegates, handleType, token, _configureAwait).ConfigureAwait(_configureAwait);
+
+			_policyHandledResults.AddRange(HandleResults);
+
 			if (lastPolicyResultState.IsFailed == true)
 			{
 				ThrowIfCollectionFailed(HandleResults);
