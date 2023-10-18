@@ -53,7 +53,7 @@ With [`RetryPolicy`](#retrypolicy), more complex case:
 var result = await new RetryPolicy(5)
 	                 .ExcludeError<DbEntityValidationException>()
 			 .WithWait((retryAttempt) => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-			 .WithPolicyResultHandler((pr) =>
+			 .AddPolicyResultHandler<int>((pr) =>
 							{ 
 								if (pr.IsCanceled) 
 									logger.Error("The operation was canceled.");
