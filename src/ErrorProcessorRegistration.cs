@@ -9,73 +9,69 @@ namespace PoliNorError
 	/// </summary>
 	public static class ErrorProcessorRegistration
 	{
+		private static readonly Action<ICanAddErrorProcessor, IErrorProcessor> _addErrorProcessorAction = (pr, erPr) =>((IPolicyProcessor)pr).AddErrorProcessor(erPr);
+
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception> actionProcessor) where T : IPolicyProcessor
-						=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, CancellationToken> actionProcessor) where T : IPolicyProcessor
-						=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(actionProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(actionProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> funcProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new BasicErrorProcessor(funcProcessor, actionProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, ProcessingErrorInfo, CancellationToken> actionProcessor) where T : IPolicyProcessor
-						=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(actionProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(actionProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, Task> funcProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor, actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor, actionProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor, actionProcessor));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, _addErrorProcessorAction);
 
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
-					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor, actionProcessor, cancellationType));
+						=> policyProcessor.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType, _addErrorProcessorAction);
 
 		public static T WithErrorProcessor<T>(this T policyProcessor, IErrorProcessor errorProcessor) where T : IPolicyProcessor
-		{
-			if (errorProcessor == null)
-				throw new ArgumentNullException(nameof(errorProcessor));
-
-			policyProcessor.AddErrorProcessor(errorProcessor);
-			return policyProcessor;
-		}
+						=> policyProcessor.WithErrorProcessor(errorProcessor, _addErrorProcessorAction);
 	}
 }

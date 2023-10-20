@@ -6,7 +6,11 @@ namespace PoliNorError
 {
 	public class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor
 	{
-		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Simple, bulkErrorProcessor) { }
+		private readonly EmptyErrorContext _emptyErrorContext;
+		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Simple, bulkErrorProcessor)
+		{
+			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default: EmptyErrorContext.DefaultSimple;
+		}
 
 		public static ISimplePolicyProcessor CreateDefault(IBulkErrorProcessor bulkErrorProcessor = null) => new SimplePolicyProcessor(bulkErrorProcessor);
 
@@ -41,7 +45,7 @@ namespace PoliNorError
 				result.AddError(ex);
 
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, EmptyErrorContext.Default()));
+													 .Handle(ex, _emptyErrorContext));
 			}
 			return result;
 		}
@@ -78,7 +82,7 @@ namespace PoliNorError
 				result.AddError(ex);
 
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, EmptyErrorContext.Default()));
+													 .Handle(ex, _emptyErrorContext));
 			}
 			return result;
 		}
@@ -109,7 +113,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, EmptyErrorContext.Default()).ConfigureAwait(configureAwait));
+															.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
 			}
 			return result;
 		}
@@ -141,7 +145,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, EmptyErrorContext.Default()).ConfigureAwait(configureAwait));
+															.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
 			}
 			return result;
 		}

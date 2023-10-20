@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace PoliNorError.Tests
 {
@@ -114,6 +114,25 @@ namespace PoliNorError.Tests
 					.HandleDelegateAsync<List<string>>(() => throw new Exception("Test"));
 
 			Assert.AreEqual(0, result.LastPolicyResult.PolicyResultHandlingErrors.Count());
+		}
+
+		[Test]
+		public void Should_PolicyResultHandlerCollection_AddHandlers()
+		{
+			int genericHandlersCount = 1;
+
+			var handlers = new PolicyResultHandlerCollection();
+			handlers.AddHandler<int>(async (_) => await Task.Delay(1));
+			Assert.AreEqual(genericHandlersCount++, handlers.GenericHandlers.Count);
+
+			handlers.AddHandler<int>(async (_, __) => await Task.Delay(1));
+			Assert.AreEqual(genericHandlersCount++, handlers.GenericHandlers.Count);
+
+			handlers.AddHandler<int>((_) => Expression.Empty());
+			Assert.AreEqual(genericHandlersCount++, handlers.GenericHandlers.Count);
+
+			handlers.AddHandler<int>((_, __) => Expression.Empty());
+			Assert.AreEqual(genericHandlersCount, handlers.GenericHandlers.Count);
 		}
 	}
 }

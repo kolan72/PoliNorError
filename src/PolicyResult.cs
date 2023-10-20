@@ -43,6 +43,11 @@ namespace PoliNorError
 
 		public bool IsSuccess => !IsFailed && !IsCanceled;
 
+		/// <summary>
+		/// Indicates that, despite errors during the handling, the policy handled the delegate successfully.
+		/// </summary>
+		public bool IsPolicySuccess => !NoError && IsSuccess;
+
 		public bool IsCanceled { get; protected set; }
 
 		public bool NoError { get; protected set; }

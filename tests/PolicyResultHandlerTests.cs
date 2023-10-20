@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace PoliNorError.Tests
 {
@@ -115,6 +116,26 @@ namespace PoliNorError.Tests
 
 				Assert.IsTrue(res.IsFailed);
 			}
+		}
+
+		[Test]
+		public void Should_PolicyResultHandlerCollection_AddHandlers()
+		{
+			int handlersCount = 1;
+
+			var handlers = new PolicyResultHandlerCollection();
+
+			handlers.AddHandler(async (_) => await Task.Delay(1));
+			Assert.AreEqual(handlersCount++, handlers.Handlers.Count);
+
+			handlers.AddHandler(async (_, __) => await Task.Delay(1));
+			Assert.AreEqual(handlersCount++, handlers.Handlers.Count);
+
+			handlers.AddHandler((_) => Expression.Empty());
+			Assert.AreEqual(handlersCount++, handlers.Handlers.Count);
+
+			handlers.AddHandler((_, __) => Expression.Empty());
+			Assert.AreEqual(handlersCount, handlers.Handlers.Count);
 		}
 	}
 }

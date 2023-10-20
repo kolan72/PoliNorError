@@ -7,7 +7,7 @@ namespace PoliNorError
 {
 	public sealed class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>
 	{
-		public FallbackPolicy(IBulkErrorProcessor processor = null) : this(new DefaultFallbackProcessor(processor ?? new BulkErrorProcessor(PolicyAlias.Fallback))){}
+		public FallbackPolicy(IBulkErrorProcessor processor = null) : this(new DefaultFallbackProcessor(processor)){}
 
 		public FallbackPolicy(IFallbackProcessor processor) : base(processor){}
 

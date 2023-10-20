@@ -11,9 +11,12 @@ namespace PoliNorError
 	{
 		protected IBulkErrorProcessor _bulkErrorProcessor;
 
+		protected bool _isPolicyAliasSet;
+
 		protected PolicyProcessor(PolicyAlias policyAlias, IBulkErrorProcessor bulkErrorProcessor = null)
 		{
 			_bulkErrorProcessor = bulkErrorProcessor ?? new BulkErrorProcessor(policyAlias);
+			_isPolicyAliasSet = bulkErrorProcessor == null;
 		}
 
 		public void AddErrorProcessor(IErrorProcessor newErrorProcessor)

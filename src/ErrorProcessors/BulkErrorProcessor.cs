@@ -13,6 +13,8 @@ namespace PoliNorError
 
 		private readonly PolicyAlias _policyAlias;
 
+		public BulkErrorProcessor(): this(PolicyAlias.NotSet) {}
+
 		public BulkErrorProcessor(PolicyAlias policyAlias)
 		{
 			_policyAlias = policyAlias;
@@ -31,7 +33,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo =  new ProcessingErrorInfo(_policyAlias, errorContext);
+			var catchBlockProcessErrorInfo = CreateErrorInfo(errorContext);
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
@@ -81,7 +83,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo = new ProcessingErrorInfo(_policyAlias, errorContext);
+			var catchBlockProcessErrorInfo = CreateErrorInfo(errorContext);
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
@@ -139,6 +141,14 @@ namespace PoliNorError
 			None = 0,
 			Canceled,
 			Faulted
+		}
+
+		private ProcessingErrorInfo CreateErrorInfo(ProcessingErrorContext errorContext)
+		{
+			if (_policyAlias != PolicyAlias.NotSet)
+				return new ProcessingErrorInfo(_policyAlias, errorContext);
+			else
+				return new ProcessingErrorInfo(errorContext);
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]

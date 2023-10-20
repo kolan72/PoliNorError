@@ -21,11 +21,11 @@ namespace PoliNorError.Tests
 																			 cancelTokenSource.Token,
 																			 filter.GetCanHandle()
 																			 );
-				var res1 = handler.Handle(new Exception("Test1"), EmptyErrorContext.Default());
+				var res1 = handler.Handle(new Exception("Test1"), EmptyErrorContext.Default);
 				Assert.AreEqual(HandleCatchBlockResult.Success, res1);
 
 				cancelTokenSource.Cancel();
-				var res2 = handler.Handle(new Exception("Test2"), EmptyErrorContext.Default());
+				var res2 = handler.Handle(new Exception("Test2"), EmptyErrorContext.Default);
 				Assert.AreEqual(HandleCatchBlockResult.Canceled, res2);
 			}
 		}
@@ -44,11 +44,11 @@ namespace PoliNorError.Tests
 																			 cancelTokenSource.Token,
 																			 filter.GetCanHandle()
 																			 );
-				var res1 = await handler.HandleAsync(new Exception("Test1"), EmptyErrorContext.Default());
+				var res1 = await handler.HandleAsync(new Exception("Test1"), EmptyErrorContext.Default);
 				Assert.AreEqual(HandleCatchBlockResult.Success, res1);
 
 				cancelTokenSource.Cancel();
-				var res2 = await handler.HandleAsync(new Exception("Test2"), EmptyErrorContext.Default());
+				var res2 = await handler.HandleAsync(new Exception("Test2"), EmptyErrorContext.Default);
 				Assert.AreEqual(HandleCatchBlockResult.Canceled, res2);
 			}
 		}

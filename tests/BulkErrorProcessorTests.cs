@@ -121,5 +121,67 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().BaseType.Equals(typeof(OperationCanceledException)));
 			Assert.IsTrue(res.IsCanceled);
 		}
+
+		[Test]
+		[TestCase(PolicyAlias.Simple, true, true)]
+		[TestCase(PolicyAlias.Fallback, true, true)]
+		[TestCase(PolicyAlias.Retry, true, true)]
+		[TestCase(PolicyAlias.Simple, true, false)]
+		[TestCase(PolicyAlias.Fallback, true, false)]
+		[TestCase(PolicyAlias.Retry, true, false)]
+		[TestCase(PolicyAlias.Simple, false, false)]
+		[TestCase(PolicyAlias.Fallback, false, false)]
+		[TestCase(PolicyAlias.Retry, false, false)]
+		[TestCase(PolicyAlias.Simple, false, true)]
+		[TestCase(PolicyAlias.Fallback, false, true)]
+		[TestCase(PolicyAlias.Retry, false, true)]
+		public async Task Should_BulkErrorProcessor_Without_Alias_Can_Be_Used_By_Policies(PolicyAlias policyAlias, bool sync, bool generic)
+		{
+			int i = 0;
+			void act(Exception _, ProcessingErrorInfo errorInfo)
+			{
+				if (errorInfo.PolicyKind == policyAlias)
+					i++;
+			}
+
+			var bulkErrorProcessor = new BulkErrorProcessor()
+										.WithErrorProcessorOf(act);
+			var policy = GetPolicyByAlias();
+			if (sync)
+			{
+				if (generic)
+				{
+					policy.Handle<int>(() => throw new Exception("Test"));
+				}
+				else
+				{
+					policy.Handle(() => throw new Exception("Test"));
+				}
+			}
+			else
+			{
+				if (generic)
+				{
+					await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test"); });
+				}
+				else
+				{
+					await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Test"); });
+				}
+			}
+
+			Assert.AreEqual(1, i);
+
+			IPolicyBase GetPolicyByAlias()
+			{
+				switch (policyAlias)
+				{
+					case PolicyAlias.Simple: return new SimplePolicy(bulkErrorProcessor);
+					case PolicyAlias.Fallback: return new FallbackPolicy(bulkErrorProcessor);
+					case PolicyAlias.Retry: return new RetryPolicy(1, bulkErrorProcessor);
+					default: throw new NotImplementedException();
+				}
+			}
+		}
 	}
 }

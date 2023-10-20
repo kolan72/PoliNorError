@@ -152,6 +152,7 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(res.IsSuccess);
 			Assert.IsTrue(res.Errors.Any());
 			Assert.IsFalse(res.NoError);
+			Assert.IsTrue(res.IsPolicySuccess);
 			Assert.AreEqual(0, res.Result);
 		}
 

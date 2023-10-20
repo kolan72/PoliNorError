@@ -4,6 +4,8 @@
 	{
 		private ProcessingErrorInfo(){}
 
+		internal ProcessingErrorInfo(ProcessingErrorContext currentContext) : this(currentContext.PolicyKind, currentContext){}
+
 		public ProcessingErrorInfo(PolicyAlias policyKind,  ProcessingErrorContext currentContext = null)
 		{
 			PolicyKind = policyKind;
@@ -40,11 +42,19 @@
 
 	public class ProcessingErrorContext
 	{
+		internal ProcessingErrorContext(): this(PolicyAlias.NotSet) { }
+
+		public ProcessingErrorContext(PolicyAlias policyKind) => PolicyKind = policyKind;
+
 		public int CurrentRetryCount { get; private set; } = -1;
+
+		internal bool IsPolicyAliasSet => PolicyKind != PolicyAlias.NotSet;
+
+		internal PolicyAlias PolicyKind { get; set; }
 
 		public static ProcessingErrorContext FromRetry(int currentRetryCount)
 		{
-			return new ProcessingErrorContext() { CurrentRetryCount = currentRetryCount };
+			return new ProcessingErrorContext(){ CurrentRetryCount = currentRetryCount};
 		}
 	}
 }
