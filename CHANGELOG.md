@@ -1,3 +1,13 @@
+## 2.8.1
+
+- Support a fluent interface for the `IBulkErrorProcessor` interface.
+- Introduce default constructor for the `BulkErrorProcessor` class.
+- Introduce `PolicyResult.IsPolicySuccess` property.
+- Fix issue (#50) with the `PolicyResult(<T>).WrappedPolicyResults` property being empty when a wrapped PolicyCollection(<T>) didn't handle delegate.
+- Reduce allocations by using only a single instance of  the`EmptyErrorContext` class when processing Simple and Fallback policies.
+- Add the marker `ICanAddErrorProcessor` interface.
+
+
 ## 2.6.1
 
 - Introduce `PolicyCollection.WrapUp`method.
