@@ -134,6 +134,14 @@ Note that the error processor is added to the *whole* policy or policy processor
 
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.  
 
+To have a common error processor set for more than one policy, create a common `BulkErrorProcessor`(supporting a fluent interface since _version_ 2.8.1) and inject it as a parameter into the each policy constructor:
+```csharp
+	var bulkErrorProcessor = new BulkErrorProcessor().WithErrorProcessorOf(logger.Error);
+	//These two policies have the same error processor set.
+	var simplePolicy = new SimplePolicy(bulkErrorProcessor);
+	var fallbackPolicy = new FallbackPolicy(bulkErrorProcessor).WithFallbackAction(DoSomething);
+```
+
 Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate handling will be interrupted, and the `IsFailed` and `IsCanceled` properties of the `PolicyResult` will be set to true.
 
 ### Error filters
