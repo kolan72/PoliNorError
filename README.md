@@ -104,6 +104,7 @@ Having `IsFailed` true, you can check the `UnprocessedError` property (appeared 
 
 The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
 The `NoError` property makes sure that there were no exceptions at all when calling the handling delegate.  
+The `IsPolicySuccess` property (since _version_ 2.8.1) indicates that, despite errors during the handling, the policy handled the delegate successfully.  
 
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
 
