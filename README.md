@@ -106,6 +106,8 @@ The `IsSuccess`property indicates success of the handling. If it is true, it mea
 The `NoError` property makes sure that there were no exceptions at all when calling the handling delegate.  
 The `IsPolicySuccess` property (since _version_ 2.8.1) indicates that, despite errors during the handling, the policy handled the delegate successfully.  
 
+You might wonder why there are so many success-related properties. See [Nuances of using the library](#nuances-of-using-the-library)  for a detailed answer.
+
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
 
 For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
@@ -679,4 +681,10 @@ var result = await PolicyDelegateCollection
                                     .HandleAllAsync(token);
 ```
 In theory, it can support up to maxOfNoErrorRetries * int.MaxValue maximum number of retries.
-Please don't forget about enabling `gcAllowVeryLargeObjects` setting in the config file.
+Please don't forget about enabling `gcAllowVeryLargeObjects` setting in the config file.  
+
+To check if a delegate was handled successfully use these `PolicyResult` success-related properties, especially if you want to get a `PolicyResult.Result` for a generic one:  
+
+-   `NoError`- should be used to ensure that there were no exceptions during handling, especially when getting `SimplePolicy`'s `PolicyResult.Result`.
+-   `IsSuccess`- no matter how the success was gotten, there may have been no error at all (`NoError` = `true`) or the policy handled the delegate successfully.
+-   `IsPolicySuccess`- at least one exception occurred (`NoError` = `false`), the policy came into play and handled the delegate successfully. For example, you can use it in a `PolicyResult` handler to write some policy-specific information into a log.
