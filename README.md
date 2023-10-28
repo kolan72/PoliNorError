@@ -671,7 +671,9 @@ All default policy processor classes that implement `IPolicyProcessor`  will han
 Some library methods accept delegate argument that are not cancelable, but can still be canceled. Such methods also have an extra `CancellationType` argument type that shows how cancellation will be performed.
 The default value of `CancellationType` as a method argument is the `Precancelable`, means that the delegate will not be executed if the token has already been canceled. If its equals `Cancelable`, a new task that supports cancellation will be used.  
 
-Note the methods `PolicyDelegateCollection....ForAll(commonDelegate)` of `PolicyCollection` and `PolicyDelegateCollection`  classes set the common delegate only for items that have already been added to the collection, not for items that will be added later.  
+Note that the methods named `...ForAll(...)` of the `PolicyCollection` and `PolicyDelegateCollection` classes set the common filter or handler  only for elements that have already been added to the collection, not for items that will be added later.  
+
+Calling collections methods that add a filter or handler to a policy if the collection is empty will have no effect.  
 
 For a very large retry count the `OutOfMemoryException` exception may occur. You can set "n-times infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
 
