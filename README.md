@@ -96,7 +96,7 @@ It can happen due to these reasons:
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
 -   A critical error has occurred within the catch block, specifically related to the saving error for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
  -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.
- -  If the handling result cannot be accepted as a success, and a policy is in use, you can set `IsFailed` to true in a `PolicyResult` handler.  
+ -  If the handling result cannot be accepted as a success, and a policy is in use, you can set `IsFailed` to true in a `PolicyResult` handler by using the `SetFailed` method.  
  
 To find out why `IsFailed` was set to true, there is a property called `FailedReason`. It equals `PolicyResultFailedReason.DelegateIsNull` and `PolicyResultFailedReason.PolicyResultHandlerFailed` for the first and last cases, respectively, and `PolicyResultFailedReason.PolicyProcessorFailed` for the others.  
 
@@ -105,6 +105,8 @@ Having `IsFailed` true, you can check the `UnprocessedError` property (appeared 
 The `IsSuccess`property indicates success of the handling. If it is true, it means that not only `IsFailed` equals false, but also `IsCanceled`, indicating that no cancellation occurred during handling.  
 The `NoError` property makes sure that there were no exceptions at all when calling the handling delegate.  
 The `IsPolicySuccess` property (since _version_ 2.8.1) indicates that, despite errors during the handling, the policy handled the delegate successfully.  
+
+You might wonder why there are so many success-related properties. See [Nuances of using the library](#nuances-of-using-the-library)  for a detailed answer.
 
 If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
 
@@ -541,7 +543,7 @@ var policyResult = new RetryPolicy(2)
 			return File.ReadAllLines(newFilePath);
 		})
 		.AddPolicyResultHandler<string[]>((pr) => {
-			if (!pr.NoError && pr.IsSuccess) 
+			if (!pr.NoError && pr.IsSuccess) /*Or simply if(pr.IsPolicySuccess) since 2.8.1 version*/
 				Console.WriteLine("The file was copied into the Temp directory");
 		})
 		.Handle(() => File.ReadAllLines(filePath));
@@ -669,7 +671,9 @@ All default policy processor classes that implement `IPolicyProcessor`  will han
 Some library methods accept delegate argument that are not cancelable, but can still be canceled. Such methods also have an extra `CancellationType` argument type that shows how cancellation will be performed.
 The default value of `CancellationType` as a method argument is the `Precancelable`, means that the delegate will not be executed if the token has already been canceled. If its equals `Cancelable`, a new task that supports cancellation will be used.  
 
-Note the methods `PolicyDelegateCollection....ForAll(commonDelegate)` of `PolicyCollection` and `PolicyDelegateCollection`  classes set the common delegate only for items that have already been added to the collection, not for items that will be added later.  
+Note that the methods named `...ForAll(...)` of the `PolicyCollection` and `PolicyDelegateCollection` classes set the common filter or handler  only for elements that have already been added to the collection, not for items that will be added later.  
+
+Calling collections methods that add a filter or handler to a policy if the collection is empty will have no effect.  
 
 For a very large retry count the `OutOfMemoryException` exception may occur. You can set "n-times infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
 
@@ -679,4 +683,10 @@ var result = await PolicyDelegateCollection
                                     .HandleAllAsync(token);
 ```
 In theory, it can support up to maxOfNoErrorRetries * int.MaxValue maximum number of retries.
-Please don't forget about enabling `gcAllowVeryLargeObjects` setting in the config file.
+Please don't forget about enabling `gcAllowVeryLargeObjects` setting in the config file.  
+
+To check if a delegate was handled successfully use these `PolicyResult` success-related properties, especially if you want to get a `PolicyResult.Result` for a generic one:  
+
+-   `NoError`- should be used to ensure that there were no exceptions during handling, especially when getting `SimplePolicy`'s `PolicyResult.Result`.
+-   `IsSuccess`- no matter how the success was gotten, there may have been no error at all (`NoError` = `true`) or the policy handled the delegate successfully.
+-   `IsPolicySuccess`- at least one exception occurred (`NoError` = `false`), the policy came into play and handled the delegate successfully. For example, you can use it in a `PolicyResult` handler to write some policy-specific information into a log.
