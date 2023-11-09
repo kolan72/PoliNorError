@@ -152,9 +152,7 @@ namespace PoliNorError
 					catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 					{
 						var handledResults = new FlexSyncEnumerable<PolicyDelegateResult>();
-						var curPolResult = PolicyResult.ForSync();
-						curPolResult.SetCanceled();
-						return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+						return (handledResults, LastPolicyResultState.FromCanceled());
 					}
 				case PolicyDelegateHandleType.Misc:
 					return await HandleAllMisc(policyDelegateInfos, token, configureAwait).ConfigureAwait(configureAwait);
