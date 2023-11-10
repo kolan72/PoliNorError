@@ -485,4 +485,122 @@ namespace PoliNorError.Tests
 			_policyDelegateCollection.WithErrorProcessorOf(funcProcessor, cancellationType);
 		}
 	}
+
+	public class PolicyCollectionErrorProcessorRegistration : IErrorProcessorRegistration
+	{
+		private readonly PolicyCollection _policyCollection;
+
+		public PolicyCollectionErrorProcessorRegistration(bool empty = false)
+		{
+			_policyCollection = PolicyCollection.Create();
+			if (!empty)
+			{
+				_policyCollection = _policyCollection.WithSimple().WithSimple();
+			}
+		}
+
+		public int Count => _policyCollection.LastOrDefault()?.PolicyProcessor.Count() ?? 0;
+
+		public void WithErrorProcessor(IErrorProcessor errorProcessor) => _policyCollection.WithErrorProcessor(errorProcessor);
+
+		public void WithErrorProcessorOf(Action<Exception, CancellationToken> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception, ProcessingErrorInfo, CancellationToken> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception> actionProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, CancellationToken, Task> funcProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, CancellationType cancellationType)
+		{
+			_policyCollection.WithErrorProcessorOf(funcProcessor, cancellationType);
+		}
+	}
 }

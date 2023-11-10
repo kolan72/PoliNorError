@@ -13,6 +13,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestType.BulkErrorProc)]
 		[TestCase(TestType.PolicyDelegateCol)]
 		[TestCase(TestType.PolicyDelegateColT)]
+		[TestCase(TestType.PolicyCol)]
 		public void Should_WithErrorProcessorOf_AddErrorProcessors(TestType testType)
 		{
 			int errorProcessorsCount = 1;
@@ -30,9 +31,13 @@ namespace PoliNorError.Tests
 			{
 				v = new PolicyDelegateCollectionErrorProcessorRegistration();
 			}
-			else
+			else if (testType == TestType.PolicyDelegateColT)
 			{
 				v = new PolicyDelegateCollectionErrorProcessorRegistration<int>();
+			}
+			else
+			{
+				v = new PolicyCollectionErrorProcessorRegistration();
 			}
 
 			v.WithErrorProcessorOf((Exception _, CancellationToken __) => Expression.Empty());
@@ -104,7 +109,8 @@ namespace PoliNorError.Tests
 			PolicyProc,
 			BulkErrorProc,
 			PolicyDelegateCol,
-			PolicyDelegateColT
+			PolicyDelegateColT,
+			PolicyCol
 		}
 	}
 }
