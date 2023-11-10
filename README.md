@@ -675,6 +675,8 @@ Note that the methods named `...ForAll(...)` of the `PolicyCollection` and `Poli
 
 Calling collections methods that add a filter or handler to a policy if the collection is empty will have no effect.  
 
+Note that collections methods such as `AddPolicyResultHandler..` or `IncludeErrorForAll` change existing policies, so you should create a policy for collection in-place or avoid using it elsewhere besides collection. For adding library policies to a collection the recommended approach is to use `With...`*`PolicyName`* shorthand methods.
+
 For a very large retry count the `OutOfMemoryException` exception may occur. You can set "n-times infinite" handling by creating `PolicyDelegateCollection` from `RetryPolicy` with max no-error retry count defined by experiment:
 
 ```csharp

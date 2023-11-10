@@ -1,0 +1,14 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  target-branch: "dev"
+  groups:
+    nunit:
+      patterns:
+        - NUnit*
+  schedule:
+    interval: weekly
+    day: thursday
+    time: "04:50"
+    timezone: "America/New_York"
