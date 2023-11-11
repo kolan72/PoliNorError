@@ -802,6 +802,54 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(res, collectionResult.IsSuccess);
 		}
 
+		[Test]
+		public void Should_PolicyDelegateCollection_From_PolicyCollection_Handling_FailFast_For_Null_Action()
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithRetry(1)
+								.WithRetry(1);
+			Action act = null;
+			var result = polCollection.HandleDelegate(act);
+			Assert.AreEqual(0, result.Count());
+			Assert.IsTrue(result.IsFailed);
+		}
+
+		[Test]
+		public async Task Should_PolicyDelegateCollection_From_PolicyCollection_HandlingAsync_FailFast_For_Null_Action()
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithRetry(1)
+								.WithRetry(1);
+			Action act = null;
+			var result = await polCollection.HandleDelegateAsync(act, false);
+			Assert.AreEqual(0, result.Count());
+			Assert.IsTrue(result.IsFailed);
+		}
+
+		[Test]
+		public void Should_PolicyDelegateCollection_From_PolicyCollection_Handling_FailFast_For_Null_Func()
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithRetry(1)
+								.WithRetry(1);
+			Func<CancellationToken, Task> func = null;
+			var result = polCollection.HandleDelegate(func);
+			Assert.AreEqual(0, result.Count());
+			Assert.IsTrue(result.IsFailed);
+		}
+
+		[Test]
+		public async Task Should_PolicyDelegateCollection_From_PolicyCollection_HandlingAsync_FailFast_For_Null_Func()
+		{
+			var polCollection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(1);
+			Func<CancellationToken, Task> func = null;
+			var result = await polCollection.HandleDelegateAsync(func, false);
+			Assert.AreEqual(0, result.Count());
+			Assert.IsTrue(result.IsFailed);
+		}
+
 		private IEnumerable<PolicyDelegateResult> GetTestPolicyDelegateResultCollection()
 		{
 			var policy = new RetryPolicy(1);

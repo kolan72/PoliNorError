@@ -11,6 +11,8 @@
 
 		public static LastPolicyResultState FromCanceled() => new LastPolicyResultState() { IsCanceled = true };
 
+		public static LastPolicyResultState FromFailed() => new LastPolicyResultState() { IsFailed = true };
+
 		public static LastPolicyResultState Default() => new LastPolicyResultState();
 	}
 }

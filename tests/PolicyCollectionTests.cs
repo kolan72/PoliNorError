@@ -1,8 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -370,6 +369,75 @@ namespace PoliNorError.Tests
 			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => Task.CompletedTask));
 			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_, __) => Task.CompletedTask));
 			Assert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => Task.CompletedTask, CancellationType.Precancelable));
+		}
+
+		[Test]
+		public void Should_WithErrorProcessorOf_Not_Throw_For_EmptyCollection()
+		{
+			IErrorProcessorRegistration v = new PolicyCollectionErrorProcessorRegistration(true);
+
+			v.WithErrorProcessorOf((Exception _, CancellationToken __) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __, CancellationToken ___) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf((Exception _) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf((Exception _) => Expression.Empty(), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1));
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1), (_) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1), (_) => Expression.Empty(), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1));
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1));
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1));
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), (_) => Expression.Empty());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), (_) => Expression.Empty(), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessor(new DefaultErrorProcessor());
+			Assert.AreEqual(0, v.Count);
+
+			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), CancellationType.Precancelable);
+			Assert.AreEqual(0, v.Count);
 		}
 
 		[Test]

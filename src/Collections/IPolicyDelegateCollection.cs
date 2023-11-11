@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public interface IPolicyDelegateCollection : IWithPolicyBase<INeedDelegateCollection>, IEnumerable<PolicyDelegate>
+	public interface IPolicyDelegateCollection : IWithPolicyBase<INeedDelegateCollection>, IEnumerable<PolicyDelegate>, ICanAddErrorProcessor
 	{
 		IPolicyDelegateCollection WithPolicyDelegate(PolicyDelegate errorPolicy);
 
@@ -22,7 +22,7 @@ namespace PoliNorError
 		IPolicyDelegateCollectionHandler BuildCollectionHandler();
 	}
 
-	public interface IPolicyDelegateCollection<T> : IWithPolicyBase<INeedDelegateCollection<T>>, IEnumerable<PolicyDelegate<T>>
+	public interface IPolicyDelegateCollection<T> : IWithPolicyBase<INeedDelegateCollection<T>>, IEnumerable<PolicyDelegate<T>>, ICanAddErrorProcessor
 	{
 		IPolicyDelegateCollection<T> WithPolicyDelegate(PolicyDelegate<T> errorPolicy);
 
