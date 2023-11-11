@@ -6,11 +6,11 @@ namespace PoliNorError
 {
 	public class PolicyDelegateCollectionResult : IEnumerable<PolicyDelegateResult>
 	{
-		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused)
+		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused, LastPolicyResultState lastPolicyResultState = null)
 		{
 			PolicyDelegateResults = policyHandledResults;
 			PolicyDelegatesUnused = policyDelegatesUnused;
-			IsFailed = PolicyDelegateResults.GetLastResultFailed();
+			IsFailed = PolicyDelegateResults.GetLastResultFailed() || (lastPolicyResultState?.IsFailed == true);
 			IsSuccess = PolicyDelegateResults.GetLastResultSuccess();
 		}
 
@@ -31,11 +31,11 @@ namespace PoliNorError
 
 	public class PolicyDelegateCollectionResult<T> : IEnumerable<PolicyDelegateResult<T>>
 	{
-		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused)
+		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused, LastPolicyResultState lastPolicyResultState = null)
         {
 			PolicyDelegateResults = policyHandledResultsT;
 			PolicyDelegatesUnused = policyDelegatesUnused;
-			IsFailed = PolicyDelegateResults.GetLastResultFailed();
+			IsFailed = PolicyDelegateResults.GetLastResultFailed() || (lastPolicyResultState?.IsFailed == true);
 			IsSuccess = PolicyDelegateResults.GetLastResultSuccess();
 		}
 
