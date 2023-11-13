@@ -33,6 +33,7 @@ namespace PoliNorError
 			IsFailed = policyResult.IsFailed;
 			IsSuccess = policyResult.IsSuccess;
 			IsCanceled = policyResult.IsCanceled;
+			FailedReason = policyResult.FailedReason;
 			Errors = policyResult.Errors;
 		}
 
@@ -45,6 +46,8 @@ namespace PoliNorError
 		public bool IsSuccess { get; }
 
 		public bool IsCanceled { get; }
+
+		public PolicyResultFailedReason FailedReason { get; internal set; }
 
 		public IEnumerable<Exception> Errors { get; }
 	}

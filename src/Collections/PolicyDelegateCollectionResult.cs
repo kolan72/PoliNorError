@@ -6,12 +6,13 @@ namespace PoliNorError
 {
 	public class PolicyDelegateCollectionResult : IEnumerable<PolicyDelegateResult>
 	{
-		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused, LastPolicyResultState lastPolicyResultState = null)
+		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult> policyHandledResults, IEnumerable<PolicyDelegate> policyDelegatesUnused, LastPolicyResultState lastPolicyResultState = null, PolicyResultFailedReason failedReason = PolicyResultFailedReason.None)
 		{
 			PolicyDelegateResults = policyHandledResults;
 			PolicyDelegatesUnused = policyDelegatesUnused;
 			IsFailed = PolicyDelegateResults.GetLastResultFailed() || (lastPolicyResultState?.IsFailed == true);
 			IsSuccess = PolicyDelegateResults.GetLastResultSuccess();
+			LastPolicyResultFailedReason = PolicyDelegateResults.LastOrDefault()?.FailedReason ?? failedReason;
 		}
 
 		public IEnumerable<PolicyDelegateResult> PolicyDelegateResults { get; }
@@ -24,6 +25,8 @@ namespace PoliNorError
 
 		public bool IsSuccess { get; }
 
+		public PolicyResultFailedReason LastPolicyResultFailedReason { get; internal set; }
+
 		public IEnumerator<PolicyDelegateResult> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -31,12 +34,13 @@ namespace PoliNorError
 
 	public class PolicyDelegateCollectionResult<T> : IEnumerable<PolicyDelegateResult<T>>
 	{
-		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused, LastPolicyResultState lastPolicyResultState = null)
+		internal PolicyDelegateCollectionResult(IEnumerable<PolicyDelegateResult<T>> policyHandledResultsT, IEnumerable<PolicyDelegate<T>> policyDelegatesUnused, LastPolicyResultState lastPolicyResultState = null, PolicyResultFailedReason failedReason = PolicyResultFailedReason.None)
         {
 			PolicyDelegateResults = policyHandledResultsT;
 			PolicyDelegatesUnused = policyDelegatesUnused;
 			IsFailed = PolicyDelegateResults.GetLastResultFailed() || (lastPolicyResultState?.IsFailed == true);
 			IsSuccess = PolicyDelegateResults.GetLastResultSuccess();
+			LastPolicyResultFailedReason = PolicyDelegateResults.LastOrDefault()?.FailedReason ?? failedReason;
 		}
 
 		public IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults { get; }
@@ -56,6 +60,8 @@ namespace PoliNorError
 		public bool IsFailed { get; }
 
 		public bool IsSuccess { get; }
+
+		public PolicyResultFailedReason LastPolicyResultFailedReason { get; internal set; }
 
 		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
