@@ -1,3 +1,12 @@
+## 2.9.1
+
+- Introduce `PolicyDelegateCollection(<T>).WithErrorProcessorOf` and `PolicyDelegateCollection(<T>).WithErrorProcessor` extension methods.
+- Introduce `PolicyCollection.WithErrorProcessorOf` and `PolicyCollection.WithErrorProcessor` extension methods.
+- Fix issue (#61): the handling of a `PolicyDelegateCollection` should fail fast when the collection was obtained from a `PolicyCollection` and the delegate is null.
+- Fix the oversight related to cancellation in the `PolicyDelegatesHandler.HandleAllBySyncType` method.
+- DRY refactoring for extension methods adding filters to a `IPolicyDelegateCollection`.
+ 
+
 ## 2.8.1
 
 - Support a fluent interface for the `IBulkErrorProcessor` interface.
