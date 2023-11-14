@@ -460,8 +460,9 @@ Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that imp
 The `PolicyDelegatesUnused` property contains a collection of policydelegates that were not handled due to the reasons described above.  
 
 It is possible to throw an exception if handling of the last element in the collection fails. This can be done with the `WithThrowOnLastFailed` method, which throws a special `PolicyDelegateCollectionException` exception for non-generic collection and  `PolicyDelegateCollectionException<T>` for generic one.   
-This exception contains `InnerExceptions` property with exceptions added from `Errors` properties of all `PolicyResult`s. For the `PolicyDelegateCollectionException<T>` object, you can also obtain all `PolicyResult.Result`s by using `GetResults()` method.
+This exception contains `InnerExceptions` property with exceptions added from `Errors` properties of all `PolicyResult`s. For the `PolicyDelegateCollectionException<T>` object, you can also obtain all `PolicyResult.Result`s by using `GetResults()` method.  
 
+Be careful when adding an existing `Policy` or `PoliyDelegate` to a collection, see [Nuances of using the library](#nuances-of-using-the-library) for details.
 
 ### PolicyCollection
 Sometimes one delegate needs to be handled by many policies, and this can be done easily with the `PolicyCollection` class.  
