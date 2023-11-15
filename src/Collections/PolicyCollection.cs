@@ -186,25 +186,25 @@ namespace PoliNorError
 
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
-			this.AddIncludedErrorFilter(func);
+			this.AddIncludedErrorFilterForAll(func);
 			return this;
 		}
 
 		public PolicyCollection IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			this.AddIncludedErrorFilter(handledErrorFilter);
+			this.AddIncludedErrorFilterForAll(handledErrorFilter);
 			return this;
 		}
 
 		public PolicyCollection ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
-			this.AddExcludedErrorFilter(func);
+			this.AddExcludedErrorFilterForAll(func);
 			return this;
 		}
 
 		public PolicyCollection ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			this.AddExcludedErrorFilter(handledErrorFilter);
+			this.AddExcludedErrorFilterForAll(handledErrorFilter);
 			return this;
 		}
 

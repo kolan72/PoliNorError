@@ -50,22 +50,22 @@ namespace PoliNorError
 
 		internal static void AddIncludedErrorFilter(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateInfos.Select(pd => pd.Policy).AddIncludedErrorFilter(handledErrorFilter);
+			policyDelegateInfos.Select(pd => pd.Policy).AddIncludedErrorFilterForAll(handledErrorFilter);
 		}
 
 		internal static void AddIncludedErrorFilter<TException>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<TException, bool> func = null) where TException : Exception
 		{
-			policyDelegateInfos.Select(pd => pd.Policy).AddIncludedErrorFilter(func);
+			policyDelegateInfos.Select(pd => pd.Policy).AddIncludedErrorFilterForAll(func);
 		}
 
 		internal static void AddExcludedErrorFilter(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilter(handledErrorFilter);
+			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilterForAll(handledErrorFilter);
 		}
 
 		internal static void AddExcludedErrorFilter<TException>(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Func<TException, bool> func = null) where TException : Exception
 		{
-			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilter(func);
+			policyDelegateInfos.Select(pd => pd.Policy).AddExcludedErrorFilterForAll(func);
 		}
 
 		internal static void ThrowIfInconsistency(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, PolicyDelegateBase newDelegateInfo)
