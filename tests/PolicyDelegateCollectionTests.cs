@@ -524,6 +524,7 @@ namespace PoliNorError.Tests
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
 			Assert.IsFalse(result.Any());
+			Assert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -539,6 +540,7 @@ namespace PoliNorError.Tests
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
 			Assert.IsFalse(result.Any());
+			Assert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -554,6 +556,7 @@ namespace PoliNorError.Tests
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
 			Assert.IsFalse(result.Any());
+			Assert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -571,6 +574,7 @@ namespace PoliNorError.Tests
 									.Handle(cancelSource.Token);
 
 			Assert.IsFalse(result.Any());
+			Assert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 

@@ -17,7 +17,7 @@ namespace PoliNorError
 		public PolicyDelegateCollectionResult<T> Handle(CancellationToken token = default)
 		{
 			var (HandleResults, PolResult) = PolicyDelegatesHandler.HandleAllSync(_policyDelegates, token);
-			return GetResultOrThrow(HandleResults, PolResult.IsFailed);
+			return GetResultOrThrow(HandleResults, PolResult);
 		}
 
 		public async Task<PolicyDelegateCollectionResult<T>> HandleAsync(bool configAwait = false, CancellationToken token = default)
@@ -25,17 +25,17 @@ namespace PoliNorError
 			PolicyDelegateHandleType handleType = _policyDelegates.GetHandleType();
 			(IEnumerable<PolicyDelegateResult<T>> HandleResults, LastPolicyResultState lastPolicyResultState) = await PolicyDelegatesHandler.HandleAllBySyncType(_policyDelegates, handleType, token, configAwait).ConfigureAwait(configAwait);
 
-			return GetResultOrThrow(HandleResults, lastPolicyResultState.IsFailed);
+			return GetResultOrThrow(HandleResults, lastPolicyResultState);
 		}
 
-		private PolicyDelegateCollectionResult<T> GetResultOrThrow(IEnumerable<PolicyDelegateResult<T>> handledResults, bool? isFailed)
+		private PolicyDelegateCollectionResult<T> GetResultOrThrow(IEnumerable<PolicyDelegateResult<T>> handledResults, LastPolicyResultState resultState)
 		{
 			ThrowErrorIfNeed(handledResults);
 
-			return new PolicyDelegateCollectionResult<T>(handledResults, _policyDelegates.Skip(handledResults.Count()).ToList());
+			return new PolicyDelegateCollectionResult<T>(handledResults, _policyDelegates.Skip(handledResults.Count()).ToList(), resultState);
 			void ThrowErrorIfNeed(IEnumerable<PolicyDelegateResult<T>> hResults)
 			{
-				if (isFailed == true && _policyDelegates.ThrowOnLastFailed)
+				if (resultState.IsFailed == true && _policyDelegates.ThrowOnLastFailed)
 				{
 					throw _policyDelegates.ErrorConverter.ToExceptionConverter()(hResults);
 				}

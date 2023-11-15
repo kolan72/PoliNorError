@@ -57,6 +57,7 @@ namespace PoliNorError
 		internal PolicyDelegateCollectionResultBase(IEnumerable<PolicyDelegateResultBase> policyHandledResults, LastPolicyResultState lastPolicyResultState = null, PolicyResultFailedReason failedReason = PolicyResultFailedReason.None)
 		{
 			IsFailed = policyHandledResults.GetLastResultFailed() || (lastPolicyResultState?.IsFailed == true);
+			IsCanceled = policyHandledResults.GetLastResultCanceled() || (lastPolicyResultState?.IsCanceled == true);
 			IsSuccess = policyHandledResults.GetLastResultSuccess();
 			LastPolicyResultFailedReason = policyHandledResults.LastOrDefault()?.FailedReason ?? failedReason;
 		}
@@ -64,6 +65,8 @@ namespace PoliNorError
 		public bool IsFailed { get; }
 
 		public bool IsSuccess { get; }
+
+		public bool IsCanceled { get; }
 
 		public PolicyResultFailedReason LastPolicyResultFailedReason { get; internal set; }
 	}
