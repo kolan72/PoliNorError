@@ -35,6 +35,26 @@ namespace PoliNorError
 			}
 		}
 
+		public static void AddIncludedErrorFilterForLast<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		{
+			policies.AddIncludedErrorFilterForLast(ExpressionHelper.GetTypedErrorFilter(func));
+		}
+
+		public static void AddIncludedErrorFilterForLast(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policies.LastOrDefault()?.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter);
+		}
+
+		public static void AddExcludedErrorFilterForLast<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		{
+			policies.AddExcludedErrorFilterForLast(ExpressionHelper.GetTypedErrorFilter(func));
+		}
+
+		public static void AddExcludedErrorFilterForLast(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policies.LastOrDefault()?.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
+		}
+
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act)
 		{
 			foreach (var policy in policies)

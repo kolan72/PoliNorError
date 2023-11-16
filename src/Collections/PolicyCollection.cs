@@ -208,6 +208,30 @@ namespace PoliNorError
 			return this;
 		}
 
+		public PolicyCollection IncludeErrorForLast<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			this.AddIncludedErrorFilterForLast(func);
+			return this;
+		}
+
+		public PolicyCollection IncludeErrorForLast(Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			this.AddIncludedErrorFilterForLast(handledErrorFilter);
+			return this;
+		}
+
+		public PolicyCollection ExcludeErrorForLast<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			this.AddExcludedErrorFilterForLast(func);
+			return this;
+		}
+
+		public PolicyCollection ExcludeErrorForLast(Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			this.AddExcludedErrorFilterForLast(handledErrorFilter);
+			return this;
+		}
+
 		private static PolicyCollection FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
 		{
 			var res = new PolicyCollection();

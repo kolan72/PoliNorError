@@ -372,6 +372,22 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_ExcludeErrorForLast_Not_Throw_For_EmptyCollection()
+		{
+			var polCollection = PolicyCollection.Create();
+			Assert.DoesNotThrow(() => polCollection.ExcludeErrorForLast((_) => true));
+			Assert.DoesNotThrow(() => polCollection.ExcludeErrorForLast<ArgumentException>());
+		}
+
+		[Test]
+		public void Should_IncludeErrorForLast_Not_Throw_For_EmptyCollection()
+		{
+			var polCollection = PolicyCollection.Create();
+			Assert.DoesNotThrow(() => polCollection.IncludeErrorForLast((_) => true));
+			Assert.DoesNotThrow(() => polCollection.IncludeErrorForLast<ArgumentException>());
+		}
+
+		[Test]
 		public void Should_WithErrorProcessorOf_Not_Throw_For_EmptyCollection()
 		{
 			IErrorProcessorRegistration v = new PolicyCollectionErrorProcessorRegistration(true);
