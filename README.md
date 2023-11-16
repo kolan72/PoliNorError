@@ -500,8 +500,9 @@ Furthermore, with the `PolicyCollection` :
 - You can call the `BuildCollectionHandlerFor(commonDelegate)`  method to obtain the `IPolicyDelegateCollectionHandler(<T>)` interface and pass it somewhere as a dependency injection parameter.  
 - If you want to create a `PolicyDelegateCollection` based on the collection of policies you just created, for example, to handle other delegates, you can call the `ToPolicyDelegateCollection(commonDelegate)` method.  Each element of the new collection will consist of a common delegate `commonDelegate` and one of the policies that have been added to `PolicyCollection` object.  
 
-The `PolicyCollection` class has the same options for filtering errors and adding `PolicyResult` handlers as the `PolicyDelegateCollection` class.
+The `PolicyCollection` class has the same options for filtering errors and adding `PolicyResult` handlers as the `PolicyDelegateCollection` class.  
 
+Be careful when adding an existing `Policy` to a collection, see [Nuances of using the library](#nuances-of-using-the-library) for details.
 
 ### Policy wrap
 For wrap policy by other policy use `WrapPolicy` method, for example:
