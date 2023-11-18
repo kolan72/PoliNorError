@@ -70,13 +70,13 @@ namespace PoliNorError
 
 		public static IPolicyDelegateCollection<T> IncludeErrorForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateCollection.AddIncludedErrorFilter(handledErrorFilter);
+			policyDelegateCollection.AddIncludedErrorFilterForAll(handledErrorFilter);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection<T> ExcludeErrorForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateCollection.AddExcludedErrorFilter(handledErrorFilter);
+			policyDelegateCollection.AddExcludedErrorFilterForAll(handledErrorFilter);
 			return policyDelegateCollection;
 		}
 
