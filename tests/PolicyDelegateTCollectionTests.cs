@@ -632,6 +632,86 @@ namespace PoliNorError.Tests
 			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
 		}
 
+		[Test]
+		public async Task Should_Generic_IncludeErrorForLast_Work()
+		{
+			int testDelegate() => throw new Exception("Test1");
+			var policyDelegateCollection = PolicyDelegateCollection<int>
+						.Create()
+						.WithRetry(1).AndDelegate(testDelegate)
+						.WithRetry(1).AndDelegate(testDelegate)
+						.IncludeErrorForLast<int, ArgumentException>();
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		public async Task Should_NoGeneric_IncludeErrorForLast_Work()
+		{
+			int testDelegate() => throw new Exception("Test1");
+			var policyDelegateCollection = PolicyDelegateCollection<int>
+						.Create()
+						.WithRetry(1).AndDelegate(testDelegate)
+						.WithRetry(1).AndDelegate(testDelegate)
+						.IncludeErrorForLast(ex => ex.Message == "Test2");
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		public async Task Should_Generic_ExcludeErrorForLast_Work()
+		{
+			int testDelegate() => throw new ArgumentException("Test1");
+			var policyDelegateCollection = PolicyDelegateCollection<int>
+						.Create()
+						.WithRetry(1).AndDelegate(testDelegate)
+						.WithRetry(1).AndDelegate(testDelegate)
+						.ExcludeErrorForLast<int, ArgumentException>();
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		public async Task Should_NoGeneric_ExcludeErrorForLast_Work()
+		{
+			int testDelegate() => throw new Exception("Test1");
+			var policyDelegateCollection = PolicyDelegateCollection<int>
+						.Create()
+						.WithRetry(1).AndDelegate(testDelegate)
+						.WithRetry(1).AndDelegate(testDelegate)
+						.ExcludeErrorForLast(ex => ex.Message == "Test1");
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		public void Should_ExcludeErrorForLast_Not_Throw_For_EmptyCollection()
+		{
+			var polCollection = PolicyDelegateCollection<int>.Create();
+			Assert.DoesNotThrow(() => polCollection.ExcludeErrorForLast((_) => true));
+			Assert.DoesNotThrow(() => polCollection.ExcludeErrorForLast<int, ArgumentException>());
+		}
+
+		[Test]
+		public void Should_IncludeErrorForLast_Not_Throw_For_EmptyCollection()
+		{
+			var polCollection = PolicyDelegateCollection<int>.Create();
+			Assert.DoesNotThrow(() => polCollection.IncludeErrorForLast((_) => true));
+			Assert.DoesNotThrow(() => polCollection.IncludeErrorForLast<int, ArgumentException>());
+		}
+
 		private class TestClass
 		{
 			public void Save()
