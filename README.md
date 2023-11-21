@@ -182,53 +182,7 @@ var result = await new RetryPolicy(5)
                             .AddPolicyResultHandler<int>((pr) => { if (pr.NoError) logger.Info("There were no errors.");})
                             .HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
 ```
-In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true by using `PolicyResult.SetFailed()` method. It may be helpful if for some reason the `PolicyResult` object, as a result of handling, can't be accepted as a success and may require additional work.  
-For example, if you wish to remove large folders from your disk when there is less than 40Gb of free space, and notify about it, create two policies and combine them in the `PolicyDelegateCollection` for further handling.:
-```csharp
-            var checkFreeSpacePolicy = new SimplePolicy()
-						.AddPolicyResultHandler<long>((pr) =>
-						{
-							if (pr.NoError)
-							{
-								if (pr.Result < 40000000000)
-									//If free space is not enough we pass handling 
-									//to the next PolicyDelegate in the collection:
-									pr.SetFailed();
-								else
-									logger.Info("Free space is ok");
-							}
-						});
-
-            var freeSpaceAfterPolicy = new SimplePolicy()
-						.WithErrorProcessorOf((ex) => logger.Error(ex.Message))
-						.AddPolicyResultHandler<long>((pr) =>
-						{
-							if (pr.NoError)
-							{
-								logger.Info("Total available space: {freeSpace} bytes", pr.Result);
-							}
-						});
-
-
-			var freeSpaceResult = PolicyDelegateCollection<long>
-						.Create()
-						.WithPolicyAndDelegate(checkFreeSpacePolicy, GetFreeSpace)
-						.WithPolicyAndDelegate(freeSpaceAfterPolicy, () =>
-						{
-							DeleteUselessLargeFolders();
-							return GetFreeSpace(); 
-						})
-						.HandleAll();
-
-
-//Somewhere in your code:
-private void DeleteUselessLargeFolders()
-{
-	//Delete folders here...
-}
-
-private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
-```
+In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true by using `PolicyResult.SetFailed()` method. It may be helpful if for some reason the `PolicyResult` object, as a result of handling, can't be accepted as a success and may require additional work, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.  
 
 Exceptions in a `PolicyResult` handler are allowed and stored in `PolicyResultHandlingErrors` property without affecting other `PolicyResult` properties.  
 If a cancellation occurs at the stage of the `PolicyResult` handling, the process of running the `PolicyResult` handlers will not be interrupted.  
@@ -352,24 +306,8 @@ var result = policyDelegate.Handle();
 ### PolicyDelegateCollection
 The `PolicyDelegateCollection(T)` class is a collection of a `PolicyDelegate(<T>)` that uses `List<PolicyDelegate(<T>)>` as an inner storage and implements the `IEnumerable<PolicyDelegate(<T>)>` interface.  
 
-You can create `PolicyDelegateCollection(<T>)` by using `Create` method.  
-With these methods
-- `WithPolicy` (create the `PolicyDelegate` with a policy but without a delegate)
-- `WithPolicyDelagate`
-- `WithPolicyAndDelegate`
-- `AndDelegate` (set delegate to last `PolicyDelegate` object in the collection)
-
- or specific policy-related extensions methods and their overloads:
-- `WithRetry`
-- `WithWaitAndRetry`
-- `WithInfiniteRetry`
-- `WithWaitAndInfiniteRetry`
-- `WithFallback`
-- `WithSimple` (appeared in _version_ 2.0.0-alpha)
-
-you can further construct a collection in a fluent manner and call `HandleAll` or `HandleAllAsync` method.  
-
-Handling `PolicyDelegateCollection(<T>)` is merely calling the `Handle(Async(<T>))` method for each element in the collection one by one, while the current policy `IsFailed` equals true and no cancellation occurs.  
+For handling collection just call  `HandleAll` or `HandleAllAsync` method.  
+Handling `PolicyDelegateCollection(<T>)` is merely calling the `Handle(Async(<T>))` method for each element in the collection one by one in a sync or async manner, while the current policy `IsFailed` equals true and no cancellation occurs.  
 ```
 PolicyDelegate_1_handling —— Failed ——> PolicyDelegate_2_handling —— Failed ——> ..
   |                                     |
@@ -378,32 +316,70 @@ PolicyDelegate_1_handling —— Failed ——> PolicyDelegate_2_handling ——
 ```
 In a certain sense, it is remarkably similar to wrapping current Policy1 with a `Fallback` policy that uses the appropriate `PolicyDelegate2.Handle(Async)(<T>)` method as a fallback delegate, handling Delegate1, but storing all handling results in a flat collection of the `PolicyDelegateResult` object.  
 
-Handling is smart - it checks the synchronicity type of all delegates in collection and calls the appropriate method behind the scenes, which calls delegates in sync or async manner.  
-You can also use the `BuildCollectionHandler()` method to obtain the `IPolicyDelegateCollectionHandler(T)` interface with the aforementioned methods and pass it somewhere as a dependency injection parameter.  
+You can create `PolicyDelegateCollection(<T>)` by using `Create` method.  
+There are two different approaches for adding a `PolicyDelegate` to the collection.  
 
-You can establish a `PolicyResult` handler for the entire collection by using the `AddPolicyResultHandlerForAll` method and for the last element by using the `AddPolicyResultHandlerForLast`(since _version_ 2.4.0) method.  
-These methods require the same delegates types as `PolicyResult` handlers for policy.  
+The first one is to use an existing policy or `PolicyDelegate` and these methods:
+- `WithPolicy` (create the `PolicyDelegate` with a policy but without a delegate)
+- `WithPolicyDelagate`
+- `WithPolicyAndDelegate`
+- `AndDelegate` (set delegate to last `PolicyDelegate` object in the collection)
 
-This is an example of how to add retry policies and delegates with common `PolicyResult` handler(example for _version_ 2.0.0-rc2 version):
+The second approach is to use specific policy-related shorthand extensions methods and their overloads:
+- `WithRetry`
+- `WithWaitAndRetry`
+- `WithInfiniteRetry`
+- `WithWaitAndInfiniteRetry`
+- `WithFallback`
+- `WithSimple`
+
+For the first approach example, if you wish to remove large folders from your disk when there is less than 40Gb of free space, and notify about it, create two policies and combine them in the `PolicyDelegateCollection` for further handling:
 ```csharp
-var result = PolicyDelegateCollection<IConnection>.Create()
-                        .WithWaitAndRetry(3, TimeSpan.FromSeconds(2))
-                        .AndDelegate(() => connectionFactory1.CreateConnection())
-                        .WithRetry(5)
-                        .AndDelegate(() => connectionFactory2.CreateConnection())
-                        .AddPolicyResultHandlerForAll((pr) =>
+            var checkFreeSpacePolicy = new SimplePolicy()
+						.AddPolicyResultHandler<long>((pr) =>
 						{
-							//There is no need to add logging to each policy result handler -
-							//the code below will log all errors
-							//that occur during handling by two policies.
-							foreach (var err in pr.Errors)
+							if (pr.NoError)
 							{
-								logger.Error(err.Message);
+								if (pr.Result < 40000000000)
+									//If free space is not enough we pass handling 
+									//to the next PolicyDelegate in the collection:
+									pr.SetFailed();
+								else
+									logger.Info("Free space is ok");
 							}
-						}
-                        .HandleAll();
+						});
+
+            var freeSpaceAfterPolicy = new SimplePolicy()
+						.WithErrorProcessorOf((ex) => logger.Error(ex.Message))
+						.AddPolicyResultHandler<long>((pr) =>
+						{
+							if (pr.NoError)
+							{
+								logger.Info("Total available space: {freeSpace} bytes", pr.Result);
+							}
+						});
+
+
+			var freeSpaceResult = PolicyDelegateCollection<long>
+						.Create()
+						.WithPolicyAndDelegate(checkFreeSpacePolicy, GetFreeSpace)
+						.WithPolicyAndDelegate(freeSpaceAfterPolicy, () =>
+						{
+							DeleteUselessLargeFolders();
+							return GetFreeSpace(); 
+						})
+						.HandleAll();
+
+
+//Somewhere in your code:
+private void DeleteUselessLargeFolders()
+{
+	//Delete folders here...
+}
+
+private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
 ```
-The example in the  [`PolicyResult` handlers](#policyresult-handlers) chapter could be rewritten to use a different approach by using the `AddPolicyResultHandlerForLast` method:
+For the second  approach, the recommended one, the previous example can be overwritten:  
 ```csharp
 var freeSpaceResult = PolicyDelegateCollection<long>.Create()
 						  .WithSimple()
@@ -442,7 +418,31 @@ var freeSpaceResult = PolicyDelegateCollection<long>.Create()
 						  })
 						  .HandleAll();
 ```
-Note that when an exception occurs on getting free space, we exit from further handling due to `SimplePolicy` with an error message in the log.  
+In this example, note that when an exception occurs on getting free space, we exit from further handling due to `SimplePolicy` with an error message in the log.  
+
+Note also that the `AddPolicyResultHandlerForLast` method (since _version_ 2.4.0) is used  for the adding `PolicyResult` handler to the last (newly added) element of the `PolicyDelegateCollection<long>`.  
+
+You can establish a common `PolicyResult` handler for all elements that have already been added to the collection by using the `AddPolicyResultHandlerForAll` method:  
+```csharp
+var result = PolicyDelegateCollection<IConnection>.Create()
+                        .WithWaitAndRetry(3, TimeSpan.FromSeconds(2))
+                        .AndDelegate(() => connectionFactory1.CreateConnection())
+                        .WithRetry(5)
+                        .AndDelegate(() => connectionFactory2.CreateConnection())
+                        .AddPolicyResultHandlerForAll((pr) =>
+						{
+							//There is no need to add logging to each policy result handler -
+							//the code below will log all errors
+							//that occur during handling by two policies.
+							foreach (var err in pr.Errors)
+							{
+								logger.Error(err.Message);
+							}
+						}
+                        .HandleAll();
+```
+
+The `AddPolicyResultHandlerForLast` and `AddPolicyResultHandlerForAll` methods require the same delegates types as `PolicyResult` handlers for a policy.  
 
 You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters on the entire collection:
 ```csharp
@@ -454,6 +454,8 @@ var result = PolicyDelegateCollection<int>.Create()
 					.ExcludeErrorForAll<SqlException>((ex) => ex.Number == 1205)
 					.HandleAll();
 ``` 
+
+You can also use the `BuildCollectionHandler()` method to get the `IPolicyDelegateCollectionHandler(T)` interface that has `Handle` and `HandleAsync` methods and pass it somewhere as a dependency injection parameter for further handling.  
 
 Results of handling are stored in `PolicyDelegateCollectionResult(<T>)` that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(<T>)` class is a wrapper around `PolicyResult` that additionally contains `MethodInfo` of the delegate.  
 
