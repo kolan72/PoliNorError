@@ -338,18 +338,25 @@ For the first approach example, if you wish to remove large folders from your di
             var checkFreeSpacePolicy = new SimplePolicy()
 						.AddPolicyResultHandler<long>((pr) =>
 						{
-							if (pr.NoError)
+							if (pr.NoError && pr.Result < DesiredFreeSpaceInBytes)
 							{
-								if (pr.Result < 40000000000)
-									//If free space is not enough we pass handling 
-									//to the next PolicyDelegate in the collection:
-									pr.SetFailed();
-								else
-									logger.Info("Free space is ok");
+								//If free space is not enough we pass handling to the next PolicyDelegate in the collection:
+								pr.SetFailed();
 							}
+						})
+						.AddPolicyResultHandler<long>((pr) =>
+						{
+							if(pr.NoError && !pr.IsFailed)
+								logger.Info("Free space is ok");
+						})
+						.WithErrorProcessorOf((Exception ex, ProcessingErrorInfo pei) =>
+						{
+							logger.Error(ex,
+								"{policy} successfully handled exception.",
+								pei.PolicyKind.ToString()+ "Policy");
 						});
 
-            var freeSpaceAfterPolicy = new SimplePolicy()
+            var deleteFoldersPolicyDelegate = new SimplePolicy()
 						.WithErrorProcessorOf((ex) => logger.Error(ex.Message))
 						.AddPolicyResultHandler<long>((pr) =>
 						{
@@ -357,17 +364,16 @@ For the first approach example, if you wish to remove large folders from your di
 							{
 								logger.Info("Total available space: {freeSpace} bytes", pr.Result);
 							}
+						}).ToPolicyDelegate(() => 
+						{
+						DeleteUselessLargeFolders();
+						return GetFreeSpace();
 						});
-
 
 			var freeSpaceResult = PolicyDelegateCollection<long>
 						.Create()
 						.WithPolicyAndDelegate(checkFreeSpacePolicy, GetFreeSpace)
-						.WithPolicyAndDelegate(freeSpaceAfterPolicy, () =>
-						{
-							DeleteUselessLargeFolders();
-							return GetFreeSpace(); 
-						})
+						.WithPolicyDelegate(deleteFoldersPolicyDelegate)
 						.HandleAll();
 
 
@@ -378,6 +384,9 @@ private void DeleteUselessLargeFolders()
 }
 
 private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
+
+private long DesiredFreeSpaceInBytes => 40 * (1024L * 1024L * 1024L);
+
 ```
 For the second  approach, the recommended one, the previous example can be overwritten:  
 ```csharp
