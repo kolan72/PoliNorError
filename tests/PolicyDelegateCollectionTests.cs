@@ -704,6 +704,23 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_PolicyDelegateCollectionResult_IsSuccess_Equals_False_When_Cancellation_Occurs_Between_Handling_Policies()
+		{
+			int i = 0;
+			var cts = new CancellationTokenSource();
+			var polInfo1 = new RetryPolicy(1).ToPolicyDelegate(() => { i++; throw new Exception("1"); });
+			var polInfo2 = new RetryPolicy(1).ToPolicyDelegate(() => { i++; cts.Cancel();  throw new Exception("2"); });
+			var polInfo3 = new RetryPolicy(1).ToPolicyDelegate(() => { i++; throw new Exception("3"); });
+
+			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2, polInfo3);
+			var result = polDelegateCol.HandleAll(cts.Token);
+			Assert.IsTrue(result.IsCanceled);
+			Assert.IsTrue(result.IsFailed);
+			Assert.IsFalse(result.IsSuccess);
+			Assert.AreEqual(3, i);
+		}
+
+		[Test]
 		public void Should_WithRetry_AndInvokeRetryPolicyParams_Work()
 		{
 			int i1 = 0;
