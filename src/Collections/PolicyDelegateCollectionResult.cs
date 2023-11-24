@@ -41,7 +41,7 @@ namespace PoliNorError
 		{
 			get
 			{
-				return LastPolicyResult.GetResultOrDefault();
+				return !IsSuccess ? default : LastPolicyResult.GetResultOrDefault();
 			}
 		}
 
@@ -58,7 +58,7 @@ namespace PoliNorError
 		{
 			IsFailed = policyHandledResults.GetLastResultFailed() || (lastPolicyResultState?.IsFailed == true);
 			IsCanceled = policyHandledResults.GetLastResultCanceled() || (lastPolicyResultState?.IsCanceled == true);
-			IsSuccess = policyHandledResults.GetLastResultSuccess();
+			IsSuccess = policyHandledResults.GetLastResultSuccess() && !IsFailed && !IsCanceled;
 			LastPolicyResultFailedReason = policyHandledResults.LastOrDefault()?.FailedReason ?? failedReason;
 		}
 
