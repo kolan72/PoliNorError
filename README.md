@@ -388,44 +388,47 @@ private long GetFreeSpace() => new DriveInfo("D:").TotalFreeSpace;
 private long DesiredFreeSpaceInBytes => 40 * (1024L * 1024L * 1024L);
 
 ```
-For the second  approach, the recommended one, the previous example can be overwritten:  
+Note that the `PolicyResult` handlers are executed in the order they are added, so add a `PolicyResult` handler that changes the `IsFailed` property before handlers that check it.  
+
+For the second  approach, the recommended one for library policies, the previous example can be overwritten:  
 ```csharp
 var freeSpaceResult = PolicyDelegateCollection<long>.Create()
-						  .WithSimple()
-						  .AndDelegate(GetFreeSpace)
-						  .AddPolicyResultHandlerForLast((pr) =>
-						  {
-							  if (pr.NoError)
-							  {
-								  if (pr.Result < 40000000000)
-									  //If free space is not enough we pass handling to the next PolicyDelegate in the collection:
-									  pr.SetFailed();
-								  else
-									  //Exit from further handling with info in log
-									  logger.Info("Free space is ok");
-							  }
-							  else
-							  {
-								  //Exit from further handling with error in log
-								  logger.Error(pr.Errors.FirstOrDefault(), 
-										"The handling was exited due to the {@policy} successfully handled exception.", 
-										pr.PolicyName);
-							  }
-						  })
-						  .WithSimple((ErrorProcessorParam)logger.Error)
-						  .AndDelegate(() =>
-						  {
-							  DeleteLargeFolders();
-							  return GetFreeSpace();
-						  })
-						  .AddPolicyResultHandlerForLast((pr) =>
-						  {
-							  if (pr.NoError)
-							  {
-								  logger.Info($"Total available space: {pr.Result} bytes");
-							  }
-						  })
-						  .HandleAll();
+							.WithSimple()
+							.AndDelegate(GetFreeSpace)
+							.AddPolicyResultHandlerForLast((pr) =>
+							{
+								if (pr.NoError && pr.Result < DesiredFreeSpaceInBytes)
+								{
+									//If free space is not enough we pass handling to the next PolicyDelegate in the collection:
+									pr.SetFailed();
+								}
+							})
+							.AddPolicyResultHandlerForLast((pr) =>
+							{
+								if (pr.NoError && !pr.IsFailed)
+									logger.Info("Free space is ok");
+							})
+							//We can use this method for the collection since version 2.9.1
+							.WithErrorProcessorOf((ex, pei) =>
+							{
+								logger.Error(ex,
+								"{policy} successfully handled exception.",
+								pei.PolicyKind.ToString() + "Policy");
+							})
+							.WithSimple((ErrorProcessorParam)logger.Error)
+							.AndDelegate(() =>
+							{
+								DeleteLargeFolders();
+								return GetFreeSpace();
+						  	})
+							.AddPolicyResultHandlerForLast((pr) =>
+							{
+								if (pr.NoError)
+								{
+									logger.Info($"Total available space: {pr.Result} bytes");
+								}
+							})
+							.HandleAll();
 ```
 In this example, note that when an exception occurs on getting free space, we exit from further handling due to `SimplePolicy` with an error message in the log.  
 
