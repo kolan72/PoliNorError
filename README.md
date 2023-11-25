@@ -1,7 +1,7 @@
 # PoliNorError  
 [![nuget](https://img.shields.io/nuget/v/PoliNorError)](https://www.nuget.org/packages/PoliNorError/)
 
-![alt text](https://github.com/kolan72/kolan72.github.io/blob/master/images/PoliNorError4.png?raw=true)  
+![alt text](https://github.com/kolan72/kolan72.github.io/blob/master/images/PoliNorError5.png?raw=true)  
 
 PoliNorError is a library that provides error handling capabilities through Retry and Fallback policies. The library has a specific focus on handling potential exceptions within the catch block and offers various configuration options.
 Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
