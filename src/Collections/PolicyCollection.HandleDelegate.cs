@@ -157,12 +157,12 @@ namespace PoliNorError
 			return BuildCollectionHandlerFor(func).HandleAsync(configAwait, token);
 		}
 
-		private PolicyDelegateCollectionResult GetEmptyFailedPolicyDelegateCollectionResult(Action action) => new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), ToPolicyDelegateCollection(action), LastPolicyResultState.FromFailed());
+		private PolicyDelegateCollectionResult GetEmptyFailedPolicyDelegateCollectionResult(Action action) => new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), ToPolicyDelegateCollection(action), LastPolicyResultState.FromFailed(), PolicyResultFailedReason.DelegateIsNull);
 
-		private PolicyDelegateCollectionResult GetEmptyFailedPolicyDelegateCollectionResult(Func<CancellationToken, Task> func) => new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), ToPolicyDelegateCollection(func), LastPolicyResultState.FromFailed());
+		private PolicyDelegateCollectionResult GetEmptyFailedPolicyDelegateCollectionResult(Func<CancellationToken, Task> func) => new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), ToPolicyDelegateCollection(func), LastPolicyResultState.FromFailed(), PolicyResultFailedReason.DelegateIsNull);
 
-		private PolicyDelegateCollectionResult<T> GetEmptyFailedPolicyDelegateCollectionResult<T>(Func<T> func) => new PolicyDelegateCollectionResult<T>(new List<PolicyDelegateResult<T>>(), ToPolicyDelegateCollection(func), LastPolicyResultState.FromFailed());
+		private PolicyDelegateCollectionResult<T> GetEmptyFailedPolicyDelegateCollectionResult<T>(Func<T> func) => new PolicyDelegateCollectionResult<T>(new List<PolicyDelegateResult<T>>(), ToPolicyDelegateCollection(func), LastPolicyResultState.FromFailed(), PolicyResultFailedReason.DelegateIsNull);
 
-		private PolicyDelegateCollectionResult<T> GetEmptyFailedPolicyDelegateCollectionResult<T>(Func<CancellationToken, Task<T>> func) => new PolicyDelegateCollectionResult<T>(new List<PolicyDelegateResult<T>>(), ToPolicyDelegateCollection(func), LastPolicyResultState.FromFailed());
+		private PolicyDelegateCollectionResult<T> GetEmptyFailedPolicyDelegateCollectionResult<T>(Func<CancellationToken, Task<T>> func) => new PolicyDelegateCollectionResult<T>(new List<PolicyDelegateResult<T>>(), ToPolicyDelegateCollection(func), LastPolicyResultState.FromFailed(), PolicyResultFailedReason.DelegateIsNull);
 	}
 }

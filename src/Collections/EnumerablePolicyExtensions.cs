@@ -9,12 +9,12 @@ namespace PoliNorError
 {
 	internal static class EnumerablePolicyExtensions
 	{
-		public static void AddIncludedErrorFilter<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		public static void AddIncludedErrorFilterForAll<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			policies.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+			policies.AddIncludedErrorFilterForAll(ExpressionHelper.GetTypedErrorFilter(func));
 		}
 
-		public static void AddIncludedErrorFilter(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
+		public static void AddIncludedErrorFilterForAll(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			foreach (var pol in policies)
 			{
@@ -22,17 +22,37 @@ namespace PoliNorError
 			}
 		}
 
-		public static void AddExcludedErrorFilter<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		public static void AddExcludedErrorFilterForAll<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			policies.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+			policies.AddExcludedErrorFilterForAll(ExpressionHelper.GetTypedErrorFilter(func));
 		}
 
-		public static void AddExcludedErrorFilter(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
+		public static void AddExcludedErrorFilterForAll(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			foreach (var pol in policies)
 			{
 				pol.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
 			}
+		}
+
+		public static void AddIncludedErrorFilterForLast<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		{
+			policies.AddIncludedErrorFilterForLast(ExpressionHelper.GetTypedErrorFilter(func));
+		}
+
+		public static void AddIncludedErrorFilterForLast(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policies.LastOrDefault()?.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter);
+		}
+
+		public static void AddExcludedErrorFilterForLast<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
+		{
+			policies.AddExcludedErrorFilterForLast(ExpressionHelper.GetTypedErrorFilter(func));
+		}
+
+		public static void AddExcludedErrorFilterForLast(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policies.LastOrDefault()?.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
 		}
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act)

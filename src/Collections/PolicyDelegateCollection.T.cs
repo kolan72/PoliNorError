@@ -82,13 +82,13 @@ namespace PoliNorError
 
 		public IPolicyDelegateCollection<T> IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
-			this.AddIncludedErrorFilter(func);
+			this.AddIncludedErrorFilterForAll(func);
 			return this;
 		}
 
 		public IPolicyDelegateCollection<T> ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
-			this.AddExcludedErrorFilter(func);
+			this.AddExcludedErrorFilterForAll(func);
 			return this;
 		}
 

@@ -70,13 +70,37 @@ namespace PoliNorError
 
 		public static IPolicyDelegateCollection<T> IncludeErrorForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateCollection.AddIncludedErrorFilter(handledErrorFilter);
+			policyDelegateCollection.AddIncludedErrorFilterForAll(handledErrorFilter);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection<T> ExcludeErrorForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateCollection.AddExcludedErrorFilter(handledErrorFilter);
+			policyDelegateCollection.AddExcludedErrorFilterForAll(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> IncludeErrorForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.AddIncludedErrorFilterForLast(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> IncludeErrorForLast<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, bool> func = null) where TException : Exception
+		{
+			policyDelegateCollection.AddIncludedErrorFilterForLast(func);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> ExcludeErrorForLast<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.AddExcludedErrorFilterForLast(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection<T> ExcludeErrorForLast<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, bool> func = null) where TException : Exception
+		{
+			policyDelegateCollection.AddExcludedErrorFilterForLast(func);
 			return policyDelegateCollection;
 		}
 

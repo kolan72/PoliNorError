@@ -73,13 +73,37 @@ namespace PoliNorError
 
 		public static IPolicyDelegateCollection IncludeErrorForAll(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateCollection.AddIncludedErrorFilter(handledErrorFilter);
+			policyDelegateCollection.AddIncludedErrorFilterForAll(handledErrorFilter);
 			return policyDelegateCollection;
 		}
 
 		public static IPolicyDelegateCollection ExcludeErrorForAll(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			policyDelegateCollection.AddExcludedErrorFilter(handledErrorFilter);
+			policyDelegateCollection.AddExcludedErrorFilterForAll(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection IncludeErrorForLast(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.AddIncludedErrorFilterForLast(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection IncludeErrorForLast<TException>(this IPolicyDelegateCollection policyDelegateCollection, Func<TException, bool> func = null) where TException : Exception
+		{
+			policyDelegateCollection.AddIncludedErrorFilterForLast(func);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection ExcludeErrorForLast(this IPolicyDelegateCollection policyDelegateCollection, Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			policyDelegateCollection.AddExcludedErrorFilterForLast(handledErrorFilter);
+			return policyDelegateCollection;
+		}
+
+		public static IPolicyDelegateCollection ExcludeErrorForLast<TException>(this IPolicyDelegateCollection policyDelegateCollection, Func<TException, bool> func = null) where TException : Exception
+		{
+			policyDelegateCollection.AddExcludedErrorFilterForLast(func);
 			return policyDelegateCollection;
 		}
 

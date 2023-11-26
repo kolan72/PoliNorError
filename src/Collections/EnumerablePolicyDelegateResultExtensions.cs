@@ -24,5 +24,10 @@ namespace PoliNorError
 		{
 			return policyDelegateResults.LastOrDefault()?.IsSuccess == true;
 		}
+
+		internal static bool GetLastResultCanceled(this IEnumerable<PolicyDelegateResultBase> policyDelegateResults)
+		{
+			return policyDelegateResults.LastOrDefault()?.IsCanceled == true;
+		}
 	}
 }
