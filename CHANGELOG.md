@@ -1,3 +1,13 @@
+## 2.10.0
+
+- Introduce `PolicyCollection.ExcludeErrorForLast`, `PolicyCollection.IncludeErrorForLast` extension methods.
+- Introduce `PolicyDelegateCollection(<T>).ExcludeErrorForLast`, `PolicyDelegateCollection<T>.IncludeErrorForLast` extension methods.
+- Introduce `PolicyDelegateCollectionResult(<T>).IsCanceled` property.
+- The condition that the`PolicyDelegateCollectionResult(<T>).IsSuccess`  property be true was reinforced by the condition that the `IsFailed` and `IsCanceled` properties be both equal false.
+- The condition that the property `PolicyDelegateCollectionResult<T>.Result` not be equal to `default` was strengthened by the condition that the `IsSuccess` property be true.
+- 'The 'PolicyDelegateCollection' chapter in the README was rewritten.
+
+
 ## 2.9.1
 
 - Introduce `PolicyDelegateCollection(<T>).WithErrorProcessorOf` and `PolicyDelegateCollection(<T>).WithErrorProcessor` extension methods.
