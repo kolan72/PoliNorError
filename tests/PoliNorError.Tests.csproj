@@ -103,6 +103,7 @@
     <Compile Include="RetryPolicyTests.cs" />
     <Compile Include="SimplePolicyProcessorTests.cs" />
     <Compile Include="SimplePolicyTests.cs" />
+    <Compile Include="TestHandlingWithErrorSet.cs" />
     <Compile Include="WrappedPolicyTests.cs" />
   </ItemGroup>
   <ItemGroup>

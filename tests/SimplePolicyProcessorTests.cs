@@ -174,6 +174,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true)]
+		[TestCase(TestErrorSetMatch.FirstParam, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false)]
+		public void Should_IncludeErrorSet_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
+		{
+			var processor = SimplePolicyProcessor.CreateDefault();
+			processor.IncludeErrorSet<ArgumentException, ArgumentNullException>();
+
+			var tryResCountWithNoInclude = processor.Execute(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, errorParamName));
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		[TestCase("Test", false, "Test")]
 		[TestCase("Test2", true, "Test")]
 		public void Should_IncludeError_BasedOnExpression_Work(string paramName, bool errFilterUnsatisfied, string errorParamName)
