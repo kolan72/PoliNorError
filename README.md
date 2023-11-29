@@ -151,11 +151,19 @@ Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate
 If no filter is set, the delegate will try to be handled with any exception.  
 You can specify error filter for policy or policy processor:
 ```csharp
+//Using generic methods:
  var result = new FallbackPolicy()
                                 .IncludeError<SqlException>() 
                                 .ExcludeError<SqlException>(ex => ex.Number == 1205)
                                 .WithFallbackAction(() => cmd2.ExecuteNonQuery())
                                 .Handle(() => cmd1.ExecuteNonQuery());
+
+//...or non-generic methods that accept Expression<Func<Exception, bool>> as an argument:
+ var result = new FallbackPolicy()
+                                .IncludeError(ex => ex.Source == "MySource") 
+                                .WithFallbackAction(DoSomething)
+                                .Handle(DoSomethingThatThrowsExceptionWithSource);
+
 ```
 An exception is permitted for processing if any of the conditions specified by `IncludeError` are satisfied and all conditions specified by `ExcludeError` are unsatisfied.  
 There are no limitations on the number of filter conditions for both types. 
