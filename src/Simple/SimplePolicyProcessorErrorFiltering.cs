@@ -18,5 +18,8 @@ namespace PoliNorError
 		public static ISimplePolicyProcessor ExcludeError<TException>(this ISimplePolicyProcessor simplePolicyProcessor, Func<TException, bool> func = null) where TException : Exception => simplePolicyProcessor.ExcludeError<ISimplePolicyProcessor, TException>(func);
 
 		public static ISimplePolicyProcessor ExcludeError(this ISimplePolicyProcessor simplePolicyProcessor, Expression<Func<Exception, bool>> handledErrorFilter) => simplePolicyProcessor.ExcludeError<ISimplePolicyProcessor>(handledErrorFilter);
+
+		public static ISimplePolicyProcessor ExcludeErrorSet<TException1, TException2>(this ISimplePolicyProcessor simplePolicyProcessor) where TException1 : Exception where TException2 : Exception
+			=> simplePolicyProcessor.ExcludeErrorSet<ISimplePolicyProcessor, TException1, TException2>();
 	}
 }

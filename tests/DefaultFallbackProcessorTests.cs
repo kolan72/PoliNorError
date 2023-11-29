@@ -216,6 +216,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true)]
+		[TestCase(TestErrorSetMatch.SecondParam, true)]
+		public void Should_ExcludeErrorSet_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
+		{
+			var processor = FallbackProcessor.CreateDefault();
+			processor.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
+
+			var tryResCountWithNoInclude = processor.Fallback(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, errorParamName), (_) => Expression.Empty());
+			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		public void Should_PolicyResult_Contains_NoDelegateException_When_Fallback_Null_Delegate()
 		{
 			var proc = FallbackProcessor.CreateDefault();

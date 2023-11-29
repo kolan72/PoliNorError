@@ -37,6 +37,14 @@ namespace PoliNorError
 			return policyProcessor;
 		}
 
+		internal static T ExcludeErrorSet<T, TException1, TException2>(this T policyProcessor) where T : IPolicyProcessor where TException1 : Exception where TException2 : Exception
+		{
+			policyProcessor
+				.ExcludeError<T, TException1>()
+				.ExcludeError<T, TException2>();
+			return policyProcessor;
+		}
+
 		internal static void AddIncludedErrorFilter(this IPolicyProcessor policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			policyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);

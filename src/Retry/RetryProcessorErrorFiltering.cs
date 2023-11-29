@@ -18,5 +18,8 @@ namespace PoliNorError
 		public static IRetryProcessor ExcludeError<TException>(this IRetryProcessor retryProcessor, Func<TException, bool> func = null) where TException : Exception => retryProcessor.ExcludeError<IRetryProcessor, TException>(func);
 
 		public static IRetryProcessor ExcludeError(this IRetryProcessor retryProcessor, Expression<Func<Exception, bool>> handledErrorFilter) => retryProcessor.ExcludeError<IRetryProcessor>(handledErrorFilter);
+
+		public static IRetryProcessor ExcludeErrorSet<TException1, TException2>(this IRetryProcessor retryProcessor) where TException1 : Exception where TException2 : Exception
+			=> retryProcessor.ExcludeErrorSet<IRetryProcessor, TException1, TException2>();
 	}
 }
