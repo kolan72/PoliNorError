@@ -609,7 +609,7 @@ var polCollectionResult = PolicyCollection
 		return File.ReadAllLines(newFilePath);
 	})
 	.AddPolicyResultHandler<string[]>((pr) => {
-		if (!pr.NoError && pr.IsSuccess)
+		if (pr.IsPolicySuccess)
 			Console.WriteLine("The file was copied into the Temp directory");
 	})
 	.Handle(() => File.ReadAllLines(filePath));
