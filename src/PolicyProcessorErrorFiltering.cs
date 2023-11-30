@@ -19,9 +19,7 @@ namespace PoliNorError
 
 		internal static T IncludeErrorSet<T, TException1, TException2>(this T policyProcessor) where T : IPolicyProcessor where TException1 : Exception where TException2 : Exception
 		{
-			policyProcessor
-				.IncludeError<T, TException1>()
-				.IncludeError<T, TException2>();
+			policyProcessor.AddIncludedErrorSet<TException1, TException2>();
 			return policyProcessor;
 		}
 
@@ -39,9 +37,7 @@ namespace PoliNorError
 
 		internal static T ExcludeErrorSet<T, TException1, TException2>(this T policyProcessor) where T : IPolicyProcessor where TException1 : Exception where TException2 : Exception
 		{
-			policyProcessor
-				.ExcludeError<T, TException1>()
-				.ExcludeError<T, TException2>();
+			policyProcessor.AddExcludedErrorSet<TException1, TException2>();
 			return policyProcessor;
 		}
 
@@ -63,6 +59,20 @@ namespace PoliNorError
 		internal static void AddExcludedErrorFilter<TException>(this IPolicyProcessor policyProcessor, Func<TException, bool> func = null) where TException : Exception
 		{
 			policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+		}
+
+		internal static void AddIncludedErrorSet<TException1, TException2>(this IPolicyProcessor policyProcessor) where TException1 : Exception where TException2 : Exception
+		{
+			policyProcessor
+			.IncludeError<IPolicyProcessor, TException1>()
+			.IncludeError<IPolicyProcessor, TException2>();
+		}
+
+		internal static void AddExcludedErrorSet<TException1, TException2>(this IPolicyProcessor policyProcessor) where TException1 : Exception where TException2 : Exception
+		{
+			policyProcessor
+			.ExcludeError<IPolicyProcessor, TException1>()
+			.ExcludeError<IPolicyProcessor, TException2>();
 		}
 	}
 }

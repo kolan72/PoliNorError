@@ -370,6 +370,32 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true)]
+		[TestCase(TestErrorSetMatch.FirstParam, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false)]
+		public void Should_IncludeErrorSet_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var retryPolTest = new SimplePolicy();
+			retryPolTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(retryPolTest, testErrorSetMatch);
+			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			Assert.AreEqual(isFailed, res.IsFailed);
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true)]
+		[TestCase(TestErrorSetMatch.SecondParam, true)]
+		public void Should_ExcludeErrorSet_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var retryPolTest = new SimplePolicy();
+			retryPolTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(retryPolTest, testErrorSetMatch);
+			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			Assert.AreEqual(isFailed, res.IsFailed);
+		}
+
+		[Test]
 		public void Should_InvokeParams_ToSimplePolicy_Work()
 		{
 			ErrorProcessorParam invokeParamsNull = null;

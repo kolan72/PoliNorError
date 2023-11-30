@@ -12,6 +12,11 @@ namespace PoliNorError.Tests
 
 	internal static class TestHandlingForErrorSet
 	{
+		internal static PolicyResult HandlePolicyWithErrorSet(IPolicyBase policyBase, TestErrorSetMatch testErrorSetMatch)
+		{
+			return policyBase.Handle(GetTwoGenericParamAction(testErrorSetMatch));
+		}
+
 		internal static Action GetTwoGenericParamAction(TestErrorSetMatch testErrorSetMatch, string errorParamName = null)
 		{
 			return () =>
