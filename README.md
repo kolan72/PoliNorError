@@ -584,20 +584,21 @@ if (policyResult.IsSuccess)
 	policyResult.Result.ToList().ForEach(l => Console.WriteLine(l));
 }
 ```
-You can wrap up a `PolicyCollection` itself using the `WrapUp` method as well (since _version_ 2.6.1).
+You can wrap up a `PolicyCollection` itself using the `WrapUp` method as well (this example for _version_ 2.10.0).
 ```csharp
-//It is a stop policy, which halts the handling of the next policy delegate if the file is not found.
-var notFoundPolicy = new SimplePolicy()
-	.IncludeError<FileNotFoundException>()
-	.WithErrorProcessorOf((ex) => logger.Warning(ex.Message));
-
 var polCollectionResult = PolicyCollection
 	.Create()
-	.WithPolicy(notFoundPolicy)
+	//It is a 'stop' policy, that halts handling next policy delegate if the file is not found.
+	.WithSimple()
+	.IncludeErrorForLast<FileNotFoundException>()
+	//Warning message in the log if the file is not found.
+	.WithErrorProcessorOf((ex) => logger.Warning(ex.Message))
+	//If the file exists, we will try to read it twice using this policy:
 	.WithRetry(2)
 	.AddPolicyResultHandlerForLast<string[]>(pr =>
 		pr.Errors.ToList()
 		.ForEach(ex => logger.Error(ex.Message)))
+	//Wrap up the PolicyCollection by FallbackPolicy
 	.WrapUp(new FallbackPolicy())
 	.OuterPolicy
 	.WithFallbackFunc(() =>
