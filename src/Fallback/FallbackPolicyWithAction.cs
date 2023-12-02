@@ -40,10 +40,16 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicyWithAction>(expression);
 
+		public new FallbackPolicyWithAction IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
+			=> this.IncludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
+
 		public new FallbackPolicyWithAction ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
 			=> this.ExcludeError<FallbackPolicyWithAction, TException>(func);
 
 		public new FallbackPolicyWithAction ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyWithAction>(expression);
+
+		public new FallbackPolicyWithAction ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
+			=> this.ExcludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
 
 		public new FallbackPolicyWithAction AddPolicyResultHandler(Action<PolicyResult> action)
 		{
