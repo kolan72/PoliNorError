@@ -151,11 +151,19 @@ Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate
 If no filter is set, the delegate will try to be handled with any exception.  
 You can specify error filter for policy or policy processor:
 ```csharp
+//Using generic methods:
  var result = new FallbackPolicy()
                                 .IncludeError<SqlException>() 
                                 .ExcludeError<SqlException>(ex => ex.Number == 1205)
                                 .WithFallbackAction(() => cmd2.ExecuteNonQuery())
                                 .Handle(() => cmd1.ExecuteNonQuery());
+
+//...or non-generic methods that accept Expression<Func<Exception, bool>> as an argument:
+ var result = new FallbackPolicy()
+                                .IncludeError(ex => ex.Source == "MySource") 
+                                .WithFallbackAction(DoSomething)
+                                .Handle(DoSomethingThatThrowsExceptionWithSource);
+
 ```
 An exception is permitted for processing if any of the conditions specified by `IncludeError` are satisfied and all conditions specified by `ExcludeError` are unsatisfied.  
 There are no limitations on the number of filter conditions for both types. 
@@ -576,20 +584,21 @@ if (policyResult.IsSuccess)
 	policyResult.Result.ToList().ForEach(l => Console.WriteLine(l));
 }
 ```
-You can wrap up a `PolicyCollection` itself using the `WrapUp` method as well (since _version_ 2.6.1).
+You can wrap up a `PolicyCollection` itself using the `WrapUp` method as well (this example for _version_ 2.10.0).
 ```csharp
-//It is a stop policy, which halts the handling of the next policy delegate if the file is not found.
-var notFoundPolicy = new SimplePolicy()
-	.IncludeError<FileNotFoundException>()
-	.WithErrorProcessorOf((ex) => logger.Warning(ex.Message));
-
 var polCollectionResult = PolicyCollection
 	.Create()
-	.WithPolicy(notFoundPolicy)
+	//It is a 'stop' policy, that halts handling next policy delegate if the file is not found.
+	.WithSimple()
+	.IncludeErrorForLast<FileNotFoundException>()
+	//Warning message in the log if the file is not found.
+	.WithErrorProcessorOf((ex) => logger.Warning(ex.Message))
+	//If the file exists, we will try to read it twice using this policy:
 	.WithRetry(2)
 	.AddPolicyResultHandlerForLast<string[]>(pr =>
 		pr.Errors.ToList()
 		.ForEach(ex => logger.Error(ex.Message)))
+	//Wrap up the PolicyCollection by FallbackPolicy
 	.WrapUp(new FallbackPolicy())
 	.OuterPolicy
 	.WithFallbackFunc(() =>
@@ -601,7 +610,7 @@ var polCollectionResult = PolicyCollection
 		return File.ReadAllLines(newFilePath);
 	})
 	.AddPolicyResultHandler<string[]>((pr) => {
-		if (!pr.NoError && pr.IsSuccess)
+		if (pr.IsPolicySuccess)
 			Console.WriteLine("The file was copied into the Temp directory");
 	})
 	.Handle(() => File.ReadAllLines(filePath));
