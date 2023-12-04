@@ -9,7 +9,7 @@ namespace PoliNorError
 	public static class FallbackProcessorErrorFiltering
 	{
 		/// <summary>
-		/// Adds condition for exception to have the <typeparamref name="TException"/> type and satisfy the <paramref name="func"/> predicate to the  <paramref name="fallbackProcessor"/> filter.
+		/// Specifies <typeparamref name="TException"/> type- or <paramref name="func"/> predicate-based filter condition for including exception to the processing by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TException">A type of exception.</typeparam>
 		/// <param name="fallbackProcessor">A processor for Fallback policy.</param>
@@ -18,7 +18,7 @@ namespace PoliNorError
 		public static IFallbackProcessor IncludeError<TException>(this IFallbackProcessor fallbackProcessor, Func<TException, bool> func = null) where TException : Exception => fallbackProcessor.IncludeError<IFallbackProcessor, TException>(func);
 
 		/// <summary>
-		/// Adds condition for exception to satisfy the <paramref name="predicate"/> predicate to the  <paramref name="fallbackProcessor"/> filter.
+		/// Specifies <paramref name="predicate"/> predicate-based filter condition for including exception to the processing by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <param name="fallbackProcessor">A processor for Fallback policy.</param>
 		/// <param name="predicate">A predicate that an exception should satisfy.</param>
@@ -26,7 +26,7 @@ namespace PoliNorError
 		public static IFallbackProcessor IncludeError(this IFallbackProcessor fallbackProcessor, Expression<Func<Exception, bool>> predicate) => fallbackProcessor.IncludeError<IFallbackProcessor>(predicate);
 
 		/// <summary>
-		/// Adds a set of two permitted types of an exception that can be processed by the <paramref name="fallbackProcessor"/> processor.
+		/// Specifies two types-based filter condition for including an exception in the processing performed by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TException1">A type of exception.</typeparam>
 		/// <typeparam name="TException2">A type of exception.</typeparam>
@@ -36,7 +36,7 @@ namespace PoliNorError
 			=> fallbackProcessor.IncludeErrorSet<IFallbackProcessor, TException1, TException2>();
 
 		/// <summary>
-		/// Adds condition for the exception to not have the <typeparamref name="TException"/> type and not satisfy the <paramref name="func"/> predicate to the  <paramref name="fallbackProcessor"/> filter.
+		/// Specifies <typeparamref name="TException"/> type- or <paramref name="func"/> predicate-based filter condition for excluding exception from the processing by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TException">>A type of exception.</typeparam>
 		/// <param name="fallbackProcessor">A processor for Fallback policy.</param>
@@ -45,7 +45,7 @@ namespace PoliNorError
 		public static IFallbackProcessor ExcludeError<TException>(this IFallbackProcessor fallbackProcessor, Func<TException, bool> func = null) where TException : Exception => fallbackProcessor.ExcludeError<IFallbackProcessor, TException>(func);
 
 		/// <summary>
-		/// Adds condition for the exception to not satisfy the <paramref name="predicate"/> predicate to the  <paramref name="fallbackProcessor"/> filter.
+		/// Specifies  <paramref name="predicate"/> predicate-based filter condition for excluding exception from the processing by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <param name="fallbackProcessor">A processor for Fallback policy.</param>
 		/// <param name="predicate">A predicate that an exception should satisfy.</param>
@@ -53,7 +53,7 @@ namespace PoliNorError
 		public static IFallbackProcessor ExcludeError(this IFallbackProcessor fallbackProcessor, Expression<Func<Exception, bool>> predicate) => fallbackProcessor.ExcludeError<IFallbackProcessor>(predicate);
 
 		/// <summary>
-		/// Adds a set of two types of an exception that can not be processed by the <paramref name="fallbackProcessor"/> processor.
+		/// Specifies two types-based filter condition for excluding an exception from the processing performed by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TException1">>A type of exception.</typeparam>
 		/// <typeparam name="TException2">>A type of exception.</typeparam>
