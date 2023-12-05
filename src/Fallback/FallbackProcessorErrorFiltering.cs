@@ -9,7 +9,7 @@ namespace PoliNorError
 	public static class FallbackProcessorErrorFiltering
 	{
 		/// <summary>
-		/// Specifies <typeparamref name="TException"/> type- or <paramref name="func"/> predicate-based filter condition for including exception to the processing by the <paramref name="fallbackProcessor"/> processor.
+		/// Specifies <typeparamref name="TException"/> type- and optionally <paramref name="func"/> predicate-based filter condition for including exception to the processing by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TException">A type of exception.</typeparam>
 		/// <param name="fallbackProcessor">A processor for Fallback policy.</param>
@@ -36,7 +36,7 @@ namespace PoliNorError
 			=> fallbackProcessor.IncludeErrorSet<IFallbackProcessor, TException1, TException2>();
 
 		/// <summary>
-		/// Specifies <typeparamref name="TException"/> type- or <paramref name="func"/> predicate-based filter condition for excluding exception from the processing by the <paramref name="fallbackProcessor"/> processor.
+		/// Specifies <typeparamref name="TException"/> type- and optionally <paramref name="func"/> predicate-based filter condition for excluding exception from the processing by the <paramref name="fallbackProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TException">>A type of exception.</typeparam>
 		/// <param name="fallbackProcessor">A processor for Fallback policy.</param>
