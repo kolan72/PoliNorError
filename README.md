@@ -481,10 +481,20 @@ Be careful when adding an existing `Policy` or `PoliyDelegate` to a collection, 
 
 ### PolicyDelegateCollectionResult
 The results of handling a `PolicyDelegateCollection(<T>)` are stored in `PolicyDelegateCollectionResult(<T>)` class that implements `IEnumerable<PolicyDelegateResult(<T>)>` interface. The `PolicyDelegateResult(<T>)` class is a wrapper around `PolicyResult` that additionally contains `MethodInfo` of the delegate in the `PolicyMethodInfo` property.  
+Properties of the `PolicyDelegateCollectionResult(<T>)` class:  
 
-The `PolicyDelegatesUnused` property contains a collection of policydelegates that were not handled due to the reasons described above.  
+- `PolicyDelegateResults` - the collection of the results of the `PolicyDelegate(<T>)`s handling. The enumerator of this collection is used to implement the `IEnumerable<PolicyDelegateResult(<T>)>` interface.
+- `IsFailed` - the `IsFailed` property value of the last element  of the `PolicyDelegateResults`  or `true` if the whole `PolicyDelegateCollection(<T>)` collection was not handled properly (for example, a common delegate for handling by `PolicyCollection` is null - see below).
+- `IsCanceled` - the `IsCanceled` property value of the last element  of the `PolicyDelegateResults` or `true` if the cancellation occurred between the handling elements of the `PolicyDelegateCollection`.
+- `IsSuccess` - the `IsSuccess` property value of the last element  of the `PolicyDelegateResults` provided both the `IsFailed` and `IsCanceled` properties are false.
+- `PolicyDelegatesUnused` - the part of the `PolicyDelegateCollection(<T>)` collection that was not handled.  
+- `LastPolicyResult` - the `Result` property value of the last element  of the `PolicyDelegateResults` or `null` if the results collection is empty.
+- `LastPolicyResultFailedReason` - the `FailedReason` property value of the last element  of the `PolicyDelegateResults` or `PolicyResultFailedReason.DelegateIsNull` if a common delegate for handling by`PolicyCollection` is null - see below.
+- `Result` - the `LastPolicyResult.Result` property value if the `IsSuccess` property is true and the `LastPolicyResult` property is not `null`, or `default` (for the generic version only).
 
-It is possible to throw an exception if handling of the last element in the collection fails. This can be done with the `WithThrowOnLastFailed` method, which throws a special `PolicyDelegateCollectionException` exception for non-generic collection and  `PolicyDelegateCollectionException<T>` for generic one.   
+When handling an empty `PolicyDelegateCollection(<T>)` collection, the `IsFailed`, `IsCanceled` and `IsSuccess` properties will be equal to `false` and  `LastPolicyResultFailedReason` will be equal to `PolicyResultFailedReason.None`.  
+
+If the handling of the `PolicyDelegateCollection(<T>)` fails, with help the `WithThrowOnLastFailed` method it is possible to throw the `PolicyDelegateCollectionException(<T>)` exception instead of returning the `PolicyDelegateCollectionResult(<T>)`.  
 This exception contains `InnerExceptions` property with exceptions added from `Errors` properties of all `PolicyResult`s. For the `PolicyDelegateCollectionException<T>` object, you can also obtain all `PolicyResult.Result`s by using `GetResults()` method.  
 
 ### PolicyCollection
