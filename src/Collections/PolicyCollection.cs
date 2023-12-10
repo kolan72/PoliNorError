@@ -232,6 +232,30 @@ namespace PoliNorError
 			return this;
 		}
 
+		/// <summary>
+		/// Specifies two types-based filter condition for including an exception in the processing performed by the last policy of the PolicyCollection
+		/// </summary>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <returns></returns>
+		public PolicyCollection IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
+		{
+			this.AddIncludedErrorSetFilter<TException1, TException2>();
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies two types-based filter condition for excluding an exception from the processing performed by the last policy of the PolicyCollection
+		/// </summary>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <returns></returns>
+		public PolicyCollection ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
+		{
+			this.AddExcludedErrorSetFilter<TException1, TException2>();
+			return this;
+		}
+
 		private static PolicyCollection FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
 		{
 			var res = new PolicyCollection();

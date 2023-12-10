@@ -55,6 +55,16 @@ namespace PoliNorError
 			policies.LastOrDefault()?.PolicyProcessor.AddExcludedErrorFilter(handledErrorFilter);
 		}
 
+		public static void AddIncludedErrorSetFilter<TException1, TException2>(this IEnumerable<IPolicyBase> policies) where TException1 : Exception where TException2 : Exception
+		{
+			policies.LastOrDefault()?.PolicyProcessor.AddIncludedErrorSet<TException1, TException2>();
+		}
+
+		public static void AddExcludedErrorSetFilter<TException1, TException2>(this IEnumerable<IPolicyBase> policies) where TException1 : Exception where TException2 : Exception
+		{
+			policies.LastOrDefault()?.PolicyProcessor.AddExcludedErrorSet<TException1, TException2>();
+		}
+
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act)
 		{
 			foreach (var policy in policies)

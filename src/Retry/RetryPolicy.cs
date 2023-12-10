@@ -118,9 +118,13 @@ namespace PoliNorError
 
 		public RetryPolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<RetryPolicy>(expression);
 
+		public RetryPolicy ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<RetryPolicy, TException1, TException2>();
+
 		public RetryPolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<RetryPolicy, TException>(func);
 
 		public RetryPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<RetryPolicy>(expression);
+
+		public RetryPolicy IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<RetryPolicy, TException1, TException2>();
 
 		public RetryPolicy AddPolicyResultHandler(Action<PolicyResult> action)
 		{
