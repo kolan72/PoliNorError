@@ -654,7 +654,7 @@ var result = await PolicyCollection.Create()
 			if (pr.ErrorFilterUnsatisfied)
 				logger.Warning("The tries were interrupted because the maximum number of TimeoutExceptions was exceeded.");
 		})
-		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct));
+		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct), token);
 ```
 You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
