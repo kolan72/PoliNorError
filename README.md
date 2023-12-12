@@ -149,7 +149,7 @@ Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate
 
 ### Error filters
 If no filter is set, the delegate will try to be handled with any exception.  
-You can specify error filter for policy or policy processor:
+You can specify an error filter for the policy or the policy processor by using `IncludeError<TException>` and `ExcludeError<TException>` methods overloads:
 ```csharp
 //Using generic methods:
  var result = new FallbackPolicy()
@@ -166,7 +166,13 @@ You can specify error filter for policy or policy processor:
 
 ```
 An exception is permitted for processing if any of the conditions specified by `IncludeError` are satisfied and all conditions specified by `ExcludeError` are unsatisfied.  
-There are no limitations on the number of filter conditions for both types. 
+There are no limitations on the number of filter conditions for both types.  
+If you want to add a filtering condition based on two types of exceptions, you can use `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` shorthand methods:
+```csharp
+var result = new RetryPolicy(1)
+					.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
+					.Handle(() => File.Copy(filePath, newFilePath));
+```
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers
