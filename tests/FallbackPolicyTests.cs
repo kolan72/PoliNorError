@@ -27,7 +27,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Handle_Sync_NoGeneric_ByFallbackAsync_If_Error()
 		{
-			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); });
+			var throwingException = new Exception("HandleAsync");
+			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw throwingException;});
 
 			var polResult = fallback.Handle(() => throw new Exception("Handle sync by async fallback"));
 
@@ -36,6 +37,9 @@ namespace PoliNorError.Tests
 			Assert.IsTrue(polResult.Errors.Any());
 			Assert.NotNull(polResult.UnprocessedError);
 			Assert.AreEqual(1, polResult.CatchBlockErrors.Count());
+			Assert.NotNull(polResult.CriticalError);
+			Assert.IsTrue(typeof(AggregateException) == polResult.CriticalError.GetType());
+			Assert.AreEqual(throwingException, ((AggregateException)polResult.CriticalError).InnerExceptions.FirstOrDefault());
 		}
 
 		[Test]
@@ -592,13 +596,15 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_Handle_ASync_Generic_ByFallbackSync_If_Error()
 		{
-			var fallback = new FallbackPolicy().WithFallbackFunc((Func<CancellationToken, int>)((_) => throw new Exception(nameof(Should_Handle_ASync_Generic_ByFallbackSync_If_Error))));
+			var throwingException = new Exception(nameof(Should_Handle_ASync_Generic_ByFallbackSync_If_Error));
+			var fallback = new FallbackPolicy().WithFallbackFunc((Func<CancellationToken, int>)((_) => throw throwingException));
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync");});
 
 			Assert.IsTrue(polResult.IsFailed);
 			Assert.IsFalse(polResult.IsCanceled);
 			Assert.IsTrue(polResult.Errors.Any());
 			Assert.IsTrue(polResult.CatchBlockErrors.Count() == 1);
+			Assert.AreEqual(throwingException, polResult.CriticalError);
 		}
 
 		[Test]

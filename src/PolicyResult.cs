@@ -66,6 +66,11 @@ namespace PoliNorError
 			internal set { _unprocessedError = value; }
 		}
 
+		/// <summary>
+		/// An exception in itself or wrapped in the AggregateException caused the processing to break with the <see cref="IsFailed"/>property equaling true.
+		/// </summary>
+		public Exception CriticalError => CatchBlockErrors.FirstOrDefault(ce => ce.IsCritical)?.ProcessingException;
+
 		public IEnumerable<PolicyDelegateResult> WrappedPolicyResults { get; internal set; }
 
 		public string PolicyName { get; internal set; }
