@@ -1,3 +1,13 @@
+## 2.11.1
+
+- Introduce `IncludeErrorSet<TException1, TException2`> methods for policy processors, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`) and `PolicyCollection`.
+- Introduce `ExcludeErrorSet<TException1, TException2`> methods for policy processors, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`) and `PolicyCollection`.
+- Slightly improve performance by using the equality operator instead of the `Equals` method for comparing types in generic error filters.
+- Add new 'PolicyDelegateCollectionResult' README chapter.
+- Update examples in the 'Policy wrap' README chapter.
+- Add docs for the `ExcludeError`, `IncludeError` extension methods in the  `RetryProcessorErrorFiltering`, `FallbackProcessorErrorFiltering`, `SimplePolicyProcessorErrorFiltering` classes.
+
+
 ## 2.10.0
 
 - Introduce `PolicyCollection.ExcludeErrorForLast`, `PolicyCollection.IncludeErrorForLast` extension methods.
