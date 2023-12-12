@@ -166,12 +166,14 @@ You can specify an error filter for the policy or the policy processor by using 
 
 ```
 An exception is permitted for processing if any of the conditions specified by `IncludeError` are satisfied and all conditions specified by `ExcludeError` are unsatisfied.  
+
 There are no limitations on the number of filter conditions for both types.  
+
 If you want to add a filtering condition based on two types of exceptions, you can use `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` shorthand methods:
 ```csharp
 var result = new RetryPolicy(1)
-					.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
-					.Handle(() => File.Copy(filePath, newFilePath));
+				.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
+				.Handle(() => File.Copy(filePath, newFilePath));
 ```
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
