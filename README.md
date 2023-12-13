@@ -178,20 +178,21 @@ var result = new RetryPolicy(1)
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers
-
-When you handle delegate by policy, you can add `PolicyResult` handlers to it using `AddPolicyResultHandler` method overloads.  
-The full list of delegates that can be accepted as arguments for these methods:
+To handle a `PolicyResult(<T>)` object after a policy processor has handled a delegate, add a `PolicyResult` handler using the `AddPolicyResultHandler` or `AddPolicyResultHandler<T>` methods for non-generic and generic delegates, respectively.  
+The full list of delegates that can be handlers and accepted as arguments for these methods is as follows:
 
 - `Action<PolicyResult>`
 - `Action<PolicyResult, CancellationToken>`
 - `Func<PolicyResult, Task>`
 - `Func<PolicyResult, CancellationToken, Task>`
-- `Action<PolicyResult<T>>` (appeared in _version_ 2.0.0-rc2)
-- `Action<PolicyResult<T>, CancellationToken>` (appeared in _version_ 2.0.0-rc2)
-- `Func<PolicyResult<T>, Task>` (appeared in _version_ 2.0.0-rc2)
-- `Func<PolicyResult<T>, CancellationToken, Task>` (appeared in _version_ 2.0.0-rc2)
+- `Action<PolicyResult<T>>`
+- `Action<PolicyResult<T>, CancellationToken>`
+- `Func<PolicyResult<T>, Task>`
+- `Func<PolicyResult<T>, CancellationToken, Task>`
 
-The generic and non-generic `PolicyResult` handlers will only handle the generic and non-generic delegate, respectively.  
+Note that when handling a generic delegate, all generic handlers that do not match the return type of the delegate and non-generic handlers are ignored.  
+Similarly, when handling a non-generic delegate, only non-generic handlers will be executed.  
+
 For example:
 ```csharp
 var result = await new RetryPolicy(5)
