@@ -13,6 +13,11 @@ namespace PoliNorError
 			_func = func;
 		}
 
+		public ASyncHandlerRunner(Func<PolicyResult, CancellationToken, Task> func)
+		{
+			_func = func;
+		}
+
 		public override bool SyncRun => false;
 
 		public async Task RunAsync(PolicyResult policyResult, CancellationToken token = default)
