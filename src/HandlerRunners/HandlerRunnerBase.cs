@@ -7,7 +7,9 @@
 			CollectionIndex = num;
 		}
 
-		public int CollectionIndex { get; protected set; }
+		protected HandlerRunnerBase(){}
+
+		public int CollectionIndex { get; set; }
 
 		public abstract bool SyncRun { get; }
 	}

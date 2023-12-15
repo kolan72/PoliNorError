@@ -2,7 +2,7 @@
 {
 	internal interface IHandlerRunnerBase
 	{
-		int CollectionIndex { get; }
+		int CollectionIndex { get; set; }
 		bool SyncRun { get; }
 	}
 }

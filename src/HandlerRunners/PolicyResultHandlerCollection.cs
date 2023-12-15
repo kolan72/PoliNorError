@@ -7,6 +7,8 @@ namespace PoliNorError
 {
 	internal class PolicyResultHandlerCollection
 	{
+		private int _curNum;
+
 		public PolicyResultHandlerCollection()
 		{
 			Handlers = new List<IHandlerRunner>();
@@ -20,8 +22,8 @@ namespace PoliNorError
 
 		internal void AddHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
-			var handler = new ASyncHandlerRunner(func, Handlers.Count);
-			Handlers.Add(handler);
+			var handler = new ASyncHandlerRunner(func);
+			AddHandler(handler);
 		}
 
 		internal void AddHandler<T>(Func<PolicyResult<T>, Task> func)
@@ -31,8 +33,8 @@ namespace PoliNorError
 
 		internal void AddHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			var handler = ASyncHandlerRunnerT.Create(func, Handlers.Count);
-			GenericHandlers.Add(handler);
+			var handler = ASyncHandlerRunnerT.Create(func);
+			AddGenericHandler(handler);
 		}
 
 		internal void AddHandler(Action<PolicyResult> act)
@@ -42,8 +44,8 @@ namespace PoliNorError
 
 		internal void AddHandler(Action<PolicyResult, CancellationToken> act)
 		{
-			var handler = new SyncHandlerRunner(act, Handlers.Count);
-			Handlers.Add(handler);
+			var handler = new SyncHandlerRunner(act);
+			AddHandler(handler);
 		}
 
 		internal void AddHandler<T>(Action<PolicyResult<T>> act)
@@ -53,8 +55,20 @@ namespace PoliNorError
 
 		internal void AddHandler<T>(Action<PolicyResult<T>, CancellationToken> act)
 		{
-			var handler = SyncHandlerRunnerT.Create(act, Handlers.Count);
-			GenericHandlers.Add(handler);
+			var handler = SyncHandlerRunnerT.Create(act);
+			AddGenericHandler(handler);
+		}
+
+		private void AddGenericHandler(IHandlerRunnerT handlerRunnerT)
+		{
+			handlerRunnerT.CollectionIndex = _curNum++;
+			GenericHandlers.Add(handlerRunnerT);
+		}
+
+		private void AddHandler(IHandlerRunner handlerRunner)
+		{
+			handlerRunner.CollectionIndex = _curNum++;
+			Handlers.Add(handlerRunner);
 		}
 
 		internal List<IHandlerRunner> Handlers { get; }

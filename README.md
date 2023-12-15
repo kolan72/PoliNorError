@@ -149,7 +149,7 @@ Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate
 
 ### Error filters
 If no filter is set, the delegate will try to be handled with any exception.  
-You can specify error filter for policy or policy processor:
+You can specify an error filter for the policy or the policy processor by using `IncludeError<TException>` and `ExcludeError<TException>` methods overloads:
 ```csharp
 //Using generic methods:
  var result = new FallbackPolicy()
@@ -166,24 +166,33 @@ You can specify error filter for policy or policy processor:
 
 ```
 An exception is permitted for processing if any of the conditions specified by `IncludeError` are satisfied and all conditions specified by `ExcludeError` are unsatisfied.  
-There are no limitations on the number of filter conditions for both types. 
+
+There are no limitations on the number of filter conditions for both types.  
+
+If you want to add a filtering condition based on two types of exceptions, you can use `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` shorthand methods:
+```csharp
+var result = new RetryPolicy(1)
+				.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
+				.Handle(() => File.Copy(filePath, newFilePath));
+```
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers
-
-When you handle delegate by policy, you can add `PolicyResult` handlers to it using `AddPolicyResultHandler` method overloads.  
-The full list of delegates that can be accepted as arguments for these methods:
+To handle a `PolicyResult(<T>)` object after a policy processor has handled a delegate, add a `PolicyResult` handler using the `AddPolicyResultHandler` or `AddPolicyResultHandler<T>` methods for non-generic and generic delegates, respectively.  
+The full list of delegates that can be handlers and accepted as arguments for these methods is as follows:
 
 - `Action<PolicyResult>`
 - `Action<PolicyResult, CancellationToken>`
 - `Func<PolicyResult, Task>`
 - `Func<PolicyResult, CancellationToken, Task>`
-- `Action<PolicyResult<T>>` (appeared in _version_ 2.0.0-rc2)
-- `Action<PolicyResult<T>, CancellationToken>` (appeared in _version_ 2.0.0-rc2)
-- `Func<PolicyResult<T>, Task>` (appeared in _version_ 2.0.0-rc2)
-- `Func<PolicyResult<T>, CancellationToken, Task>` (appeared in _version_ 2.0.0-rc2)
+- `Action<PolicyResult<T>>`
+- `Action<PolicyResult<T>, CancellationToken>`
+- `Func<PolicyResult<T>, Task>`
+- `Func<PolicyResult<T>, CancellationToken, Task>`
 
-The generic and non-generic `PolicyResult` handlers will only handle the generic and non-generic delegate, respectively.  
+Note that when handling a generic delegate, all generic handlers that do not match the return type of the delegate and non-generic handlers are ignored.  
+Similarly, when handling a non-generic delegate, only non-generic handlers will be executed.  
+
 For example:
 ```csharp
 var result = await new RetryPolicy(5)

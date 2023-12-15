@@ -76,9 +76,9 @@ namespace PoliNorError.Tests
 
 		private class TestHandlerRunner : IHandlerRunner
 		{
-			public int CollectionIndex => throw new NotImplementedException();
-
 			public bool SyncRun => throw new NotImplementedException();
+
+			public int CollectionIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 			public void Run(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();
 			public Task RunAsync(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();
