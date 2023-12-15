@@ -134,5 +134,29 @@ namespace PoliNorError.Tests
 			handlers.AddHandler<int>((_, __) => Expression.Empty());
 			Assert.AreEqual(genericHandlersCount, handlers.GenericHandlers.Count);
 		}
+
+		[Test]
+		public void Should_PolicyResultHandlerCollectionIndex_Be_Correct_When_Adding_NonGeneric_And_Generic_Handlers()
+		{
+			int counter = 0;
+			var handlers = new PolicyResultHandlerCollection();
+			handlers.AddHandler<int>(async (_) => await Task.Delay(1));
+			Assert.AreEqual(counter++, handlers.GenericHandlers.LastOrDefault().CollectionIndex);
+			handlers.AddHandler(async (_) => await Task.Delay(1));
+			Assert.AreEqual(counter++, handlers.Handlers.LastOrDefault().CollectionIndex);
+			handlers.AddHandler(async (_) => await Task.Delay(1));
+			Assert.AreEqual(counter++, handlers.Handlers.LastOrDefault().CollectionIndex);
+			handlers.AddHandler<int>(async (_) => await Task.Delay(1));
+			Assert.AreEqual(counter++, handlers.GenericHandlers.LastOrDefault().CollectionIndex);
+			handlers.AddHandler((_) => { });
+			Assert.AreEqual(counter++, handlers.Handlers.LastOrDefault().CollectionIndex);
+
+			var allHandlersIndexes = handlers.GenericHandlers.Select(h => h.CollectionIndex)
+									.Concat(handlers.Handlers.Select(h => h.CollectionIndex));
+
+			Assert.IsTrue(allHandlersIndexes.GroupBy(x => x).All(x => x.Count() == 1));
+
+			Assert.AreEqual(counter, allHandlersIndexes.Count());
+		}
 	}
 }
