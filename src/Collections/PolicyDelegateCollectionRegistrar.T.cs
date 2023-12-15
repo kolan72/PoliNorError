@@ -104,6 +104,34 @@ namespace PoliNorError
 			return policyDelegateCollection;
 		}
 
+		/// <summary>
+		/// Specifies two types-based filter condition for including an exception in the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/>
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> IncludeErrorSet<T, TException1, TException2>(this IPolicyDelegateCollection<T> policyDelegateCollection) where TException1: Exception where TException2: Exception
+		{
+			policyDelegateCollection.AddIncludedErrorSetFilter<TException1, TException2>();
+			return policyDelegateCollection;
+		}
+
+		/// <summary>
+		/// Specifies two types-based filter condition for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/>
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> ExcludeErrorSet<T, TException1, TException2>(this IPolicyDelegateCollection<T> policyDelegateCollection) where TException1 : Exception where TException2 : Exception
+		{
+			policyDelegateCollection.AddExcludedErrorSetFilter<TException1, TException2>();
+			return policyDelegateCollection;
+		}
+
 		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>> act)
 		{
 			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);
