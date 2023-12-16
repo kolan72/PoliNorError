@@ -606,7 +606,7 @@ if (policyResult.IsSuccess)
 ```
 You can wrap up a `PolicyCollection` itself using the `WrapUp` method as well (this example for _version_ 2.10.0).
 ```csharp
-var polCollectionResult = PolicyCollection
+var outerPolicyResult = PolicyCollection
 	.Create()
 	//It is a 'stop' policy, that halts handling next policy delegate if the file is not found.
 	.WithSimple()
@@ -635,7 +635,7 @@ var polCollectionResult = PolicyCollection
 	})
 	.Handle(() => File.ReadAllLines(filePath));
 
-if (polCollectionResult.IsSuccess)
+if (outerPolicyResult.IsSuccess)
 {
 	polCollectionResult.Result?.ToList().ForEach(l => Console.WriteLine(l));
 }
