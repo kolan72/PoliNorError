@@ -613,11 +613,41 @@ var outerPolicyResult = PolicyCollection
 	.IncludeErrorForLast<FileNotFoundException>()
 	//Warning message in the log if the file is not found.
 	.WithErrorProcessorOf((ex) => logger.Warning(ex.Message))
+	.AddPolicyResultHandlerForLast<string[]>((pr) =>
+	{
+		//It is the handler for SimplePolicy, so check the NoError property
+		//to ensure that there were no exceptions during handling.
+		if (pr.NoError)
+		{
+			PrintResultInConsole(pr);
+		}
+		else if (pr.IsPolicySuccess)
+		{
+			Console.WriteLine($"This exception was caught by {pr.PolicyName}." +
+				$"The exception type is not suitable for retries, exit from handling.");
+		}
+		else if (pr.IsFailed)
+		{
+			Console.WriteLine($"{pr.PolicyName} can't handle this exception, handling continues...");
+		}
+	})
 	//If the file exists, we will try to read it twice using this policy:
 	.WithRetry(2)
 	.AddPolicyResultHandlerForLast<string[]>(pr =>
-		pr.Errors.ToList()
-		.ForEach(ex => logger.Error(ex.Message)))
+		if (pr.IsSuccess)
+		{
+			PrintResultInConsole(pr);
+		}
+	))
+	//All failed policies exceptions will be logged here.		
+	.AddPolicyResultHandlerForAll<string[]>(pr =>
+	{
+		if (pr.IsFailed)
+		{
+			logger.Error($"Exceptions after {pr.PolicyName}:");
+			pr.Errors.ToList().ForEach(ex => logger.Error(ex.Message));
+		}
+	})		
 	//Wrap up the PolicyCollection by FallbackPolicy
 	.WrapUp(new FallbackPolicy())
 	.OuterPolicy
@@ -630,15 +660,18 @@ var outerPolicyResult = PolicyCollection
 		return File.ReadAllLines(newFilePath);
 	})
 	.AddPolicyResultHandler<string[]>((pr) => {
-		if (pr.IsPolicySuccess)
-			Console.WriteLine("The file was copied into the Temp directory");
+		if(pr.IsSuccess)
+		{
+			if (pr.IsPolicySuccess)
+			{
+				Console.WriteLine("The file was copied into the Temp directory");
+			}
+			PrintResultInConsole(pr);
+		}
 	})
 	.Handle(() => File.ReadAllLines(filePath));
 
-if (outerPolicyResult.IsSuccess)
-{
-	polCollectionResult.Result?.ToList().ForEach(l => Console.WriteLine(l));
-}
+	private static void PrintResultInConsole(PolicyResult<string[]> pr) => pr.Result?.ToList().ForEach(l => Console.WriteLine(l));
 ```
 The `PolicyCollection.WrapUp` method has an optional parameter of type `ThrowOnWrappedCollectionFailed`, that by default is set to `ThrowOnWrappedCollectionFailed.LastError`  with behind the scenes throwing `PolicyResult.UnprocessedError` of failed policy (usually the last one in the `PolicyCollection`).  
 
