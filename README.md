@@ -671,7 +671,7 @@ var outerPolicyResult = PolicyCollection
 	})
 	.Handle(() => File.ReadAllLines(filePath));
 
-	private static void PrintResultInConsole(PolicyResult<string[]> pr) => pr.Result?.ToList().ForEach(l => Console.WriteLine(l));
+private static void PrintResultInConsole(PolicyResult<string[]> pr) => pr.Result?.ToList().ForEach(l => Console.WriteLine(l));
 ```
 The `PolicyCollection.WrapUp` method has an optional parameter of type `ThrowOnWrappedCollectionFailed`, that by default is set to `ThrowOnWrappedCollectionFailed.LastError`  with behind the scenes throwing `PolicyResult.UnprocessedError` of failed policy (usually the last one in the `PolicyCollection`).  
 
