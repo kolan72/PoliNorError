@@ -137,5 +137,44 @@ namespace PoliNorError.Tests
 			handlers.AddHandler((_, __) => Expression.Empty());
 			Assert.AreEqual(handlersCount, handlers.Handlers.Count);
 		}
+
+		[Test]
+		[TestCase(TestPolicyResultHandlerSyncType.Sync, true)]
+		[TestCase(TestPolicyResultHandlerSyncType.Misc, true)]
+		[TestCase(TestPolicyResultHandlerSyncType.Async, true)]
+		[TestCase(TestPolicyResultHandlerSyncType.Sync, false)]
+		[TestCase(TestPolicyResultHandlerSyncType.Misc, false)]
+		[TestCase(TestPolicyResultHandlerSyncType.Async, false)]
+		public async Task Should_More_Than_One_Exception_In_Handler_Be_Stored_In_PolicyResultHandlingErrors(TestPolicyResultHandlerSyncType syncType, bool syncHandling)
+		{
+			var policy = new SimplePolicy();
+			void action(PolicyResult _) => throw new Exception("TestSync");
+			Task fn(PolicyResult _) => throw new Exception("TestAsync");
+			switch (syncType)
+			{
+				case TestPolicyResultHandlerSyncType.Sync:
+					policy.AddPolicyResultHandlerInner(action)
+						  .AddPolicyResultHandlerInner(action);
+					break;
+				case TestPolicyResultHandlerSyncType.Misc:
+					policy.AddPolicyResultHandlerInner(action)
+						  .AddPolicyResultHandlerInner(fn);
+					break;
+				case TestPolicyResultHandlerSyncType.Async:
+					policy.AddPolicyResultHandlerInner(fn)
+						  .AddPolicyResultHandlerInner(fn);
+					break;
+			}
+			PolicyResult result = null;
+			if (syncHandling)
+			{
+				result = policy.Handle(() => { });
+			}
+			else
+			{
+				result = await policy.HandleAsync(async (_) => await Task.Delay(1));
+			}
+			Assert.AreEqual(2, result.PolicyResultHandlingErrors.Count());
+		}
 	}
 }
