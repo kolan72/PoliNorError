@@ -197,5 +197,29 @@ namespace PoliNorError.Tests
 			}
 			Assert.AreEqual(2, result.PolicyResultHandlingErrors.Count());
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_HandlingIndex_For_PolicyResultHandlingException_Be_Correct(bool syncHandling)
+		{
+			void action(PolicyResult _) => Expression.Empty();
+			void genericAction(PolicyResult<int> _) => throw new Exception("TestSync");
+
+			var policy = new SimplePolicy()
+						.AddPolicyResultHandler(action)
+						.AddPolicyResultHandlerInner<SimplePolicy, int>(genericAction);
+			PolicyResult<int> result = null;
+			if (syncHandling)
+			{
+				result = policy.Handle(() => 1);
+			}
+			else
+			{
+				result = await policy.HandleAsync(async (_) => {await Task.Delay(1); return 1;});
+			}
+			Assert.AreEqual(1, result.PolicyResultHandlingErrors.Count());
+			Assert.AreEqual(1, result.PolicyResultHandlingErrors.FirstOrDefault().HandlerIndex);
+		}
 	}
 }
