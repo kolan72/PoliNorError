@@ -631,14 +631,8 @@ var outerPolicyResult = PolicyCollection
 			Console.WriteLine($"{pr.PolicyName} can't handle this exception, handling continues...");
 		}
 	})
-	//If the file exists, we will try to read it twice using this policy:
+	//If the file exists, we will try to read it twice using RetryPolicy:
 	.WithRetry(2)
-	.AddPolicyResultHandlerForLast<string[]>(pr =>
-		if (pr.IsSuccess)
-		{
-			PrintResultInConsole(pr);
-		}
-	))
 	//All failed policies exceptions will be logged here.		
 	.AddPolicyResultHandlerForAll<string[]>(pr =>
 	{
@@ -666,6 +660,9 @@ var outerPolicyResult = PolicyCollection
 			{
 				Console.WriteLine("The file was copied into the Temp directory");
 			}
+			//Note that if the file was successfully read
+			//during the retry policy handling,
+			//its lines will also be printed here.
 			PrintResultInConsole(pr);
 		}
 	})
