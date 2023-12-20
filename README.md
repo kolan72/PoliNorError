@@ -169,7 +169,7 @@ An exception is permitted for processing if any of the conditions specified by `
 
 There are no limitations on the number of filter conditions for both types.  
 
-If you want to add a filtering condition based on two types of exceptions, you can use `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` shorthand methods:
+If you want to add a filtering condition based on two types of exceptions, you can use `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` shorthand methods (since _version_ 2.11.1):
 ```csharp
 var result = new RetryPolicy(1)
 				.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
