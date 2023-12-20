@@ -204,6 +204,11 @@ In the `PolicyResult` handler, it is possible to set the `IsFailed` property to 
 Exceptions in a `PolicyResult` handler are allowed and stored in `PolicyResultHandlingErrors` property without affecting other `PolicyResult` properties.  
 If a cancellation occurs at the stage of the `PolicyResult` handling, the process of running the `PolicyResult` handlers will not be interrupted.  
 
+Methods that add handlers to collections (see below) are as follows:  
+
+- `AddPolicyResultHandlerForLast(<T>)` -  adds `PolicyResult(<T>)` handler to the last (newly added) element of collection  
+- `AddPolicyResultHandlerForAll(<T>)` -   adds `PolicyResult(<T>)` handler for all elements that have already been added to collection
+
 ### RetryPolicy
 The policy rule for the `RetryPolicy` is that it can handle exceptions only until the number of permitted retries does not exceed, so it is the most crucial parameter and is set in policy constructor.  
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
