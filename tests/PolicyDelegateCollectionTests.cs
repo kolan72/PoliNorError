@@ -456,6 +456,56 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true)]
+		[TestCase(TestErrorSetMatch.FirstParam, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false)]
+		public async Task Should_IncludeErrorSet_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var policyDelegateCollection = PolicyDelegateCollection
+						.Create()
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
+						.IncludeErrorSet<ArgumentException, ArgumentNullException>();
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true)]
+		[TestCase(TestErrorSetMatch.SecondParam, true)]
+		public async Task Should_ExcludeErrorSet_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var policyDelegateCollection = PolicyDelegateCollection
+						.Create()
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
+						.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			Assert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		public void Should_IncludeErrorSet_Not_Throw_For_EmptyCollection()
+		{
+			var polCollection = PolicyDelegateCollection.Create();
+			Assert.DoesNotThrow(() => polCollection.IncludeErrorSet<ArgumentException, ArgumentNullException>());
+		}
+
+		[Test]
+		public void Should_ExcludeErrorSet_Not_Throw_For_EmptyCollection()
+		{
+			var polCollection = PolicyDelegateCollection.Create();
+			Assert.DoesNotThrow(() => polCollection.ExcludeErrorSet<ArgumentException, ArgumentNullException>());
+		}
+
+		[Test]
 		public void Should_ExcludeErrorForLast_Not_Throw_For_EmptyCollection()
 		{
 			var polCollection = PolicyDelegateCollection.Create();
