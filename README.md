@@ -169,7 +169,7 @@ An exception is permitted for processing if any of the conditions specified by `
 
 There are no limitations on the number of filter conditions for both types.  
 
-If you want to add a filtering condition based on two types of exceptions, you can use `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` shorthand methods:
+If you want to add a filtering condition based on two types of exceptions, you can use `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` shorthand methods (since _version_ 2.11.1):
 ```csharp
 var result = new RetryPolicy(1)
 				.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
@@ -203,6 +203,13 @@ In the `PolicyResult` handler, it is possible to set the `IsFailed` property to 
 
 Exceptions in a `PolicyResult` handler are allowed and stored in `PolicyResultHandlingErrors` property without affecting other `PolicyResult` properties.  
 If a cancellation occurs at the stage of the `PolicyResult` handling, the process of running the `PolicyResult` handlers will not be interrupted.  
+
+Methods that add handlers to collections (see below) are as follows:  
+
+- `AddPolicyResultHandlerForLast(<T>)` -  adds `PolicyResult(<T>)` handler to the last (newly added) element of collection  
+- `AddPolicyResultHandlerForAll(<T>)` -   adds `PolicyResult(<T>)` handler for all elements that have already been added to collection  
+
+These methods take the same arguments as the `AddPolicyResultHandler` methods above.  
 
 ### RetryPolicy
 The policy rule for the `RetryPolicy` is that it can handle exceptions only until the number of permitted retries does not exceed, so it is the most crucial parameter and is set in policy constructor.  
@@ -448,10 +455,9 @@ var freeSpaceResult = PolicyDelegateCollection<long>.Create()
 							.HandleAll();
 ```
 In this example, note that when an exception occurs on getting free space, we exit from further handling due to `SimplePolicy` with an error message in the log.  
+Note also how the `AddPolicyResultHandlerForLast<T>` method can be used for the `PolicyDelegateCollection<T>`.  
 
-Note also that the `AddPolicyResultHandlerForLast` method (since _version_ 2.4.0) is used  for the adding `PolicyResult` handler to the last (newly added) element of the `PolicyDelegateCollection<long>`.  
-
-You can establish a common `PolicyResult` handler for all elements that have already been added to the collection by using the `AddPolicyResultHandlerForAll` method:  
+To set a common `PolicyResult(<T>)` handler for all items already added to the collection, use the `AddPolicyResultHandlerForAll(<T>)` method:  
 ```csharp
 var result = PolicyDelegateCollection<IConnection>.Create()
                         .WithWaitAndRetry(3, TimeSpan.FromSeconds(2))
@@ -470,8 +476,6 @@ var result = PolicyDelegateCollection<IConnection>.Create()
 						}
                         .HandleAll();
 ```
-
-The `AddPolicyResultHandlerForLast` and `AddPolicyResultHandlerForAll` methods require the same delegates types as `PolicyResult` handlers for a policy.  
 
 You can use `ExcludeErrorForAll` and `IncludeErrorForAll` methods to set filters on the entire collection:
 ```csharp
