@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Linq;
+using NUnit.Framework.Legacy;
 
 namespace PoliNorError.Tests
 {
@@ -16,9 +17,9 @@ namespace PoliNorError.Tests
 			void save(Exception _, CancellationToken __) { i++; }
 			var processor = new DefaultFallbackProcessor().WithErrorProcessorOf(save);
 			var polResult = processor.Fallback(() => throw new Exception("Test_Fallback"), (_) => 1);
-			Assert.AreEqual(2, i);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.AreEqual(1, polResult.Result);
+			ClassicAssert.AreEqual(2, i);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.AreEqual(1, polResult.Result);
 		}
 
 		[Test]
@@ -29,9 +30,9 @@ namespace PoliNorError.Tests
 
 			var processor = new DefaultFallbackProcessor().WithErrorProcessorOf(onErrorTask);
 			var polResult = processor.Fallback(() => throw new Exception("Test_Fallback"), (_) => 1);
-			Assert.AreEqual(2, i);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.AreEqual(1, polResult.Result);
+			ClassicAssert.AreEqual(2, i);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.AreEqual(1, polResult.Result);
 		}
 
 		[Test]
@@ -45,8 +46,8 @@ namespace PoliNorError.Tests
 
 			var res = processor.Fallback(() => throw new Exception(), fallback);
 
-			Assert.AreEqual(2, i);
-			Assert.IsFalse(res.IsFailed);
+			ClassicAssert.AreEqual(2, i);
+			ClassicAssert.IsFalse(res.IsFailed);
 		}
 
 		[Test]
@@ -60,8 +61,8 @@ namespace PoliNorError.Tests
 
 			var res = processor.Fallback(() => throw new Exception(), fallback);
 
-			Assert.AreEqual(2, res.Result);
-			Assert.IsFalse(res.IsFailed);
+			ClassicAssert.AreEqual(2, res.Result);
+			ClassicAssert.IsFalse(res.IsFailed);
 		}
 
 		[Test]
@@ -79,11 +80,11 @@ namespace PoliNorError.Tests
 							.WithErrorProcessorOf((Exception _, CancellationToken __) => {p++; cancelTokenSource.Cancel();})
 							.Fallback(() => throw new Exception(), fallback, cancelTokenSource.Token);
 
-			Assert.IsTrue(res.IsFailed);
-			Assert.IsTrue(res.IsCanceled);
-			Assert.AreEqual(1, p);
-			Assert.AreEqual(0, i);
-			Assert.AreEqual(0, res.Result);
+			ClassicAssert.IsTrue(res.IsFailed);
+			ClassicAssert.IsTrue(res.IsCanceled);
+			ClassicAssert.AreEqual(1, p);
+			ClassicAssert.AreEqual(0, i);
+			ClassicAssert.AreEqual(0, res.Result);
 			cancelTokenSource.Dispose();
 		}
 
@@ -98,9 +99,9 @@ namespace PoliNorError.Tests
 
 			var res = processor.Fallback(() => i, fallback);
 
-			Assert.AreEqual(1, res.Result);
-			Assert.IsFalse(res.IsFailed);
-			Assert.IsTrue(res.NoError);
+			ClassicAssert.AreEqual(1, res.Result);
+			ClassicAssert.IsFalse(res.IsFailed);
+			ClassicAssert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -110,8 +111,8 @@ namespace PoliNorError.Tests
 			void save(Exception _, CancellationToken __) { i++; }
 			var processor = new DefaultFallbackProcessor().WithErrorProcessorOf(save);
 			var polResult = processor.Fallback(()=>throw new Exception("Test_Fallback"), (_) => Expression.Empty());
-			Assert.AreEqual(2, i);
-			Assert.IsFalse(polResult.IsFailed);
+			ClassicAssert.AreEqual(2, i);
+			ClassicAssert.IsFalse(polResult.IsFailed);
 		}
 
 		[Test]
@@ -120,10 +121,10 @@ namespace PoliNorError.Tests
 			var processor = new DefaultFallbackProcessor();
 			var polResult = processor.Fallback(() => throw new Exception("Test_Save"), (_) => throw new Exception("Test_Fallback"));
 
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsNotNull(polResult.UnprocessedError);
-			Assert.AreEqual(CatchBlockExceptionSource.PolicyRule, polResult.CatchBlockErrors.FirstOrDefault().ExceptionSource);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsNotNull(polResult.UnprocessedError);
+			ClassicAssert.AreEqual(CatchBlockExceptionSource.PolicyRule, polResult.CatchBlockErrors.FirstOrDefault().ExceptionSource);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 
 		[Test]
@@ -132,10 +133,10 @@ namespace PoliNorError.Tests
 			var processor = new DefaultFallbackProcessor();
 			var polResult = processor.Fallback<int>(() => throw new Exception("Test_Save"), (_) => throw new Exception("Test_Fallback"));
 
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
-			Assert.AreEqual(CatchBlockExceptionSource.PolicyRule, polResult.CatchBlockErrors.FirstOrDefault().ExceptionSource);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
+			ClassicAssert.AreEqual(CatchBlockExceptionSource.PolicyRule, polResult.CatchBlockErrors.FirstOrDefault().ExceptionSource);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, polResult.FailedReason);
 		}
 
 		[Test]
@@ -147,7 +148,7 @@ namespace PoliNorError.Tests
 			processor.IncludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -159,7 +160,7 @@ namespace PoliNorError.Tests
 											 .IncludeError(ex => ex.Message == paramName);
 			void saveWithInclude() => throw new Exception(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -172,7 +173,7 @@ namespace PoliNorError.Tests
 			processor.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 
 			var tryResCountWithNoInclude = processor.Fallback(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, errorParamName), (_) => Expression.Empty());
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -187,8 +188,8 @@ namespace PoliNorError.Tests
 					  .WithErrorProcessorOf(save);
 			void saveWithInclude() => throw new Exception("Test");
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
-			Assert.IsTrue(tryResCountWithNoInclude.ErrorFilterUnsatisfied);
-			Assert.AreEqual(init_value, i);
+			ClassicAssert.IsTrue(tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(init_value, i);
 		}
 
 		[Test]
@@ -200,7 +201,7 @@ namespace PoliNorError.Tests
 			processor.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -212,7 +213,7 @@ namespace PoliNorError.Tests
 											 .ExcludeError(ex => ex.Message == paramName);
 			void saveWithInclude() => throw new Exception(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -225,7 +226,7 @@ namespace PoliNorError.Tests
 			processor.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 
 			var tryResCountWithNoInclude = processor.Fallback(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, errorParamName), (_) => Expression.Empty());
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -233,9 +234,9 @@ namespace PoliNorError.Tests
 		{
 			var proc = FallbackProcessor.CreateDefault();
 			var fallbackResult = proc.Fallback(null, (_) => { });
-			Assert.IsTrue(fallbackResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.IsTrue(fallbackResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -243,9 +244,9 @@ namespace PoliNorError.Tests
 		{
 			var proc = FallbackProcessor.CreateDefault();
 			var fallbackResult = proc.Fallback(null, (_) => 1);
-			Assert.IsTrue(fallbackResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.IsTrue(fallbackResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace PoliNorError.Tests
 {
@@ -8,10 +9,10 @@ namespace PoliNorError.Tests
 		public void Should_Infinite_Work()
 		{
 			var inf = RetryCountInfo.Infinite();
-			Assert.IsTrue(inf.IsInfinite);
-			Assert.AreEqual(int.MaxValue -1, inf.RetryCount);
-			Assert.IsTrue(inf.CanRetry(int.MaxValue - 2));
-			Assert.IsFalse(inf.CanRetry(int.MaxValue - 1));
+			ClassicAssert.IsTrue(inf.IsInfinite);
+			ClassicAssert.AreEqual(int.MaxValue -1, inf.RetryCount);
+			ClassicAssert.IsTrue(inf.CanRetry(int.MaxValue - 2));
+			ClassicAssert.IsFalse(inf.CanRetry(int.MaxValue - 1));
 		}
 
 		[Test]
@@ -22,9 +23,9 @@ namespace PoliNorError.Tests
 		public void Should_Limited_Work(int limitedRetryCount, int expectedRetryCount)
 		{
 			var limited = RetryCountInfo.Limited(limitedRetryCount);
-			Assert.AreEqual(false, limited.IsInfinite);
-			Assert.AreEqual(expectedRetryCount, limited.RetryCount);
-			Assert.IsTrue(limited.CanRetry(limited.RetryCount-1));
+			ClassicAssert.AreEqual(false, limited.IsInfinite);
+			ClassicAssert.AreEqual(expectedRetryCount, limited.RetryCount);
+			ClassicAssert.IsTrue(limited.CanRetry(limited.RetryCount-1));
 		}
 
 		[Test]
@@ -33,32 +34,32 @@ namespace PoliNorError.Tests
 		public void Should_Limited_Work_ForMaxValue(int maxValue)
 		{
 			var limited = RetryCountInfo.Limited(maxValue);
-			Assert.AreEqual(true, limited.IsInfinite);
-			Assert.AreEqual(int.MaxValue - 1, limited.RetryCount);
-			Assert.IsTrue(limited.CanRetry(limited.RetryCount - 1));
+			ClassicAssert.AreEqual(true, limited.IsInfinite);
+			ClassicAssert.AreEqual(int.MaxValue - 1, limited.RetryCount);
+			ClassicAssert.IsTrue(limited.CanRetry(limited.RetryCount - 1));
 		}
 
 		[Test]
 		public void Should_Limited_MaxRetries_WithNeverFunc_Work()
 		{
 			var limited = RetryCountInfo.Limited(int.MaxValue, opt => opt.CanRetryInner = (_) => false);
-			Assert.IsTrue(limited.IsInfinite);
-			Assert.IsFalse(limited.CanRetry(0));
+			ClassicAssert.IsTrue(limited.IsInfinite);
+			ClassicAssert.IsFalse(limited.CanRetry(0));
 		}
 
 		[Test]
 		public void Should_WithNotZeroStartTryCount_Work()
 		{
 			var limited = RetryCountInfo.Limited(1, opt => opt.StartTryCount = int.MaxValue - 1);
-			Assert.IsTrue(limited.CanRetry(int.MaxValue-2));
+			ClassicAssert.IsTrue(limited.CanRetry(int.MaxValue-2));
 		}
 
 		[Test]
 		public void Should_LimitedFromOptions_Work()
 		{
 			var limited = RetryCountInfo.Limited(1, opt => { opt.CanRetryInner = (_) => false; opt.StartTryCount = 1; });
-			Assert.IsTrue(limited.StartTryCount == 1);
-			Assert.IsFalse(limited.CanRetry(1));
+			ClassicAssert.IsTrue(limited.StartTryCount == 1);
+			ClassicAssert.IsFalse(limited.CanRetry(1));
 		}
 	}
 }

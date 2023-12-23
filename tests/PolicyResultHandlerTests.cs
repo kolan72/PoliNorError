@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
 using System.Linq.Expressions;
+using NUnit.Framework.Legacy;
 
 namespace PoliNorError.Tests
 {
@@ -19,7 +20,7 @@ namespace PoliNorError.Tests
 					   .AddPolicyResultHandlerInner((__, _) => i++)
 					   ;
 			retryPolicy.Handle(() => throw new Exception("Handle"));
-			Assert.AreEqual(3, i);
+			ClassicAssert.AreEqual(3, i);
 		}
 
 		[Test]
@@ -33,7 +34,7 @@ namespace PoliNorError.Tests
 					   .AddPolicyResultHandlerInner(async (_) => { await Task.Delay(1); i++; });
 
 			var res2 = retryPolicy.Handle(() => throw new Exception("Handle"), cancelSource.Token);
-			Assert.AreEqual(typeof(OperationCanceledException), res2.PolicyResultHandlingErrors.FirstOrDefault().InnerException.GetType());
+			ClassicAssert.AreEqual(typeof(OperationCanceledException), res2.PolicyResultHandlingErrors.FirstOrDefault().InnerException.GetType());
 			cancelSource.Dispose();
 		}
 
@@ -50,8 +51,8 @@ namespace PoliNorError.Tests
 
 			await retryPolicy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
 
-			Assert.AreEqual(3, i);
-			Assert.AreEqual(1, m);
+			ClassicAssert.AreEqual(3, i);
+			ClassicAssert.AreEqual(1, m);
 		}
 
 		[Test]
@@ -60,8 +61,8 @@ namespace PoliNorError.Tests
 			void action(PolicyResult _) { throw new Exception(); }
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandlerInner(action);
 			var res = retryPolicy.Handle(() => { });
-			Assert.IsTrue(res.NoError);
-			Assert.IsTrue(res.PolicyResultHandlingErrors.Count() == 1);
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.IsTrue(res.PolicyResultHandlingErrors.Count() == 1);
 		}
 
 		[Test]
@@ -70,9 +71,9 @@ namespace PoliNorError.Tests
 			void action(PolicyResult pr) { pr.SetFailed(); }
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandlerInner(action);
 			var res = retryPolicy.Handle(() => { });
-			Assert.IsTrue(res.NoError);
-			Assert.IsTrue(res.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.IsTrue(res.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
 		}
 
 		[Test]
@@ -81,9 +82,9 @@ namespace PoliNorError.Tests
 			async Task func(PolicyResult pr) { await Task.Delay(1); pr.SetFailed(); }
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandlerInner(func);
 			var res = retryPolicy.Handle(() => { });
-			Assert.IsTrue(res.NoError);
-			Assert.IsTrue(res.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.IsTrue(res.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
 		}
 
 		[Test]
@@ -91,7 +92,7 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandlerInner((_) => Task.FromException(new Exception()));
 			var res = retryPolicy.Handle(() => { });
-			Assert.IsTrue(res.PolicyResultHandlingErrors.Count() == 1);
+			ClassicAssert.IsTrue(res.PolicyResultHandlingErrors.Count() == 1);
 		}
 
 		[Test]
@@ -114,7 +115,7 @@ namespace PoliNorError.Tests
 					res = await simplePolicy.HandleAsync(async (_) => { await Task.Delay(1); cts.Cancel(); }, cts.Token);
 				}
 
-				Assert.IsTrue(res.IsFailed);
+				ClassicAssert.IsTrue(res.IsFailed);
 			}
 		}
 
@@ -126,16 +127,16 @@ namespace PoliNorError.Tests
 			var handlers = new PolicyResultHandlerCollection();
 
 			handlers.AddHandler(async (_) => await Task.Delay(1));
-			Assert.AreEqual(handlersCount++, handlers.Handlers.Count);
+			ClassicAssert.AreEqual(handlersCount++, handlers.Handlers.Count);
 
 			handlers.AddHandler(async (_, __) => await Task.Delay(1));
-			Assert.AreEqual(handlersCount++, handlers.Handlers.Count);
+			ClassicAssert.AreEqual(handlersCount++, handlers.Handlers.Count);
 
 			handlers.AddHandler((_) => Expression.Empty());
-			Assert.AreEqual(handlersCount++, handlers.Handlers.Count);
+			ClassicAssert.AreEqual(handlersCount++, handlers.Handlers.Count);
 
 			handlers.AddHandler((_, __) => Expression.Empty());
-			Assert.AreEqual(handlersCount, handlers.Handlers.Count);
+			ClassicAssert.AreEqual(handlersCount, handlers.Handlers.Count);
 		}
 
 		[Test]
@@ -174,7 +175,7 @@ namespace PoliNorError.Tests
 			{
 				result = await policy.HandleAsync(async (_) => await Task.Delay(1));
 			}
-			Assert.AreEqual(2, result.PolicyResultHandlingErrors.Count());
+			ClassicAssert.AreEqual(2, result.PolicyResultHandlingErrors.Count());
 		}
 
 		[Test]
@@ -197,8 +198,8 @@ namespace PoliNorError.Tests
 			{
 				result = await policy.HandleAsync(async (_) => await Task.Delay(1));
 			}
-			Assert.AreEqual(1, result.PolicyResultHandlingErrors.Count());
-			Assert.AreEqual(1, result.PolicyResultHandlingErrors.FirstOrDefault().HandlerIndex);
+			ClassicAssert.AreEqual(1, result.PolicyResultHandlingErrors.Count());
+			ClassicAssert.AreEqual(1, result.PolicyResultHandlingErrors.FirstOrDefault().HandlerIndex);
 		}
 	}
 }

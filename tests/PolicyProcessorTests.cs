@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 
@@ -10,7 +11,7 @@ namespace PoliNorError.Tests
 		public void Should_ExceptionFilter_Work_For_NoFilter()
 		{
 			var errorFiltter = new PolicyProcessor.ExceptionFilter();
-			Assert.AreEqual(true, errorFiltter.GetCanHandle()(new Exception()));
+			ClassicAssert.AreEqual(true, errorFiltter.GetCanHandle()(new Exception()));
 		}
 
 		[Test]
@@ -18,10 +19,10 @@ namespace PoliNorError.Tests
 		{
 			var errorFiltter = new PolicyProcessor.ExceptionFilter();
 			errorFiltter.AddIncludedErrorFilter((ex) => ex.GetType().Equals(typeof(ArgumentNullException)));
-			Assert.AreEqual(1, errorFiltter.IncludedErrorFilters.Count());
+			ClassicAssert.AreEqual(1, errorFiltter.IncludedErrorFilters.Count());
 
-			Assert.AreEqual(true, errorFiltter.GetCanHandle()(new ArgumentNullException("Test", (Exception)null)));
-			Assert.AreEqual(false, errorFiltter.GetCanHandle()(new Exception("Test")));
+			ClassicAssert.AreEqual(true, errorFiltter.GetCanHandle()(new ArgumentNullException("Test", (Exception)null)));
+			ClassicAssert.AreEqual(false, errorFiltter.GetCanHandle()(new Exception("Test")));
 		}
 
 		[Test]
@@ -29,10 +30,10 @@ namespace PoliNorError.Tests
 		{
 			var errorFiltter = new PolicyProcessor.ExceptionFilter();
 			errorFiltter.AddExcludedErrorFilter((ex) => ex.Message == "Test");
-			Assert.AreEqual(1, errorFiltter.ExcludedErrorFilters.Count());
+			ClassicAssert.AreEqual(1, errorFiltter.ExcludedErrorFilters.Count());
 
-			Assert.AreEqual(false, errorFiltter.GetCanHandle()(new Exception("Test")));
-			Assert.AreEqual(true, errorFiltter.GetCanHandle()(new Exception("Test2")));
+			ClassicAssert.AreEqual(false, errorFiltter.GetCanHandle()(new Exception("Test")));
+			ClassicAssert.AreEqual(true, errorFiltter.GetCanHandle()(new Exception("Test2")));
 		}
 	}
 }

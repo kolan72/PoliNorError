@@ -3,6 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using NUnit.Framework.Legacy;
 
 namespace PoliNorError.Tests
 {
@@ -21,7 +22,7 @@ namespace PoliNorError.Tests
 
 			var tryResCount = await processor.RetryInfiniteAsync(save, cancelTokenSource.Token);
 
-			Assert.IsTrue(tryResCount.IsCanceled);
+			ClassicAssert.IsTrue(tryResCount.IsCanceled);
 			cancelTokenSource.Dispose();
 		}
 
@@ -38,7 +39,7 @@ namespace PoliNorError.Tests
 
 			var tryResCount = await processor.RetryInfiniteAsync(save, cancelTokenSource.Token);
 
-			Assert.AreEqual(true, tryResCount.IsCanceled);
+			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
 			cancelTokenSource.Dispose();
 		}
 
@@ -66,8 +67,8 @@ namespace PoliNorError.Tests
 				tryResCount = await processor.RetryAsync(save, plannedRetryCount, default);
 			}
 
-			Assert.AreEqual(plannedRetryCount + 1, tryResCount.Errors.Count());
-			Assert.AreEqual(true, tryResCount.IsFailed);
+			ClassicAssert.AreEqual(plannedRetryCount + 1, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(true, tryResCount.IsFailed);
 		}
 
 		[Test]
@@ -100,10 +101,10 @@ namespace PoliNorError.Tests
 				tryResCount = await processor.RetryAsync(save, plannedRetryCount, cancelSource.Token);
 			}
 
-			Assert.AreEqual(true, tryResCount.IsFailed);
-			Assert.AreEqual(true, tryResCount.IsCanceled);
-			Assert.AreNotEqual(plannedRetryCount + 1, tryResCount.Errors.Count());
-			Assert.AreEqual(1, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(true, tryResCount.IsFailed);
+			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
+			ClassicAssert.AreNotEqual(plannedRetryCount + 1, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(1, tryResCount.Errors.Count());
 			cancelSource.Dispose();
 		}
 
@@ -115,8 +116,8 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor();
 			var tryResCount = await processor.RetryAsync(save, 2);
 
-			Assert.AreEqual(3, tryResCount.Errors.Count());
-			Assert.AreEqual(true, tryResCount.IsFailed);
+			ClassicAssert.AreEqual(3, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(true, tryResCount.IsFailed);
 		}
 
 		[Test]
@@ -127,8 +128,8 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor();
 			var tryResCount = await processor.RetryInfiniteAsync(save);
 
-			Assert.AreEqual(0, tryResCount.Errors.Count());
-			Assert.AreEqual(false, tryResCount.IsFailed);
+			ClassicAssert.AreEqual(0, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(false, tryResCount.IsFailed);
 		}
 
 		[Test]
@@ -139,8 +140,8 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor();
 			var tryResCount = await processor.RetryAsync(save, 2);
 
-			Assert.AreEqual(3, tryResCount.Errors.Count());
-			Assert.AreEqual(true, tryResCount.IsFailed);
+			ClassicAssert.AreEqual(3, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(true, tryResCount.IsFailed);
 		}
 
 		[Test]
@@ -151,9 +152,9 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor();
 			var tryResCount = await processor.RetryInfiniteAsync(save);
 
-			Assert.AreEqual(0, tryResCount.Errors.Count());
-			Assert.AreEqual(34, tryResCount.Result);
-			Assert.AreEqual(false, tryResCount.IsFailed);
+			ClassicAssert.AreEqual(0, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(34, tryResCount.Result);
+			ClassicAssert.AreEqual(false, tryResCount.IsFailed);
 		}
 	}
 }

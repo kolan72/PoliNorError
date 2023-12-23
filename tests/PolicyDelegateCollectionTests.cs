@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace PoliNorError.Tests
 
 			var policyDelegateCollection = PolicyDelegateCollection.Create(retrySI);
 			policyDelegateCollection.WithThrowOnLastFailed();
-			Assert.ThrowsAsync<PolicyDelegateCollectionException>(async () => await policyDelegateCollection.BuildCollectionHandler().HandleAsync());
+			ClassicAssert.ThrowsAsync<PolicyDelegateCollectionException>(async () => await policyDelegateCollection.BuildCollectionHandler().HandleAsync());
 		}
 
 		[Test]
@@ -32,7 +33,7 @@ namespace PoliNorError.Tests
 			PolicyDelegate retrySI = retry.ToPolicyDelegate(actSave);
 
 			var policyDelegateCollection = PolicyDelegateCollection.Create(retrySI).WithThrowOnLastFailed((_) => new InvalidOperationException());
-			Assert.ThrowsAsync<InvalidOperationException>(async () => await policyDelegateCollection.HandleAllAsync());
+			ClassicAssert.ThrowsAsync<InvalidOperationException>(async () => await policyDelegateCollection.HandleAllAsync());
 		}
 
 		[Test]
@@ -46,7 +47,7 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create(retrySI);
 
 			var res = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
-			Assert.IsFalse(res.LastOrDefault().Result.IsFailed);
+			ClassicAssert.IsFalse(res.LastOrDefault().Result.IsFailed);
 		}
 
 		[Test]
@@ -60,7 +61,7 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create(retrySI);
 
 			var res = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
-			Assert.IsFalse(res.LastOrDefault().Result.IsFailed);
+			ClassicAssert.IsFalse(res.LastOrDefault().Result.IsFailed);
 		}
 
 		[Test]
@@ -74,7 +75,7 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create(retrySI);
 
 			var res = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
-			Assert.IsTrue(res.LastOrDefault().Result.IsFailed);
+			ClassicAssert.IsTrue(res.LastOrDefault().Result.IsFailed);
 		}
 
 		[Test]
@@ -88,7 +89,7 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create(retrySI);
 			policyDelegateCollection.WithThrowOnLastFailed();
 
-			Assert.ThrowsAsync<PolicyDelegateCollectionException>(async () => await policyDelegateCollection.BuildCollectionHandler().HandleAsync());
+			ClassicAssert.ThrowsAsync<PolicyDelegateCollectionException>(async () => await policyDelegateCollection.BuildCollectionHandler().HandleAsync());
 		}
 
 		[Test]
@@ -100,7 +101,7 @@ namespace PoliNorError.Tests
 
 			await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(1, testClass.I);
+			ClassicAssert.AreEqual(1, testClass.I);
 		}
 
 		[Test]
@@ -112,11 +113,11 @@ namespace PoliNorError.Tests
 
 			var polHandleResults = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(2, polHandleResults.Count());
+			ClassicAssert.AreEqual(2, polHandleResults.Count());
 
-			Assert.AreEqual(3, polHandleResults.ToList()[0].Result.Errors.Count());
-			Assert.AreEqual(2, polHandleResults.ToList()[1].Result.Errors.Count());
-			Assert.AreEqual(5, i);
+			ClassicAssert.AreEqual(3, polHandleResults.ToList()[0].Result.Errors.Count());
+			ClassicAssert.AreEqual(2, polHandleResults.ToList()[1].Result.Errors.Count());
+			ClassicAssert.AreEqual(5, i);
 		}
 
 		[Test]
@@ -133,8 +134,8 @@ namespace PoliNorError.Tests
 				.BuildCollectionHandler()
 				.Handle();
 
-			Assert.AreEqual(4, i);
-			Assert.AreEqual(2, m);
+			ClassicAssert.AreEqual(4, i);
+			ClassicAssert.AreEqual(2, m);
 		}
 
 		[Test]
@@ -146,18 +147,18 @@ namespace PoliNorError.Tests
 
 			var polHandleResults2 = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(2, polHandleResults2.Count());
+			ClassicAssert.AreEqual(2, polHandleResults2.Count());
 
-			Assert.AreEqual(3, polHandleResults2.ToList()[0].Result.Errors.Count());
-			Assert.AreEqual(2, polHandleResults2.ToList()[1].Result.Errors.Count());
+			ClassicAssert.AreEqual(3, polHandleResults2.ToList()[0].Result.Errors.Count());
+			ClassicAssert.AreEqual(2, polHandleResults2.ToList()[1].Result.Errors.Count());
 		}
 
 		[Test]
 		public void Should_AndDelegate_Work_For_Sync_When_Can_BeSet()
 		{
 			var policyDelegateCollection = PolicyDelegateCollection.Create(new RetryPolicy(1), () => Expression.Empty());
-			Assert.AreEqual(1, policyDelegateCollection.Count());
-			Assert.True(policyDelegateCollection.FirstOrDefault().DelegateExists);
+			ClassicAssert.AreEqual(1, policyDelegateCollection.Count());
+			ClassicAssert.True(policyDelegateCollection.FirstOrDefault().DelegateExists);
 		}
 
 		[Test]
@@ -165,8 +166,8 @@ namespace PoliNorError.Tests
 		{
 			var policyDelegateCollection = PolicyDelegateCollection.Create(new RetryPolicy(1), async (_) => await Task.Delay(1));
 
-			Assert.AreEqual(1, policyDelegateCollection.Count());
-			Assert.True(policyDelegateCollection.FirstOrDefault().DelegateExists);
+			ClassicAssert.AreEqual(1, policyDelegateCollection.Count());
+			ClassicAssert.True(policyDelegateCollection.FirstOrDefault().DelegateExists);
 		}
 
 		[Test]
@@ -179,8 +180,8 @@ namespace PoliNorError.Tests
 
 			var res = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(1, res.Count());
-			Assert.AreEqual(1, res.PolicyDelegatesUnused.Count());
+			ClassicAssert.AreEqual(1, res.Count());
+			ClassicAssert.AreEqual(1, res.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -191,7 +192,7 @@ namespace PoliNorError.Tests
 
 			policyDelegateCollection.WithPolicyAndDelegate(new RetryPolicy(2), taskSave);
 
-			Assert.AreEqual(1, policyDelegateCollection.Count());
+			ClassicAssert.AreEqual(1, policyDelegateCollection.Count());
 		}
 
 		[Test]
@@ -203,7 +204,7 @@ namespace PoliNorError.Tests
 
 			policyDelegateCollection.WithPolicyAndDelegate(new RetryPolicy(2), taskSave);
 
-			Assert.AreEqual(1, policyDelegateCollection.Count());
+			ClassicAssert.AreEqual(1, policyDelegateCollection.Count());
 		}
 
 		[Test]
@@ -224,8 +225,8 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create().WithPolicyDelegate(retrySI).WithPolicyDelegate(retrySI2).WithPolicyDelegate(retrySI3);
 			var res = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(3, policyDelegateCollection.Count());
-			Assert.AreEqual(0, res.PolicyDelegatesUnused.Count());
+			ClassicAssert.AreEqual(3, policyDelegateCollection.Count());
+			ClassicAssert.AreEqual(0, res.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -240,8 +241,8 @@ namespace PoliNorError.Tests
 			PolicyDelegate fallbackSI = fallBack.ToPolicyDelegate(actSave);
 
 			var res = await PolicyDelegateCollection.Create(retrySI, fallbackSI).BuildCollectionHandler().HandleAsync();
-			Assert.AreEqual(0, res.PolicyDelegatesUnused.Count());
-			Assert.AreEqual(2, res.PolicyDelegateResults.Count());
+			ClassicAssert.AreEqual(0, res.PolicyDelegatesUnused.Count());
+			ClassicAssert.AreEqual(2, res.PolicyDelegateResults.Count());
 		}
 
 		[Test]
@@ -261,8 +262,8 @@ namespace PoliNorError.Tests
 			PolicyDelegate retrySI2 = retry.ToPolicyDelegate(async (_) => { await Task.Delay(1000); throw new Exception(); });
 
 			var res = await PolicyDelegateCollection.Create(retrySI1, retrySI2, fallbackSI).BuildCollectionHandler().HandleAsync(token: cancelTokenSource.Token);
-			Assert.AreEqual(2, res.PolicyDelegatesUnused.Count());
-			Assert.AreEqual(1, res.PolicyDelegateResults.Count());
+			ClassicAssert.AreEqual(2, res.PolicyDelegatesUnused.Count());
+			ClassicAssert.AreEqual(1, res.PolicyDelegateResults.Count());
 		}
 
 		[Test]
@@ -280,7 +281,7 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create().WithPolicyDelegate(retrySI).WithPolicyDelegate(retrySI2);
 			var res = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(0, res.PolicyDelegatesUnused.Count());
+			ClassicAssert.AreEqual(0, res.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -298,8 +299,8 @@ namespace PoliNorError.Tests
 			var policyDelegateCollection = PolicyDelegateCollection.Create().WithPolicyDelegate(retrySI).WithPolicyDelegate(retrySI2);
 			var res = await policyDelegateCollection.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(1, res.PolicyDelegatesUnused.Count());
-			Assert.AreEqual(1, res.PolicyDelegateResults.Count());
+			ClassicAssert.AreEqual(1, res.PolicyDelegatesUnused.Count());
+			ClassicAssert.AreEqual(1, res.PolicyDelegateResults.Count());
 		}
 
 		[Test]
@@ -314,10 +315,10 @@ namespace PoliNorError.Tests
 				.IncludeErrorForAll(ex => ex.Message == "Test1")
 				.IncludeErrorForAll(ex => ex.Message == "Test2");
 			var handleRes = await polBuilder.BuildCollectionHandler().HandleAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 			var policyResultsCollection = handleRes.PolicyDelegateResults.Select(phr => phr.Result).ToList();
-			Assert.AreEqual(2, policyResultsCollection[0].Errors.Count());
-			Assert.AreEqual(2, policyResultsCollection[1].Errors.Count());
+			ClassicAssert.AreEqual(2, policyResultsCollection[0].Errors.Count());
+			ClassicAssert.AreEqual(2, policyResultsCollection[1].Errors.Count());
 		}
 
 		[Test]
@@ -330,7 +331,7 @@ namespace PoliNorError.Tests
 							.AndDelegate(() => throw new ArgumentNullException(errorParamName))
 							.IncludeErrorForAll<ArgumentNullException>();
 			var handleRes = await polBuilder.BuildCollectionHandler().HandleAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
 
 		[Test]
@@ -348,8 +349,8 @@ namespace PoliNorError.Tests
 
 			var handleRes = await polBuilder.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -367,8 +368,8 @@ namespace PoliNorError.Tests
 
 			var handleRes = await polBuilder.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(false, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.AreEqual(false, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(false, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(false, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -377,8 +378,8 @@ namespace PoliNorError.Tests
 			var polBuilder = PolicyDelegateCollection.Create();
 			polBuilder.WithRetry(1).AndDelegate(() => throw new Exception("Test1")).ExcludeErrorForAll(ex => ex.Message == "Test1");
 			var handleRes = await polBuilder.BuildCollectionHandler().HandleAsync();
-			Assert.IsTrue(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
-			Assert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, handleRes.LastPolicyResultFailedReason);
+			ClassicAssert.IsTrue(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
+			ClassicAssert.AreEqual(PolicyResultFailedReason.PolicyProcessorFailed, handleRes.LastPolicyResultFailedReason);
 		}
 
 		[Test]
@@ -388,7 +389,7 @@ namespace PoliNorError.Tests
 			var polBuilder = PolicyDelegateCollection.Create();
 			polBuilder.WithRetry(1).AndDelegate(() => throw new ArgumentNullException(errorParamName)).ExcludeErrorForAll<ArgumentNullException>();
 			var handleRes = await polBuilder.BuildCollectionHandler().HandleAsync();
-			Assert.IsTrue(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
+			ClassicAssert.IsTrue(handleRes.PolicyDelegateResults.Select(phr => phr.Result).Any(pr => pr.ErrorFilterUnsatisfied));
 		}
 
 		[Test]
@@ -402,9 +403,9 @@ namespace PoliNorError.Tests
 						.IncludeErrorForLast<ArgumentException>();
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
-			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -418,9 +419,9 @@ namespace PoliNorError.Tests
 						.IncludeErrorForLast(ex => ex.Message == "Test2");
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
-			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -434,9 +435,9 @@ namespace PoliNorError.Tests
 						.ExcludeErrorForLast<ArgumentException>();
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
-			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -450,9 +451,9 @@ namespace PoliNorError.Tests
 						.ExcludeErrorForLast(ex => ex.Message == "Test1");
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
-			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -468,9 +469,9 @@ namespace PoliNorError.Tests
 						.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
-			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
@@ -486,39 +487,39 @@ namespace PoliNorError.Tests
 						.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
-			Assert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
-			Assert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
 		}
 
 		[Test]
 		public void Should_IncludeErrorSet_Not_Throw_For_EmptyCollection()
 		{
 			var polCollection = PolicyDelegateCollection.Create();
-			Assert.DoesNotThrow(() => polCollection.IncludeErrorSet<ArgumentException, ArgumentNullException>());
+			ClassicAssert.DoesNotThrow(() => polCollection.IncludeErrorSet<ArgumentException, ArgumentNullException>());
 		}
 
 		[Test]
 		public void Should_ExcludeErrorSet_Not_Throw_For_EmptyCollection()
 		{
 			var polCollection = PolicyDelegateCollection.Create();
-			Assert.DoesNotThrow(() => polCollection.ExcludeErrorSet<ArgumentException, ArgumentNullException>());
+			ClassicAssert.DoesNotThrow(() => polCollection.ExcludeErrorSet<ArgumentException, ArgumentNullException>());
 		}
 
 		[Test]
 		public void Should_ExcludeErrorForLast_Not_Throw_For_EmptyCollection()
 		{
 			var polCollection = PolicyDelegateCollection.Create();
-			Assert.DoesNotThrow(() => polCollection.ExcludeErrorForLast((_) => true));
-			Assert.DoesNotThrow(() => polCollection.ExcludeErrorForLast<ArgumentException>());
+			ClassicAssert.DoesNotThrow(() => polCollection.ExcludeErrorForLast((_) => true));
+			ClassicAssert.DoesNotThrow(() => polCollection.ExcludeErrorForLast<ArgumentException>());
 		}
 
 		[Test]
 		public void Should_IncludeErrorForLast_Not_Throw_For_EmptyCollection()
 		{
 			var polCollection = PolicyDelegateCollection.Create();
-			Assert.DoesNotThrow(() => polCollection.IncludeErrorForLast((_) => true));
-			Assert.DoesNotThrow(() => polCollection.IncludeErrorForLast<ArgumentException>());
+			ClassicAssert.DoesNotThrow(() => polCollection.IncludeErrorForLast((_) => true));
+			ClassicAssert.DoesNotThrow(() => polCollection.IncludeErrorForLast<ArgumentException>());
 		}
 
 		[Test]
@@ -534,8 +535,8 @@ namespace PoliNorError.Tests
 				.ExcludeErrorForAll<ArgumentNullException>((ae) => ae.ParamName == paramName);
 			var handleRes = await polBuilder.BuildCollectionHandler().HandleAsync();
 
-			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
-			Assert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, handleRes.PolicyDelegateResults.Skip(1).Take(1).FirstOrDefault().Result.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -551,7 +552,7 @@ namespace PoliNorError.Tests
 			void action(PolicyResult __, CancellationToken _) { i++; }
 			polDelegates.AddPolicyResultHandlerForAll(action);
 			await polDelegates.BuildCollectionHandler().HandleAsync();
-			Assert.AreEqual(2, i);
+			ClassicAssert.AreEqual(2, i);
 		}
 
 		[Test]
@@ -571,7 +572,7 @@ namespace PoliNorError.Tests
 
 			polDelegates.AddPolicyResultHandlerForAll(action);
 			await polDelegates.BuildCollectionHandler().HandleAsync();
-			Assert.AreEqual(2, i);
+			ClassicAssert.AreEqual(2, i);
 		}
 
 		[Test]
@@ -597,8 +598,8 @@ namespace PoliNorError.Tests
 			polDelegates.AddPolicyResultHandlerForAll(action2);
 
 			await polDelegates.BuildCollectionHandler().HandleAsync();
-			Assert.AreEqual(2, i);
-			Assert.AreEqual(4, m);
+			ClassicAssert.AreEqual(2, i);
+			ClassicAssert.AreEqual(4, m);
 		}
 
 		[Test]
@@ -614,7 +615,7 @@ namespace PoliNorError.Tests
 
 			polDelegates.AddPolicyResultHandlerForAll(async (_) => { i++; await Task.Delay(1); });
 			await polDelegates.BuildCollectionHandler().HandleAsync();
-			Assert.AreEqual(2, i);
+			ClassicAssert.AreEqual(2, i);
 		}
 
 		[Test]
@@ -630,7 +631,7 @@ namespace PoliNorError.Tests
 
 			polDelegates.AddPolicyResultHandlerForAll(async (__, _) => { i++; await Task.Delay(1); });
 			await polDelegates.BuildCollectionHandler().HandleAsync();
-			Assert.AreEqual(2, i);
+			ClassicAssert.AreEqual(2, i);
 		}
 
 		[Test]
@@ -639,7 +640,7 @@ namespace PoliNorError.Tests
 			var handledErrors = GetTestPolicyDelegateResultCollection();
 			var exception = new PolicyDelegateCollectionException(handledErrors);
 
-			Assert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.;", exception.Message);
+			ClassicAssert.AreEqual("Policy RetryPolicy handled TestClass.Save method with exception: 'Test'.;Policy RetryPolicy handled TestClass.Save method with exception: 'Test2'.;", exception.Message);
 		}
 
 		[Test]
@@ -653,8 +654,8 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
-			Assert.IsFalse(result.Any());
-			Assert.IsTrue(result.IsCanceled);
+			ClassicAssert.IsFalse(result.Any());
+			ClassicAssert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -669,8 +670,8 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
-			Assert.IsFalse(result.Any());
-			Assert.IsTrue(result.IsCanceled);
+			ClassicAssert.IsFalse(result.Any());
+			ClassicAssert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -685,8 +686,8 @@ namespace PoliNorError.Tests
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 
 			var result = await polDelegateCol.BuildCollectionHandler().HandleAsync(token: cancelSource.Token);
-			Assert.IsFalse(result.Any());
-			Assert.IsTrue(result.IsCanceled);
+			ClassicAssert.IsFalse(result.Any());
+			ClassicAssert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -703,8 +704,8 @@ namespace PoliNorError.Tests
 									.BuildCollectionHandler()
 									.Handle(cancelSource.Token);
 
-			Assert.IsFalse(result.Any());
-			Assert.IsTrue(result.IsCanceled);
+			ClassicAssert.IsFalse(result.Any());
+			ClassicAssert.IsTrue(result.IsCanceled);
 			cancelSource.Dispose();
 		}
 
@@ -718,8 +719,8 @@ namespace PoliNorError.Tests
 							.Create(polInfo1, polInfo2)
 							.BuildCollectionHandler()
 							.Handle();
-			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(true, result.IsFailed);
+			ClassicAssert.AreEqual(2, result.Count());
+			ClassicAssert.AreEqual(true, result.IsFailed);
 		}
 
 		[Test]
@@ -732,8 +733,8 @@ namespace PoliNorError.Tests
 							.BuildCollectionHandler()
 							.Handle();
 
-			Assert.AreEqual(2, result.Count());
-			Assert.AreEqual(true, result.IsFailed);
+			ClassicAssert.AreEqual(2, result.Count());
+			ClassicAssert.AreEqual(true, result.IsFailed);
 		}
 
 		[Test]
@@ -745,12 +746,12 @@ namespace PoliNorError.Tests
 
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2);
 			polDelegateCol.BuildCollectionHandler().HandleAsync().GetAwaiter().GetResult();
-			Assert.AreEqual(4, i);
+			ClassicAssert.AreEqual(4, i);
 
 			var polDelegateCol2 = PolicyDelegateCollection.Create(polDelegateCol);
 			var resHandle2 = polDelegateCol2.BuildCollectionHandler().HandleAsync().GetAwaiter().GetResult();
-			Assert.AreEqual(2, resHandle2.Count());
-			Assert.AreEqual(8, i);
+			ClassicAssert.AreEqual(2, resHandle2.Count());
+			ClassicAssert.AreEqual(8, i);
 		}
 
 		[Test]
@@ -764,10 +765,10 @@ namespace PoliNorError.Tests
 
 			var polDelegateCol = PolicyDelegateCollection.Create(polInfo1, polInfo2, polInfo3);
 			var result = polDelegateCol.HandleAll(cts.Token);
-			Assert.IsTrue(result.IsCanceled);
-			Assert.IsTrue(result.IsFailed);
-			Assert.IsFalse(result.IsSuccess);
-			Assert.AreEqual(3, i);
+			ClassicAssert.IsTrue(result.IsCanceled);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.IsFalse(result.IsSuccess);
+			ClassicAssert.AreEqual(3, i);
 		}
 
 		[Test]
@@ -778,8 +779,8 @@ namespace PoliNorError.Tests
 			var polDelCol = PolicyDelegateCollection.Create();
 			var builder = polDelCol.WithRetry(1, ErrorProcessorParam.From(actionError)).AndDelegate(() => throw new Exception("Test")).WithRetry(1).AndDelegate(() => throw new Exception("Test"));
 			var res = builder.BuildCollectionHandler().HandleAsync().GetAwaiter().GetResult();
-			Assert.AreEqual(2, res.Count());
-			Assert.AreEqual(1, i1);
+			ClassicAssert.AreEqual(2, res.Count());
+			ClassicAssert.AreEqual(1, i1);
 		}
 
 		[Test]
@@ -787,7 +788,7 @@ namespace PoliNorError.Tests
 		{
 			var polDelCol = PolicyDelegateCollection.Create();
 			polDelCol.WithSimple();
-			Assert.AreEqual(1, polDelCol.Count());
+			ClassicAssert.AreEqual(1, polDelCol.Count());
 		}
 
 		[Test]
@@ -797,7 +798,7 @@ namespace PoliNorError.Tests
 			using (var cts = new CancellationTokenSource())
 			{
 				cts.Cancel();
-				Assert.DoesNotThrowAsync(async () => await PolicyDelegatesHandler.HandleAllBySyncType((PolicyDelegateCollection)polDelegateCollection, PolicyDelegateHandleType.Sync, cts.Token));
+				ClassicAssert.DoesNotThrowAsync(async () => await PolicyDelegatesHandler.HandleAllBySyncType((PolicyDelegateCollection)polDelegateCollection, PolicyDelegateHandleType.Sync, cts.Token));
 			}
 		}
 
@@ -894,26 +895,26 @@ namespace PoliNorError.Tests
 							;
 
 			await polDelegates.BuildCollectionHandler().HandleAsync();
-			Assert.AreEqual(1, i);
-			Assert.AreEqual(1, j);
-			Assert.AreEqual(1, k);
-			Assert.AreEqual(1, l);
-			Assert.AreEqual(1, m);
-			Assert.AreEqual(1, n);
+			ClassicAssert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, j);
+			ClassicAssert.AreEqual(1, k);
+			ClassicAssert.AreEqual(1, l);
+			ClassicAssert.AreEqual(1, m);
+			ClassicAssert.AreEqual(1, n);
 		}
 
 		[Test]
 		public void Should_PolicyDelegateCollectionResult_IsFailed_Equals_False_For_Empty_Collection()
 		{
 			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), new List<PolicyDelegate>());
-			Assert.IsFalse(collectionResult.IsFailed);
+			ClassicAssert.IsFalse(collectionResult.IsFailed);
 		}
 
 		[Test]
 		public void Should_PolicyDelegateCollectionResult_IsSuccess_Equals_False_For_Empty_Collection()
 		{
 			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>(), new List<PolicyDelegate>());
-			Assert.IsFalse(collectionResult.IsSuccess);
+			ClassicAssert.IsFalse(collectionResult.IsSuccess);
 		}
 
 		[Test]
@@ -927,7 +928,7 @@ namespace PoliNorError.Tests
 				lastPolResult.SetFailed();
 			}
 			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>() { new PolicyDelegateResult(lastPolResult, "", null) }, new List<PolicyDelegate>());
-			Assert.AreEqual(res, collectionResult.IsFailed);
+			ClassicAssert.AreEqual(res, collectionResult.IsFailed);
 		}
 
 		[Test]
@@ -951,7 +952,7 @@ namespace PoliNorError.Tests
 				lastPolResult.SetCanceled();
 			}
 			var collectionResult = new PolicyDelegateCollectionResult(new List<PolicyDelegateResult>() { new PolicyDelegateResult(lastPolResult, "", null) }, new List<PolicyDelegate>());
-			Assert.AreEqual(res, collectionResult.IsSuccess);
+			ClassicAssert.AreEqual(res, collectionResult.IsSuccess);
 		}
 
 		[Test]
@@ -962,9 +963,9 @@ namespace PoliNorError.Tests
 								.WithRetry(1);
 			Action act = null;
 			var result = polCollection.HandleDelegate(act);
-			Assert.AreEqual(0, result.Count());
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
+			ClassicAssert.AreEqual(0, result.Count());
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
 		}
 
 		[Test]
@@ -975,9 +976,9 @@ namespace PoliNorError.Tests
 								.WithRetry(1);
 			Action act = null;
 			var result = await polCollection.HandleDelegateAsync(act, false);
-			Assert.AreEqual(0, result.Count());
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
+			ClassicAssert.AreEqual(0, result.Count());
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
 		}
 
 		[Test]
@@ -988,9 +989,9 @@ namespace PoliNorError.Tests
 								.WithRetry(1);
 			Func<CancellationToken, Task> func = null;
 			var result = polCollection.HandleDelegate(func);
-			Assert.AreEqual(0, result.Count());
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
+			ClassicAssert.AreEqual(0, result.Count());
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
 		}
 
 		[Test]
@@ -1001,9 +1002,9 @@ namespace PoliNorError.Tests
 							.WithRetry(1);
 			Func<CancellationToken, Task> func = null;
 			var result = await polCollection.HandleDelegateAsync(func, false);
-			Assert.AreEqual(0, result.Count());
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
+			ClassicAssert.AreEqual(0, result.Count());
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.LastPolicyResultFailedReason);
 		}
 
 		private IEnumerable<PolicyDelegateResult> GetTestPolicyDelegateResultCollection()

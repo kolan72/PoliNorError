@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -16,9 +17,9 @@ namespace PoliNorError.Tests
 
             var action = (Func<CancellationToken, Task>)(async (ct) => await Task.Delay(1, ct));
             var funcRes = action.ToSyncFunc().HandleAsFallback(cancelTokenSource.Token);
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -30,9 +31,9 @@ namespace PoliNorError.Tests
 
             Action<CancellationToken> act = (ctx) => ctx.ThrowIfCancellationRequested();
             var funcRes = act.HandleAsFallback(cancelTokenSource.Token);
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -44,9 +45,9 @@ namespace PoliNorError.Tests
 
             Action<CancellationToken> act = (_) => cancelTokenSource.Token.ThrowIfCancellationRequested();
             var funcRes = act.HandleAsFallback(default);
-            Assert.IsFalse(funcRes.IsCanceled);
-            Assert.IsNotNull(funcRes.Error);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsFalse(funcRes.IsCanceled);
+            ClassicAssert.IsNotNull(funcRes.Error);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -55,7 +56,7 @@ namespace PoliNorError.Tests
         {
             Action<CancellationToken> act = (_) => { };
             var funcRes = act.HandleAsFallback(default);
-            Assert.IsTrue(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsSuccess);
         }
 
         [Test]
@@ -67,9 +68,9 @@ namespace PoliNorError.Tests
             Func<CancellationToken, Task<int>> func = async (ct) => { await Task.Delay(1, ct); return 1; };
             var funcRes = func.ToSyncFunc().HandleAsFallback(cancelTokenSource.Token);
 
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -81,9 +82,9 @@ namespace PoliNorError.Tests
             Func<CancellationToken, Task<int>> func = async (ct) => { var cancelTokenS1 = new CancellationTokenSource(); cancelTokenS1.Cancel(); cancelTokenS1.Token.ThrowIfCancellationRequested(); await Task.Delay(1, ct); return 1; };
             var funcRes = func.ToSyncFunc().HandleAsFallback(cancelTokenSource.Token);
 
-            Assert.IsFalse(funcRes.IsCanceled);
-            Assert.IsNotNull(funcRes.Error);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsFalse(funcRes.IsCanceled);
+            ClassicAssert.IsNotNull(funcRes.Error);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
 
             cancelTokenSource.Dispose();
         }
@@ -96,9 +97,9 @@ namespace PoliNorError.Tests
 
             Func<CancellationToken, int> func = (ctx) => { ctx.ThrowIfCancellationRequested(); return 1; };
             var funcRes = func.HandleAsFallback(cancelTokenSource.Token);
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -107,8 +108,8 @@ namespace PoliNorError.Tests
         {
             Func<CancellationToken, int> func = (_) => 1;
             var funcRes = func.HandleAsFallback(default);
-            Assert.IsTrue(funcRes.IsSuccess);
-            Assert.AreEqual(1, funcRes.Result);
+            ClassicAssert.IsTrue(funcRes.IsSuccess);
+            ClassicAssert.AreEqual(1, funcRes.Result);
         }
 
         [Test]
@@ -122,9 +123,9 @@ namespace PoliNorError.Tests
 
             var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
 
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -138,9 +139,9 @@ namespace PoliNorError.Tests
 
             var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
 
-            Assert.IsFalse(funcRes.IsCanceled);
-            Assert.IsNotNull(funcRes.Error);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsFalse(funcRes.IsCanceled);
+            ClassicAssert.IsNotNull(funcRes.Error);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -154,9 +155,9 @@ namespace PoliNorError.Tests
 
             var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
 
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -165,7 +166,7 @@ namespace PoliNorError.Tests
         {
             Func<CancellationToken, Task> func = async (_) => await Task.Delay(1);
             var funcRes = await func.HandleAsFallbackAsync(false, default);
-            Assert.IsTrue(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsSuccess);
         }
 
         [Test]
@@ -179,9 +180,9 @@ namespace PoliNorError.Tests
 
             var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
 
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -195,9 +196,9 @@ namespace PoliNorError.Tests
 
             var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
 
-            Assert.IsFalse(funcRes.IsCanceled);
-            Assert.IsNotNull(funcRes.Error);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsFalse(funcRes.IsCanceled);
+            ClassicAssert.IsNotNull(funcRes.Error);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -211,9 +212,9 @@ namespace PoliNorError.Tests
 
             var funcRes = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
 
-            Assert.IsTrue(funcRes.IsCanceled);
-            Assert.IsTrue(funcRes.Error is null);
-            Assert.IsFalse(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsCanceled);
+            ClassicAssert.IsTrue(funcRes.Error is null);
+            ClassicAssert.IsFalse(funcRes.IsSuccess);
             cancelTokenSource.Dispose();
         }
 
@@ -222,7 +223,7 @@ namespace PoliNorError.Tests
         {
             Func<CancellationToken, Task<int>> func = async (_) => { await Task.Delay(1); return 1; };
             var funcRes = await func.HandleAsFallbackAsync(false, default);
-            Assert.IsTrue(funcRes.IsSuccess);
+            ClassicAssert.IsTrue(funcRes.IsSuccess);
         }
     }
 }

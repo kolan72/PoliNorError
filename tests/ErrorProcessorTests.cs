@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Threading.Tasks;
 
@@ -24,32 +25,32 @@ namespace PoliNorError.Tests
 			{
 				var processor = new BasicErrorProcessor(asyncFunc, syncAction);
 				processor.Process(processedException);
-				Assert.IsTrue(n == 1);
+				ClassicAssert.IsTrue(n == 1);
 
 				await processor.ProcessAsync(processedException);
-				Assert.IsTrue(m == 1);
+				ClassicAssert.IsTrue(m == 1);
 			}
 			else if (sync)
 			{
 				var processor = new BasicErrorProcessor(syncAction);
 				processor.Process(processedException);
-				Assert.IsTrue(n == 1);
+				ClassicAssert.IsTrue(n == 1);
 
 				await processor.ProcessAsync(processedException);
-				Assert.IsTrue(n == 2);
+				ClassicAssert.IsTrue(n == 2);
 
-				Assert.IsTrue(m == 0);
+				ClassicAssert.IsTrue(m == 0);
 			}
 			else
 			{
 				var processor = new BasicErrorProcessor(asyncFunc);
 				processor.Process(processedException);
-				Assert.IsTrue(m == 1);
+				ClassicAssert.IsTrue(m == 1);
 
 				await processor.ProcessAsync(processedException);
-				Assert.IsTrue(m == 2);
+				ClassicAssert.IsTrue(m == 2);
 
-				Assert.IsTrue(n == 0);
+				ClassicAssert.IsTrue(n == 0);
 			}
 		}
 
@@ -74,35 +75,35 @@ namespace PoliNorError.Tests
 			{
 				var processor = new DefaultErrorProcessor(asyncFunc, syncAction);
 				processor.Process(processedException, errorInfo);
-				Assert.IsTrue(n == 1);
+				ClassicAssert.IsTrue(n == 1);
 
 				await processor.ProcessAsync(processedException, errorInfo);
-				Assert.IsTrue(m == 1);
+				ClassicAssert.IsTrue(m == 1);
 			}
 			else if (sync)
 			{
 				var processor = new DefaultErrorProcessor(syncAction);
 				processor.Process(processedException, errorInfo);
-				Assert.IsTrue(n == 1);
+				ClassicAssert.IsTrue(n == 1);
 
 				await processor.ProcessAsync(processedException, errorInfo);
-				Assert.IsTrue(n == 2);
+				ClassicAssert.IsTrue(n == 2);
 
-				Assert.IsTrue(m == 0);
+				ClassicAssert.IsTrue(m == 0);
 			}
 			else
 			{
 				var processor = new DefaultErrorProcessor(asyncFunc);
 				processor.Process(processedException, errorInfo);
-				Assert.IsTrue(m == 1);
+				ClassicAssert.IsTrue(m == 1);
 
 				await processor.ProcessAsync(processedException, errorInfo);
-				Assert.IsTrue(m == 2);
+				ClassicAssert.IsTrue(m == 2);
 
-				Assert.IsTrue(n == 0);
+				ClassicAssert.IsTrue(n == 0);
 			}
 
-			Assert.AreEqual(2, infoCounter);
+			ClassicAssert.AreEqual(2, infoCounter);
 		}
 	}
 }

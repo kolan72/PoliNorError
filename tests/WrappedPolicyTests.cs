@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Threading;
@@ -20,7 +21,7 @@ namespace PoliNorError.Tests
 			retry.WrapPolicy(subsPolicy);
 
 			var outPolicyResult = await retry.HandleAsync(func, default);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
 			await subsPolicy.Received(1).HandleAsync(func, default, default);
 		}
@@ -43,9 +44,9 @@ namespace PoliNorError.Tests
 
 			var outPolicyResult = await retry.HandleAsync(func, default);
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
 
 			await subsPolicy.Received(3).HandleAsync(func, default, default);
 		}
@@ -66,7 +67,7 @@ namespace PoliNorError.Tests
 			retry.WrapPolicy(subsPolicy);
 
 			var outPolicyResult = retry.Handle(act, default);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
 			subsPolicy.Received(1).Handle(act, default);
 		}
@@ -90,9 +91,9 @@ namespace PoliNorError.Tests
 			var outPolicyResult = outPolicy.Handle(act, default);
 
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
 
 			subsPolicy.Received(3).Handle(act, default);
 		}
@@ -118,12 +119,12 @@ namespace PoliNorError.Tests
 			var outPolicyResult = fallback.Handle(act, cancelToken);
 
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
-			Assert.IsFalse(outPolicyResult.IsFailed);
-			Assert.AreEqual(1, outPolicyResult.Errors.Count());
+			ClassicAssert.IsFalse(outPolicyResult.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.Errors.Count());
 
 			subsPolicy.Received(1).Handle(act, cancelToken);
 		}
@@ -147,12 +148,12 @@ namespace PoliNorError.Tests
 			var outPolicyResult = outPolicy.Handle(act, default);
 
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
 
 			subsPolicy.Received(3).Handle(act, default);
-			Assert.AreEqual(outPolicy.PolicyName, outPolicyResult.PolicyName);
+			ClassicAssert.AreEqual(outPolicy.PolicyName, outPolicyResult.PolicyName);
 		}
 
 		[Test]
@@ -176,12 +177,12 @@ namespace PoliNorError.Tests
 			var outPolicyResult = await fallback.HandleAsync(func, false, cancelToken);
 
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
-			Assert.AreEqual(false, outPolicyResult.IsFailed);
-			Assert.AreEqual(1, outPolicyResult.Errors.Count());
+			ClassicAssert.AreEqual(false, outPolicyResult.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.Errors.Count());
 
 			await subsPolicy.Received(1).HandleAsync(func, default, cancelToken);
 		}
@@ -204,9 +205,9 @@ namespace PoliNorError.Tests
 			var outPolicyResult = await outPolicy.HandleAsync(act, default(CancellationToken));
 
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(3, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(3, outPolicyResult.WrappedPolicyResults.Count());
 
 			await subsPolicy.Received(3).HandleAsync(act, default, default);
 		}
@@ -228,13 +229,13 @@ namespace PoliNorError.Tests
 
 			fallBackPolicy.WrapPolicy(wrapppedPolicy);
 			var polResult = await fallBackPolicy.HandleAsync(f, cts.Token);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.IsFailed);
 
-			Assert.IsTrue(polResult.WrappedPolicyResults.FirstOrDefault().Result.IsCanceled);
-			Assert.IsTrue(polResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
+			ClassicAssert.IsTrue(polResult.WrappedPolicyResults.FirstOrDefault().Result.IsCanceled);
+			ClassicAssert.IsTrue(polResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
 
-			Assert.AreEqual(0, i);
+			ClassicAssert.AreEqual(0, i);
 			cts.Dispose();
 		}
 
@@ -263,10 +264,10 @@ namespace PoliNorError.Tests
 
 			var polResult = await fallBackPolicy.HandleAsync(func, source.Token);
 
-			Assert.AreEqual(1, i);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
+			ClassicAssert.AreEqual(1, i);
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
 
 			source.Dispose();
 		}
@@ -288,11 +289,11 @@ namespace PoliNorError.Tests
 
 			fallBackPolicy.WrapPolicy(wrapppedPolicy);
 			var polResult = await fallBackPolicy.HandleAsync(f, cts.Token);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.IsFailed);
 
-			Assert.IsTrue(polResult.WrappedPolicyResults.FirstOrDefault().Result.IsCanceled);
-			Assert.AreEqual(0, i);
+			ClassicAssert.IsTrue(polResult.WrappedPolicyResults.FirstOrDefault().Result.IsCanceled);
+			ClassicAssert.AreEqual(0, i);
 			cts.Dispose();
 		}
 
@@ -309,7 +310,7 @@ namespace PoliNorError.Tests
 			var retryPol = new RetryPolicy(3);
 			retryPol.WrapPolicy(fallbackPolicy);
 			var outPolicyResult = retryPol.Handle(retryAct);
-			Assert.IsFalse(outPolicyResult.IsFailed);
+			ClassicAssert.IsFalse(outPolicyResult.IsFailed);
 		}
 
 		[Test]
@@ -324,8 +325,8 @@ namespace PoliNorError.Tests
 			var retryPol = new RetryPolicy(3);
 			retryPol.WrapPolicy(fallbackPolicy);
 			var outPolicyResult = retryPol.Handle(retryAct);
-			Assert.IsTrue(outPolicyResult.IsFailed);
-			Assert.IsTrue(outPolicyResult.Errors.All(err => err.GetType().Equals(typeof(PolicyResultHandlerFailedException))));
+			ClassicAssert.IsTrue(outPolicyResult.IsFailed);
+			ClassicAssert.IsTrue(outPolicyResult.Errors.All(err => err.GetType().Equals(typeof(PolicyResultHandlerFailedException))));
 		}
 
 		[Test]
@@ -341,9 +342,9 @@ namespace PoliNorError.Tests
 			var retryPol = new RetryPolicy(3);
 			retryPol.WrapPolicy(fallbackPolicy);
 			var outPolicyResult = retryPol.Handle(retryAct);
-			Assert.IsFalse(outPolicyResult.IsFailed);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.First().Result.Result);
+			ClassicAssert.IsFalse(outPolicyResult.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.First().Result.Result);
 		}
 
 		[Test]
@@ -367,11 +368,11 @@ namespace PoliNorError.Tests
 			fallBackPolicy.WrapPolicy(wrapppedPolicy);
 			var polResult = await fallBackPolicy.HandleAsync(func);
 
-			Assert.AreEqual(10, i);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
-			Assert.AreEqual(10, polResult.Result);
-			Assert.AreEqual(fallBackPolicy.PolicyName, polResult.PolicyName);
+			ClassicAssert.AreEqual(10, i);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
+			ClassicAssert.AreEqual(10, polResult.Result);
+			ClassicAssert.AreEqual(fallBackPolicy.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
@@ -389,8 +390,8 @@ namespace PoliNorError.Tests
 			fallback.WrapPolicy(subsPolicy);
 
 			var outPolicyResult = fallback.Handle(act);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
 
 			subsPolicy.Received(1).Handle(act, cancelToken);
 		}
@@ -411,8 +412,8 @@ namespace PoliNorError.Tests
 			retry.WrapPolicy(subsPolicy);
 
 			var outPolicyResult = await retry.HandleAsync(func, default(CancellationToken));
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(true, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(true, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
 
 			await subsPolicy.Received(1).HandleAsync(func, default, default);
 		}
@@ -430,8 +431,8 @@ namespace PoliNorError.Tests
 			fallBackPol.WrapPolicy(subsPolicy);
 
 			var outPolicyResult = await fallBackPol.HandleAsync(func, default(CancellationToken));
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
 
 			await subsPolicy.Received(1).HandleAsync(func, default, default);
 		}
@@ -457,10 +458,10 @@ namespace PoliNorError.Tests
 			fallBackPolicy.WrapPolicy(wrapppedPolicy);
 			var polResult = await fallBackPolicy.HandleAsync(func);
 
-			Assert.AreEqual(10, i);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
-			Assert.AreEqual(fallBackPolicy.PolicyName, polResult.PolicyName);
+			ClassicAssert.AreEqual(10, i);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
+			ClassicAssert.AreEqual(fallBackPolicy.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
@@ -479,8 +480,8 @@ namespace PoliNorError.Tests
 			fallbackPolicy.WrapPolicy(subsPolicy);
 
 			var outPolicyResult = fallbackPolicy.Handle(act);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
 
 			subsPolicy.Received().Handle(act, default);
 		}
@@ -504,11 +505,11 @@ namespace PoliNorError.Tests
 			var outPolicyResult = fallbackPolicy.Handle(act, default);
 
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
-			Assert.AreEqual(false, outPolicyResult.IsFailed);
+			ClassicAssert.AreEqual(false, outPolicyResult.IsFailed);
 
 			subsPolicy.Received(1).Handle(act, default);
 		}
@@ -533,11 +534,11 @@ namespace PoliNorError.Tests
 			fallbackPolicy.WrapPolicy(wrapppedPolicy);
 			var polResult = fallbackPolicy.Handle(act);
 
-			Assert.AreEqual(10, i);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsSuccess);
-			Assert.IsFalse(polResult.NoError);
-			Assert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
+			ClassicAssert.AreEqual(10, i);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsSuccess);
+			ClassicAssert.IsFalse(polResult.NoError);
+			ClassicAssert.AreEqual(2, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
 		}
 
 		[Test]
@@ -560,10 +561,10 @@ namespace PoliNorError.Tests
 			fallBackPolicy.WrapPolicy(wrapppedRetryPolicy);
 			var polResult = fallBackPolicy.Handle(act);
 
-			Assert.AreEqual(10, i);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.AreEqual(3, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
-			Assert.AreEqual(10, polResult.Result);
+			ClassicAssert.AreEqual(10, i);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.AreEqual(3, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
+			ClassicAssert.AreEqual(10, polResult.Result);
 		}
 
 		[Test]
@@ -581,8 +582,8 @@ namespace PoliNorError.Tests
 			fallback.WrapPolicy(subsPolicy);
 
 			var outPolicyResult = await fallback.HandleAsync(act, cancelToken);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(false, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.IsFailed);
 
 			await subsPolicy.Received(1).HandleAsync(act, default, cancelToken);
 		}
@@ -605,8 +606,8 @@ namespace PoliNorError.Tests
 			var outPolicyResult = subsPolicy.WrapUp(new SimplePolicy().WithPolicyName(SIMPLE_WRAPPER_POLICY)).OuterPolicy.Handle(act);
 			subsPolicy.Received(1).Handle(act);
 
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(SIMPLE_WRAPPER_POLICY, outPolicyResult.PolicyName);
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(SIMPLE_WRAPPER_POLICY, outPolicyResult.PolicyName);
 		}
 
 		[Test]
@@ -631,16 +632,16 @@ namespace PoliNorError.Tests
 											.OuterPolicy
 											.Handle(act);
 			subsPolicy.Received(4).Handle(act);
-			Assert.AreEqual(2, outPolicyResult.WrappedPolicyResults.Count());
-			Assert.AreEqual(WRAPPER_POLICY_2, outPolicyResult.PolicyName);
-			Assert.AreEqual(WRAPPER_POLICY_1, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.PolicyName);
+			ClassicAssert.AreEqual(2, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(WRAPPER_POLICY_2, outPolicyResult.PolicyName);
+			ClassicAssert.AreEqual(WRAPPER_POLICY_1, outPolicyResult.WrappedPolicyResults.FirstOrDefault().Result.PolicyName);
 		}
 
 		[Test]
 		public void Should_WrapUp_By_NullPolicy_Throw()
 		{
 			var subsPolicy = Substitute.For<IPolicyBase>();
-			Assert.Throws<ArgumentNullException>(() => subsPolicy.WrapUp<SimplePolicy>(null));
+			ClassicAssert.Throws<ArgumentNullException>(() => subsPolicy.WrapUp<SimplePolicy>(null));
 		}
 
 		[Test]
@@ -689,14 +690,14 @@ namespace PoliNorError.Tests
 				if (!generic)
 				{
 					(actWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(act, default);
-					Assert.AreEqual(res, act.Equals(actWrapped));
+					ClassicAssert.AreEqual(res, act.Equals(actWrapped));
 				}
 				else
 				{
 					(funcWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(func, default);
-					Assert.AreEqual(res, func.Equals(funcWrapped));
+					ClassicAssert.AreEqual(res, func.Equals(funcWrapped));
 				}
-				Assert.AreEqual(res, wrapper == null);
+				ClassicAssert.AreEqual(res, wrapper == null);
 			}
 
 			void RunASync(bool res)
@@ -704,14 +705,14 @@ namespace PoliNorError.Tests
 				if (!generic)
 				{
 					(asyncActWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(asyncAct, default, false);
-					Assert.AreEqual(res, asyncAct.Equals(asyncActWrapped));
+					ClassicAssert.AreEqual(res, asyncAct.Equals(asyncActWrapped));
 				}
 				else
 				{
 					(asyncFuncTWrapped, wrapper) = wrappedPolicy.WrapDelegateIfNeed(asyncFuncT, default, false);
-					Assert.AreEqual(res, asyncFuncT.Equals(asyncFuncTWrapped));
+					ClassicAssert.AreEqual(res, asyncFuncT.Equals(asyncFuncTWrapped));
 				}
-				Assert.AreEqual(res, wrapper == null);
+				ClassicAssert.AreEqual(res, wrapper == null);
 			}
 		}
 	}

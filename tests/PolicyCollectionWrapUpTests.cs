@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,12 +20,12 @@ namespace PoliNorError.Tests
 
 			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.CollectionError)
 			{
-				Assert.AreEqual(typeof(PolicyDelegateCollectionException), result.Errors.FirstOrDefault()?.GetType());
-				Assert.AreEqual(7, ((PolicyDelegateCollectionException)result.Errors.FirstOrDefault()).InnerExceptions.Count());
+				ClassicAssert.AreEqual(typeof(PolicyDelegateCollectionException), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(7, ((PolicyDelegateCollectionException)result.Errors.FirstOrDefault()).InnerExceptions.Count());
 			}
 			else
 			{
-				Assert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
 			}
 		}
 
@@ -42,8 +43,8 @@ namespace PoliNorError.Tests
 			var result = collection.WrapUp(new SimplePolicy())
 												.OuterPolicy
 												.Handle(() => { });
-			Assert.IsFalse(result.Errors.Any());
-			Assert.IsNotNull(result.WrappedPolicyResults);
+			ClassicAssert.IsFalse(result.Errors.Any());
+			ClassicAssert.IsNotNull(result.WrappedPolicyResults);
 		}
 
 		[Test]
@@ -55,7 +56,7 @@ namespace PoliNorError.Tests
 											.OuterPolicy
 											.Handle(() => { });
 
-			Assert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -70,12 +71,12 @@ namespace PoliNorError.Tests
 
 			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.CollectionError)
 			{
-				Assert.AreEqual(typeof(PolicyDelegateCollectionException), result.Errors.FirstOrDefault()?.GetType());
-				Assert.AreEqual(7, ((PolicyDelegateCollectionException)result.Errors.FirstOrDefault()).InnerExceptions.Count());
+				ClassicAssert.AreEqual(typeof(PolicyDelegateCollectionException), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(7, ((PolicyDelegateCollectionException)result.Errors.FirstOrDefault()).InnerExceptions.Count());
 			}
 			else
 			{
-				Assert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
 			}
 		}
 
@@ -93,8 +94,8 @@ namespace PoliNorError.Tests
 			var result = await collection.WrapUp(new SimplePolicy())
 												.OuterPolicy
 												.HandleAsync(async (_) => await Task.Delay(1));
-			Assert.IsFalse(result.Errors.Any());
-			Assert.IsNotNull(result.WrappedPolicyResults);
+			ClassicAssert.IsFalse(result.Errors.Any());
+			ClassicAssert.IsNotNull(result.WrappedPolicyResults);
 		}
 
 		[Test]
@@ -106,7 +107,7 @@ namespace PoliNorError.Tests
 											.OuterPolicy
 											.HandleAsync(async (_) => await Task.Delay(1));
 
-			Assert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -119,7 +120,7 @@ namespace PoliNorError.Tests
 			var result = await collection.WrapUp(new SimplePolicy())
 							.OuterPolicy
 							.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Test"); });
-			Assert.IsTrue(result.WrappedPolicyResults.Any());
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
 		}
 
 		[Test]
@@ -132,7 +133,7 @@ namespace PoliNorError.Tests
 			var result = collection.WrapUp(new SimplePolicy())
 							.OuterPolicy
 							.Handle(() => throw new Exception("Test"));
-			Assert.IsTrue(result.WrappedPolicyResults.Any());
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
 		}
 
 		private PolicyCollection CreatePolicyCollectionToTest() => PolicyCollection.Create().WithRetry(2).WithRetry(3);

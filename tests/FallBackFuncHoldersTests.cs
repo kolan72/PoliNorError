@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,8 +12,8 @@ namespace PoliNorError.Tests
 		{
 			var res = BoxingSafeConverter<int, int>.Instance.Convert(5);
 			var res2 = BoxingSafeConverter<double, double>.Instance.Convert(5d);
-			Assert.AreEqual(typeof(int), res.GetType());
-			Assert.AreEqual(typeof(double), res2.GetType());
+			ClassicAssert.AreEqual(typeof(int), res.GetType());
+			ClassicAssert.AreEqual(typeof(double), res2.GetType());
 		}
 
 		[Test]
@@ -20,7 +21,7 @@ namespace PoliNorError.Tests
 		{
 			var cls = new TestClass();
 			var res = BoxingSafeConverter<TestClass, TestClass>.Instance.Convert(cls);
-			Assert.AreEqual(typeof(TestClass), res.GetType());
+			ClassicAssert.AreEqual(typeof(TestClass), res.GetType());
 		}
 
 		[Test]
@@ -30,7 +31,7 @@ namespace PoliNorError.Tests
 			var holder = new FallBackFuncHolder<int>((_) => ++i);
 			var theSameFunc = holder.GetFallbackFunc<int>();
 			var res = theSameFunc(new CancellationToken());
-			Assert.AreEqual(2, res);
+			ClassicAssert.AreEqual(2, res);
 		}
 
 		[Test]
@@ -39,7 +40,7 @@ namespace PoliNorError.Tests
 			int i = 1;
 			var holder = new FallBackFuncHolder<int>((_) => ++i);
 			var theSameFunc = holder.GetFallbackFunc<string>();
-			Assert.IsNull(theSameFunc);
+			ClassicAssert.IsNull(theSameFunc);
 		}
 
 		[Test]
@@ -49,7 +50,7 @@ namespace PoliNorError.Tests
 			var holder = new FallBackAsyncFuncHolder<int>(async (_) => await Task.FromResult(++i));
 			var theSameFunc = holder.GetFallbackAsyncFunc<int>();
 			var res = await theSameFunc(new CancellationToken());
-			Assert.AreEqual(2, res);
+			ClassicAssert.AreEqual(2, res);
 		}
 
 		[Test]
@@ -58,7 +59,7 @@ namespace PoliNorError.Tests
 			int i = 1;
 			var holder = new FallBackAsyncFuncHolder<int>(async (_) => await Task.FromResult(++i));
 			var theSameFunc = holder.GetFallbackAsyncFunc<string>();
-			Assert.IsNull(theSameFunc);
+			ClassicAssert.IsNull(theSameFunc);
 		}
 
 #pragma warning disable S2094 // Classes should not be empty

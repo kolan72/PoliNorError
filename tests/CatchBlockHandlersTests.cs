@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Threading;
@@ -22,11 +23,11 @@ namespace PoliNorError.Tests
 																			 filter.GetCanHandle()
 																			 );
 				var res1 = handler.Handle(new Exception("Test1"), EmptyErrorContext.Default);
-				Assert.AreEqual(HandleCatchBlockResult.Success, res1);
+				ClassicAssert.AreEqual(HandleCatchBlockResult.Success, res1);
 
 				cancelTokenSource.Cancel();
 				var res2 = handler.Handle(new Exception("Test2"), EmptyErrorContext.Default);
-				Assert.AreEqual(HandleCatchBlockResult.Canceled, res2);
+				ClassicAssert.AreEqual(HandleCatchBlockResult.Canceled, res2);
 			}
 		}
 
@@ -45,11 +46,11 @@ namespace PoliNorError.Tests
 																			 filter.GetCanHandle()
 																			 );
 				var res1 = await handler.HandleAsync(new Exception("Test1"), EmptyErrorContext.Default);
-				Assert.AreEqual(HandleCatchBlockResult.Success, res1);
+				ClassicAssert.AreEqual(HandleCatchBlockResult.Success, res1);
 
 				cancelTokenSource.Cancel();
 				var res2 = await handler.HandleAsync(new Exception("Test2"), EmptyErrorContext.Default);
-				Assert.AreEqual(HandleCatchBlockResult.Canceled, res2);
+				ClassicAssert.AreEqual(HandleCatchBlockResult.Canceled, res2);
 			}
 		}
 
@@ -72,7 +73,7 @@ namespace PoliNorError.Tests
 																 filter.GetCanHandle(),
 																 (exCtx) => exCtx.Context.CurrentRetryCount < 2
 																 );
-				Assert.AreEqual(result, handler.Handle(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
+				ClassicAssert.AreEqual(result, handler.Handle(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
 			}
 			else
 			{
@@ -83,7 +84,7 @@ namespace PoliNorError.Tests
 															 filter.GetCanHandle(),
 															 (exCtx) => exCtx.Context.CurrentRetryCount < 2
 															 );
-				Assert.AreEqual(result, await handler.HandleAsync(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
+				ClassicAssert.AreEqual(result, await handler.HandleAsync(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
 			}
 		}
 
@@ -104,10 +105,10 @@ namespace PoliNorError.Tests
 			}
 			void action() => throw new Exception("Test");
 			var res = simplePolicy.Handle(action);
-			Assert.IsTrue(res.ErrorFilterUnsatisfied);
-			Assert.NotNull(res.UnprocessedError);
-			Assert.AreEqual(1, res.CatchBlockErrors.Count());
-			Assert.AreEqual(CatchBlockExceptionSource.ErrorFilter, res.CatchBlockErrors.FirstOrDefault().ExceptionSource);
+			ClassicAssert.IsTrue(res.ErrorFilterUnsatisfied);
+			ClassicAssert.NotNull(res.UnprocessedError);
+			ClassicAssert.AreEqual(1, res.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(CatchBlockExceptionSource.ErrorFilter, res.CatchBlockErrors.FirstOrDefault().ExceptionSource);
 		}
 	}
 }

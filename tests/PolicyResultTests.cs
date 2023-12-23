@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace PoliNorError.Tests
 			{
 				new Exception()
 			};
-			Assert.AreEqual(1, collection.Count());
+			ClassicAssert.AreEqual(1, collection.Count());
         }
 
         [Test]
@@ -24,7 +25,7 @@ namespace PoliNorError.Tests
 			{
 				new Exception()
 			};
-			Assert.AreEqual(1, collection.Count());
+			ClassicAssert.AreEqual(1, collection.Count());
         }
 
         [Test]
@@ -32,7 +33,7 @@ namespace PoliNorError.Tests
         {
             var collection = new FlexSyncEnumerable<Exception>();
             collection.AddRange(new List<Exception>() { new Exception(), new Exception() });
-            Assert.AreEqual(2, collection.Count());
+            ClassicAssert.AreEqual(2, collection.Count());
         }
 
         [Test]
@@ -40,7 +41,7 @@ namespace PoliNorError.Tests
         {
             var collection = new FlexSyncEnumerable<Exception>(true);
             collection.AddRange(new List<Exception>() { new Exception(), new Exception() });
-            Assert.AreEqual(2, collection.Count());
+            ClassicAssert.AreEqual(2, collection.Count());
         }
     }
 }
