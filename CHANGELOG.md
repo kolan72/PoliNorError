@@ -1,7 +1,20 @@
+## 2.12.1
+
+- Introduce `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` extension methods for the `PolicyDelegateCollection(<T>)` classes.
+- Introduce `PolicyResult(<T>).CriticalError` property.
+- Introduce `PolicyResultHandlingException.HandlerIndex` property.
+- Fix issue (#83): the `PolicyResult` handler index in the collection should be correct when adding generic and non generic handlers consecutively.
+- Upgrade tests to Nunit 4.0.1.
+- Update 'Error filters' README Chapter.
+- Edit 'PolicyResult handlers' README Chapter.
+- Edit 'PolicyDelegateCollection' README Chapter.
+- Correct 'Policy wrap' README Chapter example.
+
+
 ## 2.11.1
 
-- Introduce `IncludeErrorSet<TException1, TException2`> methods for policy processors, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`) and `PolicyCollection`.
-- Introduce `ExcludeErrorSet<TException1, TException2`> methods for policy processors, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`) and `PolicyCollection`.
+- Introduce `IncludeErrorSet<TException1, TException2>` methods for policy processors, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`) and `PolicyCollection`.
+- Introduce `ExcludeErrorSet<TException1, TException2>` methods for policy processors, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`) and `PolicyCollection`.
 - Slightly improve performance by using the equality operator instead of the `Equals` method for comparing types in generic error filters.
 - Add new 'PolicyDelegateCollectionResult' README chapter.
 - Update examples in the 'Policy wrap' README chapter.
