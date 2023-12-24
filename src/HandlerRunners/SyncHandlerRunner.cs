@@ -13,6 +13,11 @@ namespace PoliNorError
 			_act = act;
 		}
 
+		public SyncHandlerRunner(Action<PolicyResult, CancellationToken> act)
+		{
+			_act = act;
+		}
+
 		public override bool SyncRun => true;
 
 		public void Run(PolicyResult policyResult, CancellationToken token = default)

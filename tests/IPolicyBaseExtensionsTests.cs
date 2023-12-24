@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -15,7 +16,7 @@ namespace PoliNorError.Tests
 						.WithErrorProcessor(new BasicErrorProcessor())
 						.WithErrorProcessor(new BasicErrorProcessor())
 						.WithErrorProcessor(new BasicErrorProcessor());
-			Assert.AreEqual(3, ((DefaultRetryProcessor)pol.PolicyProcessor).Count());
+			ClassicAssert.AreEqual(3, ((DefaultRetryProcessor)pol.PolicyProcessor).Count());
 		}
 
 		[Test]
@@ -23,7 +24,7 @@ namespace PoliNorError.Tests
 		{
 			void act(Exception _, CancellationToken __) => Expression.Empty();
 			var pol = new RetryPolicy(1).WithErrorProcessorOf(act);
-			Assert.AreEqual(typeof(BasicErrorProcessor), pol.PolicyProcessor.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(BasicErrorProcessor), pol.PolicyProcessor.FirstOrDefault()?.GetType());
 		}
 	}
 }

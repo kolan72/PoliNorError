@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -41,67 +42,67 @@ namespace PoliNorError.Tests
 			}
 
 			v.WithErrorProcessorOf((Exception _, CancellationToken __) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __, CancellationToken ___) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf((Exception _) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf((Exception _) => Expression.Empty(), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1));
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1), (_) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1), (_) => Expression.Empty(), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1));
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1));
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1));
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), (_) => Expression.Empty());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), (_) => Expression.Empty(), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessor(new DefaultErrorProcessor());
-			Assert.AreEqual(errorProcessorsCount++, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), CancellationType.Precancelable);
-			Assert.AreEqual(errorProcessorsCount, v.Count);
+			ClassicAssert.AreEqual(errorProcessorsCount, v.Count);
 		}
 
 		internal enum TestType

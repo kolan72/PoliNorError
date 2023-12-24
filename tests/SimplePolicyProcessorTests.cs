@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -20,10 +21,10 @@ namespace PoliNorError.Tests
 			void errorProcessorFunc(Exception ex) { if (throwError) throw ex; else ++i; }
 			var retryPolTest = new SimplePolicyProcessor().WithErrorProcessorOf(errorProcessorFunc);
 			var res = retryPolTest.Execute(save);
-			Assert.IsTrue(res.Errors.Count() == 1);
+			ClassicAssert.IsTrue(res.Errors.Count() == 1);
 
-			Assert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
-			Assert.AreEqual(k, i);
+			ClassicAssert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(k, i);
 		}
 
 		[Test]
@@ -32,7 +33,7 @@ namespace PoliNorError.Tests
 			void save() => Expression.Empty();
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = retryPolTest.Execute(save);
-			Assert.IsTrue(res.NoError);
+			ClassicAssert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -47,10 +48,10 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicyProcessor().WithErrorProcessorOf(errorProcessorFunc);
 
 			var res = retryPolTest.Execute(save);
-			Assert.IsTrue(res.Errors.Count() == 1);
+			ClassicAssert.IsTrue(res.Errors.Count() == 1);
 
-			Assert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
-			Assert.AreEqual(k, i);
+			ClassicAssert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(k, i);
 		}
 
 		[Test]
@@ -59,8 +60,8 @@ namespace PoliNorError.Tests
 			int save() => 1;
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = retryPolTest.Execute(save);
-			Assert.IsTrue(res.NoError);
-			Assert.AreEqual(1, res.Result);
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.AreEqual(1, res.Result);
 		}
 
 		[Test]
@@ -74,10 +75,10 @@ namespace PoliNorError.Tests
 			void errorProcessorFunc(Exception ex) { if (throwError) throw ex; else ++i; }
 			var retryPolTest = new SimplePolicyProcessor().WithErrorProcessorOf(errorProcessorFunc);
 			var res = await retryPolTest.ExecuteAsync(saveAsync);
-			Assert.IsTrue(res.Errors.Count() == 1);
+			ClassicAssert.IsTrue(res.Errors.Count() == 1);
 
-			Assert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
-			Assert.AreEqual(k, i);
+			ClassicAssert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(k, i);
 		}
 
 		[Test]
@@ -86,7 +87,7 @@ namespace PoliNorError.Tests
 			async Task saveAsync(CancellationToken _) => await Task.Delay(1);
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = await retryPolTest.ExecuteAsync(saveAsync);
-			Assert.IsTrue(res.NoError);
+			ClassicAssert.IsTrue(res.NoError);
 		}
 
 		[Test]
@@ -100,10 +101,10 @@ namespace PoliNorError.Tests
 			void errorProcessorFunc(Exception ex) { if (throwError) throw ex; else ++i; }
 			var retryPolTest = new SimplePolicyProcessor().WithErrorProcessorOf(errorProcessorFunc);
 			var res = await retryPolTest.ExecuteAsync(saveAsync);
-			Assert.IsTrue(res.Errors.Count() == 1);
+			ClassicAssert.IsTrue(res.Errors.Count() == 1);
 
-			Assert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
-			Assert.AreEqual(k, i);
+			ClassicAssert.AreEqual(CatchBlockErrorsCount, res.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(k, i);
 		}
 
 		[Test]
@@ -112,8 +113,8 @@ namespace PoliNorError.Tests
 			async Task<int> saveAsync(CancellationToken _) { await Task.Delay(1); return 1; }
 			var retryPolTest = new SimplePolicyProcessor();
 			var res = await retryPolTest.ExecuteAsync(saveAsync);
-			Assert.IsTrue(res.NoError);
-			Assert.AreEqual(1, res.Result);
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.AreEqual(1, res.Result);
 		}
 
 		[Test]
@@ -127,8 +128,8 @@ namespace PoliNorError.Tests
 			var processor = SimplePolicyProcessor.CreateDefault();
 			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
 
-			Assert.AreEqual(true, tryResCount.IsCanceled);
-			Assert.AreEqual(0, i);
+			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
+			ClassicAssert.AreEqual(0, i);
 			cancelTokenSource.Dispose();
 		}
 
@@ -143,8 +144,8 @@ namespace PoliNorError.Tests
 			var processor = SimplePolicyProcessor.CreateDefault();
 			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
 
-			Assert.AreEqual(true, tryResCount.IsCanceled);
-			Assert.AreEqual(0, i);
+			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
+			ClassicAssert.AreEqual(0, i);
 			cancelTokenSource.Dispose();
 		}
 
@@ -155,9 +156,9 @@ namespace PoliNorError.Tests
 			var processor = SimplePolicyProcessor.CreateDefault();
 			var res =  processor.WithErrorProcessorOf((Exception _, CancellationToken __) => cancelTokenSource.Cancel())
 					 .Execute(() => throw new Exception(), cancelTokenSource.Token);
-			Assert.IsTrue(res.IsFailed);
-			Assert.IsTrue(res.IsCanceled);
-			Assert.IsFalse(res.IsSuccess);
+			ClassicAssert.IsTrue(res.IsFailed);
+			ClassicAssert.IsTrue(res.IsCanceled);
+			ClassicAssert.IsFalse(res.IsSuccess);
 			cancelTokenSource.Dispose();
 		}
 
@@ -170,7 +171,7 @@ namespace PoliNorError.Tests
 			processor.IncludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
 			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -183,7 +184,7 @@ namespace PoliNorError.Tests
 			processor.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 
 			var tryResCountWithNoInclude = processor.Execute(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, errorParamName));
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -194,7 +195,7 @@ namespace PoliNorError.Tests
 			var processor = SimplePolicyProcessor.CreateDefault().IncludeError(ex => ex.Message == paramName);
 			void saveWithInclude() => throw new Exception(errorParamName);
 			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 	    [Test]
@@ -206,7 +207,7 @@ namespace PoliNorError.Tests
 			processor.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == paramName);
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
 			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -217,7 +218,7 @@ namespace PoliNorError.Tests
 			var processor = SimplePolicyProcessor.CreateDefault().ExcludeError(ex => ex.Message == paramName);
 			void saveWithInclude() => throw new Exception(errorParamName);
 			var tryResCountWithNoInclude = processor.Execute(saveWithInclude);
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -230,7 +231,7 @@ namespace PoliNorError.Tests
 			processor.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 
 			var tryResCountWithNoInclude = processor.Execute(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, errorParamName));
-			Assert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -238,9 +239,9 @@ namespace PoliNorError.Tests
 		{
 			var proc = SimplePolicyProcessor.CreateDefault();
 			var simpleResult = proc.Execute(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -248,9 +249,9 @@ namespace PoliNorError.Tests
 		{
 			var proc = SimplePolicyProcessor.CreateDefault();
 			var simpleResult = proc.Execute<int>(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -258,9 +259,9 @@ namespace PoliNorError.Tests
 		{
 			var proc = SimplePolicyProcessor.CreateDefault();
 			var simpleResult = await proc.ExecuteAsync(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -268,9 +269,9 @@ namespace PoliNorError.Tests
 		{
 			var proc = SimplePolicyProcessor.CreateDefault();
 			var simpleResult = await proc.ExecuteAsync<int>(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -278,7 +279,7 @@ namespace PoliNorError.Tests
 		{
 			var proc = SimplePolicyProcessor.CreateDefault();
 			proc.AddErrorProcessor(new TestErrorProcessor());
-			Assert.IsTrue(proc.Count() == 1);
+			ClassicAssert.IsTrue(proc.Count() == 1);
 		}
 
 		private class TestErrorProcessor : IErrorProcessor

@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -18,12 +19,12 @@ namespace PoliNorError.Tests
 			void action() => Expression.Empty();
 
 			var res = simple.Handle(action);
-			Assert.IsFalse(res.IsFailed);
-			Assert.IsFalse(res.IsCanceled);
-			Assert.IsFalse(res.Errors.Any());
-			Assert.IsTrue(res.NoError);
-			Assert.AreEqual(polName, simple.PolicyName);
-			Assert.AreEqual(simple.PolicyName, res.PolicyName);
+			ClassicAssert.IsFalse(res.IsFailed);
+			ClassicAssert.IsFalse(res.IsCanceled);
+			ClassicAssert.IsFalse(res.Errors.Any());
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.AreEqual(polName, simple.PolicyName);
+			ClassicAssert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -42,11 +43,11 @@ namespace PoliNorError.Tests
 		{
 			var simplePolTest = new SimplePolicy();
 			var simpleResult = simplePolTest.Handle(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
-			Assert.NotNull(simpleResult.UnprocessedError);
-			Assert.AreEqual(simplePolTest.PolicyName, simpleResult.PolicyName);
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.NotNull(simpleResult.UnprocessedError);
+			ClassicAssert.AreEqual(simplePolTest.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -56,8 +57,8 @@ namespace PoliNorError.Tests
 			var simple = new SimplePolicy();
 			simple.WrapPolicy(simpleWrapped);
 			var wrapResult = simple.Handle(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -67,8 +68,8 @@ namespace PoliNorError.Tests
 			var simple = new SimplePolicy();
 			simple.WrapPolicy(simpleWrapped);
 			var wrapResult = simple.Handle<int>(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -78,8 +79,8 @@ namespace PoliNorError.Tests
 			var simple = new SimplePolicy();
 			simple.WrapPolicy(simpleWrapped);
 			var retryResult = await simple.HandleAsync(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -89,8 +90,8 @@ namespace PoliNorError.Tests
 			var simple = new SimplePolicy();
 			simple.WrapPolicy(simpleWrapped);
 			var retryResult = await simple.HandleAsync<int>(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -110,7 +111,7 @@ namespace PoliNorError.Tests
 			simple.WrapPolicy(subsWrappedPolicy);
 
 			var outPolicyResult = simple.Handle(act, default);
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
 			subsWrappedPolicy.Received(1).Handle(act);
 		}
@@ -133,12 +134,12 @@ namespace PoliNorError.Tests
 			int func() => 4;
 
 			var res = simple.Handle(func);
-			Assert.IsFalse(res.IsFailed);
-			Assert.IsFalse(res.IsCanceled);
-			Assert.IsFalse(res.Errors.Any());
-			Assert.IsTrue(res.NoError);
-			Assert.AreEqual(4, res.Result);
-			Assert.AreEqual(simple.PolicyName, res.PolicyName);
+			ClassicAssert.IsFalse(res.IsFailed);
+			ClassicAssert.IsFalse(res.IsCanceled);
+			ClassicAssert.IsFalse(res.Errors.Any());
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.AreEqual(4, res.Result);
+			ClassicAssert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -148,12 +149,12 @@ namespace PoliNorError.Tests
 			int func() => throw new Exception();
 
 			var res = simple.Handle(func);
-			Assert.IsFalse(res.IsFailed);
-			Assert.IsTrue(res.IsSuccess);
-			Assert.IsTrue(res.Errors.Any());
-			Assert.IsFalse(res.NoError);
-			Assert.IsTrue(res.IsPolicySuccess);
-			Assert.AreEqual(0, res.Result);
+			ClassicAssert.IsFalse(res.IsFailed);
+			ClassicAssert.IsTrue(res.IsSuccess);
+			ClassicAssert.IsTrue(res.Errors.Any());
+			ClassicAssert.IsFalse(res.NoError);
+			ClassicAssert.IsTrue(res.IsPolicySuccess);
+			ClassicAssert.AreEqual(0, res.Result);
 		}
 
 		[Test]
@@ -161,11 +162,11 @@ namespace PoliNorError.Tests
 		{
 			var retryPolTest = new SimplePolicy();
 			var simpleResult = retryPolTest.Handle<int>(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
-			Assert.NotNull(simpleResult.UnprocessedError);
-			Assert.AreEqual(retryPolTest.PolicyName, simpleResult.PolicyName);
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.NotNull(simpleResult.UnprocessedError);
+			ClassicAssert.AreEqual(retryPolTest.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -187,12 +188,12 @@ namespace PoliNorError.Tests
 			var outPolicyResult = simple.Handle(func, default);
 
 			//Out policy error should be the same as wrapped policy error.
-			Assert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
+			ClassicAssert.AreEqual(1, outPolicyResult.Errors.Count(ex => ex.Message == "Wrapped exception"));
 
-			Assert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
+			ClassicAssert.AreEqual(1, outPolicyResult.WrappedPolicyResults.Count());
 
-			Assert.IsFalse(outPolicyResult.IsFailed);
-			Assert.AreEqual(1, outPolicyResult.Errors.Count());
+			ClassicAssert.IsFalse(outPolicyResult.IsFailed);
+			ClassicAssert.AreEqual(1, outPolicyResult.Errors.Count());
 
 			subsWrappedPolicy.Received(1).Handle(func, default);
 		}
@@ -204,11 +205,11 @@ namespace PoliNorError.Tests
 			async Task action(CancellationToken _) { await Task.Delay(1); }
 
 			var res = await simple.HandleAsync(action);
-			Assert.AreEqual(false, res.IsFailed);
-			Assert.AreEqual(false, res.IsCanceled);
-			Assert.AreEqual(false, res.Errors.Any());
-			Assert.IsTrue(res.NoError);
-			Assert.AreEqual(simple.PolicyName, res.PolicyName);
+			ClassicAssert.AreEqual(false, res.IsFailed);
+			ClassicAssert.AreEqual(false, res.IsCanceled);
+			ClassicAssert.AreEqual(false, res.Errors.Any());
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -216,11 +217,11 @@ namespace PoliNorError.Tests
 		{
 			var simplePolTest = new SimplePolicy();
 			var simpleResult = await simplePolTest.HandleAsync(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
-			Assert.NotNull(simpleResult.UnprocessedError);
-			Assert.AreEqual(simplePolTest.PolicyName, simpleResult.PolicyName);
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.NotNull(simpleResult.UnprocessedError);
+			ClassicAssert.AreEqual(simplePolTest.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -248,7 +249,7 @@ namespace PoliNorError.Tests
 			var outPolicyResult = await simple.HandleAsync(func);
 			await subsWrappedPolicy.Received(1).HandleAsync(func);
 
-			Assert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
+			ClassicAssert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
 		}
 
 		[Test]
@@ -259,12 +260,12 @@ namespace PoliNorError.Tests
 
 			var res = await simple.HandleAsync(action);
 
-			Assert.AreEqual(false, res.IsFailed);
-			Assert.AreEqual(false, res.IsCanceled);
-			Assert.AreEqual(false, res.Errors.Any());
-			Assert.IsTrue(res.NoError);
-			Assert.AreEqual(4, res.Result);
-			Assert.AreEqual(simple.PolicyName, res.PolicyName);
+			ClassicAssert.AreEqual(false, res.IsFailed);
+			ClassicAssert.AreEqual(false, res.IsCanceled);
+			ClassicAssert.AreEqual(false, res.Errors.Any());
+			ClassicAssert.IsTrue(res.NoError);
+			ClassicAssert.AreEqual(4, res.Result);
+			ClassicAssert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -275,12 +276,12 @@ namespace PoliNorError.Tests
 
 			var res = await simple.HandleAsync(action);
 
-			Assert.IsFalse(res.IsFailed);
-			Assert.IsTrue(res.IsSuccess);
-			Assert.IsTrue(res.Errors.Any());
-			Assert.IsFalse(res.NoError);
-			Assert.AreEqual(0, res.Result);
-			Assert.AreEqual(simple.PolicyName, res.PolicyName);
+			ClassicAssert.IsFalse(res.IsFailed);
+			ClassicAssert.IsTrue(res.IsSuccess);
+			ClassicAssert.IsTrue(res.Errors.Any());
+			ClassicAssert.IsFalse(res.NoError);
+			ClassicAssert.AreEqual(0, res.Result);
+			ClassicAssert.AreEqual(simple.PolicyName, res.PolicyName);
 		}
 
 		[Test]
@@ -288,11 +289,11 @@ namespace PoliNorError.Tests
 		{
 			var simple = new SimplePolicy();
 			var simpleResult = await simple.HandleAsync<int>(null);
-			Assert.IsTrue(simpleResult.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
-			Assert.NotNull(simpleResult.UnprocessedError);
-			Assert.AreEqual(simple.PolicyName, simpleResult.PolicyName);
+			ClassicAssert.IsTrue(simpleResult.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.NotNull(simpleResult.UnprocessedError);
+			ClassicAssert.AreEqual(simple.PolicyName, simpleResult.PolicyName);
 		}
 
 		[Test]
@@ -320,7 +321,7 @@ namespace PoliNorError.Tests
 			var outPolicyResult = await simple.HandleAsync(func);
 			await subsWrappedPolicy.Received(1).HandleAsync(func);
 
-			Assert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
+			ClassicAssert.AreEqual(simple.PolicyName, outPolicyResult.PolicyName);
 		}
 
 		[TestCase("Test")]
@@ -330,9 +331,9 @@ namespace PoliNorError.Tests
 			retryPolTest.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == "Test");
 			void actionUnsatisied() => throw new ArgumentNullException(errParamName);
 			var res = retryPolTest.Handle(actionUnsatisied);
-			Assert.IsTrue(res.ErrorFilterUnsatisfied);
-			Assert.IsTrue(res.IsFailed);
-			Assert.NotNull(res.UnprocessedError);
+			ClassicAssert.IsTrue(res.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(res.IsFailed);
+			ClassicAssert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
@@ -342,9 +343,9 @@ namespace PoliNorError.Tests
 			void actionUnsatisied() => throw new Exception("Test");
 			retryPolTest.IncludeError<ArgumentNullException>();
 			var res = retryPolTest.Handle(actionUnsatisied);
-			Assert.IsTrue(res.ErrorFilterUnsatisfied);
-			Assert.IsTrue(res.IsFailed);
-			Assert.NotNull(res.UnprocessedError);
+			ClassicAssert.IsTrue(res.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(res.IsFailed);
+			ClassicAssert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
@@ -354,8 +355,8 @@ namespace PoliNorError.Tests
 			var fbWithError = simplePolicy.ExcludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test");
 			var res = fbWithError.Handle(action);
-			Assert.IsTrue(res.ErrorFilterUnsatisfied);
-			Assert.NotNull(res.UnprocessedError);
+			ClassicAssert.IsTrue(res.ErrorFilterUnsatisfied);
+			ClassicAssert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
@@ -365,8 +366,8 @@ namespace PoliNorError.Tests
 			var fbWithError = simplePolicy.IncludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test2");
 			var res = fbWithError.Handle(action);
-			Assert.IsTrue(res.ErrorFilterUnsatisfied);
-			Assert.NotNull(res.UnprocessedError);
+			ClassicAssert.IsTrue(res.ErrorFilterUnsatisfied);
+			ClassicAssert.NotNull(res.UnprocessedError);
 		}
 
 		[Test]
@@ -378,8 +379,8 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicy();
 			retryPolTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(retryPolTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -391,8 +392,8 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicy();
 			retryPolTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(retryPolTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -400,15 +401,15 @@ namespace PoliNorError.Tests
 		{
 			ErrorProcessorParam invokeParamsNull = null;
 			var policyFromNull = invokeParamsNull.ToSimplePolicy();
-			Assert.IsNotNull(policyFromNull);
-			Assert.IsInstanceOf<SimplePolicy>(policyFromNull);
-			Assert.AreEqual(0, policyFromNull.PolicyProcessor.Count());
+			ClassicAssert.IsNotNull(policyFromNull);
+			ClassicAssert.IsInstanceOf<SimplePolicy>(policyFromNull);
+			ClassicAssert.AreEqual(0, policyFromNull.PolicyProcessor.Count());
 
 			ErrorProcessorParam invokeParamsFromAction = ErrorProcessorParam.From((_, __) => Expression.Empty());
 			var policyFromAction = invokeParamsFromAction.ToSimplePolicy();
-			Assert.IsNotNull(policyFromAction);
-			Assert.IsInstanceOf<SimplePolicy>(policyFromAction);
-			Assert.AreEqual(1, policyFromAction.PolicyProcessor.Count());
+			ClassicAssert.IsNotNull(policyFromAction);
+			ClassicAssert.IsInstanceOf<SimplePolicy>(policyFromAction);
+			ClassicAssert.AreEqual(1, policyFromAction.PolicyProcessor.Count());
 		}
 
 		[Test]
@@ -427,8 +428,8 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler((_) => i++);
 			}
 			var polResult = policy.Handle(() => throw new Exception("Handle"));
-			Assert.AreEqual(policy.PolicyName, polResult.PolicyName);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(policy.PolicyName, polResult.PolicyName);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -447,8 +448,8 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>((_) => i++);
 			}
 			var res = policy.Handle<int>(() => throw new Exception("Handle"));
-			Assert.AreEqual(policy.PolicyName, res.PolicyName);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(policy.PolicyName, res.PolicyName);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -467,8 +468,8 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 			}
 			var res = await policy.HandleAsync(async (_) => {await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(policy.PolicyName, res.PolicyName);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(policy.PolicyName, res.PolicyName);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -487,8 +488,8 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
 			}
 			var res = await policy.HandleAsync<int>(async(_) => {await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(policy.PolicyName, res.PolicyName);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(policy.PolicyName, res.PolicyName);
+			ClassicAssert.AreEqual(1, i);
 		}
 	}
 }

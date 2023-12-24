@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,9 +18,9 @@ namespace PoliNorError.Tests
 			var polRetryResult = RetryProcessor
 								.CreateDefault()
 								.Retry(save, 1, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
-			Assert.AreEqual(0, polRetryResult.Errors.Count());
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -32,9 +33,9 @@ namespace PoliNorError.Tests
 			var polRetryResult = RetryProcessor
 								.CreateDefault()
 								.Retry(save, 1, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
-			Assert.AreEqual(0, polRetryResult.Errors.Count());
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -47,8 +48,8 @@ namespace PoliNorError.Tests
 								.CreateDefault()
 								.WithErrorProcessorOf(_actCancel(cancelTokenSource))
 								.Retry(save, 2, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
 			cancelTokenSource.Dispose();
 		}
 
@@ -59,8 +60,8 @@ namespace PoliNorError.Tests
 			void save() { throw new Exception(); }
 			var processor = RetryProcessor.CreateDefault().WithErrorProcessorOf(_actCancel(cancelTokenSource));
 			var polRetryResult = processor.Retry(save, 2, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
 			cancelTokenSource.Dispose();
 		}
 
@@ -71,8 +72,8 @@ namespace PoliNorError.Tests
 			async Task save(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
 			var processor = new DefaultRetryProcessor().WithErrorProcessorOf(_actCancel(cancelTokenSource));
 			var polRetryResult = await processor.RetryAsync(save, 2, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
 			cancelTokenSource.Dispose();
 		}
 
@@ -83,8 +84,8 @@ namespace PoliNorError.Tests
 			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
 			var processor = new DefaultRetryProcessor().WithErrorProcessorOf(_actCancel(cancelTokenSource));
 			var polRetryResult = await processor.RetryAsync(save, 2, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
 			cancelTokenSource.Dispose();
 		}
 
@@ -95,9 +96,9 @@ namespace PoliNorError.Tests
 			Action save = CanceledGetAwaiterAct(cancelTokenSource);
 			var processor = new DefaultRetryProcessor();
 			var polRetryResult = processor.Retry(save, 1, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
-			Assert.AreEqual(0, polRetryResult.Errors.Count());
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -108,9 +109,9 @@ namespace PoliNorError.Tests
 			Action save = CancelWaiterAct(cancelTokenSource);
 			var processor = new DefaultRetryProcessor();
 			var polRetryResult = processor.Retry(save, 1, cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
-			Assert.AreEqual(0, polRetryResult.Errors.Count());
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -121,9 +122,9 @@ namespace PoliNorError.Tests
 			Action save = CanceledGetAwaiterAct(cancelTokenSource);
 			var processor = new DefaultFallbackProcessor();
 			var polRetryResult = processor.Fallback(save, (_) => Expression.Empty(), cancelTokenSource.Token);
-			Assert.IsTrue(polRetryResult.IsFailed);
-			Assert.IsTrue(polRetryResult.IsCanceled);
-			Assert.AreEqual(0, polRetryResult.Errors.Count());
+			ClassicAssert.IsTrue(polRetryResult.IsFailed);
+			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -134,9 +135,9 @@ namespace PoliNorError.Tests
 			Action save = CancelWaiterAct(cancelTokenSource);
 			var processor = new DefaultFallbackProcessor();
 			var polResult = processor.Fallback(save, (_) => Expression.Empty(), cancelTokenSource.Token);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(0, polResult.Errors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -147,9 +148,9 @@ namespace PoliNorError.Tests
 			Func<int> save = CanceledGetAwaiterFunc(cancelTokenSource);
 			var processor = new DefaultFallbackProcessor();
 			var polResult = processor.Fallback(save, (_) => 1, cancelTokenSource.Token);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(0, polResult.Errors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -160,9 +161,9 @@ namespace PoliNorError.Tests
 			Func<int> save = CancelWaiterFunc(cancelTokenSource);
 			var processor = new DefaultFallbackProcessor();
 			var polResult = processor.Fallback(save, (_) => 1, cancelTokenSource.Token);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(0, polResult.Errors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -173,9 +174,9 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task> save = CanceledTaskFunc(cancelTokenSource);
 			var processor = new DefaultFallbackProcessor();
 			var polResult = await processor.FallbackAsync(save, async (_) => await Task.Delay(1), false,cancelTokenSource.Token);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(0, polResult.Errors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -186,9 +187,9 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task<int>> save = CanceledTaskFuncT(cancelTokenSource);
 			var processor = new DefaultFallbackProcessor();
 			var polResult = await processor.FallbackAsync(save, async (_) => { await Task.Delay(1); return 1; }, cancelTokenSource.Token);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(0, polResult.Errors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -199,9 +200,9 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task> save = CanceledTaskFunc(cancelTokenSource);
 			var processor = new DefaultRetryProcessor();
 			var polResult = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(0, polResult.Errors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -212,9 +213,9 @@ namespace PoliNorError.Tests
 			Func<CancellationToken, Task<int>> save = CanceledTaskFuncT(cancelTokenSource);
 			var processor = new DefaultRetryProcessor();
 			var polResult = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsTrue(polResult.IsCanceled);
-			Assert.AreEqual(0, polResult.Errors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsTrue(polResult.IsCanceled);
+			ClassicAssert.AreEqual(0, polResult.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 

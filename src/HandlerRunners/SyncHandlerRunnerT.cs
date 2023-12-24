@@ -17,7 +17,19 @@ namespace PoliNorError
 			return new SyncHandlerRunnerT(new SyncHandlerRunner(actArg, num), num, typeof(T));
 		}
 
+		public static SyncHandlerRunnerT Create<T>(Action<PolicyResult<T>, CancellationToken> act)
+		{
+			void actArg(PolicyResult pr, CancellationToken ct) => act((PolicyResult<T>)pr, ct);
+			return new SyncHandlerRunnerT(new SyncHandlerRunner(actArg), typeof(T));
+		}
+
 		private SyncHandlerRunnerT(SyncHandlerRunner syncHandlerRunner, int num, Type type) : base(num)
+		{
+			_syncHandlerRunnerInner = syncHandlerRunner;
+			_type = type;
+		}
+
+		private SyncHandlerRunnerT(SyncHandlerRunner syncHandlerRunner, Type type)
 		{
 			_syncHandlerRunnerInner = syncHandlerRunner;
 			_type = type;

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Threading;
@@ -21,9 +22,9 @@ namespace PoliNorError.Tests
 			var res = collection
 						.BuildCollectionHandler()
 						.Handle();
-			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
-			Assert.IsTrue(res.Count(ph=>ph.Result.IsFailed) == nTimeInfinite);
+			ClassicAssert.IsTrue(res.Count() == nTimeInfinite);
+			ClassicAssert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			ClassicAssert.IsTrue(res.Count(ph=>ph.Result.IsFailed) == nTimeInfinite);
 		}
 
 		[Test]
@@ -37,8 +38,8 @@ namespace PoliNorError.Tests
 			var res = collection
 					 .BuildCollectionHandler()
 					 .Handle();
-			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			ClassicAssert.IsTrue(res.Count() == nTimeInfinite);
+			ClassicAssert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
 		}
 
 		[Test]
@@ -53,9 +54,9 @@ namespace PoliNorError.Tests
 			var res = await  collection
 							.BuildCollectionHandler()
 							.HandleAsync();
-			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
-			Assert.IsTrue(res.Count(ph => ph.Result.IsFailed) == nTimeInfinite);
+			ClassicAssert.IsTrue(res.Count() == nTimeInfinite);
+			ClassicAssert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			ClassicAssert.IsTrue(res.Count(ph => ph.Result.IsFailed) == nTimeInfinite);
 		}
 
 		[Test]
@@ -70,9 +71,9 @@ namespace PoliNorError.Tests
 			var res = await collection
 							.BuildCollectionHandler()
 							.HandleAsync();
-			Assert.IsTrue(res.Count() == nTimeInfinite);
-			Assert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
-			Assert.IsTrue(res.Count(ph => ph.Result.IsFailed) == nTimeInfinite);
+			ClassicAssert.IsTrue(res.Count() == nTimeInfinite);
+			ClassicAssert.IsTrue(res.PolicyDelegateResults.FirstOrDefault().Result.Errors.Count() == _numOfRetriesAfterLastRetry + 1);
+			ClassicAssert.IsTrue(res.Count(ph => ph.Result.IsFailed) == nTimeInfinite);
 		}
 	}
 

@@ -107,6 +107,32 @@ namespace PoliNorError
 			return policyDelegateCollection;
 		}
 
+		/// <summary>
+		/// Specifies two types-based filter condition for including an exception in the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection"/>
+		/// </summary>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection IncludeErrorSet<TException1, TException2>(this IPolicyDelegateCollection policyDelegateCollection) where TException1 : Exception where TException2 : Exception
+		{
+			policyDelegateCollection.AddIncludedErrorSetFilter<TException1, TException2>();
+			return policyDelegateCollection;
+		}
+
+		/// <summary>
+		/// Specifies two types-based filter condition for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection"/>
+		/// </summary>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection ExcludeErrorSet<TException1, TException2>(this IPolicyDelegateCollection policyDelegateCollection) where TException1 : Exception where TException2 : Exception
+		{
+			policyDelegateCollection.AddExcludedErrorSetFilter<TException1, TException2>();
+			return policyDelegateCollection;
+		}
+
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act)
 		{
 			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);

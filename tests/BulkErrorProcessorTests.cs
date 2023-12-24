@@ -1,6 +1,7 @@
 ﻿using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Threading;
@@ -15,7 +16,7 @@ namespace PoliNorError.Tests
 		{
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 			var res =  await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), CancellationToken.None);
-			Assert.IsTrue(!res.ProcessErrors.Any());
+			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
 		[Test]
@@ -32,7 +33,7 @@ namespace PoliNorError.Tests
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
 
 			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), default);
-			Assert.IsTrue(res.ProcessErrors.Count() == 1);
+			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
 		}
 
 		[Test]
@@ -47,7 +48,7 @@ namespace PoliNorError.Tests
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
 			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), default);
-			Assert.IsTrue(!res.ProcessErrors.Any());
+			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
 		[Test]
@@ -55,7 +56,7 @@ namespace PoliNorError.Tests
 		{
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
 			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), CancellationToken.None);
-			Assert.IsTrue(!res.ProcessErrors.Any());
+			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
 		[Test]
@@ -71,7 +72,7 @@ namespace PoliNorError.Tests
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
 
 			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), default);
-			Assert.IsTrue(res.ProcessErrors.Count() == 1);
+			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
 		}
 
 		[Test]
@@ -86,7 +87,7 @@ namespace PoliNorError.Tests
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
 			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), default);
-			Assert.IsTrue(!res.ProcessErrors.Any());
+			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
 		[Test]
@@ -100,9 +101,9 @@ namespace PoliNorError.Tests
 			bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
 			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
-			Assert.IsTrue(res.ProcessErrors.Count() == 1);
-			Assert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().Equals(typeof(OperationCanceledException)));
-			Assert.IsTrue(res.IsCanceled);
+			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
+			ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().Equals(typeof(OperationCanceledException)));
+			ClassicAssert.IsTrue(res.IsCanceled);
 		}
 
 		[Test]
@@ -116,10 +117,10 @@ namespace PoliNorError.Tests
 			bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
 			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
-			Assert.IsTrue(res.ProcessErrors.Count() == 1);
+			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
 			//				The real type here id TaskCanceledException.
-			Assert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().BaseType.Equals(typeof(OperationCanceledException)));
-			Assert.IsTrue(res.IsCanceled);
+			ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().BaseType.Equals(typeof(OperationCanceledException)));
+			ClassicAssert.IsTrue(res.IsCanceled);
 		}
 
 		[Test]
@@ -170,7 +171,7 @@ namespace PoliNorError.Tests
 				}
 			}
 
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 
 			IPolicyBase GetPolicyByAlias()
 			{

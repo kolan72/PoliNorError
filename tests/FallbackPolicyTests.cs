@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -17,25 +18,29 @@ namespace PoliNorError.Tests
 
 			var polResult = fallback.Handle(() => { });
 
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsFalse(polResult.Errors.Any());
-			Assert.IsTrue(polResult.NoError);
-			Assert.AreEqual(fallback.PolicyName, polResult.PolicyName);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsFalse(polResult.Errors.Any());
+			ClassicAssert.IsTrue(polResult.NoError);
+			ClassicAssert.AreEqual(fallback.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
 		public void Should_Handle_Sync_NoGeneric_ByFallbackAsync_If_Error()
 		{
-			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); });
+			var throwingException = new Exception("HandleAsync");
+			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw throwingException;});
 
 			var polResult = fallback.Handle(() => throw new Exception("Handle sync by async fallback"));
 
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Any());
-			Assert.NotNull(polResult.UnprocessedError);
-			Assert.AreEqual(1, polResult.CatchBlockErrors.Count());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Any());
+			ClassicAssert.NotNull(polResult.UnprocessedError);
+			ClassicAssert.AreEqual(1, polResult.CatchBlockErrors.Count());
+			ClassicAssert.NotNull(polResult.CriticalError);
+			ClassicAssert.IsTrue(typeof(AggregateException) == polResult.CriticalError.GetType());
+			ClassicAssert.AreEqual(throwingException, ((AggregateException)polResult.CriticalError).InnerExceptions.FirstOrDefault());
 		}
 
 		[Test]
@@ -44,11 +49,11 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			var polResult = fallback.Handle(() => throw new Exception("Handle sync by async fallback"));
 
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Count() == 1);
-			Assert.Null(polResult.UnprocessedError);
-			Assert.AreEqual(0, polResult.CatchBlockErrors.Count());
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Count() == 1);
+			ClassicAssert.Null(polResult.UnprocessedError);
+			ClassicAssert.AreEqual(0, polResult.CatchBlockErrors.Count());
 		}
 
 		[Test]
@@ -59,9 +64,9 @@ namespace PoliNorError.Tests
 				.AddPolicyResultHandler(func)
 				;
 			var res = fallbackPolicy.Handle(() => throw new Exception());
-			Assert.IsTrue(res.IsFailed);
-			Assert.Null(res.UnprocessedError);
-			Assert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
+			ClassicAssert.IsTrue(res.IsFailed);
+			ClassicAssert.Null(res.UnprocessedError);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.PolicyResultHandlerFailed, res.FailedReason);
 		}
 
 		[Test]
@@ -73,8 +78,8 @@ namespace PoliNorError.Tests
 			var policy = new FallbackPolicy().WithFallbackAction((_) => { });
 			var res = policy.Handle(() => { }, cancelTokenSource.Token);
 
-			Assert.IsTrue(res.IsCanceled);
-			Assert.IsFalse(res.NoError);
+			ClassicAssert.IsTrue(res.IsCanceled);
+			ClassicAssert.IsFalse(res.NoError);
 			cancelTokenSource.Dispose();
 		}
 
@@ -83,10 +88,10 @@ namespace PoliNorError.Tests
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
 			var result = fallBackPol.Handle(null);
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), result.Errors.FirstOrDefault()?.GetType());
-			Assert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
 		}
 
 		[Test]
@@ -97,7 +102,7 @@ namespace PoliNorError.Tests
 			var sw = Stopwatch.StartNew();
 			pol.Handle(act);
 			sw.Stop();
-			Assert.Greater(Math.Floor(sw.Elapsed.TotalMilliseconds), 250);
+			ClassicAssert.Greater(Math.Floor(sw.Elapsed.TotalMilliseconds), 250);
 		}
 
 		[Test]
@@ -107,9 +112,9 @@ namespace PoliNorError.Tests
 			var fbWithError = fallBackPol.IncludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test2");
 			var polRes = fbWithError.Handle(action);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
-			Assert.IsTrue(polRes.IsFailed);
-			Assert.AreEqual(1, polRes.Errors.Count());
+			ClassicAssert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes.IsFailed);
+			ClassicAssert.AreEqual(1, polRes.Errors.Count());
 		}
 
 		[Test]
@@ -119,7 +124,7 @@ namespace PoliNorError.Tests
 			var fbWithError = fallBackPol.ExcludeError((e) => e.Message == "Test");
 			void action() => throw new Exception("Test");
 			var polRes = fbWithError.Handle(action);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -130,7 +135,7 @@ namespace PoliNorError.Tests
 			var fbWithError = fallBackPol.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == "Test");
 			void action() => throw new ArgumentNullException(testMsg);
 			var polRes = fbWithError.Handle(action);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -140,7 +145,7 @@ namespace PoliNorError.Tests
 			var fallBackPol = new FallbackPolicy();
 			void action() => throw new ArgumentNullException(testMsg);
 			var polRes = fallBackPol.Handle(action);
-			Assert.IsFalse(polRes.IsFailed);
+			ClassicAssert.IsFalse(polRes.IsFailed);
 		}
 
 		[Test]
@@ -149,8 +154,8 @@ namespace PoliNorError.Tests
 			var fallBackPol = new FallbackPolicy();
 			async Task actEmpty(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
 			var polRes = await fallBackPol.HandleAsync(actEmpty);
-			Assert.IsFalse(polRes.IsFailed);
-			Assert.AreEqual(1, polRes.Errors.Count());
+			ClassicAssert.IsFalse(polRes.IsFailed);
+			ClassicAssert.AreEqual(1, polRes.Errors.Count());
 		}
 
 		[Test]
@@ -161,11 +166,11 @@ namespace PoliNorError.Tests
 			var fbWithError = fallBackPol.IncludeError<ArgumentNullException>((ane) => ane.ParamName == "Test2");
 			void actionSatisfied() => throw new ArgumentNullException(testMsg);
 			var polRes = fbWithError.Handle(actionSatisfied);
-			Assert.IsFalse(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsFalse(polRes.ErrorFilterUnsatisfied);
 
 			void actionUnSatisfied() => throw new Exception("Test2");
 			var polRes2 = fbWithError.Handle(actionUnSatisfied);
-			Assert.IsTrue(polRes2.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes2.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -177,8 +182,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -190,8 +195,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -203,8 +208,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1; }) ;
 			_ = fallBackPolicyTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -216,8 +221,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1;});
 			_ = fallBackPolicyTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -229,8 +234,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -242,8 +247,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -255,8 +260,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction((_) => { });
 			_ = fallBackPolicyTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -268,8 +273,8 @@ namespace PoliNorError.Tests
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
-			Assert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
-			Assert.AreEqual(isFailed, res.IsFailed);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}
 
 		[Test]
@@ -284,15 +289,15 @@ namespace PoliNorError.Tests
 
 			string actionSatisfiedForFirst() => throw new ArgumentNullException(testMsg);
 			var polRes = fallBackPol.Handle(actionSatisfiedForFirst);
-			Assert.IsFalse(polRes.ErrorFilterUnsatisfied);
-			Assert.AreEqual(1, polRes.Errors.Count());
-			Assert.AreEqual("EmptyString", polRes.Result);
+			ClassicAssert.IsFalse(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(1, polRes.Errors.Count());
+			ClassicAssert.AreEqual("EmptyString", polRes.Result);
 
 			int actionSatisfiedForSecond() => throw new IndexOutOfRangeException("Out");
 			var polRes2 = fallBackPol.Handle(actionSatisfiedForSecond);
-			Assert.IsFalse(polRes2.ErrorFilterUnsatisfied);
-			Assert.AreEqual(1, polRes2.Errors.Count());
-			Assert.AreEqual(-1, polRes2.Result);
+			ClassicAssert.IsFalse(polRes2.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(1, polRes2.Errors.Count());
+			ClassicAssert.AreEqual(-1, polRes2.Result);
 		}
 
 		[Test]
@@ -304,7 +309,7 @@ namespace PoliNorError.Tests
 
 			string actionUnsatisfied() => throw new Exception("Test2");
 			var polRes = fallBackPol.Handle(actionUnsatisfied);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -316,7 +321,7 @@ namespace PoliNorError.Tests
 
 			string actionSatisfiedForFirst() => throw new Exception("Test");
 			var polRes = fallBackPol.Handle(actionSatisfiedForFirst);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -327,7 +332,7 @@ namespace PoliNorError.Tests
 										.IncludeError((ex) => ex.Message == "Test");
 			string actionUnsatisfied() => throw new Exception("Test2");
 			var polRes = fallBackPol.Handle(actionUnsatisfied);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -338,7 +343,7 @@ namespace PoliNorError.Tests
 										.ExcludeError((ex) => ex.Message == "Test");
 			string actionUnsatisfied() => throw new Exception("Test");
 			var polRes = fallBackPol.Handle(actionUnsatisfied);
-			Assert.IsTrue(polRes.ErrorFilterUnsatisfied);
+			ClassicAssert.IsTrue(polRes.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -352,7 +357,7 @@ namespace PoliNorError.Tests
 			void actionUnsatisied() => throw new ArgumentNullException(paramName);
 			fallBackPol.ExcludeError<ArgumentNullException>((ane) => ane.ParamName == excludeErrorParamName).IncludeError<ArgumentNullException>((ane) => ane.ParamName == forErrorParamName);
 			var resHandle = fallBackPol.Handle(actionUnsatisied);
-			Assert.AreEqual(res, resHandle.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(res, resHandle.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
@@ -362,51 +367,51 @@ namespace PoliNorError.Tests
 			var fp = fallBack.WithErrorProcessor(new BasicErrorProcessor())
 							 .WithErrorProcessor(new BasicErrorProcessor())
 							 .WithErrorProcessor(new BasicErrorProcessor());
-			Assert.AreEqual(3, fp.PolicyProcessor.Count());
+			ClassicAssert.AreEqual(3, fp.PolicyProcessor.Count());
 
 			var fallBackWithAsync = fallBack.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			fallBackWithAsync.WithErrorProcessor(new BasicErrorProcessor())
 							 .WithErrorProcessor(new BasicErrorProcessor())
 							 .WithErrorProcessor(new BasicErrorProcessor());
-			Assert.AreEqual(6, fp.PolicyProcessor.Count());
+			ClassicAssert.AreEqual(6, fp.PolicyProcessor.Count());
 
 			var fallBackFull = fallBackWithAsync.WithFallbackAction((_) => { });
 			fallBackFull.WithErrorProcessor(new BasicErrorProcessor())
 							 .WithErrorProcessor(new BasicErrorProcessor())
 							 .WithErrorProcessor(new BasicErrorProcessor());
-			Assert.AreEqual(9, fp.PolicyProcessor.Count());
+			ClassicAssert.AreEqual(9, fp.PolicyProcessor.Count());
 		}
 
 		[Test]
 		public void Should_FallbackActionInit_Work_For_Any_Setup()
 		{
 			var fbOne = new FallbackPolicy();
-			Assert.IsFalse(fbOne.HasFallbackAction());
+			ClassicAssert.IsFalse(fbOne.HasFallbackAction());
 
 			var fbOneWithAction = fbOne.WithFallbackAction((_) => { });
-			Assert.IsTrue(fbOneWithAction.HasFallbackAction());
+			ClassicAssert.IsTrue(fbOneWithAction.HasFallbackAction());
 
 			var fbTwo = fbOne.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
-			Assert.IsFalse(fbTwo.HasFallbackAction());
+			ClassicAssert.IsFalse(fbTwo.HasFallbackAction());
 
 			var fbTwoWithAction = fbTwo.WithFallbackAction((_) => { });
-			Assert.IsTrue(fbTwoWithAction.HasFallbackAction());
+			ClassicAssert.IsTrue(fbTwoWithAction.HasFallbackAction());
 		}
 
 		[Test]
 		public void Should_FallbackAsyncInit_Work_For_Any_Setup()
 		{
 			var fbOne = new FallbackPolicy();
-			Assert.IsFalse(fbOne.HasAsyncFallbackFunc());
+			ClassicAssert.IsFalse(fbOne.HasAsyncFallbackFunc());
 
 			var fbOneWithAction = fbOne.WithAsyncFallbackFunc(async(_) => await Task.Delay(1));
-			Assert.IsTrue(fbOneWithAction.HasAsyncFallbackFunc());
+			ClassicAssert.IsTrue(fbOneWithAction.HasAsyncFallbackFunc());
 
 			var fbTwo = fbOne.WithFallbackAction((_) => { });
-			Assert.IsFalse(fbTwo.HasAsyncFallbackFunc());
+			ClassicAssert.IsFalse(fbTwo.HasAsyncFallbackFunc());
 
 			var fbTwoWithAction = fbTwo.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
-			Assert.IsTrue(fbTwoWithAction.HasAsyncFallbackFunc());
+			ClassicAssert.IsTrue(fbTwoWithAction.HasAsyncFallbackFunc());
 		}
 
 		[Test]
@@ -417,10 +422,10 @@ namespace PoliNorError.Tests
 
 			var policy = new FallbackPolicy().WithAsyncFallbackFunc(actFallBack);
 			var polResult = await policy.HandleAsync(actEmpty);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsFalse(polResult.Errors.Any());
-			Assert.IsTrue(polResult.NoError);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsFalse(polResult.Errors.Any());
+			ClassicAssert.IsTrue(polResult.NoError);
 		}
 
 		[Test]
@@ -429,9 +434,9 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy().WithFallbackAction((_) => throw new Exception(nameof(Should_Handle_ASync_NoGeneric_ByFallbackSync_If_Error)));
 			var polResult = await fallback.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); });
 
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Any());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Any());
 		}
 
 		[Test]
@@ -440,14 +445,14 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy().WithFallbackAction((_) => { });
 			var polResult = await fallback.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); });
 
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Count() == 1);
-			Assert.AreEqual(0, polResult.CatchBlockErrors.Count());
-			Assert.IsFalse(polResult.NoError);
-			Assert.IsTrue(polResult.IsSuccess);
-			Assert.IsTrue(polResult.IsPolicySuccess);
-			Assert.AreEqual(fallback.PolicyName, polResult.PolicyName);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Count() == 1);
+			ClassicAssert.AreEqual(0, polResult.CatchBlockErrors.Count());
+			ClassicAssert.IsFalse(polResult.NoError);
+			ClassicAssert.IsTrue(polResult.IsSuccess);
+			ClassicAssert.IsTrue(polResult.IsPolicySuccess);
+			ClassicAssert.AreEqual(fallback.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
@@ -455,10 +460,10 @@ namespace PoliNorError.Tests
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
 			var result = await fallBackPol.HandleAsync(null);
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), result.Errors.FirstOrDefault()?.GetType());
-			Assert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
 		}
 
 		[Test]
@@ -469,10 +474,10 @@ namespace PoliNorError.Tests
 
 			var policy = new FallbackPolicy().WithFallbackFunc(actFallBack);
 			var polResult = policy.Handle(actEmpty);
-			Assert.IsTrue(!polResult.IsFailed);
-			Assert.IsTrue(!polResult.IsCanceled);
-			Assert.IsTrue(!polResult.Errors.Any());
-			Assert.IsTrue(polResult.Result == 1);
+			ClassicAssert.IsTrue(!polResult.IsFailed);
+			ClassicAssert.IsTrue(!polResult.IsCanceled);
+			ClassicAssert.IsTrue(!polResult.Errors.Any());
+			ClassicAssert.IsTrue(polResult.Result == 1);
 		}
 
 		[Test]
@@ -482,7 +487,7 @@ namespace PoliNorError.Tests
 
 			var polResult = policy.Handle(() => 45, default);
 
-			Assert.AreEqual(45, polResult.Result);
+			ClassicAssert.AreEqual(45, polResult.Result);
 		}
 
 		[Test]
@@ -492,7 +497,7 @@ namespace PoliNorError.Tests
 
 			var polResult = retry.Handle<int>(() => throw new Exception());
 
-			Assert.AreEqual(0, polResult.Result);
+			ClassicAssert.AreEqual(0, polResult.Result);
 		}
 
 		[Test]
@@ -502,8 +507,8 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy().WithFallbackAction((_) => k = 10);
 			int func() => throw new Exception();
 			var polResult = fallback.Handle(func);
-			Assert.AreEqual(default(int), polResult.Result);
-			Assert.AreEqual(10, k);
+			ClassicAssert.AreEqual(default(int), polResult.Result);
+			ClassicAssert.AreEqual(10, k);
 		}
 
 		[Test]
@@ -512,11 +517,11 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy().WithAsyncFallbackFunc<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); });
 			var polResult = fallback.Handle<int>(() => throw new Exception("Handle sync by async fallback"));
 
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Any());
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Any());
 
-			Assert.AreEqual(1, polResult.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(1, polResult.CatchBlockErrors.Count());
 		}
 
 		[Test]
@@ -525,10 +530,10 @@ namespace PoliNorError.Tests
 			var fallBack = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1; });
 			var polResult = fallBack.Handle<int>(() => throw new Exception("Handle sync by async fallback"));
 
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Count() == 1);
-			Assert.AreEqual(0, polResult.CatchBlockErrors.Count());
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Count() == 1);
+			ClassicAssert.AreEqual(0, polResult.CatchBlockErrors.Count());
 		}
 
 		[Test]
@@ -539,7 +544,7 @@ namespace PoliNorError.Tests
 				cancelTokenSource.Cancel();
 				var fallBack = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1; });
 				var polResult = fallBack.Handle<int>(() => throw new Exception("Handle sync by async fallback"), cancelTokenSource.Token);
-				Assert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
 			}
 		}
 
@@ -548,10 +553,10 @@ namespace PoliNorError.Tests
 		{
 			var fallBackPol = new FallbackPolicy();
 			var result = fallBackPol.Handle<int>(null);
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), result.Errors.FirstOrDefault()?.GetType());
-			Assert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
 		}
 
 		[Test]
@@ -562,12 +567,12 @@ namespace PoliNorError.Tests
 
 			var policy = new FallbackPolicy().WithAsyncFallbackFunc(actFallBack);
 			var polResult = await policy.HandleAsync(actEmpty);
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsFalse(polResult.Errors.Any());
-			Assert.IsTrue(polResult.NoError);
-			Assert.AreEqual(4, polResult.Result);
-			Assert.AreEqual(policy.PolicyName, polResult.PolicyName);
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsFalse(polResult.Errors.Any());
+			ClassicAssert.IsTrue(polResult.NoError);
+			ClassicAssert.AreEqual(4, polResult.Result);
+			ClassicAssert.AreEqual(policy.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
@@ -577,7 +582,7 @@ namespace PoliNorError.Tests
 
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception();});
 
-			Assert.AreEqual(0, polResult.Result);
+			ClassicAssert.AreEqual(0, polResult.Result);
 		}
 
 		[Test]
@@ -586,19 +591,21 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			async Task<int> actEmpty(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
 			var polResult = await fallback.HandleAsync(actEmpty);
-			Assert.AreEqual(default(int), polResult.Result);
+			ClassicAssert.AreEqual(default(int), polResult.Result);
 		}
 
 		[Test]
 		public async Task Should_Handle_ASync_Generic_ByFallbackSync_If_Error()
 		{
-			var fallback = new FallbackPolicy().WithFallbackFunc((Func<CancellationToken, int>)((_) => throw new Exception(nameof(Should_Handle_ASync_Generic_ByFallbackSync_If_Error))));
+			var throwingException = new Exception(nameof(Should_Handle_ASync_Generic_ByFallbackSync_If_Error));
+			var fallback = new FallbackPolicy().WithFallbackFunc((Func<CancellationToken, int>)((_) => throw throwingException));
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync");});
 
-			Assert.IsTrue(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Any());
-			Assert.IsTrue(polResult.CatchBlockErrors.Count() == 1);
+			ClassicAssert.IsTrue(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Any());
+			ClassicAssert.IsTrue(polResult.CatchBlockErrors.Count() == 1);
+			ClassicAssert.AreEqual(throwingException, polResult.CriticalError);
 		}
 
 		[Test]
@@ -607,10 +614,10 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy().WithFallbackFunc((_) => 1);
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync");});
 
-			Assert.IsFalse(polResult.IsFailed);
-			Assert.IsFalse(polResult.IsCanceled);
-			Assert.IsTrue(polResult.Errors.Count() == 1);
-			Assert.AreEqual(0, polResult.CatchBlockErrors.Count());
+			ClassicAssert.IsFalse(polResult.IsFailed);
+			ClassicAssert.IsFalse(polResult.IsCanceled);
+			ClassicAssert.IsTrue(polResult.Errors.Count() == 1);
+			ClassicAssert.AreEqual(0, polResult.CatchBlockErrors.Count());
 		}
 
 		[Test]
@@ -618,10 +625,10 @@ namespace PoliNorError.Tests
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => Expression.Empty());
 			var result = await fallBackPol.HandleAsync<int>(null);
-			Assert.IsTrue(result.IsFailed);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
-			Assert.AreEqual(result.Errors.FirstOrDefault()?.GetType(), typeof(NoDelegateException));
-			Assert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, result.FailedReason);
+			ClassicAssert.AreEqual(result.Errors.FirstOrDefault()?.GetType(), typeof(NoDelegateException));
+			ClassicAssert.AreEqual(fallBackPol.PolicyName, result.PolicyName);
 		}
 
 		[Test]
@@ -631,9 +638,9 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy();
 			fallback.WrapPolicy(simpleWrapped);
 			var wrapResult = fallback.Handle(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
-			Assert.AreEqual(fallback.PolicyName, wrapResult.PolicyName);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(fallback.PolicyName, wrapResult.PolicyName);
 		}
 
 		[Test]
@@ -643,8 +650,8 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy();
 			fallback.WrapPolicy(simpleWrapped);
 			var wrapResult = fallback.Handle<int>(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -654,8 +661,8 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy();
 			fallback.WrapPolicy(simpleWrapped);
 			var wrapResult = await fallback.HandleAsync(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -665,9 +672,9 @@ namespace PoliNorError.Tests
 			var fallback = new FallbackPolicy();
 			fallback.WrapPolicy(simpleWrapped);
 			var wrapResult = await fallback.HandleAsync<int>(null);
-			Assert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
-			Assert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
-			Assert.AreEqual(fallback.PolicyName, wrapResult.PolicyName);
+			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, wrapResult.FailedReason);
+			ClassicAssert.AreEqual(typeof(NoDelegateException), wrapResult.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(fallback.PolicyName, wrapResult.PolicyName);
 		}
 
 		[Test]
@@ -678,7 +685,7 @@ namespace PoliNorError.Tests
 				cancelSource.Cancel();
 				var fallback = new FallbackPolicy().WithFallbackAction((_) => { });
 				var polResult = await fallback.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); }, cancelSource.Token);
-				Assert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
 			}
 		}
 
@@ -698,7 +705,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler((_) => i++);
 			}
 			policy.Handle(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -717,8 +724,8 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>((_) => i++);
 			}
 			var polResult = policy.Handle<int>(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
-			Assert.AreEqual(policy.PolicyName, polResult.PolicyName);
+			ClassicAssert.AreEqual(1, i);
+			ClassicAssert.AreEqual(policy.PolicyName, polResult.PolicyName);
 		}
 
 		[Test]
@@ -737,7 +744,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -756,7 +763,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -775,7 +782,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler((_) => i++);
 			}
 			policy.Handle(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[TestCase(true)]
@@ -793,7 +800,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>((_) => i++);
 			}
 			policy.Handle<int>(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -812,7 +819,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -831,7 +838,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -850,7 +857,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler((_) => i++);
 			}
 			policy.Handle(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[TestCase(true)]
@@ -868,7 +875,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>((_) => i++);
 			}
 			policy.Handle<int>(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -887,7 +894,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -906,7 +913,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -925,7 +932,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler((_) => i++);
 			}
 			policy.Handle(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[TestCase(true)]
@@ -943,7 +950,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>((_) => i++);
 			}
 			policy.Handle<int>(() => throw new Exception("Handle"));
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -962,7 +969,7 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
@@ -981,18 +988,18 @@ namespace PoliNorError.Tests
 				policy.AddPolicyResultHandler<int>(async (_) => { await Task.Delay(1); i++; });
 			}
 			await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Handle"); });
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 		}
 
 		[Test]
 		public void Should_WithPolicyName_Work()
 		{
 			var fallBackPol = new FallbackPolicy().WithFallbackAction((_) => { });
-			Assert.AreEqual(fallBackPol.GetType().Name, fallBackPol.PolicyName);
+			ClassicAssert.AreEqual(fallBackPol.GetType().Name, fallBackPol.PolicyName);
 
 			const string polName = "FB";
 			fallBackPol.WithPolicyName(polName);
-			Assert.AreEqual(polName, fallBackPol.PolicyName);
+			ClassicAssert.AreEqual(polName, fallBackPol.PolicyName);
 		}
 
 		[Test]
@@ -1000,7 +1007,7 @@ namespace PoliNorError.Tests
 		{
 			var fallBackPol = new FallbackPolicy();
 			fallBackPol.WrapPolicy(new SimplePolicy());
-			Assert.Throws<NotImplementedException>(() => fallBackPol.WrapPolicy(new SimplePolicy()));
+			ClassicAssert.Throws<NotImplementedException>(() => fallBackPol.WrapPolicy(new SimplePolicy()));
 		}
 	}
 }

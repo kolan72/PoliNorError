@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace PoliNorError.Tests
             Action action = () => { i++; throw new Exception(); };
 
             action.InvokeWithSimple();
-            Assert.AreEqual(1, i);
+            ClassicAssert.AreEqual(1, i);
 
             int i1 = 0;
             void beforeSimpleError(Exception _)
@@ -26,7 +27,7 @@ namespace PoliNorError.Tests
             }
 
             action.InvokeWithSimple(ErrorProcessorParam.From(beforeSimpleError));
-            Assert.AreEqual(1, i1);
+            ClassicAssert.AreEqual(1, i1);
 
             int i2 = 0;
             void beforeSimpleErrorWithError(Exception _, CancellationToken __)
@@ -35,19 +36,19 @@ namespace PoliNorError.Tests
             }
 
             action.InvokeWithSimple(ErrorProcessorParam.From(beforeSimpleErrorWithError));
-            Assert.AreEqual(1, i2);
+            ClassicAssert.AreEqual(1, i2);
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
             action.InvokeWithSimple(ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
-            Assert.AreEqual(1, i3);
+            ClassicAssert.AreEqual(1, i3);
 
             int i4 = 0;
             Task beforeProcessErrorWithCancelAsync(Exception _, CancellationToken __) { i4++; return Task.CompletedTask; }
             action.InvokeWithSimple(ErrorProcessorParam.From(beforeProcessErrorWithCancelAsync));
-            Assert.AreEqual(1, i4);
+            ClassicAssert.AreEqual(1, i4);
 
-            Assert.AreEqual(5, i);
+            ClassicAssert.AreEqual(5, i);
         }
 
         [Test]
@@ -57,11 +58,11 @@ namespace PoliNorError.Tests
             Func<int> func = () => { i++; throw new Exception(); };
 
             func.InvokeWithSimple();
-            Assert.AreEqual(1, i);
+            ClassicAssert.AreEqual(1, i);
 
             int i1 = 0;
             func.InvokeWithSimple(ErrorProcessorParam.From((Exception _) => i1++));
-            Assert.AreEqual(1, i1);
+            ClassicAssert.AreEqual(1, i1);
 
             int i2 = 0;
             void beforeErrorWithError(Exception _, CancellationToken __)
@@ -69,19 +70,19 @@ namespace PoliNorError.Tests
                 i2++;
             }
             func.InvokeWithSimple(ErrorProcessorParam.From(beforeErrorWithError));
-            Assert.AreEqual(1, i2);
+            ClassicAssert.AreEqual(1, i2);
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
             func.InvokeWithSimple(ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
-            Assert.AreEqual(1, i3);
+            ClassicAssert.AreEqual(1, i3);
 
             int i4 = 0;
             Func<Exception, CancellationToken, Task> beforeProcessErrorWithCancelAsync = (_, __) => { i4++; return Task.CompletedTask; };
             func.InvokeWithSimple(beforeProcessErrorWithCancelAsync);
-            Assert.AreEqual(1, i4);
+            ClassicAssert.AreEqual(1, i4);
 
-            Assert.AreEqual(5, i);
+            ClassicAssert.AreEqual(5, i);
         }
 
         [Test]
@@ -91,12 +92,12 @@ namespace PoliNorError.Tests
             Func<CancellationToken, Task> fnAsync = async (_) => { i++; await Task.Delay(1); throw new Exception(); };
 
             await fnAsync.InvokeWithSimpleAsync();
-            Assert.AreEqual(1, i);
+            ClassicAssert.AreEqual(1, i);
 
             int i1 = 0;
             void beforeError(Exception _) { i1++; }
             await fnAsync.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeError));
-            Assert.AreEqual(1, i1);
+            ClassicAssert.AreEqual(1, i1);
 
             int i2 = 0;
             void beforeErrorWithError(Exception _, CancellationToken __)
@@ -105,19 +106,19 @@ namespace PoliNorError.Tests
             }
 
             await fnAsync.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeErrorWithError));
-            Assert.AreEqual(1, i2);
+            ClassicAssert.AreEqual(1, i2);
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
             await fnAsync.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
-            Assert.AreEqual(1, i3);
+            ClassicAssert.AreEqual(1, i3);
 
             int i4 = 0;
             Task beforeProcessErrorWithCancelAsync(Exception _, CancellationToken __) { i4++; return Task.CompletedTask; }
             await fnAsync.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeProcessErrorWithCancelAsync));
-            Assert.AreEqual(1, i4);
+            ClassicAssert.AreEqual(1, i4);
 
-            Assert.AreEqual(5, i);
+            ClassicAssert.AreEqual(5, i);
         }
 
         [Test]
@@ -127,7 +128,7 @@ namespace PoliNorError.Tests
             Func<CancellationToken, Task<int>> fn = async (_) => { i++; await Task.Delay(1); throw new Exception(); };
 
             await fn.InvokeWithSimpleAsync();
-            Assert.AreEqual(1, i);
+            ClassicAssert.AreEqual(1, i);
 
             int i1 = 0;
             void beforeError(Exception _)
@@ -136,7 +137,7 @@ namespace PoliNorError.Tests
             }
 
             await fn.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeError));
-            Assert.AreEqual(1, i1);
+            ClassicAssert.AreEqual(1, i1);
 
             int i2 = 0;
             void beforeErrorWithError(Exception _, CancellationToken __)
@@ -145,19 +146,19 @@ namespace PoliNorError.Tests
             }
 
             await fn.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeErrorWithError));
-            Assert.AreEqual(1, i2);
+            ClassicAssert.AreEqual(1, i2);
 
             int i3 = 0;
             Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
             await fn.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
-            Assert.AreEqual(1, i3);
+            ClassicAssert.AreEqual(1, i3);
 
             int i4 = 0;
             Task beforeProcessErrorWithCancelAsync(Exception _, CancellationToken __) { i4++; return Task.CompletedTask; }
             await fn.InvokeWithSimpleAsync(ErrorProcessorParam.From(beforeProcessErrorWithCancelAsync));
-            Assert.AreEqual(1, i4);
+            ClassicAssert.AreEqual(1, i4);
 
-            Assert.AreEqual(5, i);
+            ClassicAssert.AreEqual(5, i);
         }
 
         [Test]
@@ -169,9 +170,9 @@ namespace PoliNorError.Tests
             int i1 = 0;
             var res = func.InvokeWithSimple(new BasicErrorProcessor((_, __) => ++i1));
 
-            Assert.AreEqual(1, i1);
-            Assert.AreEqual(1, i);
-            Assert.IsTrue(res.Errors.Count() == 1);
+            ClassicAssert.AreEqual(1, i1);
+            ClassicAssert.AreEqual(1, i);
+            ClassicAssert.IsTrue(res.Errors.Count() == 1);
         }
 
         [Test]
@@ -183,9 +184,9 @@ namespace PoliNorError.Tests
             int i1 = 0;
             var res = func.InvokeWithSimple(new DefaultErrorProcessor((_, __) => ++i1));
 
-            Assert.AreEqual(1, i1);
-            Assert.AreEqual(1, i);
-            Assert.IsTrue(res.Errors.Count() == 1);
+            ClassicAssert.AreEqual(1, i1);
+            ClassicAssert.AreEqual(1, i);
+            ClassicAssert.IsTrue(res.Errors.Count() == 1);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -15,7 +16,7 @@ namespace PoliNorError.Tests
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.Zero);
 			var exc = new Exception();
 			var res = await delayProcessor.ProcessAsync(exc, ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
-			Assert.IsTrue(exc.Equals(res));
+			ClassicAssert.IsTrue(exc.Equals(res));
 		}
 
 		[Test]
@@ -24,7 +25,7 @@ namespace PoliNorError.Tests
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.Zero);
 			var exc = new Exception();
 			var res = delayProcessor.Process(exc, ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
-			Assert.IsTrue(exc.Equals(res));
+			ClassicAssert.IsTrue(exc.Equals(res));
 		}
 
 		[Test]
@@ -57,8 +58,8 @@ namespace PoliNorError.Tests
 			var sw = Stopwatch.StartNew();
 			var resError = processor.Process(testExc, ProcessingErrorInfo.FromRetry(1), default);
 			sw.Stop();
-			Assert.GreaterOrEqual(Math.Floor(sw.Elapsed.TotalSeconds), 1);
-			Assert.AreEqual(resError, testExc);
+			ClassicAssert.GreaterOrEqual(Math.Floor(sw.Elapsed.TotalSeconds), 1);
+			ClassicAssert.AreEqual(resError, testExc);
 		}
 
 		[Test]
@@ -68,7 +69,7 @@ namespace PoliNorError.Tests
 			var testExc = new Exception();
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
-			Assert.Throws<OperationCanceledException>(() => processor.Process(testExc, ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
+			ClassicAssert.Throws<OperationCanceledException>(() => processor.Process(testExc, ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
 			cancelTokenSource.Dispose();
 		}
 
@@ -80,8 +81,8 @@ namespace PoliNorError.Tests
 			var sw = Stopwatch.StartNew();
 			Exception resError = await processor.ProcessAsync(testExc, ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
 			sw.Stop();
-			Assert.Greater(Math.Floor(sw.Elapsed.TotalMilliseconds), 500);
-			Assert.AreEqual(resError, testExc);
+			ClassicAssert.Greater(Math.Floor(sw.Elapsed.TotalMilliseconds), 500);
+			ClassicAssert.AreEqual(resError, testExc);
 		}
 
 		[Test]
@@ -90,7 +91,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(1000);
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(2000));
-			Assert.ThrowsAsync<TaskCanceledException>(async () => await delayProcessor.ProcessAsync(new Exception(), ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
+			ClassicAssert.ThrowsAsync<TaskCanceledException>(async () => await delayProcessor.ProcessAsync(new Exception(), ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
 			cancelTokenSource.Dispose();
 		}
 
@@ -99,8 +100,8 @@ namespace PoliNorError.Tests
 		{
 			var delayProcessor = new YourDelayErrorProcessor(TimeSpan.Zero);
 			await delayProcessor.ProcessAsync(new Exception(), ProcessingErrorInfo.FromRetry(1), default(CancellationToken));
-			Assert.AreEqual(1, delayProcessor.CurRetry);
-			Assert.AreEqual(PolicyAlias.Retry, delayProcessor.PolicyKind);
+			ClassicAssert.AreEqual(1, delayProcessor.CurRetry);
+			ClassicAssert.AreEqual(PolicyAlias.Retry, delayProcessor.PolicyKind);
 		}
 
 		public class YourDelayErrorProcessor : DelayErrorProcessor

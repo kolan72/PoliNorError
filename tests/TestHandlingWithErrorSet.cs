@@ -32,5 +32,23 @@ namespace PoliNorError.Tests
 				}
 			};
 		}
+
+		internal static Func<int> GetTwoGenericParamFunc(TestErrorSetMatch testErrorSetMatch, string errorParamName = null)
+		{
+			return () =>
+			{
+				switch (testErrorSetMatch)
+				{
+					case TestErrorSetMatch.NoMatch:
+						throw new Exception("Test");
+					case TestErrorSetMatch.FirstParam:
+						throw new ArgumentException("Test");
+					case TestErrorSetMatch.SecondParam:
+						throw new ArgumentNullException(errorParamName, "Test");
+					default:
+						throw new NotImplementedException();
+				}
+			};
+		}
 	}
 }

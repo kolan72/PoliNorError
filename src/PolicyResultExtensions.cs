@@ -81,7 +81,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
@@ -105,7 +105,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
@@ -122,7 +122,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
@@ -139,7 +139,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
@@ -156,7 +156,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
@@ -173,7 +173,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
@@ -199,16 +199,16 @@ namespace PoliNorError
 				{
 					if (ae.HasCanceledException(token))
 					{
-						curRes.AddWrappedHandleResultError(new OperationCanceledException(token));
+						curRes.AddWrappedHandleResultError(new OperationCanceledException(token), handler.CollectionIndex);
 					}
 					else
 					{
-						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions);
+						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions, handler.CollectionIndex);
 					}
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
@@ -234,29 +234,29 @@ namespace PoliNorError
 				{
 					if (ae.HasCanceledException(token))
 					{
-						curRes.AddWrappedHandleResultError(new OperationCanceledException(token));
+						curRes.AddWrappedHandleResultError(new OperationCanceledException(token), handler.CollectionIndex);
 					}
 					else
 					{
-						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions);
+						curRes.AddWrappedHandleResultErrors(ae.InnerExceptions, handler.CollectionIndex);
 					}
 				}
 				catch (Exception ex)
 				{
-					curRes.AddWrappedHandleResultError(ex);
+					curRes.AddWrappedHandleResultError(ex, handler.CollectionIndex);
 				}
 			}
 			return curRes;
 		}
 
-		internal static void AddWrappedHandleResultError(this PolicyResult policyResult, Exception ex)
+		internal static void AddWrappedHandleResultError(this PolicyResult policyResult, Exception ex, int handlerIndex)
 		{
-			policyResult.AddHandleResultError(new PolicyResultHandlingException(ex));
+			policyResult.AddHandleResultError(new PolicyResultHandlingException(ex, handlerIndex));
 		}
 
-		internal static void AddWrappedHandleResultErrors(this PolicyResult policyResult, IEnumerable<Exception> exs)
+		internal static void AddWrappedHandleResultErrors(this PolicyResult policyResult, IEnumerable<Exception> exs, int handlerIndex)
 		{
-			var handlePolicyResultErrors = exs.Select((ex) => new PolicyResultHandlingException(ex));
+			var handlePolicyResultErrors = exs.Select((ex) => new PolicyResultHandlingException(ex, handlerIndex));
 			policyResult.AddHandleResultErrors(handlePolicyResultErrors);
 		}
 

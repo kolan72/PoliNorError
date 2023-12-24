@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,11 +16,11 @@ namespace PoliNorError.Tests
 			var cs = new CancellationTokenSource();
 			cs.Cancel();
 			act.ToPrecancelableAction()(cs.Token);
-			Assert.AreEqual(0, i);
+			ClassicAssert.AreEqual(0, i);
 
 			var cs2 = new CancellationTokenSource();
 			act.ToPrecancelableAction()(cs2.Token);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 			cs.Dispose();
 			cs2.Dispose();
 		}
@@ -35,11 +36,11 @@ namespace PoliNorError.Tests
 			var someException = new Exception();
 
 			act.ToPrecancelableAction()(someException,  cs.Token);
-			Assert.AreEqual(0, i);
+			ClassicAssert.AreEqual(0, i);
 
 			var cs2 = new CancellationTokenSource();
 			act.ToPrecancelableAction()(someException, cs2.Token);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 			cs.Dispose();
 			cs2.Dispose();
 		}
@@ -52,11 +53,11 @@ namespace PoliNorError.Tests
 			var cs = new CancellationTokenSource();
 			cs.Cancel();
 			await func.ToPrecancelableFunc()(cs.Token);
-			Assert.AreEqual(0, i);
+			ClassicAssert.AreEqual(0, i);
 
 			var cs2 = new CancellationTokenSource();
 			await func.ToPrecancelableFunc()(cs2.Token);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 			cs.Dispose();
 			cs2.Dispose();
 		}

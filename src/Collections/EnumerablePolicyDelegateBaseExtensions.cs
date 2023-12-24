@@ -88,6 +88,16 @@ namespace PoliNorError
 			policyDelegateInfos.GetPolicies().AddExcludedErrorFilterForLast(func);
 		}
 
+		public static void AddIncludedErrorSetFilter<TException1, TException2>(this IEnumerable<PolicyDelegateBase> policies) where TException1 : Exception where TException2 : Exception
+		{
+			policies.GetPolicies().AddIncludedErrorSetFilter<TException1, TException2>();
+		}
+
+		public static void AddExcludedErrorSetFilter<TException1, TException2>(this IEnumerable<PolicyDelegateBase> policies) where TException1 : Exception where TException2 : Exception
+		{
+			policies.GetPolicies().AddExcludedErrorSetFilter<TException1, TException2>();
+		}
+
 		internal static void ThrowIfInconsistency(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, PolicyDelegateBase newDelegateInfo)
 		{
 			if (policyDelegateInfos.WithDelegateExistsAndLastAndNewWithoutDelegate(newDelegateInfo))

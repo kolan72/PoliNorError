@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,12 +22,12 @@ namespace PoliNorError.Tests
 
 			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.CollectionError)
 			{
-				Assert.AreEqual(typeof(PolicyDelegateCollectionException<int>), result.Errors.FirstOrDefault()?.GetType());
-				Assert.AreEqual(7, ((PolicyDelegateCollectionException<int>)result.Errors.FirstOrDefault()).InnerExceptions.Count());
+				ClassicAssert.AreEqual(typeof(PolicyDelegateCollectionException<int>), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(7, ((PolicyDelegateCollectionException<int>)result.Errors.FirstOrDefault()).InnerExceptions.Count());
 			}
 			else
 			{
-				Assert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
 			}
 		}
 
@@ -44,9 +45,9 @@ namespace PoliNorError.Tests
 			var result = collection.WrapUp(new SimplePolicy())
 												.OuterPolicy
 												.Handle(() => 1);
-			Assert.IsFalse(result.Errors.Any());
-			Assert.IsNotNull(result.WrappedPolicyResults);
-			Assert.AreEqual(empty ? 0 : 1, result.Result);
+			ClassicAssert.IsFalse(result.Errors.Any());
+			ClassicAssert.IsNotNull(result.WrappedPolicyResults);
+			ClassicAssert.AreEqual(empty ? 0 : 1, result.Result);
 		}
 
 		[Test]
@@ -58,7 +59,7 @@ namespace PoliNorError.Tests
 											.OuterPolicy
 											.Handle(() => 1);
 
-			Assert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -73,12 +74,12 @@ namespace PoliNorError.Tests
 
 			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.CollectionError)
 			{
-				Assert.AreEqual(typeof(PolicyDelegateCollectionException<int>), result.Errors.FirstOrDefault()?.GetType());
-				Assert.AreEqual(7, ((PolicyDelegateCollectionException<int>)result.Errors.FirstOrDefault()).InnerExceptions.Count());
+				ClassicAssert.AreEqual(typeof(PolicyDelegateCollectionException<int>), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(7, ((PolicyDelegateCollectionException<int>)result.Errors.FirstOrDefault()).InnerExceptions.Count());
 			}
 			else
 			{
-				Assert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
+				ClassicAssert.AreEqual(typeof(IndexOutOfRangeException), result.Errors.FirstOrDefault()?.GetType());
 			}
 		}
 
@@ -96,9 +97,9 @@ namespace PoliNorError.Tests
 			var result = await collection.WrapUp(new SimplePolicy())
 												.OuterPolicy
 												.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
-			Assert.IsFalse(result.Errors.Any());
-			Assert.IsNotNull(result.WrappedPolicyResults);
-			Assert.AreEqual(empty ? 0 : 1, result.Result);
+			ClassicAssert.IsFalse(result.Errors.Any());
+			ClassicAssert.IsNotNull(result.WrappedPolicyResults);
+			ClassicAssert.AreEqual(empty ? 0 : 1, result.Result);
 		}
 
 		[Test]
@@ -110,7 +111,7 @@ namespace PoliNorError.Tests
 											.OuterPolicy
 											.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 
-			Assert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -123,7 +124,7 @@ namespace PoliNorError.Tests
 			var result = await collection.WrapUp(new SimplePolicy())
 							.OuterPolicy
 							.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test"); });
-			Assert.IsTrue(result.WrappedPolicyResults.Any());
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
 		}
 
 		[Test]
@@ -136,7 +137,7 @@ namespace PoliNorError.Tests
 			var result = collection.WrapUp(new SimplePolicy())
 							.OuterPolicy
 							.Handle<int>(() => throw new Exception("Test"));
-			Assert.IsTrue(result.WrappedPolicyResults.Any());
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
 		}
 	}
 }

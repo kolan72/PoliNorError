@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -12,7 +13,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_HandlerRunnersCollection_Work_If_Both_Empty()
 		{
-			Assert.AreEqual(HandlerRunnerSyncType.None, HandlerRunnersCollection.FromSyncAndNotSync(new List<IHandlerRunner>(), new List<IHandlerRunner>()).MapToSyncType());
+			ClassicAssert.AreEqual(HandlerRunnerSyncType.None, HandlerRunnersCollection.FromSyncAndNotSync(new List<IHandlerRunner>(), new List<IHandlerRunner>()).MapToSyncType());
 		}
 
 		[Test]
@@ -23,7 +24,7 @@ namespace PoliNorError.Tests
 			var collection = HandlerRunnersCollection.FromSyncAndNotSync(syncList, asyncList);
 			syncList.Add(new TestHandlerRunner());
 
-			Assert.AreEqual(HandlerRunnerSyncType.Sync, collection.MapToSyncType());
+			ClassicAssert.AreEqual(HandlerRunnerSyncType.Sync, collection.MapToSyncType());
 		}
 
 		[Test]
@@ -34,7 +35,7 @@ namespace PoliNorError.Tests
 			var collection = HandlerRunnersCollection.FromSyncAndNotSync(syncList, asyncList);
 			asyncList.Add(new TestHandlerRunner());
 
-			Assert.AreEqual(HandlerRunnerSyncType.Async, collection.MapToSyncType());
+			ClassicAssert.AreEqual(HandlerRunnerSyncType.Async, collection.MapToSyncType());
 		}
 
 		[Test]
@@ -47,7 +48,7 @@ namespace PoliNorError.Tests
 			asyncList.Add(new TestHandlerRunner());
 			syncList.Add(new TestHandlerRunner());
 
-			Assert.AreEqual(HandlerRunnerSyncType.Misc, collection.MapToSyncType());
+			ClassicAssert.AreEqual(HandlerRunnerSyncType.Misc, collection.MapToSyncType());
 		}
 
 		[Test]
@@ -59,7 +60,7 @@ namespace PoliNorError.Tests
 			var pr = new PolicyResult<int>();
 			pr.SetResult(10);
 			runner.Run(pr);
-			Assert.IsTrue(flag);
+			ClassicAssert.IsTrue(flag);
 		}
 
 		[Test]
@@ -71,14 +72,14 @@ namespace PoliNorError.Tests
 			var pr = new PolicyResult<int>();
 			pr.SetResult(10);
 			await runner.RunAsync(pr);
-			Assert.IsTrue(flag);
+			ClassicAssert.IsTrue(flag);
 		}
 
 		private class TestHandlerRunner : IHandlerRunner
 		{
-			public int CollectionIndex => throw new NotImplementedException();
-
 			public bool SyncRun => throw new NotImplementedException();
+
+			public int CollectionIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 			public void Run(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();
 			public Task RunAsync(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();

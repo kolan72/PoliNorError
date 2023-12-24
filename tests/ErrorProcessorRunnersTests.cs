@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,24 +22,24 @@ namespace PoliNorError.Tests
 			if (!withToken)
 			{
 				var resAsyncWithNoCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resAsyncWithNoCancelToken);
-				Assert.AreEqual(1, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resAsyncWithNoCancelToken);
+				ClassicAssert.AreEqual(1, i);
 
 				var resSyncWithNoCancelToken = notCancelableRunner.Run(ex, Unit.Default);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resSyncWithNoCancelToken);
-				Assert.AreEqual(2, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resSyncWithNoCancelToken);
+				ClassicAssert.AreEqual(2, i);
 			}
 			else
 			{
 				var cancelSource = new CancellationTokenSource();
 
 				var resSyncWithCancelToken = notCancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resSyncWithCancelToken);
-				Assert.AreEqual(1, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resSyncWithCancelToken);
+				ClassicAssert.AreEqual(1, i);
 
 				var resAsyncWithCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resAsyncWithCancelToken);
-				Assert.AreEqual(2, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resAsyncWithCancelToken);
+				ClassicAssert.AreEqual(2, i);
 
 				cancelSource.Dispose();
 			}
@@ -55,12 +56,12 @@ namespace PoliNorError.Tests
 			var cancelableRunner = new ErrorProcessorFromSyncRunner<Unit>(act, CancellationType.Cancelable);
 
 			var resAsyncWithCancelTokenCancelable = await cancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResult.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(ErrorProcessorRunResult.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
+			ClassicAssert.AreEqual(1, i);
 
 			var resSyncWithCancelTokenCancelable = cancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResult.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
-			Assert.AreEqual(2, i);
+			ClassicAssert.AreEqual(ErrorProcessorRunResult.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
+			ClassicAssert.AreEqual(2, i);
 
 			cancelSource.Dispose();
 		}
@@ -80,15 +81,15 @@ namespace PoliNorError.Tests
 			if (aSync)
 			{
 				var resAsyncWithCancelTokenCancelable = await cancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-				Assert.AreEqual(runResult, resAsyncWithCancelTokenCancelable);
+				ClassicAssert.AreEqual(runResult, resAsyncWithCancelTokenCancelable);
 			}
 			else
 			{
 				var resSyncWithCancelTokenCancelable = cancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-				Assert.AreEqual(runResult, resSyncWithCancelTokenCancelable);
+				ClassicAssert.AreEqual(runResult, resSyncWithCancelTokenCancelable);
 			}
 
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(1, i);
 			cancelSource.Dispose();
 		}
 
@@ -106,24 +107,24 @@ namespace PoliNorError.Tests
 			if (!withToken)
 			{
 				var resAsyncWithNoCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableFuncNoToken, resAsyncWithNoCancelToken);
-				Assert.AreEqual(1, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableFuncNoToken, resAsyncWithNoCancelToken);
+				ClassicAssert.AreEqual(1, i);
 
 				var resSyncWithNoCancelToken = notCancelableRunner.Run(ex, Unit.Default);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resSyncWithNoCancelToken);
-				Assert.AreEqual(2, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableActionNoToken, resSyncWithNoCancelToken);
+				ClassicAssert.AreEqual(2, i);
 			}
 			else
 			{
 				var cancelSource = new CancellationTokenSource();
 
 				var resSyncWithCancelToken = notCancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resSyncWithCancelToken);
-				Assert.AreEqual(1, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableActionTokenExists, resSyncWithCancelToken);
+				ClassicAssert.AreEqual(1, i);
 
 				var resAsyncWithCancelToken = await notCancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-				Assert.AreEqual(ErrorProcessorRunResult.NotCancelableFuncTokenExists, resAsyncWithCancelToken);
-				Assert.AreEqual(2, i);
+				ClassicAssert.AreEqual(ErrorProcessorRunResult.NotCancelableFuncTokenExists, resAsyncWithCancelToken);
+				ClassicAssert.AreEqual(2, i);
 
 				cancelSource.Dispose();
 			}
@@ -141,12 +142,12 @@ namespace PoliNorError.Tests
 			var cancelableRunner = new ErrorProcessorFromAsyncRunner<Unit>(act, CancellationType.Cancelable);
 
 			var resAsyncWithCancelTokenCancelable = await cancelableRunner.RunAsync(ex, Unit.Default, false, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResult.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
-			Assert.AreEqual(1, i);
+			ClassicAssert.AreEqual(ErrorProcessorRunResult.CancelableFuncTokenExists, resAsyncWithCancelTokenCancelable);
+			ClassicAssert.AreEqual(1, i);
 
 			var resSyncWithCancelTokenCancelable = cancelableRunner.Run(ex, Unit.Default, cancelSource.Token);
-			Assert.AreEqual(ErrorProcessorRunResult.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
-			Assert.AreEqual(2, i);
+			ClassicAssert.AreEqual(ErrorProcessorRunResult.CancelableActionTokenExists, resSyncWithCancelTokenCancelable);
+			ClassicAssert.AreEqual(2, i);
 
 			cancelSource.Dispose();
 		}
