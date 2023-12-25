@@ -68,6 +68,66 @@ namespace PoliNorError
 		public static T WithErrorProcessorOf<T>(this T policyProcessor, Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor
 					=> WithErrorProcessor(policyProcessor, new DefaultErrorProcessor(funcProcessor, actionProcessor, cancellationType), action);
 
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException> actionProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(actionProcessor.ToActionForInnerException(), action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException, CancellationToken> actionProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(actionProcessor.ToActionForInnerException(), action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException> actionProcessor, CancellationType cancellationType, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(actionProcessor.ToActionForInnerException(), cancellationType, action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, Task> funcProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(funcProcessor.ToFuncForInnerException(), action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, Task> funcProcessor, CancellationType cancellationType, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(funcProcessor.ToFuncForInnerException(), cancellationType, action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, CancellationToken, Task> funcProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(funcProcessor.ToFuncForInnerException(), action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException, ProcessingErrorInfo> actionProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(actionProcessor.ToActionForInnerException(), action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(actionProcessor.ToActionForInnerException(), action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(actionProcessor.ToActionForInnerException(), cancellationType, action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, ProcessingErrorInfo, Task> funcProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(funcProcessor.ToFuncForInnerException(), action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(funcProcessor.ToFuncForInnerException(), cancellationType, action);
+		}
+
+		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+		{
+			return policyProcessor.WithErrorProcessorOf(funcProcessor.ToFuncForInnerException(), action);
+		}
+
 		internal static T WithErrorProcessor<T>(this T policyProcessor, IErrorProcessor errorProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor
 		{
 			if (errorProcessor == null)
