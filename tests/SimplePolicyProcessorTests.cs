@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
 
 namespace PoliNorError.Tests
 {
@@ -272,6 +273,107 @@ namespace PoliNorError.Tests
 			ClassicAssert.IsTrue(simpleResult.IsFailed);
 			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, simpleResult.FailedReason);
 			ClassicAssert.AreEqual(typeof(NoDelegateException), simpleResult.Errors.FirstOrDefault()?.GetType());
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(false, true)]
+		public async Task Should_WithInnerErrorProcessor_HandleError_Correctly(bool sync, bool withCancellationType)
+		{
+			var processor = SimplePolicyProcessor.CreateDefault();
+			var innerProcessors = new InnerErrorProcessorFuncs();
+
+			if (sync)
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.Action, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.Action);
+				}
+
+				processor.Execute(ActionWithInner);
+				processor.Execute(Action);
+			}
+			else
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFunc, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFunc);
+				}
+
+				await processor.ExecuteAsync(AsyncFuncWithInner);
+				await processor.ExecuteAsync(AsyncFunc);
+			}
+
+			Assert.That(innerProcessors.I, Is.EqualTo(1));
+
+			if (sync)
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithToken);
+				processor.Execute(ActionWithInner);
+				processor.Execute(Action);
+			}
+			else
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithToken);
+				await processor.ExecuteAsync(AsyncFuncWithInner);
+				await processor.ExecuteAsync(AsyncFunc);
+			}
+
+			Assert.That(innerProcessors.J, Is.EqualTo(1));
+
+			if (sync)
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfo, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfo);
+				}
+				processor.Execute(ActionWithInner);
+				processor.Execute(Action);
+			}
+			else
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfo, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfo);
+				}
+				await processor.ExecuteAsync(AsyncFuncWithInner);
+				await processor.ExecuteAsync(AsyncFunc);
+			}
+
+			Assert.That(innerProcessors.K, Is.EqualTo(1));
+
+			if (sync)
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfoWithToken);
+				processor.Execute(ActionWithInner);
+				processor.Execute(Action);
+			}
+			else
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfoWithToken);
+				await processor.ExecuteAsync(AsyncFuncWithInner);
+				await processor.ExecuteAsync(AsyncFunc);
+			}
+
+			Assert.That(innerProcessors.L, Is.EqualTo(1));
 		}
 
 		[Test]

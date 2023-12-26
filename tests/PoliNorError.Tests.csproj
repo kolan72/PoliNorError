@@ -83,12 +83,14 @@
     <Compile Include="EnumerablePolicyDelegateBaseExtensionsTests.cs" />
     <Compile Include="ErrorProcessorRunnersTests.cs" />
     <Compile Include="ErrorProcessorTests.cs" />
+    <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="FallBackFuncHoldersTests.cs" />
     <Compile Include="FallbackPolicyTests.cs" />
     <Compile Include="FuncExtensionsTests.cs" />
     <Compile Include="ICanAddErrorProcessorExtensionsTests.cs" />
     <Compile Include="IErrorProcessorRegistration.cs" />
+    <Compile Include="InnerErrorProcessorFuncs.cs" />
     <Compile Include="PolicyCollectionWrapUpTests.cs" />
     <Compile Include="PolicyCollectionWrapUpTests.T.cs" />
     <Compile Include="PolicyResultHandlerTests.cs" />
