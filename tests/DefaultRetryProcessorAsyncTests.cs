@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using NUnit.Framework.Legacy;
+using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
 
 namespace PoliNorError.Tests
 {
@@ -155,6 +156,107 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(0, tryResCount.Errors.Count());
 			ClassicAssert.AreEqual(34, tryResCount.Result);
 			ClassicAssert.AreEqual(false, tryResCount.IsFailed);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(false, true)]
+		public async Task Should_WithInnerErrorProcessor_HandleError_Correctly(bool sync, bool withCancellationType)
+		{
+			var processor = RetryProcessor.CreateDefault();
+			var innerProcessors = new InnerErrorProcessorFuncs();
+
+			if (sync)
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.Action, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.Action);
+				}
+
+				processor.Retry(ActionWithInner, 1);
+				processor.Retry(Action, 1);
+			}
+			else
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFunc, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFunc);
+				}
+
+				await processor.RetryAsync(AsyncFuncWithInner, 1);
+				await processor.RetryAsync(AsyncFunc, 1);
+			}
+
+			Assert.That(innerProcessors.I, Is.EqualTo(1));
+
+			if (sync)
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithToken);
+				processor.Retry(ActionWithInner, 1);
+				processor.Retry(Action, 1);
+			}
+			else
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithToken);
+				await processor.RetryAsync(AsyncFuncWithInner, 1);
+				await processor.RetryAsync(AsyncFunc, 1);
+			}
+
+			Assert.That(innerProcessors.J, Is.EqualTo(1));
+
+			if (sync)
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfo, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfo);
+				}
+				processor.Retry(ActionWithInner, 1);
+				processor.Retry(Action, 1);
+			}
+			else
+			{
+				if (withCancellationType)
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfo, CancellationType.Precancelable);
+				}
+				else
+				{
+					processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfo);
+				}
+				await processor.RetryAsync(AsyncFuncWithInner, 1);
+				await processor.RetryAsync(AsyncFunc, 1);
+			}
+
+			Assert.That(innerProcessors.K, Is.EqualTo(1));
+
+			if (sync)
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfoWithToken);
+				processor.Retry(ActionWithInner, 1);
+				processor.Retry(Action, 1);
+			}
+			else
+			{
+				processor.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfoWithToken);
+				await processor.RetryAsync(AsyncFuncWithInner, 1);
+				await processor.RetryAsync(AsyncFunc, 1);
+			}
+
+			Assert.That(innerProcessors.L, Is.EqualTo(1));
 		}
 	}
 }
