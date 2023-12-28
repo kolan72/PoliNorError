@@ -94,7 +94,7 @@ It can happen due to these reasons:
 -   The delegate  to handle is null.
 -   The exception cannot be handled due to policy rules.
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
--   A critical error has occurred within the catch block, specifically related to the saving error for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
+-   A critical exception has occurred within the catch block, specifically related to the saving exception for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
  -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.
  -  If the handling result cannot be accepted as a success, and a policy is in use, you can set `IsFailed` to true in a `PolicyResult` handler by using the `SetFailed` method.  
  
@@ -108,7 +108,8 @@ The `IsPolicySuccess` property (since _version_ 2.8.1) indicates that, despite e
 
 You might wonder why there are so many success-related properties. See [Nuances of using the library](#nuances-of-using-the-library)  for a detailed answer.
 
-If an error occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects.  
+If an exception occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects. For a critical exception, as mentioned above, the `CatchBlockException.IsCritical` property will be equal to true.  
+The `CriticalError` property represents a critical exception itself or wrapped in the `AggregateException` (since _version_ 2.12.1).  
 
 For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
 
