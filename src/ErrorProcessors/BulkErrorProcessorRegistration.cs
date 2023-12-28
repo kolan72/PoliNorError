@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class BulkErrorProcessorRegistration
+	public static partial class BulkErrorProcessorRegistration
 	{
 		private static readonly Action<ICanAddErrorProcessor, IErrorProcessor> _addErrorProcessorAction = (pr, erPr) => ((IBulkErrorProcessor)pr).AddProcessor(erPr);
 
