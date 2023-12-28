@@ -7,7 +7,7 @@ namespace PoliNorError
 	public static class SimplePolicyProcessorInnerErrorProcessorRegistration
 	{
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -17,7 +17,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(actionProcessor);
 
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -27,7 +27,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(actionProcessor);
 
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -38,7 +38,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(actionProcessor, cancellationType);
 
 		/// <summary>
-		///  Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		///  Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -48,7 +48,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(funcProcessor);
 
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -59,7 +59,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(funcProcessor, cancellationType);
 
 		/// <summary>
-		///  Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		///  Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -69,7 +69,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(funcProcessor);
 
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -79,7 +79,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(actionProcessor);
 
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -89,7 +89,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(actionProcessor);
 
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -100,7 +100,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(actionProcessor, cancellationType);
 
 		/// <summary>
-		///  Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		///  Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -110,7 +110,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(funcProcessor);
 
 		/// <summary>
-		///  Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		///  Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException">A type of inner exception.</typeparam>
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
@@ -121,7 +121,7 @@ namespace PoliNorError
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(funcProcessor, cancellationType);
 
 		/// <summary>
-		/// Adds an error processor for handling inner exception only if it have the <typeparamref name="TException"/> type.
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
 		/// </summary>
 		/// <typeparam name="TException"></typeparam>
 		/// <param name="simplePolicyProcessor"></param>
