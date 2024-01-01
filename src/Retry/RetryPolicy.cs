@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>
+	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>
 	{
 		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows) { }
 

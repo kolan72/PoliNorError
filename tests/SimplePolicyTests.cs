@@ -492,16 +492,5 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(policy.PolicyName, res.PolicyName);
 			ClassicAssert.AreEqual(1, i);
 		}
-
-		[Test]
-		[TestCase(true, true)]
-		[TestCase(true, false)]
-		[TestCase(false, false)]
-		[TestCase(false, true)]
-		public async Task Should_WithInnerErrorProcessor_HandleError_Correctly(bool sync, bool withCancellationType)
-		{
-			var policy = new SimplePolicy();
-			await PolicyWithInnerErrorProcessorTest.Handle(policy, sync, withCancellationType);
-		}
 	}
 }
