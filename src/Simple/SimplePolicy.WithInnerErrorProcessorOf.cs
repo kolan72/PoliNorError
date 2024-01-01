@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed partial class SimplePolicy
+	public sealed partial class SimplePolicy : IWithInnerErrorProcessor<SimplePolicy>
 	{
 		public SimplePolicy WithInnerErrorProcessorOf<TException>(Action<TException> actionProcessor) where TException : Exception
 		{
