@@ -186,6 +186,26 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public RetryPolicy SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public RetryPolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
+		}
+
 		public RetryPolicy UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)
 		{
 			RetryProcessor.UseCustomErrorSaver(saveErrorProcessor);

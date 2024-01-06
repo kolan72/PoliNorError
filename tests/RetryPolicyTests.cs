@@ -596,6 +596,43 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(policy.PolicyName, res.PolicyName);
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_SetPolicyResultFailedIf_Work(bool generic)
+		{
+			var policy = new RetryPolicy(1);
+			PolicyResult polResult = null;
+			bool beforeRetry = true;
+			if (generic)
+			{
+				polResult = policy.SetPolicyResultFailedIf<int>(pr => pr.Errors.Any(e => e.Message == "Test"))
+					.Handle(() =>
+					{
+						if (beforeRetry)
+						{
+							beforeRetry = false;
+							throw new ArgumentException("Test");
+						}
+						return 1;
+					});
+			}
+			else
+			{
+				polResult = policy.SetPolicyResultFailedIf(pr => pr.Errors.Any(e => e.Message == "Test"))
+					.Handle(() =>
+					{
+						if (beforeRetry)
+						{
+							beforeRetry = false;
+							throw new ArgumentException("Test");
+						}
+					});
+			}
+			Assert.That(polResult.IsFailed, Is.EqualTo(true));
+			Assert.That(polResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyResultHandlerFailed));
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
