@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>
+	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>
 	{
 		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows) { }
 
@@ -184,6 +184,26 @@ namespace PoliNorError
 		public RetryPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
 			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public RetryPolicy SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public RetryPolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 
 		public RetryPolicy UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class EnumerablePolicyDelegateErrorProcessorRegistration
+	public static partial class EnumerablePolicyDelegateErrorProcessorRegistration
 	{
 		private static readonly Action<ICanAddErrorProcessor, IErrorProcessor> _addErrorProcessorAction = (pr, erPr) => ((IEnumerable<PolicyDelegateBase>)pr).Select(pd => pd.Policy).LastOrDefault()?.PolicyProcessor.AddErrorProcessor(erPr);
 

@@ -75,5 +75,25 @@ namespace PoliNorError
 			errorPolicyBase.AddSyncHandler(action);
 			return errorPolicyBase;
 		}
+
+		internal static T SetPolicyResultFailedIfInner<T>(this T errorPolicyBase, Func<PolicyResult, bool> predicate) where T : Policy
+		{
+			void handler(PolicyResult pr)
+			{
+				if (predicate(pr))
+					pr.SetFailed();
+			}
+			return AddPolicyResultHandlerInner(errorPolicyBase, handler);
+		}
+
+		internal static T SetPolicyResultFailedIfInner<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, bool> predicate) where T : Policy
+		{
+			void handler(PolicyResult<U> pr)
+			{
+				if (predicate(pr))
+					pr.SetFailed();
+			}
+			return AddPolicyResultHandlerInner<T, U>(errorPolicyBase, handler);
+		}
 	}
 }

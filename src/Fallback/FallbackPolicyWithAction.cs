@@ -8,7 +8,7 @@ namespace PoliNorError
 	/// <summary>
 	///  This class is primarily for internal use by PoliNorError
 	/// </summary>
-	public sealed class FallbackPolicyWithAction : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAction>
+	public sealed partial class FallbackPolicyWithAction : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAction>
 	{
 		internal FallbackPolicyWithAction(IFallbackProcessor processor) : base(processor ?? new DefaultFallbackProcessor()){}
 
@@ -109,6 +109,27 @@ namespace PoliNorError
 		public new FallbackPolicyWithAction AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
 			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public new FallbackPolicyWithAction SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <typeparam name="T">The type of the result</typeparam>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public new FallbackPolicyWithAction SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 	}
 }

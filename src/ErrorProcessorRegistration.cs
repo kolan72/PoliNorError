@@ -7,7 +7,7 @@ namespace PoliNorError
 	/// <summary>
 	/// Provides a set of extension methods to add error processor to policy processor.
 	/// </summary>
-	public static class ErrorProcessorRegistration
+	public static partial class ErrorProcessorRegistration
 	{
 		private static readonly Action<ICanAddErrorProcessor, IErrorProcessor> _addErrorProcessorAction = (pr, erPr) =>((IPolicyProcessor)pr).AddErrorProcessor(erPr);
 

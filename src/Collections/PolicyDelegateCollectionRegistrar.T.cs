@@ -207,5 +207,165 @@ namespace PoliNorError
 			policyDelegateCollection.WithThrowOnLastFailed(new DefaultPolicyDelegateResultsToErrorConverter<T>(func));
 			return policyDelegateCollection;
 		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="actionProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<TException> actionProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(actionProcessor);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="actionProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<TException, CancellationToken> actionProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(actionProcessor);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="actionProcessor">A delegate for error processor.</param>
+		/// <param name="cancellationType">A cancellation type.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<TException> actionProcessor, CancellationType cancellationType) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(actionProcessor, cancellationType);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="funcProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, Task> funcProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(funcProcessor);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="funcProcessor">A delegate for error processor.</param>
+		/// <param name="cancellationType">A cancellation type.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, Task> funcProcessor, CancellationType cancellationType) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(funcProcessor, cancellationType);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="funcProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, CancellationToken, Task> funcProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(funcProcessor);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="actionProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<TException, ProcessingErrorInfo> actionProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(actionProcessor);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="actionProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(actionProcessor);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="actionProcessor">A delegate for error processor.</param>
+		/// <param name="cancellationType">A cancellation type.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<TException, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(actionProcessor, cancellationType);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="funcProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, ProcessingErrorInfo, Task> funcProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(funcProcessor);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="funcProcessor">A delegate for error processor.</param>
+		/// <param name="cancellationType">A cancellation type.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(funcProcessor, cancellationType);
+		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="funcProcessor">A delegate for error processor.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessorOf<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(funcProcessor);
+		}
 	}
 }

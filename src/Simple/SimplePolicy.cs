@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class SimplePolicy : Policy, IPolicyBase, IWithErrorFilter<SimplePolicy>
+	public sealed partial class SimplePolicy : Policy, IPolicyBase, IWithErrorFilter<SimplePolicy>
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 
@@ -147,6 +147,27 @@ namespace PoliNorError
 		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
 			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public SimplePolicy SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <typeparam name="T">The type of the result</typeparam>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public SimplePolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 	}
 }

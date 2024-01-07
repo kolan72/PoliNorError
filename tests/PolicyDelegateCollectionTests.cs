@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
 
 namespace PoliNorError.Tests
 {
@@ -490,6 +491,48 @@ namespace PoliNorError.Tests
 			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
 			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
 			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_HandleError_Correctly()
+		{
+			var innerProcessors = new InnerErrorProcessorFuncs();
+			var policyDelegateCollection = PolicyDelegateCollection
+					.Create()
+					.WithSimple()
+					.AndDelegate(ActionWithInner);
+
+			policyDelegateCollection
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.Action)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.Action, CancellationType.Precancelable)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFunc)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFunc, CancellationType.Precancelable)
+					.HandleAll();
+
+			Assert.That(innerProcessors.I, Is.EqualTo(4));
+
+			policyDelegateCollection
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithToken)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithToken)
+					.HandleAll();
+
+			Assert.That(innerProcessors.J, Is.EqualTo(2));
+
+			policyDelegateCollection
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfo)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfo, CancellationType.Precancelable)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfo)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfo, CancellationType.Precancelable)
+					.HandleAll();
+
+			Assert.That(innerProcessors.K, Is.EqualTo(4));
+
+			policyDelegateCollection
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.ActionWithErrorInfoWithToken)
+					.WithInnerErrorProcessorOf<TestInnerException>(innerProcessors.AsyncFuncWithErrorInfoWithToken)
+					.HandleAll();
+
+			Assert.That(innerProcessors.L, Is.EqualTo(2));
 		}
 
 		[Test]

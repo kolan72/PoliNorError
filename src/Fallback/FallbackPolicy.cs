@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>
+	public sealed partial class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>
 	{
 		public FallbackPolicy(IBulkErrorProcessor processor = null) : this(new DefaultFallbackProcessor(processor)){}
 
@@ -109,6 +109,27 @@ namespace PoliNorError
 		public new FallbackPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
 			return this.AddPolicyResultHandlerInner(func);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public new FallbackPolicy SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
+		}
+
+		/// <summary>
+		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
+		/// </summary>
+		/// <typeparam name="T">The type of the result</typeparam>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public new FallbackPolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
+		{
+			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 	}
 }

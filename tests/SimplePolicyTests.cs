@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
 
 namespace PoliNorError.Tests
 {
@@ -490,6 +491,27 @@ namespace PoliNorError.Tests
 			var res = await policy.HandleAsync<int>(async(_) => {await Task.Delay(1); throw new Exception("Handle"); });
 			ClassicAssert.AreEqual(policy.PolicyName, res.PolicyName);
 			ClassicAssert.AreEqual(1, i);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_SetPolicyResultFailedIf_Work(bool generic)
+		{
+			var policy = new SimplePolicy();
+			PolicyResult polResult = null;
+			if (generic)
+			{
+				polResult = policy.SetPolicyResultFailedIf<int>(pr => pr.Errors.Any(e => e.Message == "Test"))
+					.Handle<int>(() => throw new ArgumentException("Test"));
+			}
+			else
+			{
+				polResult = policy.SetPolicyResultFailedIf(pr => pr.Errors.Any(e => e.Message == "Test"))
+					.Handle(() => throw new ArgumentException("Test"));
+			}
+			Assert.That(polResult.IsFailed, Is.EqualTo(true));
+			Assert.That(polResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyResultHandlerFailed));
 		}
 	}
 }
