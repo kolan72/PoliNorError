@@ -33,23 +33,23 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(FallbackType.BaseClass, true, true)]
-		[TestCase(FallbackType.BaseClass, true, false)]
-		[TestCase(FallbackType.BaseClass, false, false)]
-		[TestCase(FallbackType.BaseClass, false, true)]
-		[TestCase(FallbackType.Creator, true, true)]
-		[TestCase(FallbackType.Creator, true, false)]
-		[TestCase(FallbackType.Creator, false, false)]
-		[TestCase(FallbackType.Creator, false, true)]
-		[TestCase(FallbackType.WithAsyncFunc, true, true)]
-		[TestCase(FallbackType.WithAsyncFunc, true, false)]
-		[TestCase(FallbackType.WithAsyncFunc, false, false)]
-		[TestCase(FallbackType.WithAsyncFunc, false, true)]
-		[TestCase(FallbackType.WithAction, true, true)]
-		[TestCase(FallbackType.WithAction, true, false)]
-		[TestCase(FallbackType.WithAction, false, false)]
-		[TestCase(FallbackType.WithAction, false, true)]
-		public async Task Should_Fallback_WithInnerErrorProcessor_HandleError_Correctly(FallbackType fallbackType, bool sync, bool withCancellationType)
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true)]
+		[TestCase(FallbackTypeForTests.Creator, true, true)]
+		[TestCase(FallbackTypeForTests.Creator, true, false)]
+		[TestCase(FallbackTypeForTests.Creator, false, false)]
+		[TestCase(FallbackTypeForTests.Creator, false, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true)]
+		public async Task Should_Fallback_WithInnerErrorProcessor_HandleError_Correctly(FallbackTypeForTests fallbackType, bool sync, bool withCancellationType)
 		{
 			async Task shorthandHandlerFunc<T>(T pol) where T : FallbackPolicyBase, IWithInnerErrorProcessor<T>
 			{
@@ -58,16 +58,16 @@ namespace PoliNorError.Tests
 
 			switch (fallbackType)
 			{
-				case FallbackType.BaseClass:
+				case FallbackTypeForTests.BaseClass:
 					await shorthandHandlerFunc(new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { }));
 					break;
-				case FallbackType.Creator:
+				case FallbackTypeForTests.Creator:
 					await shorthandHandlerFunc(new FallbackPolicy().WithFallbackFunc(() => 1));
 					break;
-				case FallbackType.WithAsyncFunc:
+				case FallbackTypeForTests.WithAsyncFunc:
 					await shorthandHandlerFunc(new FallbackPolicy().WithAsyncFallbackFunc(async () => await Task.Delay(1)));
 					break;
-				case FallbackType.WithAction:
+				case FallbackTypeForTests.WithAction:
 					await shorthandHandlerFunc(new FallbackPolicy().WithFallbackAction(() => {}));
 					break;
 				default:
@@ -78,14 +78,6 @@ namespace PoliNorError.Tests
 		public async Task Handle<T>(T policy, bool sync, bool withCancellationType) where T : FallbackPolicyBase, IWithInnerErrorProcessor<T>
 		{
 			await PolicyWithInnerErrorProcessorForTest.Handle(policy, sync, withCancellationType);
-		}
-
-		public enum FallbackType
-		{
-			BaseClass,
-			Creator,
-			WithAsyncFunc,
-			WithAction
 		}
 	}
 }

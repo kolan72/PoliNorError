@@ -1009,5 +1009,88 @@ namespace PoliNorError.Tests
 			fallBackPol.WrapPolicy(new SimplePolicy());
 			ClassicAssert.Throws<NotImplementedException>(() => fallBackPol.WrapPolicy(new SimplePolicy()));
 		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false)]
+		[TestCase(FallbackTypeForTests.Creator, true)]
+		[TestCase(FallbackTypeForTests.Creator, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false)]
+		public void Should_SetPolicyResultFailedIf_Work(FallbackTypeForTests fallbackType, bool generic)
+		{
+			PolicyResult polResult = null;
+			bool genericPredicate(PolicyResult<int> pr)
+			{
+				return pr.Errors.Any(e => e.Message == "Test");
+			}
+
+			bool predicate(PolicyResult pr)
+			{
+				return pr.Errors.Any(e => e.Message == "Test");
+			}
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					var fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
+					if (generic)
+					{
+						polResult = fbBase.SetPolicyResultFailedIf<int>(genericPredicate)
+											.Handle<int>(() => throw new ArgumentException("Test"));
+					}
+					else
+					{
+						polResult = fbBase.SetPolicyResultFailedIf(predicate)
+											.Handle(() => throw new ArgumentException("Test"));
+					}
+					break;
+				case FallbackTypeForTests.Creator:
+					var fbCreator = new FallbackPolicy();
+					if (generic)
+					{
+						polResult = fbCreator.SetPolicyResultFailedIf<int>(genericPredicate)
+											.Handle<int>(() => throw new ArgumentException("Test"));
+					}
+					else
+					{
+						polResult = fbCreator.SetPolicyResultFailedIf(predicate)
+											.Handle(() => throw new ArgumentException("Test"));
+					}
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					var fbWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					if (generic)
+					{
+						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf<int>(genericPredicate)
+											.Handle<int>(() => throw new ArgumentException("Test"));
+					}
+					else
+					{
+						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf(predicate)
+											.Handle(() => throw new ArgumentException("Test"));
+					}
+					break;
+				case FallbackTypeForTests.WithAction:
+					var fbWithAction = new FallbackPolicy().WithFallbackAction((_) => { });
+					if (generic)
+					{
+						polResult = fbWithAction.SetPolicyResultFailedIf<int>(genericPredicate)
+											.Handle<int>(() => throw new ArgumentException("Test"));
+					}
+					else
+					{
+						polResult = fbWithAction.SetPolicyResultFailedIf(predicate)
+											.Handle(() => throw new ArgumentException("Test"));
+					}
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			Assert.That(polResult.IsFailed, Is.EqualTo(true));
+			Assert.That(polResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyResultHandlerFailed));
+		}
 	}
 }

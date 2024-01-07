@@ -87,6 +87,7 @@
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="FallBackFuncHoldersTests.cs" />
     <Compile Include="FallbackPolicyTests.cs" />
+    <Compile Include="FallbackTypeForTests.cs" />
     <Compile Include="FuncExtensionsTests.cs" />
     <Compile Include="ICanAddErrorProcessorExtensionsTests.cs" />
     <Compile Include="IErrorProcessorRegistration.cs" />
