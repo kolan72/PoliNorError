@@ -75,6 +75,10 @@ namespace PoliNorError
 			{
 				return Fallback.ToDefaultReturnFunc<T>();
 			}
+			else if (HasAsyncFallbackFunc())
+			{
+				return FallbackAsync.ToSyncFunc().ToDefaultReturnFunc<T>();
+			}
 			else
 			{
 				return DefaulFallbackFunc<T>();
@@ -116,6 +120,10 @@ namespace PoliNorError
 			else if (HasAsyncFallbackFunc())
 			{
 				return FallbackAsync.ToDefaultReturnFunc<T>(configureAwait);
+			}
+			else if (HasFallbackAction())
+			{
+				return Fallback.ToDefaultReturnFunc<T>().ToTaskReturnFunc();
 			}
 			else
 			{
