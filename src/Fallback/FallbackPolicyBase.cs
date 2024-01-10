@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,17 +9,10 @@ namespace PoliNorError
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
+		internal FallbackFuncsProvider _fallbackFuncsProvider = new FallbackFuncsProvider();
+
 		internal Action<CancellationToken> _fallback;
 		internal Func<CancellationToken, Task> _fallbackAsync;
-
-		internal Dictionary<Type, IFallBackFuncHolder> _holders = new Dictionary<Type, IFallBackFuncHolder>();
-		internal Dictionary<Type, IFallBackAsyncFuncHolder> _asyncHolders = new Dictionary<Type, IFallBackAsyncFuncHolder>();
-
-		private static Func<CancellationToken, T> DefaulFallbackFunc<T>() => (_) => default;
-		private static Func<CancellationToken, Task<T>> DefaulFallbackAsyncFunc<T>() => (_) => Task.FromResult(default(T));
-
-		private static Action<CancellationToken> DefaultFallbackAction => (_) => Expression.Empty();
-		private static Func<CancellationToken, Task> DefaultFallbackAsyncFunc => (_) => Task.CompletedTask;
 
 		protected FallbackPolicyBase(IFallbackProcessor processor) : base(processor)
 		{
@@ -29,22 +21,7 @@ namespace PoliNorError
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
-			Action<CancellationToken> curFallback = null;
-			if (_fallback == null)
-			{
-				if (_fallbackAsync != null)
-				{
-					curFallback = _fallbackAsync.ToSyncFunc();
-				}
-				else
-				{
-					curFallback = DefaultFallbackAction;
-				}
-			}
-			else
-			{
-				curFallback = _fallback;
-			}
+			Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
 
 			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 			if (Act == null && Wrapper != null)
@@ -62,23 +39,7 @@ namespace PoliNorError
 
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
-			Func<CancellationToken, T> fallBackFunc = null;
-			if (HasFallbackFunc<T>())
-			{
-				fallBackFunc = _holders[typeof(T)].GetFallbackFunc<T>();
-			}
-			else if (HasAsyncFallbackFunc<T>())
-			{
-				fallBackFunc = _asyncHolders[typeof(T)].GetFallbackAsyncFunc<T>().ToSyncFunc();
-			}
-			else if (HasFallbackAction())
-			{
-				fallBackFunc = _fallback.ToDefaultReturnFunc<T>();
-			}
-			else
-			{
-				fallBackFunc = DefaulFallbackFunc<T>();
-			}
+			Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
 
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 			if (Fn == null && Wrapper != null)
@@ -96,23 +57,7 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			Func<CancellationToken, Task> curFallbackAsync = null;
-
-			if (_fallbackAsync == null)
-			{
-				if (_fallback != null)
-				{
-					curFallbackAsync = _fallback.ToTaskReturnFunc();
-				}
-				else
-				{
-					curFallbackAsync = DefaultFallbackAsyncFunc;
-				}
-			}
-			else
-			{
-				curFallbackAsync = _fallbackAsync;
-			}
+			Func<CancellationToken, Task> curFallbackAsync = _fallbackFuncsProvider.GetAsyncFallbackFunc();
 
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
@@ -130,24 +75,7 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			Func<CancellationToken, Task<T>> fallBackAsyncFunc = null;
-
-			if (HasAsyncFallbackFunc<T>())
-			{
-				fallBackAsyncFunc = _asyncHolders[typeof(T)].GetFallbackAsyncFunc<T>();
-			}
-			else if (HasFallbackFunc<T>())
-			{
-				fallBackAsyncFunc = _holders[typeof(T)].GetFallbackFunc<T>().ToTaskReturnFunc();
-			}
-			else if (HasAsyncFallbackFunc())
-			{
-				fallBackAsyncFunc = _fallbackAsync.ToDefaultReturnFunc<T>(configureAwait);
-			}
-			else
-			{
-				fallBackAsyncFunc = DefaulFallbackAsyncFunc<T>();
-			}
+			Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
 
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
@@ -163,13 +91,13 @@ namespace PoliNorError
 			return fallBackRes;
 		}
 
-		public bool HasFallbackFunc<T>() => _holders.ContainsKey(typeof(T));
+		public bool HasFallbackFunc<T>() => _fallbackFuncsProvider.HasFallbackFunc<T>();
 
-		public bool HasFallbackAction() => _fallback != null;
+		public bool HasFallbackAction() => _fallbackFuncsProvider.HasFallbackAction();
 
-		public bool HasAsyncFallbackFunc<T>() => _asyncHolders.ContainsKey(typeof(T));
+		public bool HasAsyncFallbackFunc<T>() => _fallbackFuncsProvider.HasAsyncFallbackFunc<T>();
 
-		public bool HasAsyncFallbackFunc() => _fallbackAsync != null;
+		public bool HasAsyncFallbackFunc() => _fallbackFuncsProvider.HasAsyncFallbackFunc();
 
 		public FallbackPolicyBase WithFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackFunc<FallbackPolicyBase, T>(fallbackFunc, convertType);
 

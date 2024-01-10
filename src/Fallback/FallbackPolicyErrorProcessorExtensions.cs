@@ -23,22 +23,30 @@ namespace PoliNorError
 
 		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallbackAsync = fallbackAsync.ToCancelableFunc(convertType)});
+			var fb = new FallbackPolicy();
+			fb._fallbackFuncsProvider.FallbackAsync = fallbackAsync.ToCancelableFunc(convertType);
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(fb);
 		}
 
 		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback.ToCancelableAction(convertType, true)});
+			var fb = new FallbackPolicy();
+			fb._fallbackFuncsProvider.Fallback = fallback.ToCancelableAction(convertType, true);
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(fb);
 		}
 
 		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Action<CancellationToken> fallback)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallback = fallback });
+			var fb = new FallbackPolicy();
+			fb._fallbackFuncsProvider.Fallback = fallback;
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(fb);
 		}
 
 		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Func<CancellationToken, Task> fallbackAsync)
 		{
-			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(new FallbackPolicy() { _fallbackAsync =  fallbackAsync });
+			var fb = new FallbackPolicy();
+			fb._fallbackFuncsProvider.FallbackAsync = fallbackAsync;
+			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(fb);
 		}
 
 		public static FallbackPolicy ToFallbackPolicy<T>(this ErrorProcessorParam invokeFallbackPolicyParams, Func<CancellationToken, T> fallback)

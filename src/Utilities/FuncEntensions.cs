@@ -10,6 +10,10 @@ namespace PoliNorError
 		{
 			return (ct) =>
 			{
+				if (ct.IsCancellationRequested)
+				{
+					return Task.FromCanceled(ct);
+				}
 				action(ct);
 				return Task.CompletedTask;
 			};

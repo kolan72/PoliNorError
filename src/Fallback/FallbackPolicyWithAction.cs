@@ -19,13 +19,13 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
 		{
-			_fallbackAsync = fallbackAsync;
+			_fallbackFuncsProvider.FallbackAsync = fallbackAsync;
 			return this;
 		}
 
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			_fallbackAsync = fallbackAsync.ToCancelableFunc(convertType, true);
+			_fallbackFuncsProvider.FallbackAsync = fallbackAsync.ToCancelableFunc(convertType, true);
 			return this;
 		}
 

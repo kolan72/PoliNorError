@@ -14,13 +14,13 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithFallbackAction(Action<CancellationToken> fallback)
 		{
-			_fallback = fallback;
+			_fallbackFuncsProvider.Fallback = fallback;
 			return this;
 		}
 
 		public FallbackPolicyBase WithFallbackAction(Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			_fallback = fallback.ToCancelableAction(convertType, true);
+			_fallbackFuncsProvider.Fallback = fallback.ToCancelableAction(convertType, true);
 			return this;
 		}
 
