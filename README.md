@@ -200,9 +200,12 @@ var result = await new RetryPolicy(5)
                             .AddPolicyResultHandler<int>((pr) => { if (pr.NoError) logger.Info("There were no errors.");})
                             .HandleAsync(async (ct) => await dbContext.SaveChangesAsync(ct), token);
 ```
-In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true by using `PolicyResult.SetFailed()` method. It may be helpful if for some reason the `PolicyResult` object, as a result of handling, can't be accepted as a success and may require additional work, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.  
+In the `PolicyResult` handler, it is possible to set the `IsFailed` property to true by using `PolicyResult.SetFailed()` method.  
+You can also use the `SetPolicyResultFailedIf(<T>)(Func<PolicyResult(<T>), bool> predicate)` policy method, which adds a special handler that sets `PolicyResult(<T>).IsFailed` to `true` only if the executed predicate returns `true` (since _version_ 2.14.0).  
+It may be helpful if for some reason the `PolicyResult` object, as a result of handling, can't be accepted as a success and may require additional work, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.  
 
-Exceptions in a `PolicyResult` handler are allowed and stored in `PolicyResultHandlingErrors` property without affecting other `PolicyResult` properties.  
+Exceptions in a `PolicyResult` handler are allowed without affecting other `PolicyResult` properties.  The `PolicyResult.PolicyResultHandlingErrors` property is a collection of `PolicyResultHandlingException` exceptions. This exception has the `InnerException` property with the exception that occurred and the `HandlerIndex` property with the handler index that caused the exception in the handlers collection (since _version_ 2.12.1).  
+
 If a cancellation occurs at the stage of the `PolicyResult` handling, the process of running the `PolicyResult` handlers will not be interrupted.  
 
 Methods that add handlers to collections (see below) are as follows:  
