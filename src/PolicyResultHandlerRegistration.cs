@@ -76,6 +76,13 @@ namespace PoliNorError
 			return errorPolicyBase;
 		}
 
+		/// <summary>
+		///  Adds a special PolicyResult handler that only sets  <see cref="PolicyResult.IsFailed"/> to true if the executed <paramref name="predicate"/> returns true.
+		/// </summary>
+		/// <typeparam name="T">The type of the Policy</typeparam>
+		/// <param name="errorPolicyBase"></param>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
 		internal static T SetPolicyResultFailedIfInner<T>(this T errorPolicyBase, Func<PolicyResult, bool> predicate) where T : Policy
 		{
 			void handler(PolicyResult pr)
@@ -86,6 +93,14 @@ namespace PoliNorError
 			return AddPolicyResultHandlerInner(errorPolicyBase, handler);
 		}
 
+		/// <summary>
+		/// Adds a special PolicyResult handler that only sets  <see cref="PolicyResult.IsFailed"/> to true if the executed <paramref name="predicate"/> returns true.
+		/// </summary>
+		/// <typeparam name="T">The type of the Policy.</typeparam>
+		/// <typeparam name="U">The type of the result.</typeparam>
+		/// <param name="errorPolicyBase"></param>
+		/// <param name="predicate">>A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
 		internal static T SetPolicyResultFailedIfInner<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, bool> predicate) where T : Policy
 		{
 			void handler(PolicyResult<U> pr)
