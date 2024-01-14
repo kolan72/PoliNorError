@@ -184,6 +184,24 @@ namespace PoliNorError
 			return this;
 		}
 
+		/// <summary>
+		/// For the last policy in the <see cref="PolicyCollection"/>, this method adds a special PolicyResult handler that sets <see cref="PolicyResult.IsFailed"/> to true only if the executed <paramref name="predicate"/> returns true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public PolicyCollection SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
+		{
+			this.SetPolicyResultFailedIfInner(predicate);
+			return this;
+		}
+
+		///<inheritdoc cref="SetPolicyResultFailedIf"/>
+		public PolicyCollection SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
+		{
+			this.SetPolicyResultFailedIfInner(predicate);
+			return this;
+		}
+
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilterForAll(func);
