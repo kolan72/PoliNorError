@@ -1022,15 +1022,6 @@ namespace PoliNorError.Tests
 		public void Should_SetPolicyResultFailedIf_Work(FallbackTypeForTests fallbackType, bool generic)
 		{
 			PolicyResult polResult = null;
-			bool genericPredicate(PolicyResult<int> pr)
-			{
-				return pr.Errors.Any(e => e.Message == "Test");
-			}
-
-			bool predicate(PolicyResult pr)
-			{
-				return pr.Errors.Any(e => e.Message == "Test");
-			}
 
 			switch (fallbackType)
 			{
@@ -1038,12 +1029,12 @@ namespace PoliNorError.Tests
 					var fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
 					if (generic)
 					{
-						polResult = fbBase.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbBase.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbBase.SetPolicyResultFailedIf(predicate)
+						polResult = fbBase.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;
@@ -1051,12 +1042,12 @@ namespace PoliNorError.Tests
 					var fbCreator = new FallbackPolicy();
 					if (generic)
 					{
-						polResult = fbCreator.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbCreator.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbCreator.SetPolicyResultFailedIf(predicate)
+						polResult = fbCreator.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;
@@ -1064,12 +1055,12 @@ namespace PoliNorError.Tests
 					var fbWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 					if (generic)
 					{
-						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf(predicate)
+						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;
@@ -1077,12 +1068,12 @@ namespace PoliNorError.Tests
 					var fbWithAction = new FallbackPolicy().WithFallbackAction((_) => { });
 					if (generic)
 					{
-						polResult = fbWithAction.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbWithAction.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbWithAction.SetPolicyResultFailedIf(predicate)
+						polResult = fbWithAction.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;

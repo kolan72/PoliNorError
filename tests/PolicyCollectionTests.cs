@@ -730,16 +730,6 @@ namespace PoliNorError.Tests
 		[TestCase(false, false)]
 		public void Should_SetPolicyResultFailedIf_Work(bool generic, bool predicateTrue)
 		{
-			bool genericPredicate(PolicyResult<int> pr)
-			{
-				return pr.Errors.Any(e => e.Message == "Test");
-			}
-
-			bool predicate(PolicyResult pr)
-			{
-				return pr.Errors.Any(e => e.Message == "Test");
-			}
-
 			var polCollection = PolicyCollection.Create()
 								.WithRetry(1)
 								.WithFallback((_) => { });
@@ -748,12 +738,12 @@ namespace PoliNorError.Tests
 
 			if (generic)
 			{
-				polDelegateCollectionResult = polCollection.SetPolicyResultFailedIf<int>(genericPredicate)
+				polDelegateCollectionResult = polCollection.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 							 .HandleDelegate<int>(() => throw new ArgumentException(predicateTrue ? "Test" : "Test2"));
 			}
 			else
 			{
-				polDelegateCollectionResult = polCollection.SetPolicyResultFailedIf(predicate)
+				polDelegateCollectionResult = polCollection.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 							 .HandleDelegate(() => throw new ArgumentException(predicateTrue ? "Test" : "Test2"));
 			}
 			Assert.That(polDelegateCollectionResult.IsFailed, Is.EqualTo(predicateTrue));

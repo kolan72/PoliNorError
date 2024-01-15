@@ -108,6 +108,7 @@
     <Compile Include="PolicyResultTests.cs" />
     <Compile Include="PolicyWithInnerErrorProcessorForTest.cs" />
     <Compile Include="PolicyWithInnerErrorProcessorTests.cs" />
+    <Compile Include="PredicateFuncsForTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RetryCountInfoTests.cs" />
     <Compile Include="RetryPolicyTests.cs" />
