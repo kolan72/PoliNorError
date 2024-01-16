@@ -203,6 +203,18 @@ namespace PoliNorError
 			return policyDelegateCollection;
 		}
 
+		/// <summary>
+		/// For the policy of the last element in the <see cref="PolicyDelegateCollection"/>, this method adds a special PolicyResult handler that sets <see cref="PolicyResult.IsFailed"/> to true only if the executed <paramref name="predicate"/> returns true.
+		/// </summary>
+		/// <param name="policyDelegateCollection"></param>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection SetPolicyResultFailedIf(this IPolicyDelegateCollection policyDelegateCollection, Func<PolicyResult, bool> predicate)
+		{
+			policyDelegateCollection.GetPolicies().SetPolicyResultFailedIfInner(predicate);
+			return policyDelegateCollection;
+		}
+
 		public static IPolicyDelegateCollection WithThrowOnLastFailed(this IPolicyDelegateCollection policyDelegateCollection, Func<IEnumerable<PolicyDelegateResult>, Exception> func = null)
 		{
 			policyDelegateCollection.WithThrowOnLastFailed(new DefaultPolicyDelegateResultsToErrorConverter(func));

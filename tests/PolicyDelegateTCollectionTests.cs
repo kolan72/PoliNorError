@@ -497,6 +497,23 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_SetPolicyResultFailedIf_Work(bool predicateTrue)
+		{
+			var collection = PolicyDelegateCollection<int>.Create()
+								.WithRetry(1)
+								.AndDelegate(() => throw new ArgumentException(predicateTrue ? "Test" : "Test2"))
+								.WithFallback((_) => 1)
+								.AndDelegate(() => throw new ArgumentException(predicateTrue ? "Test" : "Test2"))
+								.SetPolicyResultFailedIf(PredicateFuncsForTests.GenericPredicate)
+								.HandleAll();
+
+			Assert.That(collection.IsFailed, Is.EqualTo(predicateTrue));
+			Assert.That(collection.LastPolicyResultFailedReason, Is.EqualTo(predicateTrue ? PolicyResultFailedReason.PolicyResultHandlerFailed : PolicyResultFailedReason.None));
+		}
+
+		[Test]
 		public void Should_WithRetry_AndInvokeRetryPolicyParams_Work()
 		{
 			int i1 = 0;
