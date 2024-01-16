@@ -38,6 +38,7 @@ namespace PoliNorError
 			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
 
 			int tryCount = retryCountInfo.StartTryCount;
+			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
 				if (token.IsCancellationRequested)
@@ -76,9 +77,12 @@ namespace PoliNorError
 					}
 
 					result.ChangeByHandleCatchBlockResult(handler
-														.Handle(ex, _retryErrorContextCreator(tryCount)));
+														.Handle(ex, retryContext));
 					if (!result.IsFailed)
+					{
 						tryCount++;
+						retryContext.IncrementCount();
+					}
 				}
 			}
 			while (!result.IsFailed);
@@ -101,6 +105,7 @@ namespace PoliNorError
 			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
 
 			int tryCount = retryCountInfo.StartTryCount;
+			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
 				if (token.IsCancellationRequested)
@@ -139,9 +144,12 @@ namespace PoliNorError
 						break;
 					}
 					result.ChangeByHandleCatchBlockResult(handler
-														.Handle(ex, _retryErrorContextCreator(tryCount)));
+														.Handle(ex, retryContext));
 					if (!result.IsFailed)
+					{
 						tryCount++;
+						retryContext.IncrementCount();
+					}
 				}
 			}
 			while (!result.IsFailed);
@@ -159,6 +167,7 @@ namespace PoliNorError
 			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
 
 			int tryCount = retryCountInfo.StartTryCount;
+			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
 				if (token.IsCancellationRequested)
@@ -191,9 +200,12 @@ namespace PoliNorError
 					{
 						break;
 					}
-					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, _retryErrorContextCreator(tryCount)).ConfigureAwait(configureAwait));
+					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
+					{
 						Interlocked.Increment(ref tryCount);
+						retryContext.IncrementCountAtomic();
+					}
 				}
 			}
 			while (!result.IsFailed);
@@ -211,6 +223,7 @@ namespace PoliNorError
 			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
 
 			int tryCount = retryCountInfo.StartTryCount;
+			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
 				if (token.IsCancellationRequested)
@@ -244,9 +257,12 @@ namespace PoliNorError
 					{
 						break;
 					}
-					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, _retryErrorContextCreator(tryCount)).ConfigureAwait(configureAwait));
+					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
+					{
 						Interlocked.Increment(ref tryCount);
+						retryContext.IncrementCountAtomic();
+					}
 				}
 			}
 			while (!result.IsFailed);
