@@ -7,6 +7,9 @@ namespace PoliNorError
 	/// </summary>
 	public static class ApplyFuncs
 	{
+		public static Action Apply<T>(this Action<T> func, T t1)
+					=> () => func(t1);
+
 		public static Action<T2> Apply<T1, T2>(this Action<T1, T2> func, T1 t1)
 					=> (t2) => func(t1, t2);
 
