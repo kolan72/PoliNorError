@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+﻿ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
@@ -374,6 +374,94 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(innerProcessors.L, Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_IncludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var processor = SimplePolicyProcessor
+							.CreateDefault();
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				processor = processor.IncludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				processor = processor.IncludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			PolicyResult result;
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					result = processor.Execute(((Action<string>)ActionWithInnerWithMsg).Apply("Test"));
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					result = processor.Execute(((Action<string>)ActionWithInnerWithMsg).Apply("Test2"));
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+				else
+				{
+					result = processor.Execute(ActionWithInner);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+			}
+			else
+			{
+				result = processor.Execute(ActionWithInner);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_ExcludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var processor = SimplePolicyProcessor
+							.CreateDefault();
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				processor = processor.ExcludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				processor = processor.ExcludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			PolicyResult result;
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					result = processor.Execute(((Action<string>)ActionWithInnerWithMsg).Apply("Test"));
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					result = processor.Execute(((Action<string>)ActionWithInnerWithMsg).Apply("Test2"));
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+				else
+				{
+					result = processor.Execute(ActionWithInner);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+			}
+			else
+			{
+				result = processor.Execute(ActionWithInner);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+			}
 		}
 
 		[Test]

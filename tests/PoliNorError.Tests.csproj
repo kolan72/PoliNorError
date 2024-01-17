@@ -84,6 +84,7 @@
     <Compile Include="ErrorProcessorRunnersTests.cs" />
     <Compile Include="ErrorProcessorTests.cs" />
     <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
+    <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="FallBackFuncHoldersTests.cs" />
     <Compile Include="FallbackFuncsProviderTests.cs" />
