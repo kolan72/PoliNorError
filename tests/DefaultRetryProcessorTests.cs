@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using static PoliNorError.Tests.DelayTimeErrorProcessorTests;
 using NUnit.Framework.Legacy;
+using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
 
 namespace PoliNorError.Tests
 {
@@ -337,6 +338,94 @@ namespace PoliNorError.Tests
 			sw.Stop();
 			ClassicAssert.Greater(Math.Floor(sw.Elapsed.TotalMilliseconds), 250);
 			ClassicAssert.AreEqual(1, customDelayErrorProcessor.CurRetry);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_IncludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var processor = RetryProcessor
+							.CreateDefault();
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				processor = processor.IncludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				processor = processor.IncludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			PolicyResult result;
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					result = processor.Retry(((Action<string>)ActionWithInnerWithMsg).Apply("Test"), 1);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					result = processor.Retry(((Action<string>)ActionWithInnerWithMsg).Apply("Test2"), 1);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+				else
+				{
+					result = processor.Retry(ActionWithInner, 1);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+			}
+			else
+			{
+				result = processor.Retry(Action, 1);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_ExcludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var processor = RetryProcessor
+							.CreateDefault();
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				processor = processor.ExcludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				processor = processor.ExcludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			PolicyResult result;
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					result = processor.Retry(((Action<string>)ActionWithInnerWithMsg).Apply("Test"), 1);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					result = processor.Retry(((Action<string>)ActionWithInnerWithMsg).Apply("Test2"), 1);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+				else
+				{
+					result = processor.Retry(ActionWithInner, 1);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+			}
+			else
+			{
+				result = processor.Retry(Action, 1);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			}
 		}
 
 		[Test]

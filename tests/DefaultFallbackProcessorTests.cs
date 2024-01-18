@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Linq;
 using NUnit.Framework.Legacy;
+using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
 
 namespace PoliNorError.Tests
 {
@@ -149,6 +150,94 @@ namespace PoliNorError.Tests
 			void saveWithInclude() => throw new ArgumentNullException(errorParamName);
 			var tryResCountWithNoInclude = processor.Fallback(saveWithInclude, (_) => Expression.Empty());
 			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_IncludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var processor = FallbackProcessor
+							.CreateDefault();
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				processor = processor.IncludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				processor = processor.IncludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			PolicyResult result;
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					result = processor.Fallback(((Action<string>)ActionWithInnerWithMsg).Apply("Test"), (_) => { });
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					result = processor.Fallback(((Action<string>)ActionWithInnerWithMsg).Apply("Test2"), (_) => { });
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+				else
+				{
+					result = processor.Fallback(ActionWithInner, (_) => { });
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+			}
+			else
+			{
+				result = processor.Fallback(Action, (_) => { });
+				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_ExcludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var processor = FallbackProcessor
+							.CreateDefault();
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				processor = processor.ExcludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				processor = processor.ExcludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			PolicyResult result;
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					result = processor.Fallback(((Action<string>)ActionWithInnerWithMsg).Apply("Test"), (_) => { });
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					result = processor.Fallback(((Action<string>)ActionWithInnerWithMsg).Apply("Test2"), (_) => { });
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+				else
+				{
+					result = processor.Fallback(ActionWithInner, (_) => { });
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+			}
+			else
+			{
+				result = processor.Fallback(Action, (_) => { });
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			}
 		}
 
 		[Test]
