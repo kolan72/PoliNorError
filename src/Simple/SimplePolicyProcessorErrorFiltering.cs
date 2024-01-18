@@ -35,7 +35,6 @@ namespace PoliNorError
 		public static ISimplePolicyProcessor IncludeErrorSet<TException1, TException2>(this ISimplePolicyProcessor simplePolicyProcessor) where TException1 : Exception where TException2 : Exception
 			=> simplePolicyProcessor.IncludeErrorSet<ISimplePolicyProcessor, TException1, TException2>();
 
-
 		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the processing by the <paramref name="simplePolicyProcessor"/> processor.
 		/// </summary>
@@ -43,18 +42,8 @@ namespace PoliNorError
 		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
 		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
 		/// <returns></returns>
-		public static ISimplePolicyProcessor IncludeInnerError<TInnerException>(this ISimplePolicyProcessor simplePolicyProcessor, Func<TInnerException, bool> predicate = null) where TInnerException : Exception 
+		public static ISimplePolicyProcessor IncludeInnerError<TInnerException>(this ISimplePolicyProcessor simplePolicyProcessor, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
 			=> simplePolicyProcessor.IncludeInnerError<ISimplePolicyProcessor, TInnerException>(predicate);
-
-		/// <summary>
-		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the processing by the <paramref name="simplePolicyProcessor"/> processor.
-		/// </summary>
-		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
-		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
-		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
-		/// <returns></returns>
-		public static ISimplePolicyProcessor ExcludeInnerError<TInnerException>(this ISimplePolicyProcessor simplePolicyProcessor, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
-			=> simplePolicyProcessor.ExcludeInnerError<ISimplePolicyProcessor, TInnerException>(predicate);
 
 		/// <summary>
 		/// Specifies <typeparamref name="TException"/> type- and optionally <paramref name="func"/> predicate-based filter condition for excluding exception from the processing by the <paramref name="simplePolicyProcessor"/> processor.
@@ -82,5 +71,15 @@ namespace PoliNorError
 		/// <returns></returns>
 		public static ISimplePolicyProcessor ExcludeErrorSet<TException1, TException2>(this ISimplePolicyProcessor simplePolicyProcessor) where TException1 : Exception where TException2 : Exception
 			=> simplePolicyProcessor.ExcludeErrorSet<ISimplePolicyProcessor, TException1, TException2>();
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the processing by the <paramref name="simplePolicyProcessor"/> processor.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public static ISimplePolicyProcessor ExcludeInnerError<TInnerException>(this ISimplePolicyProcessor simplePolicyProcessor, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+			=> simplePolicyProcessor.ExcludeInnerError<ISimplePolicyProcessor, TInnerException>(predicate);
 	}
 }

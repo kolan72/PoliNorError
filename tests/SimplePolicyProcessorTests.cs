@@ -415,8 +415,8 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-				result = processor.Execute(ActionWithInner);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				result = processor.Execute(Action);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 			}
 		}
 
@@ -459,8 +459,8 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-				result = processor.Execute(ActionWithInner);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				result = processor.Execute(Action);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
 			}
 		}
 
