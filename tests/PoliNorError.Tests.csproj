@@ -115,6 +115,7 @@
     <Compile Include="RetryPolicyTests.cs" />
     <Compile Include="SimplePolicyProcessorTests.cs" />
     <Compile Include="SimplePolicyTests.cs" />
+    <Compile Include="TestHandlingForInnerError.cs" />
     <Compile Include="TestHandlingWithErrorSet.cs" />
     <Compile Include="TestPolicyResultHandlerSyncType.cs" />
     <Compile Include="WrappedPolicyTests.cs" />
