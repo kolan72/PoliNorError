@@ -6,6 +6,30 @@ namespace PoliNorError.Tests
 {
 	internal static class TestHandlingForInnerError
 	{
+		internal static void IncludeInnerErrorInPolicy<T>(IWithInnerErrorFilter<T> policy, bool withInnerError, bool? satisfyFilterFunc) where T: IWithInnerErrorFilter<T>
+		{
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				policy.IncludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				policy.IncludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+		}
+
+		internal static void ExcludeInnerErrorFromPolicy<T>(IWithInnerErrorFilter<T> policy, bool withInnerError, bool? satisfyFilterFunc) where T : IWithInnerErrorFilter<T>
+		{
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				policy.ExcludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				policy.ExcludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+		}
+
 		internal static void HandlePolicyWithIncludeInnerErrorFilter(IPolicyBase policyBase, Action actionToHandle, bool withInnerError, bool? satisfyFilterFunc)
 		{
 			var result = policyBase.Handle(actionToHandle);

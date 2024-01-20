@@ -522,14 +522,7 @@ namespace PoliNorError.Tests
 		public void Should_IncludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
 		{
 			var policy = new SimplePolicy();
-			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
-			{
-				policy = policy.IncludeInnerError<TestInnerException>();
-			}
-			else
-			{
-				policy = policy.IncludeInnerError<TestInnerException>(ex => ex.Message == "Test");
-			}
+			TestHandlingForInnerError.IncludeInnerErrorInPolicy(policy, withInnerError, satisfyFilterFunc);
 
 			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
 			TestHandlingForInnerError.HandlePolicyWithIncludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
@@ -543,14 +536,7 @@ namespace PoliNorError.Tests
 		public void Should_ExcludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
 		{
 			var policy = new SimplePolicy();
-			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
-			{
-				policy = policy.ExcludeInnerError<TestInnerException>();
-			}
-			else
-			{
-				policy = policy.ExcludeInnerError<TestInnerException>(ex => ex.Message == "Test");
-			}
+			TestHandlingForInnerError.ExcludeInnerErrorFromPolicy(policy, withInnerError, satisfyFilterFunc);
 
 			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
 			TestHandlingForInnerError.HandlePolicyWithExcludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
