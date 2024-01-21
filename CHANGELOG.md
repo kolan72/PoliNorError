@@ -1,3 +1,9 @@
+## 2.14.0
+
+- Introduce `WithInnerErrorProcessorOf<TException>` overloaded methods for policy processor interfaces, `BulkErrorProcessor`, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`), `PolicyDelegateCollection(<T>)` and `PolicyCollection`.
+- Introduce `SetPolicyResultFailedIf(<T>)` methods for library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`).
+
+
 ## 2.12.1
 
 - Introduce `IncludeErrorSet<TException1, TException2>` and `ExcludeErrorSet<TException1, TException2>` extension methods for the `PolicyDelegateCollection(<T>)` classes.
