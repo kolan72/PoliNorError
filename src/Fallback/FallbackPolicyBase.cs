@@ -1,26 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public abstract partial class FallbackPolicyBase : Policy, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>
+	public abstract partial class FallbackPolicyBase : Policy, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>, IWithInnerErrorFilter<FallbackPolicyBase>
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
+		internal FallbackFuncsProvider _fallbackFuncsProvider = new FallbackFuncsProvider();
+
 		internal Action<CancellationToken> _fallback;
 		internal Func<CancellationToken, Task> _fallbackAsync;
-
-		internal Dictionary<Type, IFallBackFuncHolder> _holders = new Dictionary<Type, IFallBackFuncHolder>();
-		internal Dictionary<Type, IFallBackAsyncFuncHolder> _asyncHolders = new Dictionary<Type, IFallBackAsyncFuncHolder>();
-
-		private static Func<CancellationToken, T> DefaulFallbackFunc<T>() => (_) => default;
-		private static Func<CancellationToken, Task<T>> DefaulFallbackAsyncFunc<T>() => (_) => Task.FromResult(default(T));
-
-		private static Action<CancellationToken> DefaultFallbackAction => (_) => Expression.Empty();
-		private static Func<CancellationToken, Task> DefaultFallbackAsyncFunc => (_) => Task.CompletedTask;
 
 		protected FallbackPolicyBase(IFallbackProcessor processor) : base(processor)
 		{
@@ -29,22 +21,7 @@ namespace PoliNorError
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
-			Action<CancellationToken> curFallback = null;
-			if (_fallback == null)
-			{
-				if (_fallbackAsync != null)
-				{
-					curFallback = _fallbackAsync.ToSyncFunc();
-				}
-				else
-				{
-					curFallback = DefaultFallbackAction;
-				}
-			}
-			else
-			{
-				curFallback = _fallback;
-			}
+			Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
 
 			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 			if (Act == null && Wrapper != null)
@@ -62,23 +39,7 @@ namespace PoliNorError
 
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
-			Func<CancellationToken, T> fallBackFunc = null;
-			if (HasFallbackFunc<T>())
-			{
-				fallBackFunc = _holders[typeof(T)].GetFallbackFunc<T>();
-			}
-			else if (HasAsyncFallbackFunc<T>())
-			{
-				fallBackFunc = _asyncHolders[typeof(T)].GetFallbackAsyncFunc<T>().ToSyncFunc();
-			}
-			else if (HasFallbackAction())
-			{
-				fallBackFunc = _fallback.ToDefaultReturnFunc<T>();
-			}
-			else
-			{
-				fallBackFunc = DefaulFallbackFunc<T>();
-			}
+			Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
 
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 			if (Fn == null && Wrapper != null)
@@ -96,23 +57,7 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			Func<CancellationToken, Task> curFallbackAsync = null;
-
-			if (_fallbackAsync == null)
-			{
-				if (_fallback != null)
-				{
-					curFallbackAsync = _fallback.ToTaskReturnFunc();
-				}
-				else
-				{
-					curFallbackAsync = DefaultFallbackAsyncFunc;
-				}
-			}
-			else
-			{
-				curFallbackAsync = _fallbackAsync;
-			}
+			Func<CancellationToken, Task> curFallbackAsync = _fallbackFuncsProvider.GetAsyncFallbackFunc();
 
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
@@ -130,24 +75,7 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			Func<CancellationToken, Task<T>> fallBackAsyncFunc = null;
-
-			if (HasAsyncFallbackFunc<T>())
-			{
-				fallBackAsyncFunc = _asyncHolders[typeof(T)].GetFallbackAsyncFunc<T>();
-			}
-			else if (HasFallbackFunc<T>())
-			{
-				fallBackAsyncFunc = _holders[typeof(T)].GetFallbackFunc<T>().ToTaskReturnFunc();
-			}
-			else if (HasAsyncFallbackFunc())
-			{
-				fallBackAsyncFunc = _fallbackAsync.ToDefaultReturnFunc<T>(configureAwait);
-			}
-			else
-			{
-				fallBackAsyncFunc = DefaulFallbackAsyncFunc<T>();
-			}
+			Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
 
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
@@ -163,13 +91,13 @@ namespace PoliNorError
 			return fallBackRes;
 		}
 
-		public bool HasFallbackFunc<T>() => _holders.ContainsKey(typeof(T));
+		public bool HasFallbackFunc<T>() => _fallbackFuncsProvider.HasFallbackFunc<T>();
 
-		public bool HasFallbackAction() => _fallback != null;
+		public bool HasFallbackAction() => _fallbackFuncsProvider.HasFallbackAction();
 
-		public bool HasAsyncFallbackFunc<T>() => _asyncHolders.ContainsKey(typeof(T));
+		public bool HasAsyncFallbackFunc<T>() => _fallbackFuncsProvider.HasAsyncFallbackFunc<T>();
 
-		public bool HasAsyncFallbackFunc() => _fallbackAsync != null;
+		public bool HasAsyncFallbackFunc() => _fallbackFuncsProvider.HasAsyncFallbackFunc();
 
 		public FallbackPolicyBase WithFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackFunc<FallbackPolicyBase, T>(fallbackFunc, convertType);
 
@@ -185,11 +113,27 @@ namespace PoliNorError
 
 		public FallbackPolicyBase IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<FallbackPolicyBase, TException1, TException2>();
 
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the Fallback policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public FallbackPolicyBase IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<FallbackPolicyBase, TInnerException>(predicate);
+
 		public FallbackPolicyBase ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyBase, TException>(func);
 
 		public FallbackPolicyBase ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyBase>(expression);
 
 		public FallbackPolicyBase ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<FallbackPolicyBase, TException1, TException2>();
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the Fallback policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public FallbackPolicyBase ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<FallbackPolicyBase, TInnerException>(predicate);
 
 		public FallbackPolicyBase AddPolicyResultHandler(Action<PolicyResult> action)
 		{
@@ -251,22 +195,13 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{FallbackPolicyBase}"/>
 		public FallbackPolicyBase SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <typeparam name="T">The type of the result</typeparam>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{FallbackPolicyBase, T}"/>
 		public FallbackPolicyBase SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);

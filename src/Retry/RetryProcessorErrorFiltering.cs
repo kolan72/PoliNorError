@@ -36,6 +36,16 @@ namespace PoliNorError
 			=> retryProcessor.IncludeErrorSet<IRetryProcessor, TException1, TException2>();
 
 		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the processing by the <paramref name="retryProcessor"/> processor.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="retryProcessor">A processor for Retry policy.</param>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public static IRetryProcessor IncludeInnerError<TInnerException>(this IRetryProcessor retryProcessor, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+			=> retryProcessor.IncludeInnerError<IRetryProcessor, TInnerException>(predicate);
+
+		/// <summary>
 		/// Specifies <typeparamref name="TException"/> type- and optionally <paramref name="func"/> predicate-based filter condition for excluding exception from the processing by the <paramref name="retryProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TException">>A type of exception.</typeparam>
@@ -61,5 +71,15 @@ namespace PoliNorError
 		/// <returns></returns>
 		public static IRetryProcessor ExcludeErrorSet<TException1, TException2>(this IRetryProcessor retryProcessor) where TException1 : Exception where TException2 : Exception
 			=> retryProcessor.ExcludeErrorSet<IRetryProcessor, TException1, TException2>();
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the processing by the <paramref name="retryProcessor"/> processor.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="retryProcessor">A processor for Retry policy.</param>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public static IRetryProcessor ExcludeInnerError<TInnerException>(this IRetryProcessor retryProcessor, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+			=> retryProcessor.ExcludeInnerError<IRetryProcessor, TInnerException>(predicate);
 	}
 }

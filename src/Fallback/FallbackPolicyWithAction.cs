@@ -8,7 +8,7 @@ namespace PoliNorError
 	/// <summary>
 	///  This class is primarily for internal use by PoliNorError
 	/// </summary>
-	public sealed partial class FallbackPolicyWithAction : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAction>
+	public sealed partial class FallbackPolicyWithAction : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAction>, IWithInnerErrorFilter<FallbackPolicyWithAction>
 	{
 		internal FallbackPolicyWithAction(IFallbackProcessor processor) : base(processor ?? new DefaultFallbackProcessor()){}
 
@@ -19,13 +19,13 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
 		{
-			_fallbackAsync = fallbackAsync;
+			_fallbackFuncsProvider.FallbackAsync = fallbackAsync;
 			return this;
 		}
 
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			_fallbackAsync = fallbackAsync.ToCancelableFunc(convertType, true);
+			_fallbackFuncsProvider.FallbackAsync = fallbackAsync.ToCancelableFunc(convertType, true);
 			return this;
 		}
 
@@ -43,6 +43,9 @@ namespace PoliNorError
 		public new FallbackPolicyWithAction IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
 			=> this.IncludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
 
+		///<inheritdoc cref = "FallbackPolicyBase.IncludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicyWithAction IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<FallbackPolicyWithAction, TInnerException>(predicate);
+
 		public new FallbackPolicyWithAction ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
 			=> this.ExcludeError<FallbackPolicyWithAction, TException>(func);
 
@@ -50,6 +53,9 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
 			=> this.ExcludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
+
+		///<inheritdoc cref = "FallbackPolicyBase.ExcludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicyWithAction ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<FallbackPolicyWithAction, TInnerException>(predicate);
 
 		public new FallbackPolicyWithAction AddPolicyResultHandler(Action<PolicyResult> action)
 		{
@@ -111,22 +117,13 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{FallbackPolicyWithAction}"/>
 		public new FallbackPolicyWithAction SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <typeparam name="T">The type of the result</typeparam>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{FallbackPolicyWithAction, T}"/>
 		public new FallbackPolicyWithAction SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);

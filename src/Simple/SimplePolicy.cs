@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed partial class SimplePolicy : Policy, IPolicyBase, IWithErrorFilter<SimplePolicy>
+	public sealed partial class SimplePolicy : Policy, IPolicyBase, IWithErrorFilter<SimplePolicy>, IWithInnerErrorFilter<SimplePolicy>
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 
@@ -83,6 +83,22 @@ namespace PoliNorError
 
 		public SimplePolicy IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<SimplePolicy, TException1, TException2>();
 
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the Simple policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public SimplePolicy IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<SimplePolicy, TInnerException>(predicate);
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the Simple policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public SimplePolicy ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<SimplePolicy, TInnerException>(predicate);
+
 		public SimplePolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<SimplePolicy, TException>(func);
 
 		public SimplePolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<SimplePolicy>(expression);
@@ -149,22 +165,13 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{SimplePolicy}"/>
 		public SimplePolicy SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <typeparam name="T">The type of the result</typeparam>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{SimplePolicy, T}"/>
 		public SimplePolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);

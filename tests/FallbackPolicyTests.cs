@@ -1022,15 +1022,6 @@ namespace PoliNorError.Tests
 		public void Should_SetPolicyResultFailedIf_Work(FallbackTypeForTests fallbackType, bool generic)
 		{
 			PolicyResult polResult = null;
-			bool genericPredicate(PolicyResult<int> pr)
-			{
-				return pr.Errors.Any(e => e.Message == "Test");
-			}
-
-			bool predicate(PolicyResult pr)
-			{
-				return pr.Errors.Any(e => e.Message == "Test");
-			}
 
 			switch (fallbackType)
 			{
@@ -1038,12 +1029,12 @@ namespace PoliNorError.Tests
 					var fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
 					if (generic)
 					{
-						polResult = fbBase.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbBase.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbBase.SetPolicyResultFailedIf(predicate)
+						polResult = fbBase.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;
@@ -1051,12 +1042,12 @@ namespace PoliNorError.Tests
 					var fbCreator = new FallbackPolicy();
 					if (generic)
 					{
-						polResult = fbCreator.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbCreator.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbCreator.SetPolicyResultFailedIf(predicate)
+						polResult = fbCreator.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;
@@ -1064,12 +1055,12 @@ namespace PoliNorError.Tests
 					var fbWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 					if (generic)
 					{
-						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf(predicate)
+						polResult = fbWithAsyncFunc.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;
@@ -1077,12 +1068,12 @@ namespace PoliNorError.Tests
 					var fbWithAction = new FallbackPolicy().WithFallbackAction((_) => { });
 					if (generic)
 					{
-						polResult = fbWithAction.SetPolicyResultFailedIf<int>(genericPredicate)
+						polResult = fbWithAction.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
 											.Handle<int>(() => throw new ArgumentException("Test"));
 					}
 					else
 					{
-						polResult = fbWithAction.SetPolicyResultFailedIf(predicate)
+						polResult = fbWithAction.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
 											.Handle(() => throw new ArgumentException("Test"));
 					}
 					break;
@@ -1091,6 +1082,102 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(polResult.IsFailed, Is.EqualTo(true));
 			Assert.That(polResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyResultHandlerFailed));
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, null)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, null)]
+		[TestCase(FallbackTypeForTests.Creator, true, true)]
+		[TestCase(FallbackTypeForTests.Creator, true, false)]
+		[TestCase(FallbackTypeForTests.Creator, true, null)]
+		[TestCase(FallbackTypeForTests.Creator, false, null)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, null)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, null)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true, null)]
+		[TestCase(FallbackTypeForTests.WithAction, false, null)]
+		public void Should_IncludeInnerError_Work(FallbackTypeForTests fallbackType, bool withInnerError, bool? satisfyFilterFunc)
+		{
+			IPolicyBase policy = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					var fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
+					TestHandlingForInnerError.IncludeInnerErrorInPolicy(fbBase, withInnerError, satisfyFilterFunc);
+					policy = fbBase;
+					break;
+				case FallbackTypeForTests.Creator:
+					var fbCreator = new FallbackPolicy();
+					TestHandlingForInnerError.IncludeInnerErrorInPolicy<FallbackPolicy>(fbCreator, withInnerError, satisfyFilterFunc);
+					policy = fbCreator;
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					var fbWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					TestHandlingForInnerError.IncludeInnerErrorInPolicy<FallbackPolicyWithAsyncFunc>(fbWithAsyncFunc, withInnerError, satisfyFilterFunc);
+					policy = fbWithAsyncFunc;
+					break;
+				case FallbackTypeForTests.WithAction:
+					var fbWithAction = new FallbackPolicy().WithFallbackAction((_) => { });
+					TestHandlingForInnerError.IncludeInnerErrorInPolicy<FallbackPolicyWithAction>(fbWithAction, withInnerError, satisfyFilterFunc);
+					policy = fbWithAction;
+					break;
+			}
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			TestHandlingForInnerError.HandlePolicyWithIncludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, null)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, null)]
+		[TestCase(FallbackTypeForTests.Creator, true, true)]
+		[TestCase(FallbackTypeForTests.Creator, true, false)]
+		[TestCase(FallbackTypeForTests.Creator, true, null)]
+		[TestCase(FallbackTypeForTests.Creator, false, null)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, null)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, null)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true, null)]
+		[TestCase(FallbackTypeForTests.WithAction, false, null)]
+		public void Should_ExcludeInnerError_Work(FallbackTypeForTests fallbackType, bool withInnerError, bool? satisfyFilterFunc)
+		{
+			IPolicyBase policy = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					var fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
+					TestHandlingForInnerError.ExcludeInnerErrorFromPolicy(fbBase, withInnerError, satisfyFilterFunc);
+					policy = fbBase;
+					break;
+				case FallbackTypeForTests.Creator:
+					var fbCreator = new FallbackPolicy();
+					TestHandlingForInnerError.ExcludeInnerErrorFromPolicy<FallbackPolicy>(fbCreator, withInnerError, satisfyFilterFunc);
+					policy = fbCreator;
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					var fbWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					TestHandlingForInnerError.ExcludeInnerErrorFromPolicy<FallbackPolicyWithAsyncFunc>(fbWithAsyncFunc, withInnerError, satisfyFilterFunc);
+					policy = fbWithAsyncFunc;
+					break;
+				case FallbackTypeForTests.WithAction:
+					var fbWithAction = new FallbackPolicy().WithFallbackAction((_) => { });
+					TestHandlingForInnerError.ExcludeInnerErrorFromPolicy<FallbackPolicyWithAction>(fbWithAction, withInnerError, satisfyFilterFunc);
+					policy = fbWithAction;
+					break;
+			}
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			TestHandlingForInnerError.HandlePolicyWithExcludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
 		}
 	}
 }

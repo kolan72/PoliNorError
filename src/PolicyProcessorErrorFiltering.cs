@@ -17,6 +17,18 @@ namespace PoliNorError
 			return policyProcessor;
 		}
 
+		internal static T IncludeInnerError<T, TInnerException>(this T policyProcessor, Func<TInnerException, bool> func = null) where T : IPolicyProcessor where TInnerException : Exception
+		{
+			policyProcessor.AddIncludedInnerErrorFilter(func);
+			return policyProcessor;
+		}
+
+		internal static T ExcludeInnerError<T, TInnerException>(this T policyProcessor, Func<TInnerException, bool> func = null) where T : IPolicyProcessor where TInnerException : Exception
+		{
+			policyProcessor.AddExcludedInnerErrorFilter(func);
+			return policyProcessor;
+		}
+
 		internal static T IncludeErrorSet<T, TException1, TException2>(this T policyProcessor) where T : IPolicyProcessor where TException1 : Exception where TException2 : Exception
 		{
 			policyProcessor.AddIncludedErrorSet<TException1, TException2>();
@@ -73,6 +85,16 @@ namespace PoliNorError
 			policyProcessor
 			.ExcludeError<IPolicyProcessor, TException1>()
 			.ExcludeError<IPolicyProcessor, TException2>();
+		}
+
+		internal static void AddIncludedInnerErrorFilter<TInnerException>(this IPolicyProcessor policyProcessor, Func<TInnerException, bool> func = null) where TInnerException : Exception
+		{
+			policyProcessor.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
+		}
+
+		internal static void AddExcludedInnerErrorFilter<TInnerException>(this IPolicyProcessor policyProcessor, Func<TInnerException, bool> func = null) where TInnerException : Exception
+		{
+			policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
 		}
 	}
 }

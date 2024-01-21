@@ -40,5 +40,17 @@ namespace PoliNorError
 			errorPolicy.PolicyProcessor.AddExcludedErrorSet<TException1, TException2>();
 			return errorPolicy;
 		}
+
+		internal static T IncludeInnerError<T, TInnerException>(this T errorPolicy, Func<TInnerException, bool> func = null) where T : IPolicyBase where TInnerException : Exception
+		{
+			errorPolicy.PolicyProcessor.AddIncludedInnerErrorFilter(func);
+			return errorPolicy;
+		}
+
+		internal static T ExcludeInnerError<T, TInnerException>(this T errorPolicy, Func<TInnerException, bool> func = null) where T : IPolicyBase where TInnerException : Exception
+		{
+			errorPolicy.PolicyProcessor.AddExcludedInnerErrorFilter(func);
+			return errorPolicy;
+		}
 	}
 }

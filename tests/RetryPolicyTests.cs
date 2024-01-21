@@ -633,6 +633,34 @@ namespace PoliNorError.Tests
 			Assert.That(polResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyResultHandlerFailed));
 		}
 
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_IncludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var policy = new RetryPolicy(1);
+			TestHandlingForInnerError.IncludeInnerErrorInPolicy(policy, withInnerError, satisfyFilterFunc);
+
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			TestHandlingForInnerError.HandlePolicyWithIncludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public void Should_ExcludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var policy = new RetryPolicy(1);
+			TestHandlingForInnerError.ExcludeInnerErrorFromPolicy(policy, withInnerError, satisfyFilterFunc);
+
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			TestHandlingForInnerError.HandlePolicyWithExcludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;

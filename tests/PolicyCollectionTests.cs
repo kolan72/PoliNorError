@@ -473,6 +473,9 @@ namespace PoliNorError.Tests
 			ClassicAssert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => Task.CompletedTask));
 			ClassicAssert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_, __) => Task.CompletedTask));
 			ClassicAssert.DoesNotThrow(() => polCollection.AddPolicyResultHandlerForLast<int>((_) => Task.CompletedTask, CancellationType.Precancelable));
+
+			ClassicAssert.DoesNotThrow(() => polCollection.SetPolicyResultFailedIf((_) => true));
+			ClassicAssert.DoesNotThrow(() => polCollection.SetPolicyResultFailedIf<int>((_) => true));
 		}
 
 		[Test]
@@ -718,6 +721,33 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(1, resBase.l);
 			ClassicAssert.AreEqual(1, resBase.m);
 			ClassicAssert.AreEqual(1, resBase.n);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_SetPolicyResultFailedIf_Work(bool generic, bool predicateTrue)
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithRetry(1)
+								.WithFallback((_) => { });
+
+			PolicyDelegateCollectionResultBase polDelegateCollectionResult = null;
+
+			if (generic)
+			{
+				polDelegateCollectionResult = polCollection.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate)
+							 .HandleDelegate<int>(() => throw new ArgumentException(predicateTrue ? "Test" : "Test2"));
+			}
+			else
+			{
+				polDelegateCollectionResult = polCollection.SetPolicyResultFailedIf(PredicateFuncsForTests.Predicate)
+							 .HandleDelegate(() => throw new ArgumentException(predicateTrue ? "Test" : "Test2"));
+			}
+			Assert.That(polDelegateCollectionResult.IsFailed, Is.EqualTo(predicateTrue));
+			Assert.That(polDelegateCollectionResult.LastPolicyResultFailedReason, Is.EqualTo(predicateTrue ? PolicyResultFailedReason.PolicyResultHandlerFailed : PolicyResultFailedReason.None));
 		}
 
 		private class FuncsAndResultsProviderBase

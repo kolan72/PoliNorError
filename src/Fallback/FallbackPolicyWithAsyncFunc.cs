@@ -8,19 +8,19 @@ namespace PoliNorError
 	/// <summary>
 	///  This class is primarily for internal use by PoliNorError
 	/// </summary>
-	public sealed partial class FallbackPolicyWithAsyncFunc : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAsyncFunc>
+	public sealed partial class FallbackPolicyWithAsyncFunc : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAsyncFunc>, IWithInnerErrorFilter<FallbackPolicyWithAsyncFunc>
 	{
 		internal FallbackPolicyWithAsyncFunc(IFallbackProcessor processor) : base(processor ?? new DefaultFallbackProcessor()){}
 
 		public FallbackPolicyBase WithFallbackAction(Action<CancellationToken> fallback)
 		{
-			_fallback = fallback;
+			_fallbackFuncsProvider.Fallback = fallback;
 			return this;
 		}
 
 		public FallbackPolicyBase WithFallbackAction(Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			_fallback = fallback.ToCancelableAction(convertType, true);
+			_fallbackFuncsProvider.Fallback = fallback.ToCancelableAction(convertType, true);
 			return this;
 		}
 
@@ -36,6 +36,9 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAsyncFunc IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicyWithAsyncFunc>(expression);
 
+		///<inheritdoc cref = "FallbackPolicyBase.IncludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicyWithAsyncFunc IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<FallbackPolicyWithAsyncFunc, TInnerException>(predicate);
+
 		public new FallbackPolicyWithAsyncFunc IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<FallbackPolicyWithAsyncFunc, TException1, TException2>();
 
 		public new FallbackPolicyWithAsyncFunc ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyWithAsyncFunc, TException>(func);
@@ -43,6 +46,9 @@ namespace PoliNorError
 		public new FallbackPolicyWithAsyncFunc ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyWithAsyncFunc>(expression);
 
 		public new FallbackPolicyWithAsyncFunc ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<FallbackPolicyWithAsyncFunc, TException1, TException2>();
+
+		///<inheritdoc cref = "FallbackPolicyBase.ExcludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicyWithAsyncFunc ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<FallbackPolicyWithAsyncFunc, TInnerException>(predicate);
 
 		public new FallbackPolicyWithAsyncFunc AddPolicyResultHandler(Action<PolicyResult> action)
 		{
@@ -104,22 +110,13 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{FallbackPolicyWithAsyncFunc}"/>
 		public new FallbackPolicyWithAsyncFunc SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <typeparam name="T">The type of the result</typeparam>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{FallbackPolicyWithAsyncFunc, T}"/>
 		public new FallbackPolicyWithAsyncFunc SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);

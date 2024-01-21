@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>
+	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>, IWithInnerErrorFilter<RetryPolicy>
 	{
 		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows) { }
 
@@ -120,11 +120,27 @@ namespace PoliNorError
 
 		public RetryPolicy ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<RetryPolicy, TException1, TException2>();
 
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the Retry policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public RetryPolicy ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<RetryPolicy, TInnerException>(predicate);
+
 		public RetryPolicy IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<RetryPolicy, TException>(func);
 
 		public RetryPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<RetryPolicy>(expression);
 
 		public RetryPolicy IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<RetryPolicy, TException1, TException2>();
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the Retry policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public RetryPolicy IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<RetryPolicy, TInnerException>(predicate);
 
 		public RetryPolicy AddPolicyResultHandler(Action<PolicyResult> action)
 		{
@@ -186,21 +202,13 @@ namespace PoliNorError
 			return this.AddPolicyResultHandlerInner(func);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{RetryPolicy}"/>
 		public RetryPolicy SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 
-		/// <summary>
-		/// Sets  <see cref="PolicyResult.IsFailed"/> to true only if the <paramref name="predicate"/> is true.
-		/// </summary>
-		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
-		/// <returns></returns>
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{RetryPolicy, T}"/>
 		public RetryPolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);

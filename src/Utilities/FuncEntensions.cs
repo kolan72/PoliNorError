@@ -10,6 +10,10 @@ namespace PoliNorError
 		{
 			return (ct) =>
 			{
+				if (ct.IsCancellationRequested)
+				{
+					return Task.FromCanceled(ct);
+				}
 				action(ct);
 				return Task.CompletedTask;
 			};
@@ -17,7 +21,14 @@ namespace PoliNorError
 
 		public static Func<CancellationToken, Task<T>> ToTaskReturnFunc<T>(this Func<CancellationToken, T> func)
 		{
-			return (ct) => Task.FromResult(func(ct));
+			return (ct) =>
+			{
+				if (ct.IsCancellationRequested)
+				{
+					return Task.FromCanceled<T>(ct);
+				}
+				return Task.FromResult(func(ct));
+			};
 		}
 
 		public static Func<CancellationToken, Task> ToAsyncFunc(this Action<CancellationToken> action)

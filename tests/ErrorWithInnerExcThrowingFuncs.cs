@@ -7,6 +7,8 @@ namespace PoliNorError.Tests
 	public static class ErrorWithInnerExcThrowingFuncs
 	{
 		public static void ActionWithInner() => throw new TestExceptionWithInnerException();
+		public static void ActionWithInnerWithMsg(string innerExceptionMsg) => throw new TestExceptionWithInnerException("", innerExceptionMsg);
+
 		public static void Action() => throw new Exception();
 
 		public static async Task AsyncFuncWithInner(CancellationToken _) { await Task.Delay(1); throw new TestExceptionWithInnerException(); }
@@ -17,6 +19,10 @@ namespace PoliNorError.Tests
 		public class TestExceptionWithInnerException : Exception
 		{
 			public TestExceptionWithInnerException() : this("", new TestInnerException())
+			{
+			}
+
+			public TestExceptionWithInnerException(string message, string innerExceptionMessage) : this(message, new TestInnerException(innerExceptionMessage))
 			{
 			}
 

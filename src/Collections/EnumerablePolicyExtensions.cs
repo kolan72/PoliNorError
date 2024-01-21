@@ -213,5 +213,15 @@ namespace PoliNorError
 		{
 			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
 		}
+
+		internal static void SetPolicyResultFailedIfInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, bool> predicate)
+		{
+			policies.LastPolicy()?.SetPolicyResultFailedIfInner(predicate);
+		}
+
+		internal static void SetPolicyResultFailedIfInner<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, bool> predicate)
+		{
+			policies.LastPolicy()?.SetPolicyResultFailedIfInner(predicate);
+		}
 	}
 }
