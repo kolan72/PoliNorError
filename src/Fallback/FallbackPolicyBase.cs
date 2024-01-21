@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public abstract partial class FallbackPolicyBase : Policy, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>
+	public abstract partial class FallbackPolicyBase : Policy, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>, IWithInnerErrorFilter<FallbackPolicyBase>
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
@@ -113,11 +113,27 @@ namespace PoliNorError
 
 		public FallbackPolicyBase IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<FallbackPolicyBase, TException1, TException2>();
 
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the Fallback policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public FallbackPolicyBase IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<FallbackPolicyBase, TInnerException>(predicate);
+
 		public FallbackPolicyBase ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicyBase, TException>(func);
 
 		public FallbackPolicyBase ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyBase>(expression);
 
 		public FallbackPolicyBase ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<FallbackPolicyBase, TException1, TException2>();
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the Fallback policy.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public FallbackPolicyBase ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<FallbackPolicyBase, TInnerException>(predicate);
 
 		public FallbackPolicyBase AddPolicyResultHandler(Action<PolicyResult> action)
 		{

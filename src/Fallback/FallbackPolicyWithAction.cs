@@ -8,7 +8,7 @@ namespace PoliNorError
 	/// <summary>
 	///  This class is primarily for internal use by PoliNorError
 	/// </summary>
-	public sealed partial class FallbackPolicyWithAction : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAction>
+	public sealed partial class FallbackPolicyWithAction : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAction>, IWithInnerErrorFilter<FallbackPolicyWithAction>
 	{
 		internal FallbackPolicyWithAction(IFallbackProcessor processor) : base(processor ?? new DefaultFallbackProcessor()){}
 
@@ -43,6 +43,9 @@ namespace PoliNorError
 		public new FallbackPolicyWithAction IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
 			=> this.IncludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
 
+		///<inheritdoc cref = "FallbackPolicyBase.IncludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicyWithAction IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<FallbackPolicyWithAction, TInnerException>(predicate);
+
 		public new FallbackPolicyWithAction ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
 			=> this.ExcludeError<FallbackPolicyWithAction, TException>(func);
 
@@ -50,6 +53,9 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
 			=> this.ExcludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
+
+		///<inheritdoc cref = "FallbackPolicyBase.ExcludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicyWithAction ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<FallbackPolicyWithAction, TInnerException>(predicate);
 
 		public new FallbackPolicyWithAction AddPolicyResultHandler(Action<PolicyResult> action)
 		{

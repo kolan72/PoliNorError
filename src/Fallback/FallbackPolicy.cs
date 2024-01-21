@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed partial class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>
+	public sealed partial class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>, IWithInnerErrorFilter<FallbackPolicy>
 	{
 		public FallbackPolicy(IBulkErrorProcessor processor = null) : this(new DefaultFallbackProcessor(processor)){}
 
@@ -53,11 +53,17 @@ namespace PoliNorError
 
 		public new FallbackPolicy IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<FallbackPolicy, TException1, TException2>();
 
+		///<inheritdoc cref = "FallbackPolicyBase.IncludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicy IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<FallbackPolicy, TInnerException>(predicate);
+
 		public new FallbackPolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicy>(expression);
 
 		public new FallbackPolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<FallbackPolicy, TException>(func);
 
 		public new FallbackPolicy ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<FallbackPolicy, TException1, TException2>();
+
+		///<inheritdoc cref = "FallbackPolicyBase.ExcludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
+		public new FallbackPolicy ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<FallbackPolicy, TInnerException>(predicate);
 
 		public new FallbackPolicy AddPolicyResultHandler(Action<PolicyResult> action)
 		{
