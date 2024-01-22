@@ -176,6 +176,29 @@ var result = new RetryPolicy(1)
 				.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
 				.Handle(() => File.Copy(filePath, newFilePath));
 ```
+You can also filter exceptions by their `InnerException` property using these methods (since _version_ 2.15.0):  
+
+- `IncludeInnerError<TInnerException>`  
+- `ExcludeInnerError<TInnerException>`  
+
+For example, there is a service that uses `HttpClient`, and we want to fallback response only if `HttpRequestException` has an inner exception of type `SocketException` or `WebException`:  
+```csharp
+var policyResult = await new FallbackPolicy()
+				.WithFallbackFunc<SomeResponse>((_) => new FallbackResponse())
+				.IncludeInnerError<WebException>()
+				.IncludeInnerError<SocketException>()
+				.WithErrorProcessorOf((ex) => logger.Error(ex))
+				.AddPolicyResultHandler<SomeResponse>((pr) => {
+					if (pr.IsPolicySuccess)
+						//The line will be printed here
+						//only if HttpRequestException will have
+						//SocketException or WebException inner exception type
+						Console.WriteLine("Fallback data: " + pr.Result.SomeData.ToString());
+				})
+				.HandleAsync(serviceThatUseHttpClient.GetSomethingAsync);
+
+```
+
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers
