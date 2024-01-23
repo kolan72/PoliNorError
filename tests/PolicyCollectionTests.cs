@@ -352,6 +352,62 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public async Task Should_IncludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var policyCollection = PolicyCollection
+					.Create()
+					.WithRetry(1)
+					.WithRetry(1);
+
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				policyCollection.IncludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				policyCollection.IncludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			var handleRes = await policyCollection.ToPolicyDelegateCollection(actionToHandle).HandleAllAsync();
+			Assert.That(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied, Is.False);
+			TestHandlingForInnerError.PolicyResultAsserts.AfterHandlingWithIncludeInnerErrorFilter(handleRes.LastPolicyResult, withInnerError, satisfyFilterFunc);
+			Assert.That(handleRes.PolicyDelegatesUnused.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public async Task Should_ExcludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var policyCollection = PolicyCollection
+					.Create()
+					.WithRetry(1)
+					.WithRetry(1);
+
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				policyCollection.ExcludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				policyCollection.ExcludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			var handleRes = await policyCollection.ToPolicyDelegateCollection(actionToHandle).HandleAllAsync();
+			Assert.That(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied, Is.False);
+			TestHandlingForInnerError.PolicyResultAsserts.AfterHandlingWithExcludeInnerErrorFilter(handleRes.LastPolicyResult, withInnerError, satisfyFilterFunc);
+			Assert.That(handleRes.PolicyDelegatesUnused.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
 		[TestCase(false, false)]
 		[TestCase(false, true)]
 		[TestCase(true, false)]

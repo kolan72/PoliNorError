@@ -274,6 +274,30 @@ namespace PoliNorError
 			return this;
 		}
 
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the last policy of the PolicyCollection.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public PolicyCollection IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddIncludedInnerErrorFilter(predicate);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the last policy of the PolicyCollection.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public PolicyCollection ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddExcludedInnerErrorFilter(predicate);
+			return this;
+		}
+
 		private static PolicyCollection FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
 		{
 			var res = new PolicyCollection();
