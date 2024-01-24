@@ -98,14 +98,14 @@ namespace PoliNorError
 			policies.GetPolicies().AddExcludedErrorSetFilter<TException1, TException2>();
 		}
 
-		public static void AddIncludedInnerErrorFilter<TInnerException>(this IEnumerable<PolicyDelegateBase> policies) where TInnerException : Exception
+		public static void AddIncludedInnerErrorFilter<TInnerException>(this IEnumerable<PolicyDelegateBase> policies, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
 		{
-			policies.GetPolicies().AddIncludedInnerErrorFilter<TInnerException>();
+			policies.GetPolicies().AddIncludedInnerErrorFilter(predicate);
 		}
 
-		public static void AddExcludedInnerErrorFilter<TInnerException>(this IEnumerable<PolicyDelegateBase> policies) where TInnerException : Exception
+		public static void AddExcludedInnerErrorFilter<TInnerException>(this IEnumerable<PolicyDelegateBase> policies, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
 		{
-			policies.GetPolicies().AddExcludedInnerErrorFilter<TInnerException>();
+			policies.GetPolicies().AddExcludedInnerErrorFilter(predicate);
 		}
 
 		internal static void ThrowIfInconsistency(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, PolicyDelegateBase newDelegateInfo)
