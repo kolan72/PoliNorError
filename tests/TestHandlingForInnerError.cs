@@ -65,6 +65,29 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		internal static Func<int> GetFunc(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					return ((Func<string, int>)FunWithInnerWithMsg).Apply("Test");
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					return ((Func<string, int>)FunWithInnerWithMsg).Apply("Test2");
+				}
+				else
+				{
+					return FunWithInner;
+				}
+			}
+			else
+			{
+				return Fun;
+			}
+		}
+
 		internal static class PolicyResultAsserts
 		{
 			internal static void AfterHandlingWithIncludeInnerErrorFilter(PolicyResult result, bool withInnerError, bool? satisfyFilterFunc)

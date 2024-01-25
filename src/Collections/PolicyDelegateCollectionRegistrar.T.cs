@@ -132,6 +132,34 @@ namespace PoliNorError
 			return policyDelegateCollection;
 		}
 
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/>.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> IncludeInnerError<T, TInnerException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			policyDelegateCollection.AddIncludedInnerErrorFilter(predicate);
+			return policyDelegateCollection;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/>.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> ExcludeInnerError<T, TInnerException>(this IPolicyDelegateCollection<T> policyDelegateCollection, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			policyDelegateCollection.AddExcludedInnerErrorFilter(predicate);
+			return policyDelegateCollection;
+		}
+
 		public static IPolicyDelegateCollection<T> AddPolicyResultHandlerForAll<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, Action<PolicyResult<T>> act)
 		{
 			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);
