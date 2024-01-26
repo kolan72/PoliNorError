@@ -11,8 +11,8 @@ namespace PoliNorError
 		internal Action<CancellationToken> Fallback { get; set; }
 		internal Func<CancellationToken, Task> FallbackAsync { get; set; }
 
-		private readonly Dictionary<Type, IFallBackFuncHolder> _holders = new Dictionary<Type, IFallBackFuncHolder>();
-		private readonly Dictionary<Type, IFallBackAsyncFuncHolder> _asyncHolders = new Dictionary<Type, IFallBackAsyncFuncHolder>();
+		private readonly Dictionary<Type, IFallbackGenericFuncHolder> _syncGenericFuncsHolder = new Dictionary<Type, IFallbackGenericFuncHolder>();
+		private readonly Dictionary<Type, IFallbackGenericFuncHolder> _asyncGenericFuncsHolder = new Dictionary<Type, IFallbackGenericFuncHolder>();
 
 		private static Func<CancellationToken, T> DefaulFallbackFunc<T>() => (_) => default;
 		private static Func<CancellationToken, Task<T>> DefaulFallbackAsyncFunc<T>() => (_) => Task.FromResult(default(T));
@@ -27,7 +27,7 @@ namespace PoliNorError
 
 		internal void SetFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc)
 		{
-			_holders[typeof(T)] = new FallBackFuncHolder<T>(fallbackFunc);
+			_syncGenericFuncsHolder[typeof(T)] = new SyncFallbackGenericFuncHolder<T>(fallbackFunc);
 		}
 
 		internal void SetAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
@@ -37,7 +37,7 @@ namespace PoliNorError
 
 		internal void SetAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync)
 		{
-			_asyncHolders[typeof(T)] = new FallBackAsyncFuncHolder<T>(fallbackAsync);
+			_asyncGenericFuncsHolder[typeof(T)] = new AsyncFallbackGenericFuncHolder<T>(fallbackAsync);
 		}
 
 		internal Action<CancellationToken> GetFallbackAction()
@@ -65,11 +65,11 @@ namespace PoliNorError
 		{
 			if (HasFallbackFunc<T>())
 			{
-				return _holders[typeof(T)].GetFallbackFunc<T>();
+				return ((SyncFallbackGenericFuncHolder<T>)_syncGenericFuncsHolder[typeof(T)]).Fun;
 			}
 			else if (HasAsyncFallbackFunc<T>())
 			{
-				return _asyncHolders[typeof(T)].GetFallbackAsyncFunc<T>().ToSyncFunc();
+				return ((AsyncFallbackGenericFuncHolder<T>)_asyncGenericFuncsHolder[typeof(T)]).AsyncFun.ToSyncFunc();
 			}
 			else if (HasFallbackAction())
 			{
@@ -111,11 +111,11 @@ namespace PoliNorError
 		{
 			if (HasAsyncFallbackFunc<T>())
 			{
-				return _asyncHolders[typeof(T)].GetFallbackAsyncFunc<T>();
+				return ((AsyncFallbackGenericFuncHolder<T>)_asyncGenericFuncsHolder[typeof(T)]).AsyncFun;
 			}
 			else if (HasFallbackFunc<T>())
 			{
-				return _holders[typeof(T)].GetFallbackFunc<T>().ToTaskReturnFunc();
+				return ((SyncFallbackGenericFuncHolder<T>)_syncGenericFuncsHolder[typeof(T)]).Fun.ToTaskReturnFunc();
 			}
 			else if (HasAsyncFallbackFunc())
 			{
@@ -131,11 +131,11 @@ namespace PoliNorError
 			}
 		}
 
-		internal bool HasFallbackFunc<T>() => _holders.ContainsKey(typeof(T));
+		internal bool HasFallbackFunc<T>() => _syncGenericFuncsHolder.ContainsKey(typeof(T));
 
 		internal bool HasFallbackAction() => Fallback != null;
 
-		internal bool HasAsyncFallbackFunc<T>() => _asyncHolders.ContainsKey(typeof(T));
+		internal bool HasAsyncFallbackFunc<T>() => _asyncGenericFuncsHolder.ContainsKey(typeof(T));
 
 		internal bool HasAsyncFallbackFunc() => FallbackAsync != null;
 	}

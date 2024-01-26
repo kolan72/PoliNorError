@@ -26,7 +26,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Handle_Sync_NoGeneric_ByFallbackAsync_If_Error()
+		public void Should_CrossHandle_Sync_NoGeneric_ByFallbackAsync_If_Error()
 		{
 			var throwingException = new Exception("HandleAsync");
 			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw throwingException;});
@@ -44,7 +44,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Handle_Sync_NoGeneric_ByFallbackAsync_If_Success()
+		public void Should_CrossHandle_Sync_NoGeneric_ByFallbackAsync_If_Success()
 		{
 			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			var polResult = fallback.Handle(() => throw new Exception("Handle sync by async fallback"));
@@ -595,9 +595,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_Handle_ASync_Generic_ByFallbackSync_If_Error()
+		public async Task Should_CrossHandle_ASync_Generic_ByFallbackSync_If_Error()
 		{
-			var throwingException = new Exception(nameof(Should_Handle_ASync_Generic_ByFallbackSync_If_Error));
+			var throwingException = new Exception(nameof(Should_CrossHandle_ASync_Generic_ByFallbackSync_If_Error));
 			var fallback = new FallbackPolicy().WithFallbackFunc((Func<CancellationToken, int>)((_) => throw throwingException));
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync");});
 
@@ -609,7 +609,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_Handle_ASync_Generic_ByFallbackSync_If_Success()
+		public async Task Should_CrossHandle_ASync_Generic_ByFallbackSync_If_Success()
 		{
 			var fallback = new FallbackPolicy().WithFallbackFunc((_) => 1);
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync");});
@@ -618,6 +618,7 @@ namespace PoliNorError.Tests
 			ClassicAssert.IsFalse(polResult.IsCanceled);
 			ClassicAssert.IsTrue(polResult.Errors.Count() == 1);
 			ClassicAssert.AreEqual(0, polResult.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(1, polResult.Result);
 		}
 
 		[Test]
