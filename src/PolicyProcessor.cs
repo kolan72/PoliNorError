@@ -69,39 +69,54 @@ namespace PoliNorError
 
 			internal Func<Exception, bool> GetCanHandle()
 			{
-				var includedFilterPredicate = GetIncludedErrorFilterPredicate();
-				var excludedFilterPredicate = GetExcludedErrorFilterPredicate();
-				bool res(Exception e) => includedFilterPredicate(e) && !excludedFilterPredicate(e);
-				return res;
+				var (includeMode, includeExpression) = GetIncludedErrorFilterPredicateTuple();
+				var (excludeMode, excludeExpression) = GetExcludedErrorFilterPredicateTuple();
+
+				var resMode = includeMode | excludeMode;
+
+				if ((resMode & ErrorFilterModes.Include) != 0)
+				{
+					return (resMode & ErrorFilterModes.Exclude) != 0 ? includeExpression.And(excludeExpression).Compile() : includeExpression.Compile();
+				}
+				else if ((resMode & ErrorFilterModes.Exclude) != 0)
+				{
+					return excludeExpression.Compile();
+				}
+				else
+				{
+					return (_) => true;
+				}
 			}
 
 			public IEnumerable<Expression<Func<Exception, bool>>> IncludedErrorFilters => _includedErrorFilters;
 
 			public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => _excludedErrorFilters;
 
-			private Func<Exception, bool> GetIncludedErrorFilterPredicate()
+			private (ErrorFilterModes mode, Expression<Func<Exception, bool>> expression) GetIncludedErrorFilterPredicateTuple()
 			{
-				if (_includedErrorFilters?.Any() != true)
-					return (_) => true;
+				if (_includedErrorFilters.Count == 0)
+					return (ErrorFilterModes.None, null);
 
-				var res = GetOrCombinedFilter(_includedErrorFilters);
-
-				return res.Compile();
+				return (ErrorFilterModes.Include, _includedErrorFilters.GetOrCombined());
 			}
 
-			private Func<Exception, bool> GetExcludedErrorFilterPredicate()
+			private (ErrorFilterModes mode, Expression<Func<Exception, bool>> expression) GetExcludedErrorFilterPredicateTuple()
 			{
-				if (_excludedErrorFilters?.Any() != true)
-					return (_) => false;
+				if (_excludedErrorFilters.Count == 0)
+					return (ErrorFilterModes.None, null);
 
-				var res = GetOrCombinedFilter(_excludedErrorFilters);
+				var res = _excludedErrorFilters.GetOrCombined().Not();
 
-				return res.Compile();
+				return (ErrorFilterModes.Exclude, res);
 			}
 
-			private static Expression<Func<Exception, bool>> GetOrCombinedFilter(IEnumerable<Expression<Func<Exception, bool>>> filterExpressCollection)
+			[Flags]
+			private enum ErrorFilterModes
 			{
-				return filterExpressCollection.GetOrCombined();
+				None = 0,
+				Include = 1,
+				Exclude = 2,
+				IncludeExclude = Include | Exclude
 			}
 		}
 	}
