@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor
+	public sealed class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor
 	{
 		private readonly EmptyErrorContext _emptyErrorContext;
 		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Simple, bulkErrorProcessor)
