@@ -8,6 +8,13 @@ namespace PoliNorError
 {
 	internal class FallbackFuncsProvider
 	{
+		private readonly bool _onlyGenericFallbackForGenericDelegate;
+
+		internal FallbackFuncsProvider(bool onlyGenericFallbackForGenericDelegate)
+		{
+			_onlyGenericFallbackForGenericDelegate = onlyGenericFallbackForGenericDelegate;
+		}
+
 		internal Action<CancellationToken> Fallback { get; set; }
 		internal Func<CancellationToken, Task> FallbackAsync { get; set; }
 
@@ -71,13 +78,20 @@ namespace PoliNorError
 			{
 				return ((AsyncFallbackGenericFuncHolder<T>)_asyncGenericFuncsHolder[typeof(T)]).AsyncFun.ToSyncFunc();
 			}
-			else if (HasFallbackAction())
+			else if (!_onlyGenericFallbackForGenericDelegate)
 			{
-				return Fallback.ToDefaultReturnFunc<T>();
-			}
-			else if (HasAsyncFallbackFunc())
-			{
-				return FallbackAsync.ToSyncFunc().ToDefaultReturnFunc<T>();
+				if (HasFallbackAction())
+				{
+					return Fallback.ToDefaultReturnFunc<T>();
+				}
+				else if (HasAsyncFallbackFunc())
+				{
+					return FallbackAsync.ToSyncFunc().ToDefaultReturnFunc<T>();
+				}
+				else
+				{
+					return DefaulFallbackFunc<T>();
+				}
 			}
 			else
 			{
@@ -117,13 +131,20 @@ namespace PoliNorError
 			{
 				return ((SyncFallbackGenericFuncHolder<T>)_syncGenericFuncsHolder[typeof(T)]).Fun.ToTaskReturnFunc();
 			}
-			else if (HasAsyncFallbackFunc())
+			else if (!_onlyGenericFallbackForGenericDelegate)
 			{
-				return FallbackAsync.ToDefaultReturnFunc<T>(configureAwait);
-			}
-			else if (HasFallbackAction())
-			{
-				return Fallback.ToDefaultReturnFunc<T>().ToTaskReturnFunc();
+				if (HasAsyncFallbackFunc())
+				{
+					return FallbackAsync.ToDefaultReturnFunc<T>(configureAwait);
+				}
+				else if (HasFallbackAction())
+				{
+					return Fallback.ToDefaultReturnFunc<T>().ToTaskReturnFunc();
+				}
+				else
+				{
+					return DefaulFallbackAsyncFunc<T>();
+				}
 			}
 			else
 			{

@@ -9,14 +9,18 @@ namespace PoliNorError
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
-		internal FallbackFuncsProvider _fallbackFuncsProvider = new FallbackFuncsProvider();
+		internal FallbackFuncsProvider _fallbackFuncsProvider;
 
 		internal Action<CancellationToken> _fallback;
 		internal Func<CancellationToken, Task> _fallbackAsync;
 
-		protected FallbackPolicyBase(IFallbackProcessor processor) : base(processor)
+		internal bool _onlyGenericFallbackForGenericDelegate;
+
+		protected FallbackPolicyBase(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate) : base(processor)
 		{
 			_fallbackProcessor = processor;
+			_onlyGenericFallbackForGenericDelegate = onlyGenericFallbackForGenericDelegate;
+			_fallbackFuncsProvider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate);
 		}
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)

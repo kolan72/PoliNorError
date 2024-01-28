@@ -16,7 +16,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestFallbackFuncType.CrossSync)]
 		public void Should_GetFallbackAction_Return_Preset_Action(TestFallbackFuncType testFallbackFuncType)
 		{
-			FallbackFuncsProvider provider = new FallbackFuncsProvider();
+			FallbackFuncsProvider provider = new FallbackFuncsProvider(false);
 			Action<CancellationToken> resultAction = null;
 			int i = 0;
 			switch (testFallbackFuncType)
@@ -46,7 +46,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestFallbackFuncType.CrossSync)]
 		public async Task Should_GetAsyncFallbackFunc_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType)
 		{
-			FallbackFuncsProvider provider = new FallbackFuncsProvider();
+			FallbackFuncsProvider provider = new FallbackFuncsProvider(false);
 			Func<CancellationToken, Task> resultFunc = null;
 			int i = 0;
 			switch (testFallbackFuncType)
@@ -70,13 +70,15 @@ namespace PoliNorError.Tests
 			}
 		}
 
-		[TestCase(TestFallbackFuncType.NoFuncs, null)]
-		[TestCase(TestFallbackFuncType.Exists, null)]
-		[TestCase(TestFallbackFuncType.FromNonGeneric, true)]
-		[TestCase(TestFallbackFuncType.FromNonGeneric, false)]
-		public void Should_GetFallbackFunc_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType, bool? crossSync)
+		[TestCase(TestFallbackFuncType.NoFuncs, null, null)]
+		[TestCase(TestFallbackFuncType.Exists, null, null)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, true, false)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, false, false)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, true, true)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, false, true)]
+		public void Should_GetFallbackFuncT_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType, bool? crossSync, bool? onlyGenericFallbackForGenericDelegate)
 		{
-			FallbackFuncsProvider provider = new FallbackFuncsProvider();
+			FallbackFuncsProvider provider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate ?? false);
 			Func<CancellationToken, int> resultFunc = null;
 			int i = 0;
 			switch (testFallbackFuncType)
@@ -102,18 +104,27 @@ namespace PoliNorError.Tests
 					}
 					resultFunc = provider.GetFallbackFunc<int>();
 					resultFunc(default);
-					Assert.That(i, Is.EqualTo(1));
+					if (onlyGenericFallbackForGenericDelegate == false)
+					{
+						Assert.That(i, Is.EqualTo(1));
+					}
+					else if(onlyGenericFallbackForGenericDelegate == true)
+					{
+						Assert.That(i, Is.EqualTo(0));
+					}
 					break;
 			}
 		}
 
-		[TestCase(TestFallbackFuncType.NoFuncs, null)]
-		[TestCase(TestFallbackFuncType.Exists, null)]
-		[TestCase(TestFallbackFuncType.FromNonGeneric, true)]
-		[TestCase(TestFallbackFuncType.FromNonGeneric, false)]
-		public async Task Should_GetAsyncFallbackFuncT_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType, bool? crossSync)
+		[TestCase(TestFallbackFuncType.NoFuncs, null, null)]
+		[TestCase(TestFallbackFuncType.Exists, null, null)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, true, false)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, false, false)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, true, true)]
+		[TestCase(TestFallbackFuncType.FromNonGeneric, false, true)]
+		public async Task Should_GetAsyncFallbackFuncT_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType, bool? crossSync, bool? onlyGenericFallbackForGenericDelegate)
 		{
-			FallbackFuncsProvider provider = new FallbackFuncsProvider();
+			FallbackFuncsProvider provider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate ?? false);
 			Func<CancellationToken, Task<int>> resultFunc = null;
 			int i = 0;
 			switch (testFallbackFuncType)
@@ -139,7 +150,14 @@ namespace PoliNorError.Tests
 					}
 					resultFunc = provider.GetAsyncFallbackFunc<int>(false);
 					await resultFunc(default);
-					Assert.That(i, Is.EqualTo(1));
+					if (onlyGenericFallbackForGenericDelegate == false)
+					{
+						Assert.That(i, Is.EqualTo(1));
+					}
+					else
+					{
+						Assert.That(i, Is.EqualTo(0));
+					}
 					break;
 			}
 		}
