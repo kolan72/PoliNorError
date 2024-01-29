@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Defines methods common to all Fallback processors.
+	/// </summary>
 	public interface IFallbackProcessor : IPolicyProcessor
 	{
 		PolicyResult Fallback(Action action, Action<CancellationToken> fallback, CancellationToken token = default);

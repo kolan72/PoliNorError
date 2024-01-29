@@ -5,12 +5,29 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// A fallback policy that can handle delegates.
+	/// </summary>
 	public sealed partial class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>, IWithInnerErrorFilter<FallbackPolicy>
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FallbackPolicy"/>.
+		/// </summary>
+		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
 		public FallbackPolicy(bool onlyGenericFallbackForGenericDelegate = false) : this(new DefaultFallbackProcessor(), onlyGenericFallbackForGenericDelegate) { }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FallbackPolicy"/>.
+		/// </summary>
+		/// <param name="processor"><see cref="IBulkErrorProcessor"/></param>
+		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
 		public FallbackPolicy(IBulkErrorProcessor processor, bool onlyGenericFallbackForGenericDelegate = false) : this(new DefaultFallbackProcessor(processor), onlyGenericFallbackForGenericDelegate) {}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FallbackPolicy"/>.
+		/// </summary>
+		/// <param name="processor"><see cref="IFallbackProcessor"/></param>
+		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
 		public FallbackPolicy(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate = false) : base(processor, onlyGenericFallbackForGenericDelegate) {}
 
 		public FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
