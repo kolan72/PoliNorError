@@ -7,12 +7,20 @@ namespace PoliNorError
 	public sealed class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor
 	{
 		private readonly EmptyErrorContext _emptyErrorContext;
-		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Simple, bulkErrorProcessor)
+
+		private readonly bool _rethrowIfErrorFilterUnsatisfied;
+
+		public SimplePolicyProcessor(bool rethrowIfErrorFilterUnsatisfied = false) : this(null, rethrowIfErrorFilterUnsatisfied) { }
+
+		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool throwIfErrorFilterUnsatisfied = false) : base(PolicyAlias.Simple, bulkErrorProcessor)
 		{
 			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default: EmptyErrorContext.DefaultSimple;
+			_rethrowIfErrorFilterUnsatisfied = throwIfErrorFilterUnsatisfied;
 		}
 
-		public static ISimplePolicyProcessor CreateDefault(IBulkErrorProcessor bulkErrorProcessor = null) => new SimplePolicyProcessor(bulkErrorProcessor);
+		public static ISimplePolicyProcessor CreateDefault(bool rethrowIfErrorFilterUnsatisfied = false) => new SimplePolicyProcessor(rethrowIfErrorFilterUnsatisfied);
+
+		public static ISimplePolicyProcessor CreateDefault(IBulkErrorProcessor bulkErrorProcessor, bool throwIfErrorFilterUnsatisfied = false) => new SimplePolicyProcessor(bulkErrorProcessor, throwIfErrorFilterUnsatisfied);
 
 		public PolicyResult Execute(Action action, CancellationToken token = default)
 		{
@@ -42,8 +50,21 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				result.AddError(ex);
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						return result;
+					}
+				}
 
+				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
 													 .Handle(ex, _emptyErrorContext));
 			}
@@ -79,8 +100,21 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				result.AddError(ex);
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						return result;
+					}
+				}
 
+				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
 													 .Handle(ex, _emptyErrorContext));
 			}
@@ -111,6 +145,20 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						return result;
+					}
+				}
+
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
 															.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
@@ -143,11 +191,43 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						return result;
+					}
+				}
+
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
 															.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
 			}
 			return result;
+		}
+
+		private (bool? FilterUnsatisfied, Exception exception) GetFilterUnsatisfiedOrFilterException(Exception ex)
+		{
+			try
+			{
+				return (!ErrorFilter.GetCanHandle()(ex), null);
+			}
+			catch (Exception filterEx)
+			{
+				return (null, filterEx);
+			}
+		}
+
+		private static void AddErrorAndCatchBlockFilterError(PolicyResult result, Exception ex, Exception filterException)
+		{
+			result.AddError(ex);
+			result.SetFailedWithCatchBlockError(filterException, ex, CatchBlockExceptionSource.ErrorFilter);
 		}
 	}
 }
