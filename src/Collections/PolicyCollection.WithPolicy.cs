@@ -36,9 +36,19 @@ namespace PoliNorError
 			return this.WithRetryInner(delayOnRetryFunc, policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
+		public PolicyCollection WithFallback(Action<CancellationToken> fallback, bool onlyGenericFallbackForGenericDelegate, ErrorProcessorParam policyParams = null)
+		{
+			return this.WithFallbackInner(fallback, policyParams, onlyGenericFallbackForGenericDelegate);
+		}
+
 		public PolicyCollection WithFallback(Action<CancellationToken> fallback, ErrorProcessorParam policyParams = null)
 		{
 			return this.WithFallbackInner(fallback, policyParams);
+		}
+
+		public PolicyCollection WithFallback(Action fallback, bool onlyGenericFallbackForGenericDelegate, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable)
+		{
+			return this.WithFallbackInner(fallback, policyParams, convertType, onlyGenericFallbackForGenericDelegate);
 		}
 
 		public PolicyCollection WithFallback(Action fallback, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable)
@@ -46,14 +56,24 @@ namespace PoliNorError
 			return this.WithFallbackInner(fallback, policyParams, convertType);
 		}
 
+		public PolicyCollection WithFallback(Func<CancellationToken, Task> fallbackAsync, bool onlyGenericFallbackForGenericDelegate, ErrorProcessorParam policyParams = null)
+		{
+			return this.WithFallbackInner(fallbackAsync, policyParams, onlyGenericFallbackForGenericDelegate);
+		}
+
 		public PolicyCollection WithFallback(Func<CancellationToken, Task> fallbackAsync, ErrorProcessorParam policyParams = null)
 		{
-			return this.WithFallbackInner(fallbackAsync, policyParams);
+			return this.WithFallbackInner(fallbackAsync, policyParams, false);
+		}
+
+		public PolicyCollection WithFallback(Func<Task> fallbackAsync, bool onlyGenericFallbackForGenericDelegate, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable)
+		{
+			return this.WithFallbackInner(fallbackAsync, policyParams, convertType, onlyGenericFallbackForGenericDelegate);
 		}
 
 		public PolicyCollection WithFallback(Func<Task> fallbackAsync, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
-			return this.WithFallbackInner(fallbackAsync, policyParams, convertType);
+			return this.WithFallbackInner(fallbackAsync, policyParams, convertType, false);
 		}
 
 		public PolicyCollection WithFallback<T>(Func<CancellationToken, T> fallbackFunc, ErrorProcessorParam policyParams = null)
