@@ -32,14 +32,14 @@ namespace PoliNorError
 
 		public FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
 		{
-			var fallbackPolicyWithAsyncFunc = new FallbackPolicyWithAsyncFunc(_fallbackProcessor, _onlyGenericFallbackForGenericDelegate);
+			var fallbackPolicyWithAsyncFunc = new FallbackPolicyWithAsyncFunc(_fallbackProcessor, OnlyGenericFallbackForGenericDelegate);
 			fallbackPolicyWithAsyncFunc._fallbackFuncsProvider.FallbackAsync = fallbackAsync;
 			return fallbackPolicyWithAsyncFunc;
 		}
 
 		public FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc(Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
-			var fallbackPolicyWithAsyncFunc = new FallbackPolicyWithAsyncFunc(_fallbackProcessor, _onlyGenericFallbackForGenericDelegate);
+			var fallbackPolicyWithAsyncFunc = new FallbackPolicyWithAsyncFunc(_fallbackProcessor, OnlyGenericFallbackForGenericDelegate);
 			fallbackPolicyWithAsyncFunc._fallbackFuncsProvider.FallbackAsync = fallbackAsync.ToCancelableFunc(convertType);
 			return fallbackPolicyWithAsyncFunc;
 		}
@@ -50,14 +50,14 @@ namespace PoliNorError
 
 		public FallbackPolicyWithAction WithFallbackAction(Action<CancellationToken> fallback)
 		{
-			var fallbackPolicyWithAction = new FallbackPolicyWithAction(_fallbackProcessor, _onlyGenericFallbackForGenericDelegate);
+			var fallbackPolicyWithAction = new FallbackPolicyWithAction(_fallbackProcessor, OnlyGenericFallbackForGenericDelegate);
 			fallbackPolicyWithAction._fallbackFuncsProvider.Fallback = fallback;
 			return fallbackPolicyWithAction;
 		}
 
 		public FallbackPolicyWithAction WithFallbackAction(Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
-			var fallbackPolicyWithAction = new FallbackPolicyWithAction(_fallbackProcessor, _onlyGenericFallbackForGenericDelegate);
+			var fallbackPolicyWithAction = new FallbackPolicyWithAction(_fallbackProcessor, OnlyGenericFallbackForGenericDelegate);
 			fallbackPolicyWithAction._fallbackFuncsProvider.Fallback = fallback.ToCancelableAction(convertType, true);
 			return fallbackPolicyWithAction;
 		}

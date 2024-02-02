@@ -1180,5 +1180,34 @@ namespace PoliNorError.Tests
 			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
 			TestHandlingForInnerError.HandlePolicyWithExcludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
 		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
+		[TestCase(FallbackTypeForTests.WithAction)]
+		public void Should_Be_Correctly_Initialized_By_Constructor(FallbackTypeForTests fallbackType)
+		{
+			FallbackPolicyBase fallbackPolicy = null;
+			var policyCreator = new FallbackPolicy(new DefaultFallbackProcessor(), true);
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallbackPolicy = policyCreator.WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
+					break;
+				case FallbackTypeForTests.Creator:
+					fallbackPolicy = policyCreator;
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallbackPolicy = policyCreator.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					break;
+				case FallbackTypeForTests.WithAction:
+					fallbackPolicy = policyCreator.WithFallbackAction((_) => { });
+					break;
+			}
+
+			Assert.That(fallbackPolicy.OnlyGenericFallbackForGenericDelegate, Is.True);
+			Assert.That(fallbackPolicy.PolicyProcessor, Is.Not.Null);
+		}
 	}
 }
