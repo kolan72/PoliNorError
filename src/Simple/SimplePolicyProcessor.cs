@@ -4,24 +4,41 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// A SimplePolicy processor that can handle delegates.
+	/// </summary>
 	public sealed class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor
 	{
 		private readonly EmptyErrorContext _emptyErrorContext;
 
 		private readonly bool _rethrowIfErrorFilterUnsatisfied;
 
+		///<inheritdoc cref = "SimplePolicyProcessor(IBulkErrorProcessor, bool)"/>
 		public SimplePolicyProcessor(bool rethrowIfErrorFilterUnsatisfied = false) : this(null, rethrowIfErrorFilterUnsatisfied) { }
 
-		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool throwIfErrorFilterUnsatisfied = false) : base(PolicyAlias.Simple, bulkErrorProcessor)
+		/// <summary>
+		/// Initializes a new instance of the SimplePolicyProcessor
+		/// </summary>
+		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
+		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
+		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : base(PolicyAlias.Simple, bulkErrorProcessor)
 		{
 			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default: EmptyErrorContext.DefaultSimple;
-			_rethrowIfErrorFilterUnsatisfied = throwIfErrorFilterUnsatisfied;
+			_rethrowIfErrorFilterUnsatisfied = rethrowIfErrorFilterUnsatisfied;
 		}
 
+		///<inheritdoc cref = "CreateDefault(IBulkErrorProcessor, bool)"/>
 		public static ISimplePolicyProcessor CreateDefault(bool rethrowIfErrorFilterUnsatisfied = false) => new SimplePolicyProcessor(rethrowIfErrorFilterUnsatisfied);
 
-		public static ISimplePolicyProcessor CreateDefault(IBulkErrorProcessor bulkErrorProcessor, bool throwIfErrorFilterUnsatisfied = false) => new SimplePolicyProcessor(bulkErrorProcessor, throwIfErrorFilterUnsatisfied);
+		/// <summary>
+		/// Creates and returns the <see cref="SimplePolicyProcessor"/> class, which represents the default implementation of the <see cref="ISimplePolicyProcessor"/> interface.
+		/// </summary>
+		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
+		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
+		/// <returns></returns>
+		public static ISimplePolicyProcessor CreateDefault(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) => new SimplePolicyProcessor(bulkErrorProcessor, rethrowIfErrorFilterUnsatisfied);
 
+		///<inheritdoc cref = "ISimplePolicyProcessor.Execute"/>
 		public PolicyResult Execute(Action action, CancellationToken token = default)
 		{
 			if (action == null)
@@ -71,6 +88,7 @@ namespace PoliNorError
 			return result;
 		}
 
+		///<inheritdoc cref = "ISimplePolicyProcessor.Execute{T}"/>
 		public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default)
 		{
 			if (func == null)
@@ -121,6 +139,7 @@ namespace PoliNorError
 			return result;
 		}
 
+		///<inheritdoc cref = "ISimplePolicyProcessor.ExecuteAsync"/>
 		public async Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
@@ -166,6 +185,7 @@ namespace PoliNorError
 			return result;
 		}
 
+		///<inheritdoc cref = "ISimplePolicyProcessor.ExecuteAsync{T}"/>
 		public async Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
