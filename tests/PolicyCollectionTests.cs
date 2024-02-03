@@ -780,6 +780,45 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(FallbackTypeForTests.WithAction, true, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false, false)]
+		public void Should_WithFallback_Set_OnlyGenericFallbackForGenericDelegate_Correctly(FallbackTypeForTests fallbackType, bool withCancelTokenParam, bool paramValue, bool propertyValue)
+		{
+			var polCollection = PolicyCollection.Create();
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.WithAction:
+					if (withCancelTokenParam)
+					{
+						polCollection = polCollection.WithFallback((_) => { }, paramValue);
+					}
+					else
+					{
+						polCollection = polCollection.WithFallback(() => { }, paramValue);
+					}
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					if (withCancelTokenParam)
+					{
+						polCollection = polCollection.WithFallback(async (_) => await Task.Delay(1), paramValue);
+					}
+					else
+					{
+						polCollection = polCollection.WithFallback(async () => await Task.Delay(1), paramValue);
+					}
+					break;
+			}
+
+			Assert.That(((FallbackPolicy)polCollection.Last()).OnlyGenericFallbackForGenericDelegate, Is.EqualTo(propertyValue));
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(false, true)]
 		[TestCase(true, false)]
