@@ -162,6 +162,39 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(FallbackTypeForTests.WithAction, null)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, null)]
+		[TestCase(null, true)]
+		[TestCase(null, false)]
+		public void Should_Create_Return_Correct_Instance(FallbackTypeForTests? fallbackTypeForTests, bool? forAllNonGeneric)
+		{
+			FallbackFuncsProvider funcsProvider = null;
+			switch (fallbackTypeForTests)
+			{
+				case FallbackTypeForTests.WithAction:
+					funcsProvider = FallbackFuncsProvider.Create((_) => { });
+					Assert.That(funcsProvider.HasFallbackAction(), Is.True);
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					funcsProvider = FallbackFuncsProvider.Create(async (_) => await Task.Delay(1));
+					Assert.That(funcsProvider.HasAsyncFallbackFunc(), Is.True);
+					break;
+				case null:
+					if (forAllNonGeneric == true)
+					{
+						funcsProvider = FallbackFuncsProvider.Create(async (_) => await Task.Delay(1), (_) => { });
+					}
+					else if (forAllNonGeneric == false)
+					{
+						funcsProvider = FallbackFuncsProvider.Create();
+					}
+					Assert.That(funcsProvider.HasFallbackAction(), Is.EqualTo(forAllNonGeneric));
+					Assert.That(funcsProvider.HasAsyncFallbackFunc(), Is.EqualTo(forAllNonGeneric));
+					break;
+			}
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,

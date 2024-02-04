@@ -10,6 +10,17 @@ namespace PoliNorError
 	{
 		private readonly bool _onlyGenericFallbackForGenericDelegate;
 
+		public static FallbackFuncsProvider Create() => new FallbackFuncsProvider(true);
+
+		public static FallbackFuncsProvider Create(Func<CancellationToken, Task> fallbackAsync, bool onlyGenericFallbackForGenericDelegate = false)
+									=> Create(fallbackAsync, null, onlyGenericFallbackForGenericDelegate);
+
+		public static FallbackFuncsProvider Create(Action<CancellationToken> fallback, bool onlyGenericFallbackForGenericDelegate = false)
+									=> Create(null, fallback, onlyGenericFallbackForGenericDelegate);
+
+		public static FallbackFuncsProvider Create(Func<CancellationToken, Task> fallbackAsync, Action<CancellationToken> fallback, bool onlyGenericFallbackForGenericDelegate = false)
+									=> new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate) {FallbackAsync = fallbackAsync, Fallback = fallback};
+
 		internal FallbackFuncsProvider(bool onlyGenericFallbackForGenericDelegate)
 		{
 			_onlyGenericFallbackForGenericDelegate = onlyGenericFallbackForGenericDelegate;
