@@ -391,7 +391,7 @@ namespace PoliNorError.Tests
 			var fbOneWithAction = fbOne.WithFallbackAction((_) => { });
 			ClassicAssert.IsTrue(fbOneWithAction.HasFallbackAction());
 
-			var fbTwo = fbOne.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			var fbTwo = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			ClassicAssert.IsFalse(fbTwo.HasFallbackAction());
 
 			var fbTwoWithAction = fbTwo.WithFallbackAction((_) => { });
@@ -407,7 +407,7 @@ namespace PoliNorError.Tests
 			var fbOneWithAction = fbOne.WithAsyncFallbackFunc(async(_) => await Task.Delay(1));
 			ClassicAssert.IsTrue(fbOneWithAction.HasAsyncFallbackFunc());
 
-			var fbTwo = fbOne.WithFallbackAction((_) => { });
+			var fbTwo = new FallbackPolicy().WithFallbackAction((_) => { });
 			ClassicAssert.IsFalse(fbTwo.HasAsyncFallbackFunc());
 
 			var fbTwoWithAction = fbTwo.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
@@ -1208,6 +1208,59 @@ namespace PoliNorError.Tests
 
 			Assert.That(fallbackPolicy.OnlyGenericFallbackForGenericDelegate, Is.True);
 			Assert.That(fallbackPolicy.PolicyProcessor, Is.Not.Null);
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, true)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, true)]
+		[TestCase(false, false, false)]
+		public void Should_GenericFallbackFunc_Stay_Registered_After_NonGeneric_Func_WasRegistered(bool genericFuncSync, bool nonGenericFuncSync, bool funcWithToken)
+		{
+			FallbackPolicy fbPolicyWithGenericFallbackFunc = new FallbackPolicy();
+			if (genericFuncSync)
+			{
+				fbPolicyWithGenericFallbackFunc.WithFallbackFunc(() => 1);
+			}
+			else
+			{
+				fbPolicyWithGenericFallbackFunc.WithAsyncFallbackFunc(async () => { await Task.Delay(1); return 1;});
+			}
+
+			if (nonGenericFuncSync)
+			{
+				if (funcWithToken)
+				{
+					fbPolicyWithGenericFallbackFunc.WithFallbackAction((_) => { });
+				}
+				else
+				{
+					fbPolicyWithGenericFallbackFunc.WithFallbackAction(() => { });
+				}
+			}
+			else
+			{
+				if (funcWithToken)
+				{
+					fbPolicyWithGenericFallbackFunc.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+				}
+				else
+				{
+					fbPolicyWithGenericFallbackFunc.WithAsyncFallbackFunc(async () => await Task.Delay(1));
+				}
+			}
+			if (genericFuncSync)
+			{
+				Assert.That(fbPolicyWithGenericFallbackFunc.HasFallbackFunc<int>(), Is.True);
+			}
+			else
+			{
+				Assert.That(fbPolicyWithGenericFallbackFunc.HasAsyncFallbackFunc<int>(), Is.True);
+			}
 		}
 	}
 }
