@@ -38,6 +38,56 @@ namespace PoliNorError
 		private static Action<CancellationToken> DefaultFallbackAction => (_) => Expression.Empty();
 		private static Func<CancellationToken, Task> DefaultFallbackAsyncFunc => (_) => Task.CompletedTask;
 
+		/// <summary>
+		/// Adds or replaces a generic fallback delegate to the internal fallback delegate store, pre-converting it to the Func&lt;CancellationToken, T&gt; delegate.
+		/// </summary>
+		/// <typeparam name="T">A return type of fallback delegate.</typeparam>
+		/// <param name="fallbackFunc">A fallback delegate to store.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetFallbackFunc(fallbackFunc, convertType);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds or replaces a generic fallback delegate to the internal fallback delegate store.
+		/// </summary>
+		/// <typeparam name="T">A return type of fallback delegate.</typeparam>
+		/// <param name="fallbackFunc">A fallback delegate to store.</param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc)
+		{
+			SetFallbackFunc(fallbackFunc);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds or replaces a generic async fallback delegate to the internal fallback delegate store, pre-converting it to the Func&lt;CancellationToken, &lt;Task&lt;T&gt;&gt; delegate.
+		/// </summary>
+		/// <typeparam name="T">A return type of fallback delegate.</typeparam>
+		/// <param name="fallbackAsync">A fallback delegate to store.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetAsyncFallbackFunc(fallbackAsync, convertType);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds or replaces a generic async fallback delegate to the internal fallback delegate store.
+		/// </summary>
+		/// <typeparam name="T">A return type of fallback delegate.</typeparam>
+		/// <param name="fallbackAsync">A fallback delegate to store.</param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync)
+		{
+			SetAsyncFallbackFunc(fallbackAsync);
+			return this;
+		}
+
 		internal void SetFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable)
 		{
 			SetFallbackFunc((convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc());

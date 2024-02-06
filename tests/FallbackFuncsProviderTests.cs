@@ -195,6 +195,38 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddOrReplaceFallbackFunc_Work(bool funcWithToken)
+		{
+			var provider = FallbackFuncsProvider.Create();
+			if (funcWithToken)
+			{
+				Assert.That(provider.AddOrReplaceFallbackFunc((_) => 1).HasFallbackFunc<int>(), Is.True);
+			}
+			else
+			{
+				Assert.That(provider.AddOrReplaceFallbackFunc(() => 1).HasFallbackFunc<int>(), Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddOrReplaceAsyncFallbackFunc_Work(bool funcWithToken)
+		{
+			var provider = FallbackFuncsProvider.Create();
+			if (funcWithToken)
+			{
+				Assert.That(provider.AddOrReplaceAsyncFallbackFunc(async (_) => {await Task.Delay(1); return 1;}).HasAsyncFallbackFunc<int>(), Is.True);
+			}
+			else
+			{
+				Assert.That(provider.AddOrReplaceAsyncFallbackFunc(async () => {await Task.Delay(1); return 1;}).HasAsyncFallbackFunc<int>(), Is.True);
+			}
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,
