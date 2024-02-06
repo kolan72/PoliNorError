@@ -14,11 +14,14 @@ namespace PoliNorError
 		internal Action<CancellationToken> _fallback;
 		internal Func<CancellationToken, Task> _fallbackAsync;
 
-		protected FallbackPolicyBase(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate) : base(processor)
+		protected FallbackPolicyBase(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate) : this(processor, onlyGenericFallbackForGenericDelegate, new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate))
+		{}
+
+		private protected FallbackPolicyBase(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate, FallbackFuncsProvider fallbackFuncsProvider) : base(processor)
 		{
 			_fallbackProcessor = processor;
 			OnlyGenericFallbackForGenericDelegate = onlyGenericFallbackForGenericDelegate;
-			_fallbackFuncsProvider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate);
+			_fallbackFuncsProvider = fallbackFuncsProvider;
 		}
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
