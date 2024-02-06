@@ -10,8 +10,6 @@ namespace PoliNorError
 	/// </summary>
 	public sealed partial class FallbackPolicyWithAsyncFunc : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAsyncFunc>, IWithInnerErrorFilter<FallbackPolicyWithAsyncFunc>
 	{
-		internal FallbackPolicyWithAsyncFunc(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate) : base(processor ?? new DefaultFallbackProcessor(), onlyGenericFallbackForGenericDelegate) {}
-
 		internal FallbackPolicyWithAsyncFunc(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate, FallbackFuncsProvider fallbackFuncsProvider) : base(processor ?? new DefaultFallbackProcessor(), onlyGenericFallbackForGenericDelegate, fallbackFuncsProvider) {}
 
 		public FallbackPolicyBase WithFallbackAction(Action<CancellationToken> fallback)
