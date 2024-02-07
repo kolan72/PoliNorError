@@ -9,7 +9,7 @@ namespace PoliNorError
 	/// <summary>
 	/// Registers and provides <see cref="FallbackPolicy"/> delegates.
 	/// </summary>
-	internal class FallbackFuncsProvider
+	public class FallbackFuncsProvider
 	{
 		/// <summary>
 		/// Creates a new instance of <see cref="FallbackFuncsProvider"/>. Use this method for handling only generic delegates

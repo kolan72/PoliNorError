@@ -81,6 +81,11 @@ namespace PoliNorError
 			return this.WithFallbackInner(fallbackFunc, policyParams);
 		}
 
+		public PolicyCollection WithFallback(FallbackFuncsProvider funcsProvider)
+		{
+			return WithPolicy(new FallbackPolicy(funcsProvider));
+		}
+
 		public PolicyCollection WithFallback<T>(Func<T> fallbackFunc, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.WithFallbackInner(fallbackFunc, policyParams, convertType);

@@ -845,6 +845,23 @@ namespace PoliNorError.Tests
 			Assert.That(polDelegateCollectionResult.LastPolicyResultFailedReason, Is.EqualTo(predicateTrue ? PolicyResultFailedReason.PolicyResultHandlerFailed : PolicyResultFailedReason.None));
 		}
 
+		[Test]
+		public void Should_WithFallback_With_FallbackFuncsProvider_Arg_Work()
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithFallback(FallbackFuncsProvider
+												.Create(async (_) => await Task.Delay(1), (_) => { }, true)
+												.AddOrReplaceAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1;})
+												.AddOrReplaceFallbackFunc((_) => 1)
+												);
+			var lastPolicy = ((FallbackPolicyBase)polCollection.LastOrDefault());
+			Assert.That(lastPolicy.HasAsyncFallbackFunc(), Is.True);
+			Assert.That(lastPolicy.HasFallbackAction(), Is.True);
+			Assert.That(lastPolicy.HasAsyncFallbackFunc<int>(), Is.True);
+			Assert.That(lastPolicy.HasFallbackFunc<int>(), Is.True);
+			Assert.That(lastPolicy.OnlyGenericFallbackForGenericDelegate, Is.True);
+		}
+
 		private class FuncsAndResultsProviderBase
 		{
 			public int i;

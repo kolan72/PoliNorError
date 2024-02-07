@@ -17,10 +17,12 @@ namespace PoliNorError
 		protected FallbackPolicyBase(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate) : this(processor, new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate))
 		{}
 
+		protected FallbackPolicyBase(FallbackFuncsProvider fallbackFuncsProvider) : this(null, fallbackFuncsProvider)
+		{}
+
 		private protected FallbackPolicyBase(IFallbackProcessor processor, FallbackFuncsProvider fallbackFuncsProvider) : base(processor)
 		{
 			_fallbackProcessor = processor;
-			OnlyGenericFallbackForGenericDelegate = fallbackFuncsProvider.OnlyGenericFallbackForGenericDelegate;
 			_fallbackFuncsProvider = fallbackFuncsProvider;
 		}
 
@@ -99,7 +101,7 @@ namespace PoliNorError
 		/// <summary>
 		/// Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.
 		/// </summary>
-		public bool OnlyGenericFallbackForGenericDelegate { get; internal set; }
+		public bool OnlyGenericFallbackForGenericDelegate => _fallbackFuncsProvider.OnlyGenericFallbackForGenericDelegate;
 
 		public bool HasFallbackFunc<T>() => _fallbackFuncsProvider.HasFallbackFunc<T>();
 

@@ -30,6 +30,8 @@ namespace PoliNorError
 		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
 		public FallbackPolicy(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate = false) : base(processor, onlyGenericFallbackForGenericDelegate) {}
 
+		internal FallbackPolicy(FallbackFuncsProvider fallbackFuncsProvider) : base(fallbackFuncsProvider){}
+
 		public FallbackPolicyWithAction WithFallbackAction(Action fallback, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return WithFallbackAction(fallback.ToCancelableAction(convertType, true));
