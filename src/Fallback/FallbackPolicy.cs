@@ -37,7 +37,7 @@ namespace PoliNorError
 
 		public FallbackPolicyWithAction WithFallbackAction(Action<CancellationToken> fallback)
 		{
-			var fallbackPolicyWithAction = new FallbackPolicyWithAction(_fallbackProcessor, OnlyGenericFallbackForGenericDelegate, _fallbackFuncsProvider);
+			var fallbackPolicyWithAction = new FallbackPolicyWithAction(_fallbackProcessor, _fallbackFuncsProvider);
 			fallbackPolicyWithAction._fallbackFuncsProvider.Fallback = fallback;
 			return fallbackPolicyWithAction;
 		}
@@ -49,7 +49,7 @@ namespace PoliNorError
 
 		public FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
 		{
-			var fallbackPolicyWithAsyncFunc = new FallbackPolicyWithAsyncFunc(_fallbackProcessor, OnlyGenericFallbackForGenericDelegate, _fallbackFuncsProvider);
+			var fallbackPolicyWithAsyncFunc = new FallbackPolicyWithAsyncFunc(_fallbackProcessor, _fallbackFuncsProvider);
 			fallbackPolicyWithAsyncFunc._fallbackFuncsProvider.FallbackAsync = fallbackAsync;
 			return fallbackPolicyWithAsyncFunc;
 		}

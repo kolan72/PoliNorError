@@ -6,24 +6,38 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Registers and provides <see cref="FallbackPolicy"/> delegates.
+	/// </summary>
 	internal class FallbackFuncsProvider
 	{
-		private readonly bool _onlyGenericFallbackForGenericDelegate;
-
+		/// <summary>
+		/// Creates a new instance of <see cref="FallbackFuncsProvider"/>. Use this method for handling only generic delegates
+		/// </summary>
+		/// <returns></returns>
 		public static FallbackFuncsProvider Create() => new FallbackFuncsProvider(true);
 
+		///<inheritdoc cref = "Create(Func{CancellationToken, Task},  Action{CancellationToken}, bool)"/>
 		public static FallbackFuncsProvider Create(Func<CancellationToken, Task> fallbackAsync, bool onlyGenericFallbackForGenericDelegate = false)
 									=> Create(fallbackAsync, null, onlyGenericFallbackForGenericDelegate);
 
+		///<inheritdoc cref = "Create(Func{CancellationToken, Task}, Action{CancellationToken}, bool)"/>
 		public static FallbackFuncsProvider Create(Action<CancellationToken> fallback, bool onlyGenericFallbackForGenericDelegate = false)
 									=> Create(null, fallback, onlyGenericFallbackForGenericDelegate);
 
+		/// <summary>
+		/// Creates a new instance of <see cref="FallbackFuncsProvider"/>.
+		/// </summary>
+		/// <param name="fallbackAsync">An async fallback delegate.</param>
+		/// <param name="fallback">A fallback delegate.</param>
+		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
+		/// <returns></returns>
 		public static FallbackFuncsProvider Create(Func<CancellationToken, Task> fallbackAsync, Action<CancellationToken> fallback, bool onlyGenericFallbackForGenericDelegate = false)
 									=> new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate) {FallbackAsync = fallbackAsync, Fallback = fallback};
 
 		internal FallbackFuncsProvider(bool onlyGenericFallbackForGenericDelegate)
 		{
-			_onlyGenericFallbackForGenericDelegate = onlyGenericFallbackForGenericDelegate;
+			OnlyGenericFallbackForGenericDelegate = onlyGenericFallbackForGenericDelegate;
 		}
 
 		internal Action<CancellationToken> Fallback { get; set; }
@@ -139,7 +153,7 @@ namespace PoliNorError
 			{
 				return ((AsyncFallbackGenericFuncHolder<T>)_asyncGenericFuncsHolder[typeof(T)]).AsyncFun.ToSyncFunc();
 			}
-			else if (!_onlyGenericFallbackForGenericDelegate)
+			else if (!OnlyGenericFallbackForGenericDelegate)
 			{
 				if (HasFallbackAction())
 				{
@@ -192,7 +206,7 @@ namespace PoliNorError
 			{
 				return ((SyncFallbackGenericFuncHolder<T>)_syncGenericFuncsHolder[typeof(T)]).Fun.ToTaskReturnFunc();
 			}
-			else if (!_onlyGenericFallbackForGenericDelegate)
+			else if (!OnlyGenericFallbackForGenericDelegate)
 			{
 				if (HasAsyncFallbackFunc())
 				{
@@ -220,5 +234,7 @@ namespace PoliNorError
 		internal bool HasAsyncFallbackFunc<T>() => _asyncGenericFuncsHolder.ContainsKey(typeof(T));
 
 		internal bool HasAsyncFallbackFunc() => FallbackAsync != null;
+
+		internal bool OnlyGenericFallbackForGenericDelegate { get; }
 	}
 }
