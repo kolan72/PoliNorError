@@ -75,6 +75,11 @@ namespace PoliNorError
 
 		public string PolicyName { get; internal set; }
 
+		/// <summary>
+		/// Represents the index of the PolicyResult handler that set <see cref="PolicyResult.IsFailed"/> property to true.
+		/// </summary>
+		public int FailedHandlerIndex { get; internal set; } = -1;
+
 		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
 		{
 			IsFailed = true;

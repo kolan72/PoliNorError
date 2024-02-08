@@ -631,6 +631,7 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(polResult.IsFailed, Is.EqualTo(true));
 			Assert.That(polResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyResultHandlerFailed));
+			Assert.That(polResult.FailedHandlerIndex, Is.EqualTo(0));
 		}
 
 		[Test]
