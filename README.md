@@ -133,7 +133,17 @@ or synchronous  delegates
 - `Action<Exception, ProcessingErrorInfo, CancellationToken>`
 
 , or a pair of delegates from both lists if you plan to use a policy in sync and async handling scenarios.  
-The last two delegates have the `ProcessingErrorInfo` argument. This type contains a policy alias and may also contain the current context of the policy processor, such as the current retry for the `RetryPolicy`.
+The last two delegates have the `ProcessingErrorInfo` argument. This type contains a policy alias and may also contain the current context of the policy processor, such as the current retry for the `RetryPolicy`.  
+
+You can also add an error processor for `InnerException` using the `WithInnerErrorProcessorOf` method overloads (since _version_ 2.14.0), for example:
+```csharp
+var result = new SimplePolicy()
+	.WithInnerErrorProcessorOf<NullReferenceException>
+			((_) =>
+			//This line is only printed to the Console when a NullReferenceException is thrown.
+			Console.WriteLine("Null!"))
+	.Handle(() => Task.Run(CanThrowNullOrOtherException).Wait());
+```
 
 Note that the error processor is added to the *whole* policy or policy processor, so its `Process` or `ProcessAsync` method will be called depending on the execution type of the policy handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
 
