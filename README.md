@@ -95,6 +95,7 @@ It can happen due to these reasons:
 -   The exception cannot be handled due to policy rules.
 -   The error filter conditions are not satisfied (the  `ErrorFilterUnsatisfied`  property will also be set to `true`).
 -   A critical exception has occurred within the catch block, specifically related to the saving exception for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
+-   An exception has occurred when applying an error filter. In this case, the exception is also treated as critical and handling is interrupted.
  -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.
  -  If the handling result cannot be accepted as a success, and a policy is in use, you can set `IsFailed` to true in a `PolicyResult` handler by using the `SetFailed` method (or `SetPolicyResultFailedIf(<T>)(Func<PolicyResult(<T>), bool> predicate)` policy method since _version_ 2.14.0).  
  
@@ -132,7 +133,17 @@ or synchronous  delegates
 - `Action<Exception, ProcessingErrorInfo, CancellationToken>`
 
 , or a pair of delegates from both lists if you plan to use a policy in sync and async handling scenarios.  
-The last two delegates have the `ProcessingErrorInfo` argument. This type contains a policy alias and may also contain the current context of the policy processor, such as the current retry for the `RetryPolicy`.
+The last two delegates have the `ProcessingErrorInfo` argument. This type contains a policy alias and may also contain the current context of the policy processor, such as the current retry for the `RetryPolicy`.  
+
+You can also add an error processor for `InnerException` using the `WithInnerErrorProcessorOf` method overloads (since _version_ 2.14.0), for example:
+```csharp
+var result = new SimplePolicy()
+	.WithInnerErrorProcessorOf<NullReferenceException>
+			((_) =>
+			//This line is only printed to the Console when a NullReferenceException is thrown.
+			Console.WriteLine("Null!"))
+	.Handle(() => Task.Run(CanThrowNullOrOtherException).Wait());
+```
 
 Note that the error processor is added to the *whole* policy or policy processor, so its `Process` or `ProcessAsync` method will be called depending on the execution type of the policy handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
 
@@ -176,6 +187,29 @@ var result = new RetryPolicy(1)
 				.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
 				.Handle(() => File.Copy(filePath, newFilePath));
 ```
+You can also filter exceptions by their `InnerException` property using these methods (since _version_ 2.15.0):  
+
+- `IncludeInnerError<TInnerException>`  
+- `ExcludeInnerError<TInnerException>`  
+
+For example, there is a service that uses `HttpClient`, and we want to fallback response only if `HttpRequestException` has an inner exception of type `SocketException` or `WebException`:  
+```csharp
+var policyResult = await new FallbackPolicy()
+				.WithFallbackFunc<SomeResponse>((_) => new FallbackResponse())
+				.IncludeInnerError<WebException>()
+				.IncludeInnerError<SocketException>()
+				.WithErrorProcessorOf((ex) => logger.Error(ex))
+				.AddPolicyResultHandler<SomeResponse>((pr) => {
+					if (pr.IsPolicySuccess)
+						//The line will be printed here
+						//only if HttpRequestException will have
+						//SocketException or WebException inner exception type
+						Console.WriteLine("Fallback data: " + pr.Result.SomeData.ToString());
+				})
+				.HandleAsync(serviceThatUseHttpClient.GetSomethingAsync);
+
+```
+
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers

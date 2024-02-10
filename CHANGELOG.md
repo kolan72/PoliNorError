@@ -1,3 +1,14 @@
+## 2.15.0
+
+- Introduce `SetPolicyResultFailedIf(<T>)` methods for the `PolicyCollection` and the `PolicyDelegateCollection(<T>)` classes.
+- Introduce `IncludeInnerError<TInnerException>` and `ExcludeInnerError<TInnerException>` methods for policy processors and library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`).
+- Cross-synchronisation support for invoking a non-generic fallback delegate when a generic one is not set.
+- Reduce allocations by using only a single instance of the `RetryErrorContext` class in Retry processing.
+- Add `Apply<T>` extension method to `Action<T>` delegate.
+- Correct the doc comments for the `SetPolicyResultFailedIfInner` methods of the library policies.
+- Update 'PolicyResult handlers' README Chapter.
+
+
 ## 2.14.0
 
 - Introduce `WithInnerErrorProcessorOf<TException>` overloaded methods for policy processor interfaces, `BulkErrorProcessor`, library policies(`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`), `PolicyDelegateCollection(<T>)` and `PolicyCollection`.
