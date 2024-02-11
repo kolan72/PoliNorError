@@ -472,6 +472,82 @@ namespace PoliNorError.Tests
 			ClassicAssert.IsTrue(proc.Count() == 1);
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Rethrow_Or_Handle_If_ProcessorCreated_With_ThrowIfErrorFilterUnsatisfied_True_ForExecute(bool errorInFilter)
+		{
+			if(errorInFilter)
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>((_) => throw new Exception("Test"));
+				var res = proc.Execute(ActionWithInner);
+				Assert.That(res.CatchBlockErrors.Count(), Is.EqualTo(1));
+				Assert.That(res.Errors.Count(), Is.EqualTo(1));
+			}
+			else
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+				Assert.Throws<TestExceptionWithInnerException>(() => proc.Execute(ActionWithInner));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Rethrow_Or_Handle_If_ProcessorCreated_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteAsync(bool errorInFilter)
+		{
+			if (errorInFilter)
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>((_) => throw new Exception("Test"));
+				var res = await proc.ExecuteAsync(AsyncFuncWithInner);
+				Assert.That(res.CatchBlockErrors.Count(), Is.EqualTo(1));
+				Assert.That(res.Errors.Count(), Is.EqualTo(1));
+			}
+			else
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+				Assert.ThrowsAsync<TestExceptionWithInnerException>(async() => await proc.ExecuteAsync(AsyncFuncWithInner));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Rethrow_Or_Handle_If_ProcessorCreated_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteT(bool errorInFilter)
+		{
+			if (errorInFilter)
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>((_) => throw new Exception("Test"));
+				var res = proc.Execute(FuncWithInner);
+				Assert.That(res.CatchBlockErrors.Count(), Is.EqualTo(1));
+				Assert.That(res.Errors.Count(), Is.EqualTo(1));
+			}
+			else
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+				Assert.Throws<TestExceptionWithInnerException>(() => proc.Execute(FuncWithInner));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Rethrow_Or_Handle_If_ProcessorCreated_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteAsyncT(bool errorInFilter)
+		{
+			if (errorInFilter)
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>((_) => throw new Exception("Test"));
+				var res = await proc.ExecuteAsync(AsyncFuncWithInnerT);
+				Assert.That(res.CatchBlockErrors.Count(), Is.EqualTo(1));
+				Assert.That(res.Errors.Count(), Is.EqualTo(1));
+			}
+			else
+			{
+				var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+				Assert.ThrowsAsync<TestExceptionWithInnerException>(async () => await proc.ExecuteAsync(AsyncFuncWithInnerT));
+			}
+		}
+
 		private class TestErrorProcessor : IErrorProcessor
 		{
 			public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)

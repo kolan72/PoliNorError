@@ -133,6 +133,32 @@ namespace PoliNorError
 			return policyDelegateCollection;
 		}
 
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the policy of the last element of the <see cref="PolicyDelegateCollection"/>.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection</param>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection IncludeInnerError<TInnerException>(this IPolicyDelegateCollection policyDelegateCollection, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			policyDelegateCollection.AddIncludedInnerErrorFilter(predicate);
+			return policyDelegateCollection;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the policy of the last element of the <see cref="PolicyDelegateCollection"/>.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection</param>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection ExcludeInnerError<TInnerException>(this IPolicyDelegateCollection policyDelegateCollection, Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			policyDelegateCollection.AddExcludedInnerErrorFilter(predicate);
+			return policyDelegateCollection;
+		}
+
 		public static IPolicyDelegateCollection AddPolicyResultHandlerForAll(this IPolicyDelegateCollection policyDelegateCollection, Action<PolicyResult> act)
 		{
 			policyDelegateCollection.Select(pd => pd.Policy).SetResultHandler(act);

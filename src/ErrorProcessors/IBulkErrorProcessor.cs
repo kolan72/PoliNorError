@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Defines methods for bulk error processing
+	/// </summary>
 	public interface IBulkErrorProcessor : IEnumerable<IErrorProcessor>, ICanAddErrorProcessor
 	{
 		void AddProcessor(IErrorProcessor errorProcessor);

@@ -352,6 +352,62 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public async Task Should_IncludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var policyCollection = PolicyCollection
+					.Create()
+					.WithRetry(1)
+					.WithRetry(1);
+
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				policyCollection.IncludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				policyCollection.IncludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			var handleRes = await policyCollection.ToPolicyDelegateCollection(actionToHandle).HandleAllAsync();
+			Assert.That(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied, Is.False);
+			TestHandlingForInnerError.PolicyResultAsserts.AfterHandlingWithIncludeInnerErrorFilter(handleRes.LastPolicyResult, withInnerError, satisfyFilterFunc);
+			Assert.That(handleRes.PolicyDelegatesUnused.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(true, null)]
+		[TestCase(false, null)]
+		public async Task Should_ExcludeInnerError_Work(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			var policyCollection = PolicyCollection
+					.Create()
+					.WithRetry(1)
+					.WithRetry(1);
+
+			if ((withInnerError && !satisfyFilterFunc.HasValue) || !withInnerError)
+			{
+				policyCollection.ExcludeInnerError<TestInnerException>();
+			}
+			else
+			{
+				policyCollection.ExcludeInnerError<TestInnerException>(ex => ex.Message == "Test");
+			}
+
+			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
+			var handleRes = await policyCollection.ToPolicyDelegateCollection(actionToHandle).HandleAllAsync();
+			Assert.That(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied, Is.False);
+			TestHandlingForInnerError.PolicyResultAsserts.AfterHandlingWithExcludeInnerErrorFilter(handleRes.LastPolicyResult, withInnerError, satisfyFilterFunc);
+			Assert.That(handleRes.PolicyDelegatesUnused.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
 		[TestCase(false, false)]
 		[TestCase(false, true)]
 		[TestCase(true, false)]
@@ -724,6 +780,45 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(FallbackTypeForTests.WithAction, true, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false, false)]
+		public void Should_WithFallback_Set_OnlyGenericFallbackForGenericDelegate_Correctly(FallbackTypeForTests fallbackType, bool withCancelTokenParam, bool paramValue, bool propertyValue)
+		{
+			var polCollection = PolicyCollection.Create();
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.WithAction:
+					if (withCancelTokenParam)
+					{
+						polCollection = polCollection.WithFallback((_) => { }, paramValue);
+					}
+					else
+					{
+						polCollection = polCollection.WithFallback(() => { }, paramValue);
+					}
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					if (withCancelTokenParam)
+					{
+						polCollection = polCollection.WithFallback(async (_) => await Task.Delay(1), paramValue);
+					}
+					else
+					{
+						polCollection = polCollection.WithFallback(async () => await Task.Delay(1), paramValue);
+					}
+					break;
+			}
+
+			Assert.That(((FallbackPolicy)polCollection.Last()).OnlyGenericFallbackForGenericDelegate, Is.EqualTo(propertyValue));
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(false, true)]
 		[TestCase(true, false)]
@@ -748,6 +843,23 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(polDelegateCollectionResult.IsFailed, Is.EqualTo(predicateTrue));
 			Assert.That(polDelegateCollectionResult.LastPolicyResultFailedReason, Is.EqualTo(predicateTrue ? PolicyResultFailedReason.PolicyResultHandlerFailed : PolicyResultFailedReason.None));
+		}
+
+		[Test]
+		public void Should_WithFallback_With_FallbackFuncsProvider_Arg_Work()
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithFallback(FallbackFuncsProvider
+												.Create(async (_) => await Task.Delay(1), (_) => { }, true)
+												.AddOrReplaceAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1;})
+												.AddOrReplaceFallbackFunc((_) => 1)
+												);
+			var lastPolicy = ((FallbackPolicyBase)polCollection.LastOrDefault());
+			Assert.That(lastPolicy.HasAsyncFallbackFunc(), Is.True);
+			Assert.That(lastPolicy.HasFallbackAction(), Is.True);
+			Assert.That(lastPolicy.HasAsyncFallbackFunc<int>(), Is.True);
+			Assert.That(lastPolicy.HasFallbackFunc<int>(), Is.True);
+			Assert.That(lastPolicy.OnlyGenericFallbackForGenericDelegate, Is.True);
 		}
 
 		private class FuncsAndResultsProviderBase

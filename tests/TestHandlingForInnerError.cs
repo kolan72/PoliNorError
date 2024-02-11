@@ -33,51 +33,13 @@ namespace PoliNorError.Tests
 		internal static void HandlePolicyWithIncludeInnerErrorFilter(IPolicyBase policyBase, Action actionToHandle, bool withInnerError, bool? satisfyFilterFunc)
 		{
 			var result = policyBase.Handle(actionToHandle);
-
-			if (withInnerError)
-			{
-				if (satisfyFilterFunc == true)
-				{
-					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-				}
-				else if (satisfyFilterFunc == false)
-				{
-					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
-				}
-				else
-				{
-					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-				}
-			}
-			else
-			{
-				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
-			}
+			PolicyResultAsserts.AfterHandlingWithIncludeInnerErrorFilter(result, withInnerError, satisfyFilterFunc);
 		}
 
 		internal static void HandlePolicyWithExcludeInnerErrorFilter(IPolicyBase policyBase, Action actionToHandle, bool withInnerError, bool? satisfyFilterFunc)
 		{
 			var result = policyBase.Handle(actionToHandle);
-
-			if (withInnerError)
-			{
-				if (satisfyFilterFunc == true)
-				{
-					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
-				}
-				else if (satisfyFilterFunc == false)
-				{
-					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-				}
-				else
-				{
-					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
-				}
-			}
-			else
-			{
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-			}
+			PolicyResultAsserts.AfterHandlingWithExcludeInnerErrorFilter(result, withInnerError, satisfyFilterFunc);
 		}
 
 		internal static Action GetAction(bool withInnerError, bool? satisfyFilterFunc)
@@ -100,6 +62,78 @@ namespace PoliNorError.Tests
 			else
 			{
 				return Action;
+			}
+		}
+
+		internal static Func<int> GetFunc(bool withInnerError, bool? satisfyFilterFunc)
+		{
+			if (withInnerError)
+			{
+				if (satisfyFilterFunc == true)
+				{
+					return ((Func<string, int>)FunWithInnerWithMsg).Apply("Test");
+				}
+				else if (satisfyFilterFunc == false)
+				{
+					return ((Func<string, int>)FunWithInnerWithMsg).Apply("Test2");
+				}
+				else
+				{
+					return FunWithInner;
+				}
+			}
+			else
+			{
+				return Fun;
+			}
+		}
+
+		internal static class PolicyResultAsserts
+		{
+			internal static void AfterHandlingWithIncludeInnerErrorFilter(PolicyResult result, bool withInnerError, bool? satisfyFilterFunc)
+			{
+				if (withInnerError)
+				{
+					if (satisfyFilterFunc == true)
+					{
+						Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+					}
+					else if (satisfyFilterFunc == false)
+					{
+						Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+					}
+					else
+					{
+						Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+					}
+				}
+				else
+				{
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				}
+			}
+
+			internal static void AfterHandlingWithExcludeInnerErrorFilter(PolicyResult result, bool withInnerError, bool? satisfyFilterFunc)
+			{
+				if (withInnerError)
+				{
+					if (satisfyFilterFunc == true)
+					{
+						Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+					}
+					else if (satisfyFilterFunc == false)
+					{
+						Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+					}
+					else
+					{
+						Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+					}
+				}
+				else
+				{
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
 			}
 		}
 	}

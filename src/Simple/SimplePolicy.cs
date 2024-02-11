@@ -5,12 +5,27 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// A simple policy that can handle delegates.
+	/// </summary>
 	public sealed partial class SimplePolicy : Policy, IPolicyBase, IWithErrorFilter<SimplePolicy>, IWithInnerErrorFilter<SimplePolicy>
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 
-		public SimplePolicy(IBulkErrorProcessor processor = null) : this(new SimplePolicyProcessor(processor)) { }
+		///<inheritdoc cref = "SimplePolicy(IBulkErrorProcessor,bool)"/>
+		public SimplePolicy(bool rethrowIfErrorFilterUnsatisfied = false) : this(null, rethrowIfErrorFilterUnsatisfied) { }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SimplePolicy"/>.
+		/// </summary>
+		/// <param name="processor"><see cref="IBulkErrorProcessor"/></param>
+		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
+		public SimplePolicy(IBulkErrorProcessor processor, bool rethrowIfErrorFilterUnsatisfied = false) : this(new SimplePolicyProcessor(processor, rethrowIfErrorFilterUnsatisfied)) { }
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SimplePolicy"/>.
+		/// </summary>
+		/// <param name="processor"><see cref="ISimplePolicyProcessor"/></param>
 		public SimplePolicy(ISimplePolicyProcessor processor) : base(processor) => _simpleProcessor = processor;
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)

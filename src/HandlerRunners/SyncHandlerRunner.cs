@@ -27,7 +27,10 @@ namespace PoliNorError
 				wasNotFailed = true;
 			_act(policyResult, token);
 			if (wasNotFailed && policyResult.IsFailed)
+			{
+				policyResult.FailedHandlerIndex = CollectionIndex;
 				policyResult.FailedReason = PolicyResultFailedReason.PolicyResultHandlerFailed;
+			}
 		}
 
 		public Task RunAsync(PolicyResult policyResult, CancellationToken token = default) => throw new NotImplementedException();

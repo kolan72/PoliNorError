@@ -40,24 +40,24 @@ namespace PoliNorError
 			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc, errorSaver, failedIfSaveErrorThrows));
 		}
 
-		public static T WithFallbackInner<T>(this T t, Action<CancellationToken> fallback, ErrorProcessorParam policyParams = null) where T : IWithPolicy<T>
+		public static T WithFallbackInner<T>(this T t, Action<CancellationToken> fallback, ErrorProcessorParam policyParams = null, bool onlyGenericFallbackForGenericDelegate = false) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToFallbackPolicy(fallback));
+			return t.WithPolicy(policyParams.ToFallbackPolicy(fallback, onlyGenericFallbackForGenericDelegate));
 		}
 
-		public static T WithFallbackInner<T>(this T t, Action fallback, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicy<T>
+		public static T WithFallbackInner<T>(this T t, Action fallback, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable, bool onlyGenericFallbackForGenericDelegate = false) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToFallbackPolicy(fallback, convertType));
+			return t.WithPolicy(policyParams.ToFallbackPolicy(fallback, convertType, onlyGenericFallbackForGenericDelegate));
 		}
 
-		public static T WithFallbackInner<T>(this T t, Func<Task> fallbackAsync, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicy<T>
+		public static T WithFallbackInner<T>(this T t, Func<Task> fallbackAsync, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable, bool onlyGenericFallbackForGenericDelegate = false) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToFallbackPolicy(fallbackAsync, convertType));
+			return t.WithPolicy(policyParams.ToFallbackPolicy(fallbackAsync, convertType, onlyGenericFallbackForGenericDelegate));
 		}
 
-		public static T WithFallbackInner<T>(this T t, Func<CancellationToken, Task> fallbackAsync, ErrorProcessorParam policyParams = null) where T : IWithPolicy<T>
+		public static T WithFallbackInner<T>(this T t, Func<CancellationToken, Task> fallbackAsync, ErrorProcessorParam policyParams = null, bool onlyGenericFallbackForGenericDelegate = false) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToFallbackPolicy(fallbackAsync));
+			return t.WithPolicy(policyParams.ToFallbackPolicy(fallbackAsync, onlyGenericFallbackForGenericDelegate));
 		}
 
 		public static T WithFallbackInner<T, U>(this T t, Func<CancellationToken, U> fallbackAsync, ErrorProcessorParam policyParams = null) where T : IWithPolicy<T>

@@ -11,8 +11,15 @@ namespace PoliNorError.Tests
 
 		public static void Action() => throw new Exception();
 
+		public static int FunWithInner() => throw new TestExceptionWithInnerException();
+		public static int FunWithInnerWithMsg(string innerExceptionMsg) => throw new TestExceptionWithInnerException("", innerExceptionMsg);
+
+		public static int Fun() => throw new Exception();
+
 		public static async Task AsyncFuncWithInner(CancellationToken _) { await Task.Delay(1); throw new TestExceptionWithInnerException(); }
 		public static async Task AsyncFunc(CancellationToken _) { await Task.Delay(1); throw new Exception(); }
+
+		public static async Task<int> AsyncFuncWithInnerT(CancellationToken _) { await Task.Delay(1); throw new TestExceptionWithInnerException(""); }
 
 		public static int FuncWithInner() => throw new TestExceptionWithInnerException();
 

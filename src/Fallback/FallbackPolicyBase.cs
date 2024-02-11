@@ -9,14 +9,21 @@ namespace PoliNorError
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
-		internal FallbackFuncsProvider _fallbackFuncsProvider = new FallbackFuncsProvider();
+		internal FallbackFuncsProvider _fallbackFuncsProvider;
 
 		internal Action<CancellationToken> _fallback;
 		internal Func<CancellationToken, Task> _fallbackAsync;
 
-		protected FallbackPolicyBase(IFallbackProcessor processor) : base(processor)
+		protected FallbackPolicyBase(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate) : this(processor, new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate))
+		{}
+
+		protected FallbackPolicyBase(FallbackFuncsProvider fallbackFuncsProvider) : this(null, fallbackFuncsProvider)
+		{}
+
+		private protected FallbackPolicyBase(IFallbackProcessor processor, FallbackFuncsProvider fallbackFuncsProvider) : base(processor)
 		{
 			_fallbackProcessor = processor;
+			_fallbackFuncsProvider = fallbackFuncsProvider;
 		}
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
@@ -90,6 +97,11 @@ namespace PoliNorError
 			await HandlePolicyResultAsync(fallBackRes, configureAwait).ConfigureAwait(configureAwait);
 			return fallBackRes;
 		}
+
+		/// <summary>
+		/// Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.
+		/// </summary>
+		public bool OnlyGenericFallbackForGenericDelegate => _fallbackFuncsProvider.OnlyGenericFallbackForGenericDelegate;
 
 		public bool HasFallbackFunc<T>() => _fallbackFuncsProvider.HasFallbackFunc<T>();
 

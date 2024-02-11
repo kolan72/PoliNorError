@@ -26,7 +26,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Handle_Sync_NoGeneric_ByFallbackAsync_If_Error()
+		public void Should_CrossHandle_Sync_NoGeneric_ByFallbackAsync_If_Error()
 		{
 			var throwingException = new Exception("HandleAsync");
 			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw throwingException;});
@@ -44,7 +44,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Handle_Sync_NoGeneric_ByFallbackAsync_If_Success()
+		public void Should_CrossHandle_Sync_NoGeneric_ByFallbackAsync_If_Success()
 		{
 			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			var polResult = fallback.Handle(() => throw new Exception("Handle sync by async fallback"));
@@ -391,7 +391,7 @@ namespace PoliNorError.Tests
 			var fbOneWithAction = fbOne.WithFallbackAction((_) => { });
 			ClassicAssert.IsTrue(fbOneWithAction.HasFallbackAction());
 
-			var fbTwo = fbOne.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			var fbTwo = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			ClassicAssert.IsFalse(fbTwo.HasFallbackAction());
 
 			var fbTwoWithAction = fbTwo.WithFallbackAction((_) => { });
@@ -407,7 +407,7 @@ namespace PoliNorError.Tests
 			var fbOneWithAction = fbOne.WithAsyncFallbackFunc(async(_) => await Task.Delay(1));
 			ClassicAssert.IsTrue(fbOneWithAction.HasAsyncFallbackFunc());
 
-			var fbTwo = fbOne.WithFallbackAction((_) => { });
+			var fbTwo = new FallbackPolicy().WithFallbackAction((_) => { });
 			ClassicAssert.IsFalse(fbTwo.HasAsyncFallbackFunc());
 
 			var fbTwoWithAction = fbTwo.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
@@ -595,9 +595,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_Handle_ASync_Generic_ByFallbackSync_If_Error()
+		public async Task Should_CrossHandle_ASync_Generic_ByFallbackSync_If_Error()
 		{
-			var throwingException = new Exception(nameof(Should_Handle_ASync_Generic_ByFallbackSync_If_Error));
+			var throwingException = new Exception(nameof(Should_CrossHandle_ASync_Generic_ByFallbackSync_If_Error));
 			var fallback = new FallbackPolicy().WithFallbackFunc((Func<CancellationToken, int>)((_) => throw throwingException));
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync");});
 
@@ -609,7 +609,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_Handle_ASync_Generic_ByFallbackSync_If_Success()
+		public async Task Should_CrossHandle_ASync_Generic_ByFallbackSync_If_Success()
 		{
 			var fallback = new FallbackPolicy().WithFallbackFunc((_) => 1);
 			var polResult = await fallback.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync");});
@@ -618,6 +618,7 @@ namespace PoliNorError.Tests
 			ClassicAssert.IsFalse(polResult.IsCanceled);
 			ClassicAssert.IsTrue(polResult.Errors.Count() == 1);
 			ClassicAssert.AreEqual(0, polResult.CatchBlockErrors.Count());
+			ClassicAssert.AreEqual(1, polResult.Result);
 		}
 
 		[Test]
@@ -1082,6 +1083,7 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(polResult.IsFailed, Is.EqualTo(true));
 			Assert.That(polResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyResultHandlerFailed));
+			Assert.That(polResult.FailedHandlerIndex, Is.EqualTo(0));
 		}
 
 		[Test]
@@ -1178,6 +1180,88 @@ namespace PoliNorError.Tests
 			}
 			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
 			TestHandlingForInnerError.HandlePolicyWithExcludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
+		[TestCase(FallbackTypeForTests.WithAction)]
+		public void Should_Be_Correctly_Initialized_By_Constructor(FallbackTypeForTests fallbackType)
+		{
+			FallbackPolicyBase fallbackPolicy = null;
+			var policyCreator = new FallbackPolicy(new DefaultFallbackProcessor(), true);
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallbackPolicy = policyCreator.WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
+					break;
+				case FallbackTypeForTests.Creator:
+					fallbackPolicy = policyCreator;
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallbackPolicy = policyCreator.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					break;
+				case FallbackTypeForTests.WithAction:
+					fallbackPolicy = policyCreator.WithFallbackAction((_) => { });
+					break;
+			}
+
+			Assert.That(fallbackPolicy.OnlyGenericFallbackForGenericDelegate, Is.True);
+			Assert.That(fallbackPolicy.PolicyProcessor, Is.Not.Null);
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, true)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, true)]
+		[TestCase(false, false, false)]
+		public void Should_GenericFallbackFunc_Stay_Registered_After_NonGeneric_Func_WasRegistered(bool genericFuncSync, bool nonGenericFuncSync, bool funcWithToken)
+		{
+			FallbackPolicy fbPolicyWithGenericFallbackFunc = new FallbackPolicy();
+			if (genericFuncSync)
+			{
+				fbPolicyWithGenericFallbackFunc.WithFallbackFunc(() => 1);
+			}
+			else
+			{
+				fbPolicyWithGenericFallbackFunc.WithAsyncFallbackFunc(async () => { await Task.Delay(1); return 1;});
+			}
+
+			if (nonGenericFuncSync)
+			{
+				if (funcWithToken)
+				{
+					fbPolicyWithGenericFallbackFunc.WithFallbackAction((_) => { });
+				}
+				else
+				{
+					fbPolicyWithGenericFallbackFunc.WithFallbackAction(() => { });
+				}
+			}
+			else
+			{
+				if (funcWithToken)
+				{
+					fbPolicyWithGenericFallbackFunc.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+				}
+				else
+				{
+					fbPolicyWithGenericFallbackFunc.WithAsyncFallbackFunc(async () => await Task.Delay(1));
+				}
+			}
+			if (genericFuncSync)
+			{
+				Assert.That(fbPolicyWithGenericFallbackFunc.HasFallbackFunc<int>(), Is.True);
+			}
+			else
+			{
+				Assert.That(fbPolicyWithGenericFallbackFunc.HasAsyncFallbackFunc<int>(), Is.True);
+			}
 		}
 	}
 }
