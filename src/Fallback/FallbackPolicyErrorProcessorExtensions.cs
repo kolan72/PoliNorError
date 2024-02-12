@@ -24,7 +24,7 @@ namespace PoliNorError
 		public static FallbackPolicy ToFallbackPolicy(this ErrorProcessorParam invokeFallbackPolicyParams, Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable, bool onlyGenericFallbackForGenericDelegate = false)
 		{
 			var fb = new FallbackPolicy(onlyGenericFallbackForGenericDelegate);
-			fb._fallbackFuncsProvider.FallbackAsync = fallbackAsync.ToCancelableFunc(convertType);
+			fb._fallbackFuncsProvider.FallbackAsync = fallbackAsync.ToCancelableFunc(convertType, true);
 			return (FallbackPolicy)invokeFallbackPolicyParams.GetValueOrDefault().ConfigurePolicy(fb);
 		}
 
