@@ -13,10 +13,15 @@ namespace PoliNorError
 
 		protected bool _isPolicyAliasSet;
 
-		protected PolicyProcessor(PolicyAlias policyAlias, IBulkErrorProcessor bulkErrorProcessor = null)
+		protected PolicyProcessor(PolicyAlias policyAlias, IBulkErrorProcessor bulkErrorProcessor = null) : this(policyAlias, new ExceptionFilter(), bulkErrorProcessor)
+		{
+		}
+
+		protected PolicyProcessor(PolicyAlias policyAlias, ExceptionFilter exceptionFilter, IBulkErrorProcessor bulkErrorProcessor = null)
 		{
 			_bulkErrorProcessor = bulkErrorProcessor ?? new BulkErrorProcessor(policyAlias);
 			_isPolicyAliasSet = bulkErrorProcessor == null;
+			ErrorFilter = exceptionFilter;
 		}
 
 		public void AddErrorProcessor(IErrorProcessor newErrorProcessor)
@@ -28,7 +33,7 @@ namespace PoliNorError
 
 		public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => ErrorFilter.ExcludedErrorFilters;
 
-		public ExceptionFilter ErrorFilter { get; } = new ExceptionFilter();
+		public ExceptionFilter ErrorFilter { get; }
 
 		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
 		{
@@ -52,7 +57,7 @@ namespace PoliNorError
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public sealed class ExceptionFilter
+		public class ExceptionFilter
 		{
 			private readonly List<Expression<Func<Exception, bool>>> _includedErrorFilters = new List<Expression<Func<Exception, bool>>>();
 			private readonly List<Expression<Func<Exception, bool>>> _excludedErrorFilters = new List<Expression<Func<Exception, bool>>>();

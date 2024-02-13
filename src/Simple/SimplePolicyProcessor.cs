@@ -21,9 +21,15 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
 		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
-		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : base(PolicyAlias.Simple, bulkErrorProcessor)
+		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, new ExceptionFilter(), rethrowIfErrorFilterUnsatisfied)
+		{}
+
+		internal SimplePolicyProcessor(ErrorFilter exceptionFilter, IBulkErrorProcessor bulkErrorProcessor = null, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, exceptionFilter, rethrowIfErrorFilterUnsatisfied)
+		{}
+
+		private SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, ExceptionFilter exceptionFilter, bool rethrowIfErrorFilterUnsatisfied) : base(PolicyAlias.Simple, exceptionFilter, bulkErrorProcessor)
 		{
-			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default: EmptyErrorContext.DefaultSimple;
+			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default : EmptyErrorContext.DefaultSimple;
 			_rethrowIfErrorFilterUnsatisfied = rethrowIfErrorFilterUnsatisfied;
 		}
 
