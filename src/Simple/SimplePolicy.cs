@@ -22,6 +22,8 @@ namespace PoliNorError
 		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
 		public SimplePolicy(IBulkErrorProcessor processor, bool rethrowIfErrorFilterUnsatisfied = false) : this(new SimplePolicyProcessor(processor, rethrowIfErrorFilterUnsatisfied)) { }
 
+		internal SimplePolicy(ErrorFilter errorFilter, IBulkErrorProcessor processor = null, bool rethrowIfErrorFilterUnsatisfied = false) : this(new SimplePolicyProcessor(errorFilter, processor, rethrowIfErrorFilterUnsatisfied)) { }
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SimplePolicy"/>.
 		/// </summary>

@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace PoliNorError
 {
-	internal sealed class ErrorFilter : PolicyProcessor.ExceptionFilter
+	public sealed class ErrorFilter : PolicyProcessor.ExceptionFilter
 	{
 		private ErrorFilter() { }
 

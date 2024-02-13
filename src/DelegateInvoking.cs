@@ -130,8 +130,10 @@ namespace PoliNorError
 
 		public static PolicyResult InvokeWithSimple(this Action action, CancellationToken token = default) => InvokeWithSimple(action, null, token);
 
-		public static PolicyResult InvokeWithSimple(this Action action, ErrorProcessorParam policyParams, CancellationToken token = default)
-			=> policyParams.ToSimplePolicy().Handle(action, token);
+		public static PolicyResult InvokeWithSimple(this Action action, ErrorProcessorParam policyParams, CancellationToken token = default) => InvokeWithSimple(action, null, policyParams, token);
+
+		public static PolicyResult InvokeWithSimple(this Action action, ErrorFilter errorFilter, ErrorProcessorParam policyParams, CancellationToken token = default)
+			=> policyParams.ToSimplePolicy(errorFilter).Handle(action, token);
 
 		public static Task<PolicyResult> InvokeWithSimpleAsync(this Func<CancellationToken, Task> func, CancellationToken token = default)
 			=> InvokeWithSimpleAsync(func, null, token);
