@@ -70,6 +70,28 @@ namespace PoliNorError.Tests
             Action action = () => { i++; throw new ArgumentException("Test"); };
             var policyResult = action.InvokeWithSimple(errorFilter, ErrorProcessorParam.From((_) => { }));
             Assert.That(policyResult.ErrorFilterUnsatisfied, Is.EqualTo(errorFilterUnsatisfied));
+            Assert.That(i, Is.EqualTo(1));
+        }
+
+        [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Should_InvokeWithSimpleAsync_WithErrorFilter_Work(bool errorFilterUnsatisfied)
+        {
+            ErrorFilter errorFilter = null;
+            if (errorFilterUnsatisfied)
+            {
+                errorFilter = ErrorFilter.FromIncludedError<ArgumentNullException>();
+            }
+            else
+            {
+                errorFilter = ErrorFilter.FromIncludedError<ArgumentException>();
+            }
+            int i = 0;
+            Func<CancellationToken, Task> fun = async(_) => { await Task.Delay(1); i++;  throw new ArgumentException("Test"); };
+            var policyResult =  await fun.InvokeWithSimpleAsync(errorFilter, ErrorProcessorParam.From((_) => { }));
+            Assert.That(policyResult.ErrorFilterUnsatisfied, Is.EqualTo(errorFilterUnsatisfied));
+            Assert.That(i, Is.EqualTo(1));
         }
 
         [Test]
