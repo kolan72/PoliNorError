@@ -95,6 +95,28 @@ namespace PoliNorError.Tests
         }
 
         [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_InvokeWithSimpleT_WithErrorFilter_Work(bool errorFilterUnsatisfied)
+        {
+            ErrorFilter errorFilter = null;
+            if (errorFilterUnsatisfied)
+            {
+                errorFilter = ErrorFilter.FromIncludedError<ArgumentNullException>();
+            }
+            else
+            {
+                errorFilter = ErrorFilter.FromIncludedError<ArgumentException>();
+            }
+
+            int i = 0;
+            Func<int> fun = () => { i++; throw new ArgumentException("Test"); };
+            var policyResult = fun.InvokeWithSimple(errorFilter, ErrorProcessorParam.From((_) => { }));
+            Assert.That(policyResult.ErrorFilterUnsatisfied, Is.EqualTo(errorFilterUnsatisfied));
+            Assert.That(i, Is.EqualTo(1));
+        }
+
+        [Test]
         public void Should_InvokeWithSimpleT_Work()
         {
             int i = 0;
