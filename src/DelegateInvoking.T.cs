@@ -144,7 +144,13 @@ namespace PoliNorError
 		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorProcessorParam policyParams, CancellationToken token = default)
 				=> InvokeWithSimpleAsync(func, policyParams, false, token);
 
-		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token)
-				=> policyParams.ToSimplePolicy().HandleAsync(func, configureAwait, token);
+		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token = default)
+				=> InvokeWithSimpleAsync(func, null, policyParams, configureAwait, token);
+
+		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorFilter errorFilter, ErrorProcessorParam policyParams, CancellationToken token = default)
+				=> InvokeWithSimpleAsync(func, errorFilter, policyParams, false, token);
+
+		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorFilter errorFilter, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token = default)
+				=> policyParams.ToSimplePolicy(errorFilter).HandleAsync(func, configureAwait, token);
 	}
 }
