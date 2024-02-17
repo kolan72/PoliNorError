@@ -1,3 +1,22 @@
+## 2.16.1
+
+- Introduce `IncludeInnerError<TInnerException>` and `ExcludeInnerError<TInnerException>` methods for `PolicyCollection`.
+- Introduce `IncludeInnerError<TInnerException>` and `ExcludeInnerError<TInnerException>` methods for the `PolicyDelegateCollection`  and `PolicyDelegateCollection<T>` classes.
+- Introduce `FallbackFuncsProvider` class.
+- New constructors for `FallbackPolicy` classes that accept the `FallbackFuncsProvider` parameter.
+- Introduce `PolicyCollection.WithFallback(FallbackFuncsProvider)` method.
+- Add `PolicyCollection.WithFallback` overloaded methods with `onlyGenericFallbackForGenericDelegate` parameter.
+- Refactor the constructors of `FallbackPolicy` classes to accept the new `onlyGenericFallbackForGenericDelegate` parameter.
+- Improved performance for `FallbackPolicy`, since no more `Expression`s are used to store generic fallback functions.
+- Made `SimplePolicyProcessor` and `SimplePolicy` rethrow exception if error filter is unsatisfied.
+- Minimize the number of calls to the `Expression.Compile` method in the `PolicyProcessor.ExceptionFilter` class.
+- Fix issue #93.
+- Introduce `PolicyResult.FailedHandlerIndex` property.
+- Made `SimplePolicyProcessor` class sealed.
+- Update 'Error processors' README Chapter.
+- Add doc comments to `IBulkErrorProcessor`, `IFallbackProcessor` interfaces and `FallbackPolicy` class.
+
+
 ## 2.15.0
 
 - Introduce `SetPolicyResultFailedIf(<T>)` methods for the `PolicyCollection` and the `PolicyDelegateCollection(<T>)` classes.
