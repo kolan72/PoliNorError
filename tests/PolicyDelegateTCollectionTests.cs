@@ -600,6 +600,61 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_PolicyDelegate_HandleSafely_Work()
+		{
+			var excToThrow = new NullReferenceException();
+			var result = new SimplePolicy(true)
+				.ExcludeError<NullReferenceException>()
+				.ToPolicyDelegate<int>(() => throw excToThrow)
+				.HandleSafely(default);
+			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		public async Task Should_PolicyDelegate_HandleSafelyAsync_Work()
+		{
+			var excToThrow = new NullReferenceException();
+			var result = await new SimplePolicy(true)
+				.ExcludeError<NullReferenceException>()
+				.ToPolicyDelegate<int>(async (_) => {await Task.Delay(1); throw excToThrow;})
+				.HandleSafelyAsync(false, default);
+			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_PolicyDelegate_HandleAsyncAsSync_Work(bool canceled)
+		{
+			var cts = new CancellationTokenSource();
+			if (canceled)
+			{
+				cts.Cancel();
+			}
+			var excToThrow = new NullReferenceException();
+			var (result, IsCanceled) = new SimplePolicy(true)
+				.ExcludeError<NullReferenceException>()
+				.ToPolicyDelegate<int>(async(_) => { await Task.Delay(1); throw excToThrow; })
+				.HandleAsyncAsSyncSafely(cts.Token);
+
+			if (canceled)
+			{
+				Assert.That(IsCanceled, Is.True);
+				Assert.That(result, Is.Null);
+			}
+			else
+			{
+				Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
+				Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+				Assert.That(result.IsFailed, Is.True);
+			}
+		}
+
+		[Test]
 		public void Should_PolicyDelegateCollection_From_PolicyCollection_Handling_FailFast_For_Null_SyncFunc()
 		{
 			var polCollection = PolicyCollection.Create()
