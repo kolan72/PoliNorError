@@ -56,11 +56,11 @@ namespace PoliNorError
 
 				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
-					curPolResult = si.Handle(token);
+					curPolResult = si.HandleSafely(token);
 				}
 				else
 				{
-					var (policyResult, IsCanceled) = HandleAsyncAsSync(si);
+					var (policyResult, IsCanceled) = si.HandleAsyncAsSyncSafely(token);
 					curPolResult = policyResult;
 					if (IsCanceled)
 					{
@@ -70,20 +70,6 @@ namespace PoliNorError
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
-
-			(PolicyResult policyResult, bool IsCanceled) HandleAsyncAsSync(PolicyDelegate si)
-			{
-				PolicyResult polResult = null;
-				try
-				{
-					polResult = Task.Run(() => si.HandleAsync(false, token), token).Result;
-					return (polResult, false);
-				}
-				catch (AggregateException ae) when (ae.HasCanceledException(token))
-				{
-					return (null, true);
-				}
-			}
 		}
 
 		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, LastPolicyResultState lastPolicyResultState) HandleAllForceSync<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default)
@@ -108,11 +94,11 @@ namespace PoliNorError
 
 				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
-					curPolResult = si.Handle(token);
+					curPolResult = si.HandleSafely(token);
 				}
 				else
 				{
-					var (policyResult, IsCanceled) = HandleAsyncAsSync(si);
+					var (policyResult, IsCanceled) = si.HandleAsyncAsSyncSafely(token);
 					curPolResult = policyResult;
 					if (IsCanceled)
 					{
@@ -122,20 +108,6 @@ namespace PoliNorError
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
-
-			(PolicyResult<T> policyResult, bool IsCanceled) HandleAsyncAsSync(PolicyDelegate<T> si)
-			{
-				PolicyResult<T> polResult = null;
-				try
-				{
-					polResult = Task.Run(() => si.HandleAsync(false, token), token).Result;
-					return (polResult, false);
-				}
-				catch (AggregateException ae) when (ae.HasCanceledException(token))
-				{
-					return (null, true);
-				}
-			}
 		}
 
 		internal static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState)> HandleAllBySyncType(IEnumerable<PolicyDelegate> policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
@@ -207,7 +179,7 @@ namespace PoliNorError
 					return (handledResults, LastPolicyResultState.FromCanceled());
 				}
 
-				curPolResult = si.Handle(token);
+				curPolResult = si.HandleSafely(token);
 
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
@@ -233,7 +205,7 @@ namespace PoliNorError
 					return (handledResults, LastPolicyResultState.FromCanceled());
 				}
 
-				curPolResult = si.Handle(token);
+				curPolResult = si.HandleSafely(token);
 
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
@@ -259,11 +231,11 @@ namespace PoliNorError
 
 				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
-					curPolResult = si.Handle(token);
+					curPolResult = si.HandleSafely(token);
 				}
 				else
 				{
-					curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
+					curPolResult = await si.HandleSafelyAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				}
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
@@ -289,11 +261,11 @@ namespace PoliNorError
 
 				if (si.SyncType == SyncPolicyDelegateType.Sync)
 				{
-					curPolResult = si.Handle(token);
+					curPolResult = si.HandleSafely(token);
 				}
 				else
 				{
-					curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
+					curPolResult = await si.HandleSafelyAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				}
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
@@ -316,7 +288,7 @@ namespace PoliNorError
 				{
 					return (handledResults, LastPolicyResultState.FromCanceled());
 				}
-				curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
+				curPolResult = await si.HandleSafelyAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
@@ -338,7 +310,7 @@ namespace PoliNorError
 				{
 					return (handledResults, LastPolicyResultState.FromCanceled());
 				}
-				curPolResult = await si.HandleAsync(configureAwait, token).ConfigureAwait(configureAwait);
+				curPolResult = await si.HandleSafelyAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
 			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
