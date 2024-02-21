@@ -78,6 +78,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))
@@ -129,6 +130,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))
@@ -175,6 +177,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))
@@ -222,6 +225,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))
