@@ -16,6 +16,7 @@ namespace PoliNorError
 			{
 				var result = PolicyResult.ForSync();
 				result.SetFailedWithError(ex, PolicyResultFailedReason.UnhandledError);
+				result.SetErrorFilterUnsatisfiedByErrorData(ex);
 				return result;
 			}
 		}
@@ -30,6 +31,7 @@ namespace PoliNorError
 			{
 				var result = PolicyResult<T>.ForSync();
 				result.SetFailedWithError(ex, PolicyResultFailedReason.UnhandledError);
+				result.SetErrorFilterUnsatisfiedByErrorData(ex);
 				return result;
 			}
 		}
@@ -44,6 +46,7 @@ namespace PoliNorError
 			{
 				var result = PolicyResult.InitByConfigureAwait(configureAwait);
 				result.SetFailedWithError(ex, PolicyResultFailedReason.UnhandledError);
+				result.SetErrorFilterUnsatisfiedByErrorData(ex);
 				return result;
 			}
 		}
@@ -58,6 +61,7 @@ namespace PoliNorError
 			{
 				var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 				result.SetFailedWithError(ex, PolicyResultFailedReason.UnhandledError);
+				result.SetErrorFilterUnsatisfiedByErrorData(ex);
 				return result;
 			}
 		}
@@ -78,6 +82,7 @@ namespace PoliNorError
 			{
 				var result = PolicyResult.ForSync();
 				result.SetFailedWithError(ae.InnerException, PolicyResultFailedReason.UnhandledError);
+				result.SetErrorFilterUnsatisfiedByErrorData(ae.InnerException);
 				return (result, false);
 			}
 		}
@@ -98,6 +103,7 @@ namespace PoliNorError
 			{
 				var result = PolicyResult<T>.ForSync();
 				result.SetFailedWithError(ae.InnerException, PolicyResultFailedReason.UnhandledError);
+				result.SetErrorFilterUnsatisfiedByErrorData(ae.InnerException);
 				return (result, false);
 			}
 		}

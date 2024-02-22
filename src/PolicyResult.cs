@@ -56,7 +56,7 @@ namespace PoliNorError
 
 		public PolicyResultFailedReason FailedReason { get; internal set; }
 
-		public bool ErrorFilterUnsatisfied { get; protected set; }
+		public bool ErrorFilterUnsatisfied { get; internal set; }
 
 		public Exception UnprocessedError
 		{

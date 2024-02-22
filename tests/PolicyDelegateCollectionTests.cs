@@ -1083,6 +1083,7 @@ namespace PoliNorError.Tests
 				.HandleSafely(default);
 			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
 			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 			Assert.That(result.IsFailed, Is.True);
 		}
 
@@ -1096,6 +1097,7 @@ namespace PoliNorError.Tests
 				.HandleSafelyAsync(false, default);
 			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
 			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 			Assert.That(result.IsFailed, Is.True);
 		}
 
@@ -1124,6 +1126,7 @@ namespace PoliNorError.Tests
 			{
 				Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
 				Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+				Assert.That(result.ErrorFilterUnsatisfied, Is.EqualTo(true));
 				Assert.That(result.IsFailed, Is.True);
 			}
 		}
