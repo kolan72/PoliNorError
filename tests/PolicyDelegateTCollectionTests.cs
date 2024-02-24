@@ -600,13 +600,27 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_PolicyDelegate_HandleSafely_Work()
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_PolicyDelegate_HandleSafely_Work(bool byCollection)
 		{
 			var excToThrow = new NullReferenceException();
-			var result = new SimplePolicy(true)
-				.ExcludeError<NullReferenceException>()
-				.ToPolicyDelegate<int>(() => throw excToThrow)
-				.HandleSafely(default);
+			var policy = new SimplePolicy(true)
+				.ExcludeError<NullReferenceException>();
+			PolicyResult<int> result = null;
+			if (byCollection)
+			{
+				result = PolicyCollection
+						.Create(policy)
+						.HandleDelegate<int>(() => throw excToThrow)
+						.LastPolicyResult;
+			}
+			else
+			{
+				result = policy
+						.ToPolicyDelegate<int>(() => throw excToThrow)
+						.HandleSafely(default);
+			}
 			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
 			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
 			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
@@ -614,13 +628,27 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_PolicyDelegate_HandleSafelyAsync_Work()
+		[TestCase(false)]
+		[TestCase(true)]
+		public async Task Should_PolicyDelegate_HandleSafelyAsync_Work(bool byCollection)
 		{
 			var excToThrow = new NullReferenceException();
-			var result = await new SimplePolicy(true)
-				.ExcludeError<NullReferenceException>()
-				.ToPolicyDelegate<int>(async (_) => {await Task.Delay(1); throw excToThrow;})
+			var policy = new SimplePolicy(true)
+						.ExcludeError<NullReferenceException>();
+			PolicyResult<int> result = null;
+			if (byCollection)
+			{
+				result = (await PolicyCollection
+						.Create(policy)
+						.HandleDelegateAsync<int>((_) => throw excToThrow))
+						.LastPolicyResult;
+			}
+			else
+			{
+				result = await policy
+				.ToPolicyDelegate<int>(async (_) => { await Task.Delay(1); throw excToThrow; })
 				.HandleSafelyAsync(false, default);
+			}
 			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
 			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
 			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
@@ -655,6 +683,19 @@ namespace PoliNorError.Tests
 				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 				Assert.That(result.IsFailed, Is.True);
 			}
+		}
+
+		[Test]
+		public void Should_PolicyDelegate_HandleAsyncAsSync_Work_WhenHandling_ByCollection()
+		{
+			var excToThrow = new NullReferenceException();
+			var policy = new SimplePolicy(true)
+			   .ExcludeError<NullReferenceException>();
+			var collectionResult = PolicyCollection
+							.Create(policy)
+							.HandleDelegate<int>(async (_) => { await Task.Delay(1); throw excToThrow; });
+			Assert.That(collectionResult.LastPolicyResult.ErrorFilterUnsatisfied, Is.True);
+			Assert.That(collectionResult.IsFailed, Is.True);
 		}
 
 		[Test]
