@@ -278,7 +278,7 @@ namespace PoliNorError
 			return policyResult;
 		}
 
-		internal static void SetErrorFilterUnsatisfiedByErrorData(this PolicyResult policyResult, Exception error)
+		internal static void ChangeByErrorData(this PolicyResult policyResult, Exception error)
 		{
 			if (error.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true))
 			{
