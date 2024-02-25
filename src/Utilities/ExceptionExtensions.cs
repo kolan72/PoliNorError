@@ -11,7 +11,7 @@ namespace PoliNorError
 
 		internal static bool DataContainsKeyStringWithValue<TValue>(this Exception exception, string key, TValue value)
 		{
-			return exception.Data.Contains(key) && ((TValue)exception.Data[key]).Equals(value);
+			return exception.Data.Contains(key) && exception.Data[key].GetType() == typeof(TValue) && ((TValue)exception.Data[key]).Equals(value);
 		}
 	}
 }

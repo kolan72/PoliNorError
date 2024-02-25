@@ -86,7 +86,7 @@
     <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
-    <Compile Include="FallBackFuncHoldersTests.cs" />
+    <Compile Include="UtilitiesTests.cs" />
     <Compile Include="FallbackFuncsProviderTests.cs" />
     <Compile Include="FallbackPolicyTests.cs" />
     <Compile Include="FallbackTypeForTests.cs" />
