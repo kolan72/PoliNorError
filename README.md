@@ -112,7 +112,7 @@ You might wonder why there are so many success-related properties. See [Nuances 
 If an exception occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects. For a critical exception, as mentioned above, the `CatchBlockException.IsCritical` property will be equal to true.  
 The `CriticalError` property represents a critical exception itself or wrapped in the `AggregateException` (since _version_ 2.12.1).  
 
-For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful or there were no errors at all.  
+For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful (except for `SimplePolicy`, where `Result` can remain the default value even on success) or there were no errors at all.  
 
 ### Error processors
 In the common case, an error processor is a class that implements the `IErrorProcessor` interface. For instance, the class `DelayErrorProcessor` specifies amount of delay time before continuing with the handling process.  
