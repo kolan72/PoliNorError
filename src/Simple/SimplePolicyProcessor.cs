@@ -21,9 +21,15 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
 		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
-		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : base(PolicyAlias.Simple, bulkErrorProcessor)
+		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, null, rethrowIfErrorFilterUnsatisfied)
+		{}
+
+		internal SimplePolicyProcessor(CatchBlockFilter catchBlockFilter, IBulkErrorProcessor bulkErrorProcessor = null, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, (catchBlockFilter ?? new CatchBlockFilter()).ErrorFilter, rethrowIfErrorFilterUnsatisfied)
+		{}
+
+		private SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, ExceptionFilter exceptionFilter, bool rethrowIfErrorFilterUnsatisfied) : base(PolicyAlias.Simple, exceptionFilter ?? new ExceptionFilter(), bulkErrorProcessor)
 		{
-			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default: EmptyErrorContext.DefaultSimple;
+			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default : EmptyErrorContext.DefaultSimple;
 			_rethrowIfErrorFilterUnsatisfied = rethrowIfErrorFilterUnsatisfied;
 		}
 
@@ -72,6 +78,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))
@@ -123,6 +130,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))
@@ -169,6 +177,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))
@@ -216,6 +225,7 @@ namespace PoliNorError
 					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 						throw;
 					}
 					else if (!(filterException is null))

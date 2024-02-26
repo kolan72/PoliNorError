@@ -56,11 +56,11 @@ namespace PoliNorError
 
 		public PolicyResultFailedReason FailedReason { get; internal set; }
 
-		public bool ErrorFilterUnsatisfied { get; protected set; }
+		public bool ErrorFilterUnsatisfied { get; internal set; }
 
 		public Exception UnprocessedError
 		{
-			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed))
+			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError))
 															? Errors.LastOrDefault()
 															: null); }
 			internal set { _unprocessedError = value; }
@@ -168,6 +168,7 @@ namespace PoliNorError
 		None,
 		DelegateIsNull,
 		PolicyProcessorFailed,
-		PolicyResultHandlerFailed
+		PolicyResultHandlerFailed,
+		UnhandledError
 	}
 }

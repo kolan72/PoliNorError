@@ -278,6 +278,14 @@ namespace PoliNorError
 			return policyResult;
 		}
 
+		internal static void ChangeByErrorData(this PolicyResult policyResult, Exception error)
+		{
+			if (error.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true))
+			{
+				policyResult.ErrorFilterUnsatisfied = true;
+			}
+		}
+
 		internal static T GetResultOrDefault<T>(this PolicyResult<T> policyResult) => policyResult != null ? policyResult.Result : default;
 	}
 }

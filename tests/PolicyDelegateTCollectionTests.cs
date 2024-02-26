@@ -600,6 +600,105 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_PolicyDelegate_HandleSafely_Work(bool byCollection)
+		{
+			var excToThrow = new NullReferenceException();
+			var policy = new SimplePolicy(true)
+				.ExcludeError<NullReferenceException>();
+			PolicyResult<int> result = null;
+			if (byCollection)
+			{
+				result = PolicyCollection
+						.Create(policy)
+						.HandleDelegate<int>(() => throw excToThrow)
+						.LastPolicyResult;
+			}
+			else
+			{
+				result = policy
+						.ToPolicyDelegate<int>(() => throw excToThrow)
+						.HandleSafely(default);
+			}
+			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public async Task Should_PolicyDelegate_HandleSafelyAsync_Work(bool byCollection)
+		{
+			var excToThrow = new NullReferenceException();
+			var policy = new SimplePolicy(true)
+						.ExcludeError<NullReferenceException>();
+			PolicyResult<int> result = null;
+			if (byCollection)
+			{
+				result = (await PolicyCollection
+						.Create(policy)
+						.HandleDelegateAsync<int>((_) => throw excToThrow))
+						.LastPolicyResult;
+			}
+			else
+			{
+				result = await policy
+				.ToPolicyDelegate<int>(async (_) => { await Task.Delay(1); throw excToThrow; })
+				.HandleSafelyAsync(false, default);
+			}
+			Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_PolicyDelegate_HandleAsyncAsSync_Work(bool canceled)
+		{
+			var cts = new CancellationTokenSource();
+			if (canceled)
+			{
+				cts.Cancel();
+			}
+			var excToThrow = new NullReferenceException();
+			var (result, IsCanceled) = new SimplePolicy(true)
+				.ExcludeError<NullReferenceException>()
+				.ToPolicyDelegate<int>(async(_) => { await Task.Delay(1); throw excToThrow; })
+				.HandleAsyncAsSyncSafely(cts.Token);
+
+			if (canceled)
+			{
+				Assert.That(IsCanceled, Is.True);
+				Assert.That(result, Is.Null);
+			}
+			else
+			{
+				Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
+				Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				Assert.That(result.IsFailed, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_PolicyDelegate_HandleAsyncAsSync_Work_WhenHandling_ByCollection()
+		{
+			var excToThrow = new NullReferenceException();
+			var policy = new SimplePolicy(true)
+			   .ExcludeError<NullReferenceException>();
+			var collectionResult = PolicyCollection
+							.Create(policy)
+							.HandleDelegate<int>(async (_) => { await Task.Delay(1); throw excToThrow; });
+			Assert.That(collectionResult.LastPolicyResult.ErrorFilterUnsatisfied, Is.True);
+			Assert.That(collectionResult.IsFailed, Is.True);
+		}
+
+		[Test]
 		public void Should_PolicyDelegateCollection_From_PolicyCollection_Handling_FailFast_For_Null_SyncFunc()
 		{
 			var polCollection = PolicyCollection.Create()

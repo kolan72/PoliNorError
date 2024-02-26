@@ -1,11 +1,12 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
-	internal class FallBackFuncHoldersTests
+	internal class UtilitiesTests
 	{
 		[Test]
 		public void Should_BoxingSafeConverter_Work_For_Structs()
@@ -60,6 +61,23 @@ namespace PoliNorError.Tests
 			var holder = new FallBackAsyncFuncHolder<int>(async (_) => await Task.FromResult(++i));
 			var theSameFunc = holder.GetFallbackAsyncFunc<string>();
 			ClassicAssert.IsNull(theSameFunc);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Exception_DataContainsKeyStringWithValue_Returns_CorrectBoolValue_ForAnyGenericType(bool sameType)
+		{
+			var exc = new Exception("Test");
+			exc.Data["TestBool"] = true;
+			if (sameType)
+			{
+				Assert.That(exc.DataContainsKeyStringWithValue("TestBool", true), Is.True);
+			}
+			else
+			{
+				Assert.That(exc.DataContainsKeyStringWithValue("TestBool", 5), Is.False);
+			}
 		}
 
 #pragma warning disable S2094 // Classes should not be empty

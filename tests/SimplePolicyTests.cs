@@ -558,7 +558,8 @@ namespace PoliNorError.Tests
 			else
 			{
 				var proc = new SimplePolicy(true).ExcludeError<TestExceptionWithInnerException>();
-				Assert.Throws<TestExceptionWithInnerException>(() => proc.Handle(ActionWithInner));
+				var exception = Assert.Throws<TestExceptionWithInnerException>(() => proc.Handle(ActionWithInner));
+				Assert.That(exception.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true), Is.True);
 			}
 		}
 
@@ -577,7 +578,8 @@ namespace PoliNorError.Tests
 			else
 			{
 				var proc = new SimplePolicy(true).ExcludeError<TestExceptionWithInnerException>();
-				Assert.ThrowsAsync<TestExceptionWithInnerException>(async () => await proc.HandleAsync(AsyncFuncWithInner));
+				var exception = Assert.ThrowsAsync<TestExceptionWithInnerException>(async () => await proc.HandleAsync(AsyncFuncWithInner));
+				Assert.That(exception.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true), Is.True);
 			}
 		}
 
@@ -596,7 +598,8 @@ namespace PoliNorError.Tests
 			else
 			{
 				var proc = new SimplePolicy(true).ExcludeError<TestExceptionWithInnerException>();
-				Assert.Throws<TestExceptionWithInnerException>(() => proc.Handle(FuncWithInner));
+				var exception = Assert.Throws<TestExceptionWithInnerException>(() => proc.Handle(FuncWithInner));
+				Assert.That(exception.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true), Is.True);
 			}
 		}
 
@@ -615,7 +618,8 @@ namespace PoliNorError.Tests
 			else
 			{
 				var proc = new SimplePolicy(true).ExcludeError<TestExceptionWithInnerException>();
-				Assert.ThrowsAsync<TestExceptionWithInnerException>(async () => await proc.HandleAsync(AsyncFuncWithInnerT));
+				var exception = Assert.ThrowsAsync<TestExceptionWithInnerException>(async () => await proc.HandleAsync(AsyncFuncWithInnerT));
+				Assert.That(exception.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true), Is.True);
 			}
 		}
 	}

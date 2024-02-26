@@ -86,7 +86,7 @@
     <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
-    <Compile Include="FallBackFuncHoldersTests.cs" />
+    <Compile Include="UtilitiesTests.cs" />
     <Compile Include="FallbackFuncsProviderTests.cs" />
     <Compile Include="FallbackPolicyTests.cs" />
     <Compile Include="FallbackTypeForTests.cs" />
@@ -104,7 +104,7 @@
     <Compile Include="PolicyDelegateCollectionTests.cs" />
     <Compile Include="PolicyDelegateTCollectionTests.cs" />
     <Compile Include="PolicyProcessorHandleCanceledTests.cs" />
-    <Compile Include="PolicyProcessorTests.cs" />
+    <Compile Include="ExceptionFilterTests.cs" />
     <Compile Include="PolicyResultHandlerTTests.cs" />
     <Compile Include="PolicyResultTests.cs" />
     <Compile Include="PolicyWithInnerErrorProcessorForTest.cs" />

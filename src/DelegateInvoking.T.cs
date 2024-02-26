@@ -133,8 +133,10 @@ namespace PoliNorError
 
 		public static PolicyResult<T> InvokeWithSimple<T>(this Func<T> func, CancellationToken token = default) => InvokeWithSimple(func, null, token);
 
-		public static PolicyResult<T> InvokeWithSimple<T>(this Func<T> func, ErrorProcessorParam policyParams, CancellationToken token = default)
-				=> policyParams.ToSimplePolicy().Handle(func, token);
+		public static PolicyResult<T> InvokeWithSimple<T>(this Func<T> func, ErrorProcessorParam policyParams, CancellationToken token = default) => InvokeWithSimple(func, null, policyParams, token);
+
+		public static PolicyResult<T> InvokeWithSimple<T>(this Func<T> func, CatchBlockFilter catchBlockFilter, ErrorProcessorParam policyParams, CancellationToken token = default)
+				=> policyParams.ToSimplePolicy(catchBlockFilter).Handle(func, token);
 
 		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, CancellationToken token = default)
 				=> InvokeWithSimpleAsync(func, null, token);
@@ -142,7 +144,13 @@ namespace PoliNorError
 		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorProcessorParam policyParams, CancellationToken token = default)
 				=> InvokeWithSimpleAsync(func, policyParams, false, token);
 
-		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token)
-				=> policyParams.ToSimplePolicy().HandleAsync(func, configureAwait, token);
+		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token = default)
+				=> InvokeWithSimpleAsync(func, null, policyParams, configureAwait, token);
+
+		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, CatchBlockFilter catchBlockFilter, ErrorProcessorParam policyParams, CancellationToken token = default)
+				=> InvokeWithSimpleAsync(func, catchBlockFilter, policyParams, false, token);
+
+		public static Task<PolicyResult<T>> InvokeWithSimpleAsync<T>(this Func<CancellationToken, Task<T>> func, CatchBlockFilter catchBlockFilter, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token = default)
+				=> policyParams.ToSimplePolicy(catchBlockFilter).HandleAsync(func, configureAwait, token);
 	}
 }
