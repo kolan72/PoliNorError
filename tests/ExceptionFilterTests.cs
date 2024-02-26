@@ -41,22 +41,22 @@ namespace PoliNorError.Tests
 		[TestCase(true)]
 		public void Should_ErrorFilter_Created_By_FromIncludedError_Add_ErrorFilter_Expressions_Correctly(bool generic)
 		{
-			ErrorFilter filter = null;
+			CatchBlockFilter filter = null;
 			if (generic)
 			{
-				filter = ErrorFilter.FromIncludedError<ArgumentException>((ex) => ex.ParamName == "Test");
-				filter.Include<ArgumentException>((_) => true);
-				filter.Exclude<ArgumentException>((_) => true);
+				filter = new CatchBlockFilter().IncludeError<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter.IncludeError<ArgumentException>((_) => true);
+				filter.ExcludeError<ArgumentException>((_) => true);
 			}
 			else
 			{
-				filter = ErrorFilter.FromIncludedError((ex) => ex.Message == "Test");
-				filter.Include((_) => true);
-				filter.Exclude((_) => true);
+				filter = new CatchBlockFilter().IncludeError<ArgumentException>((ex) => ex.Message == "Test");
+				filter.IncludeError((_) => true);
+				filter.ExcludeError((_) => true);
 			}
 
-			Assert.That(filter.ExcludedErrorFilters.Count(), Is.EqualTo(1));
-			Assert.That(filter.IncludedErrorFilters.Count(), Is.EqualTo(2));
+			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(1));
+			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(2));
 		}
 
 		[Test]
@@ -64,22 +64,22 @@ namespace PoliNorError.Tests
 		[TestCase(true)]
 		public void Should_ErrorFilter_Created_By_FromExcludedError_Add_ErrorFilter_Expressions_Correctly(bool generic)
 		{
-			ErrorFilter filter = null;
+			CatchBlockFilter filter = null;
 			if (generic)
 			{
-				filter = ErrorFilter.FromExcludedError<ArgumentException>((ex) => ex.ParamName == "Test");
-				filter.Include<ArgumentException>((_) => true);
-				filter.Exclude<ArgumentException>((_) => true);
+				filter = new CatchBlockFilter().ExcludeError<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter.IncludeError<ArgumentException>((_) => true);
+				filter.ExcludeError<ArgumentException>((_) => true);
 			}
 			else
 			{
-				filter = ErrorFilter.FromExcludedError((ex) => ex.Message == "Test");
-				filter.Include((_) => true);
-				filter.Exclude((_) => true);
+				filter = new CatchBlockFilter().ExcludeError((ex) => ex.Message == "Test");
+				filter.IncludeError((_) => true);
+				filter.ExcludeError((_) => true);
 			}
 
-			Assert.That(filter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
-			Assert.That(filter.IncludedErrorFilters.Count(), Is.EqualTo(1));
+			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
+			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(1));
 		}
 	}
 }

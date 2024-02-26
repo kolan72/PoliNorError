@@ -56,14 +56,14 @@ namespace PoliNorError.Tests
         [TestCase(false)]
         public void Should_InvokeWithSimple_WithErrorFilter_Work(bool errorFilterUnsatisfied)
         {
-            ErrorFilter errorFilter = null;
+            CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentNullException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
             }
             else
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
             }
 
             int i = 0;
@@ -78,14 +78,14 @@ namespace PoliNorError.Tests
         [TestCase(false)]
         public async Task Should_InvokeWithSimpleAsync_WithErrorFilter_Work(bool errorFilterUnsatisfied)
         {
-            ErrorFilter errorFilter = null;
+            CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentNullException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
             }
             else
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
             }
             int i = 0;
             Func<CancellationToken, Task> fun = async(_) => { await Task.Delay(1); i++;  throw new ArgumentException("Test"); };
@@ -99,14 +99,14 @@ namespace PoliNorError.Tests
         [TestCase(false)]
         public async Task Should_InvokeWithSimpleAsyncT_WithErrorFilter_Work(bool errorFilterUnsatisfied)
         {
-            ErrorFilter errorFilter = null;
+            CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentNullException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
             }
             else
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
             }
             int i = 0;
             Func<CancellationToken, Task<int>> fun = async (_) => { await Task.Delay(1); i++; throw new ArgumentException("Test"); };
@@ -120,14 +120,14 @@ namespace PoliNorError.Tests
         [TestCase(false)]
         public void Should_InvokeWithSimpleT_WithErrorFilter_Work(bool errorFilterUnsatisfied)
         {
-            ErrorFilter errorFilter = null;
+            CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentNullException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
             }
             else
             {
-                errorFilter = ErrorFilter.FromIncludedError<ArgumentException>();
+                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
             }
 
             int i = 0;

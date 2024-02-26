@@ -24,7 +24,7 @@ namespace PoliNorError
 		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, null, rethrowIfErrorFilterUnsatisfied)
 		{}
 
-		internal SimplePolicyProcessor(ErrorFilter exceptionFilter, IBulkErrorProcessor bulkErrorProcessor = null, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, exceptionFilter, rethrowIfErrorFilterUnsatisfied)
+		internal SimplePolicyProcessor(CatchBlockFilter catchBlockFilter, IBulkErrorProcessor bulkErrorProcessor = null, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, (catchBlockFilter ?? new CatchBlockFilter()).ErrorFilter, rethrowIfErrorFilterUnsatisfied)
 		{}
 
 		private SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, ExceptionFilter exceptionFilter, bool rethrowIfErrorFilterUnsatisfied) : base(PolicyAlias.Simple, exceptionFilter ?? new ExceptionFilter(), bulkErrorProcessor)
