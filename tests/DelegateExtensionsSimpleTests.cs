@@ -76,6 +76,40 @@ namespace PoliNorError.Tests
         [Test]
         [TestCase(true)]
         [TestCase(false)]
+        public void Should_InvokeWithSimple_WithCatchBlockHandler_Work(bool include)
+        {
+            var exception = new ArgumentException("Test");
+            CatchBlockHandler handler = null;
+            int k = 0;
+            if (include)
+            {
+                handler = CatchBlockHandler
+                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+            }
+            else
+            {
+                handler = CatchBlockHandler
+                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+            }
+            handler.WithErrorProcessorOf((_) => k++);
+            int i = 0;
+            Action action = () => { i++; throw exception; };
+            var policyResult = action.InvokeWithSimple(handler);
+            Assert.That(i, Is.EqualTo(1));
+            if (include)
+            {
+                Assert.That(k, Is.EqualTo(1));
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);
+            }
+            else
+            {
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.True);
+            }
+        }
+
+        [Test]
+        [TestCase(true)]
+        [TestCase(false)]
         public async Task Should_InvokeWithSimpleAsync_WithErrorFilter_Work(bool errorFilterUnsatisfied)
         {
             CatchBlockFilter errorFilter = null;
@@ -92,6 +126,40 @@ namespace PoliNorError.Tests
             var policyResult =  await fun.InvokeWithSimpleAsync(errorFilter, ErrorProcessorParam.From((_) => { }));
             Assert.That(policyResult.ErrorFilterUnsatisfied, Is.EqualTo(errorFilterUnsatisfied));
             Assert.That(i, Is.EqualTo(1));
+        }
+
+        [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Should_InvokeWithSimpleAsync_WithCatchBlockHandler_Work(bool include)
+        {
+            var exception = new ArgumentException("Test");
+            CatchBlockHandler handler = null;
+            int k = 0;
+            if (include)
+            {
+                handler = CatchBlockHandler
+                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+            }
+            else
+            {
+                handler = CatchBlockHandler
+                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+            }
+            handler.WithErrorProcessorOf((_) => k++);
+            int i = 0;
+            Func<CancellationToken, Task> fun = async(_) => {await Task.Delay(1); i++; throw exception; };
+            var policyResult = await fun.InvokeWithSimpleAsync(handler);
+            Assert.That(i, Is.EqualTo(1));
+            if (include)
+            {
+                Assert.That(k, Is.EqualTo(1));
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);
+            }
+            else
+            {
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.True);
+            }
         }
 
         [Test]
