@@ -1,3 +1,16 @@
+## 2.16.9
+
+- Add `CatchBlockFilter` class and use it in the `SimplePolicyProcessor` class.
+- Introduce new `Action.InvokeWithSimple` extension method with an `CatchBlockFilter` parameter.
+- Introduce new `Func<CancellationToken, Task>.InvokeWithSimpleAsync` extension method with an `CatchBlockFilter` parameter.
+- Introduce new `Func<T>.InvokeWithSimple` extension method with an `CatchBlockFilter` parameter.
+- Introduce new `Func<CancellationToken, Task<T>>.InvokeWithSimpleAsync<T>` extension methods with an `CatchBlockFilter` parameter.
+- Delegates, when included as part of `PolicyDelegate` in a collection, are handled error-free even if a policy rethrows an exception.
+- Set the `PolicyResult.ErrorFilterUnsatisfied` property to `true` when a delegate is handled as part of a `PolicyDelegate` by the `PolicyDelegateCollection(T)` and an exception is rethrown because the error filter is not satisfied.
+- Force the non-generic async fallback delegate converted from `Func<Task>` to throw `OperationCanceledException` if cancellation has already occurred.
+- Rename the incorrect filename PolicyProcessorTests.cs to ExceptionFilterTests.cs.
+
+
 ## 2.16.1
 
 - Introduce `IncludeInnerError<TInnerException>` and `ExcludeInnerError<TInnerException>` methods for `PolicyCollection`.
