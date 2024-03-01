@@ -206,6 +206,74 @@ namespace PoliNorError.Tests
         }
 
         [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_InvokeWithSimpleT_WithCatchBlockHandler_Work(bool include)
+        {
+            var exception = new ArgumentException("Test");
+            CatchBlockHandler handler = null;
+            int k = 0;
+            if (include)
+            {
+                handler = CatchBlockHandler
+                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+            }
+            else
+            {
+                handler = CatchBlockHandler
+                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+            }
+            handler.WithErrorProcessorOf((_) => k++);
+            int i = 0;
+            Func<int> fun = () => { i++; throw exception; };
+            var policyResult = fun.InvokeWithSimple(handler);
+            Assert.That(i, Is.EqualTo(1));
+            if (include)
+            {
+                Assert.That(k, Is.EqualTo(1));
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);
+            }
+            else
+            {
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.True);
+            }
+        }
+
+        [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Should_InvokeWithSimpleAsyncT_WithCatchBlockHandler_Work(bool include)
+        {
+            var exception = new ArgumentException("Test");
+            CatchBlockHandler handler = null;
+            int k = 0;
+            if (include)
+            {
+                handler = CatchBlockHandler
+                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+            }
+            else
+            {
+                handler = CatchBlockHandler
+                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+            }
+            handler.WithErrorProcessorOf((_) => k++);
+            int i = 0;
+            Func<CancellationToken, Task<int>> fun = async (_) => { await Task.Delay(1); i++; throw exception; };
+            var policyResult = await fun.InvokeWithSimpleAsync(handler);
+            Assert.That(i, Is.EqualTo(1));
+            if (include)
+            {
+                Assert.That(k, Is.EqualTo(1));
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);
+            }
+            else
+            {
+                Assert.That(policyResult.ErrorFilterUnsatisfied, Is.True);
+            }
+        }
+
+        [Test]
         public void Should_InvokeWithSimpleT_Work()
         {
             int i = 0;
