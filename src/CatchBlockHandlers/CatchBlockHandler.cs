@@ -11,7 +11,7 @@
 
 		public static CatchBlockHandler FilterExceptionBy(CatchBlockFilter catchBlockFilter) => new CatchBlockHandler(catchBlockFilter);
 
-		public static CatchBlockHandler ForAllExceptions() => new CatchBlockHandler(new CatchBlockFilter());
+		public static CatchBlockHandler ForAllExceptions() => new CatchBlockHandler(CatchBlockFilter.Empty());
 
 		internal CatchBlockFilter CatchBlockFilter { get; }
 

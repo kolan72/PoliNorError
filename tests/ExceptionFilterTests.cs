@@ -81,5 +81,14 @@ namespace PoliNorError.Tests
 			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
 			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(1));
 		}
+
+		[Test]
+		public void Should_Empty_Create_Empty_Instance()
+		{
+			var instance = CatchBlockFilter.Empty();
+			Assert.That(instance, Is.Not.Null);
+			Assert.That(instance.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(0));
+			Assert.That(instance.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(0));
+		}
 	}
 }
