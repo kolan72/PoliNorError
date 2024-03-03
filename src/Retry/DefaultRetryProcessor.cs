@@ -17,14 +17,7 @@ namespace PoliNorError
 			: base(PolicyAlias.Retry, bulkErrorProcessor)
 		{
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
-			if (_isPolicyAliasSet)
-			{
-				_retryErrorContextCreator = CreateRetryErrorContextWhenAliasSet;
-			}
-			else
-			{
-				_retryErrorContextCreator = CreateRetryErrorContextWhenAliasNotSet;
-			}
+			_retryErrorContextCreator = CreateRetryErrorContext;
 		}
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
@@ -275,14 +268,9 @@ namespace PoliNorError
 			return this;
 		}
 
-		private RetryErrorContext CreateRetryErrorContextWhenAliasSet(int tryCount)
+		private RetryErrorContext CreateRetryErrorContext(int tryCount)
 		{
 			return new RetryErrorContext(tryCount);
-		}
-
-		private RetryErrorContext CreateRetryErrorContextWhenAliasNotSet(int tryCount)
-		{
-			return new RetryErrorContext(tryCount, false);
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
@@ -297,7 +285,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					_saveErrorProcessor.Process(ex, ProcessingErrorInfo.FromRetry(tryErrorCount), token);
+					_saveErrorProcessor.Process(ex, new RetryProcessingErrorInfo(tryErrorCount), token);
 					//We set it here to keep UnprocessedError from being lost.
 					result.UnprocessedError = ex;
 				}
@@ -318,7 +306,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					await _saveErrorProcessor.ProcessAsync(ex, ProcessingErrorInfo.FromRetry(tryErrorCount), configureAwait, token).ConfigureAwait(configureAwait);
+					await _saveErrorProcessor.ProcessAsync(ex, new RetryProcessingErrorInfo(tryErrorCount), configureAwait, token).ConfigureAwait(configureAwait);
 					//We set it here to keep UnprocessedError from being lost.
 					result.UnprocessedError = ex;
 				}

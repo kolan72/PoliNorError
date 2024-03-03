@@ -1,8 +1,8 @@
 ﻿namespace PoliNorError
 {
-	public sealed class ProcessingErrorInfo
+	public class ProcessingErrorInfo
 	{
-		private ProcessingErrorInfo(){}
+		protected ProcessingErrorInfo(){}
 
 		internal ProcessingErrorInfo(ProcessingErrorContext currentContext) : this(currentContext.PolicyKind, currentContext){}
 
@@ -16,7 +16,7 @@
 			}
 		}
 
-		public int CurrentRetryCount { get; private set; } = -1;
+		public int CurrentRetryCount { get; protected set; } = -1;
 
 		private void PopulateContextProperties(ProcessingErrorContext currentContext, PolicyAlias policyKind)
 		{
@@ -32,29 +32,11 @@
 
 		public static ProcessingErrorInfo FromRetry(int retryAttempt)
 		{
-			return new ProcessingErrorInfo() { CurrentRetryCount = retryAttempt, PolicyKind = PolicyAlias.Retry };
+			return new RetryProcessingErrorInfo(retryAttempt);
 		}
 
-		public PolicyAlias PolicyKind { get; private set; }
+		public PolicyAlias PolicyKind { get; protected set; }
 
-		public bool HasContext { get; }
-	}
-
-	public class ProcessingErrorContext
-	{
-		internal ProcessingErrorContext(): this(PolicyAlias.NotSet) { }
-
-		public ProcessingErrorContext(PolicyAlias policyKind) => PolicyKind = policyKind;
-
-		public int CurrentRetryCount { get; private set; } = -1;
-
-		internal bool IsPolicyAliasSet => PolicyKind != PolicyAlias.NotSet;
-
-		internal PolicyAlias PolicyKind { get; set; }
-
-		public static ProcessingErrorContext FromRetry(int currentRetryCount)
-		{
-			return new ProcessingErrorContext(){ CurrentRetryCount = currentRetryCount};
-		}
+		public bool HasContext { get; protected set; }
 	}
 }
