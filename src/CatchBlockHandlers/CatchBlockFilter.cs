@@ -6,7 +6,7 @@ namespace PoliNorError
 	/// <summary>
 	/// Represents a filter that has conditions for an exception to be handled.
 	/// </summary>
-	public sealed class CatchBlockFilter
+	public class CatchBlockFilter
 	{
 		public static CatchBlockFilter Empty() => new CatchBlockFilter();
 
