@@ -90,5 +90,51 @@ namespace PoliNorError.Tests
 			Assert.That(instance.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(0));
 			Assert.That(instance.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(0));
 		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_FilledCatchBlockFilter_CreateByIncluding_Add_ErrorFilter_Expressions_Correctly(bool generic)
+		{
+			FilledCatchBlockFilter filter = null;
+			if (generic)
+			{
+				filter = FilledCatchBlockFilter.CreateByIncluding<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter.IncludeError<ArgumentException>((_) => true);
+				filter.ExcludeError<ArgumentException>((_) => true);
+			}
+			else
+			{
+				filter = FilledCatchBlockFilter.CreateByIncluding((ex) => ex.Message == "Test");
+				filter.IncludeError((_) => true);
+				filter.ExcludeError((_) => true);
+			}
+
+			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(1));
+			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(2));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_FilledCatchBlockFilter_CreateByExcluding_Add_ErrorFilter_Expressions_Correctly(bool generic)
+		{
+			FilledCatchBlockFilter filter = null;
+			if (generic)
+			{
+				filter = FilledCatchBlockFilter.CreateByExcluding<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter.IncludeError<ArgumentException>((_) => true);
+				filter.ExcludeError<ArgumentException>((_) => true);
+			}
+			else
+			{
+				filter = FilledCatchBlockFilter.CreateByExcluding((ex) => ex.Message == "Test");
+				filter.IncludeError((_) => true);
+				filter.ExcludeError((_) => true);
+			}
+
+			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
+			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(1));
+		}
 	}
 }
