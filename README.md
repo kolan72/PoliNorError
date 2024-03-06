@@ -351,8 +351,26 @@ var readAllTextResult = fileNotFoundPolicy
 
 Note that for `SimplePolicy`  the `PolicyResult.IsSuccess` property will always be true if an exception satisfies the filters and no cancellation occurs.  
 Therefore, when handling generic delegates, it's better to check the `NoError` property instead of the `IsSuccess` property to get the `PolicyResult.Result`.  
-Note also, that the `SimplePolicy` can be helpful for exiting from the `PolicyDelegateCollection` handling soon, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.
+Note also, that the `SimplePolicy` can be helpful for exiting from the `PolicyDelegateCollection` handling soon, see [`PolicyDelegateCollection`](#policydelegatecollection) for details.  
 
+`SimplePolicy` and its processor has constructor that accepts optional `rethrowIfErrorFilterUnsatisfied ` parameter that equals `false` by default (since _version_ 2.16.1).  
+If it is `true`, the exception will be rethrown if the error filter is unsatisfied, and you can use a hybrid approach to handle exceptions:
+```csharp
+var sp = new SimplePolicy(true)
+		.ExcludeError<ExceptionToHandleInCatchBlock>()
+		.WithErrorProcessorOf((ex) => 
+			Console.WriteLine(
+			"The exception is handled by SimplePolicy: " + ex.Message));
+try
+{
+	sp.Handle(CanThrowExceptionForCatchBlockOrOther);
+}
+catch (Exception ex)
+{
+	//We are only here with the `ExceptionToHandleInCatchBlock` exception.
+	logger.Error(ex);
+}
+```
 
 ### PolicyDelegate
 A `PolicyDelegate` just pack delegate with a policy into a single object.
