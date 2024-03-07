@@ -84,12 +84,12 @@ namespace PoliNorError.Tests
             if (include)
             {
                 handler = CatchBlockHandler
-                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+                          .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>());
             }
             else
             {
                 handler = CatchBlockHandler
-                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+                         .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByExcluding<ArgumentException>());
             }
             handler.WithErrorProcessorOf((_) => k++);
             int i = 0;
@@ -139,12 +139,12 @@ namespace PoliNorError.Tests
             if (include)
             {
                 handler = CatchBlockHandler
-                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+                          .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>());
             }
             else
             {
                 handler = CatchBlockHandler
-                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+                         .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByExcluding<ArgumentException>());
             }
             handler.WithErrorProcessorOf((_) => k++);
             int i = 0;
@@ -216,12 +216,12 @@ namespace PoliNorError.Tests
             if (include)
             {
                 handler = CatchBlockHandler
-                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+                          .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>());
             }
             else
             {
                 handler = CatchBlockHandler
-                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+                         .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByExcluding<ArgumentException>());
             }
             handler.WithErrorProcessorOf((_) => k++);
             int i = 0;
@@ -250,12 +250,12 @@ namespace PoliNorError.Tests
             if (include)
             {
                 handler = CatchBlockHandler
-                          .FilterExceptionBy(new CatchBlockFilter().IncludeError<ArgumentException>());
+                          .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>());
             }
             else
             {
                 handler = CatchBlockHandler
-                         .FilterExceptionBy(new CatchBlockFilter().ExcludeError<ArgumentException>());
+                         .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByExcluding<ArgumentException>());
             }
             handler.WithErrorProcessorOf((_) => k++);
             int i = 0;

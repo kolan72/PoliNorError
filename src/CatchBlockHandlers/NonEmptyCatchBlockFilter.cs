@@ -3,6 +3,9 @@ using System.Linq.Expressions;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Represents a non-empty filter that has conditions for an exception to be handled.
+	/// </summary>
 	public sealed class NonEmptyCatchBlockFilter : CatchBlockFilter
 	{
 		private NonEmptyCatchBlockFilter(){}

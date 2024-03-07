@@ -1,34 +1,48 @@
 ﻿namespace PoliNorError
 {
 	/// <summary>
-	/// Contains <see cref="PoliNorError.CatchBlockFilter"/> and error processors that are applied to an exception within the catch block.
+	/// Contains a filter and error processors that are applied to an exception within the catch block.
 	/// </summary>
-#pragma warning disable RCS1225 // Make class sealed.
-	public class CatchBlockHandler : ICanAddErrorProcessor
-#pragma warning restore RCS1225 // Make class sealed.
+	public abstract class CatchBlockHandler : ICanAddErrorProcessor
 	{
-		private CatchBlockHandler(CatchBlockFilter catchBlockFilter)
+		protected CatchBlockHandler(CatchBlockFilter catchBlockFilter)
 		{
 			CatchBlockFilter = catchBlockFilter;
 		}
 
 		/// <summary>
-		/// Creates <see cref="CatchBlockHandler"/> that filters an exception using <paramref name="catchBlockFilter"/>.
+		/// Creates <see cref="CatchBlockFilteredHandler"/> that filters an exception using <paramref name="catchBlockFilter"/>.
 		/// </summary>
 		/// <param name="catchBlockFilter"><see cref="PoliNorError.CatchBlockFilter"/></param>
 		/// <returns></returns>
-		public static CatchBlockHandler FilterExceptionBy(CatchBlockFilter catchBlockFilter) => new CatchBlockHandler(catchBlockFilter);
+		public static CatchBlockFilteredHandler FilterExceptionsBy(NonEmptyCatchBlockFilter catchBlockFilter) => new CatchBlockFilteredHandler(catchBlockFilter);
 
 		/// <summary>
-		/// Creates <see cref="CatchBlockHandler"/> with an empty <see cref="PoliNorError.CatchBlockFilter"/>.
+		/// Creates <see cref="CatchBlockForAllHandler"/> with an empty <see cref="PoliNorError.CatchBlockFilter"/>.
 		/// </summary>
 		/// <returns></returns>
-		public static CatchBlockHandler ForAllExceptions() => new CatchBlockHandler(CatchBlockFilter.Empty());
+		public static CatchBlockForAllHandler ForAllExceptions() => new CatchBlockForAllHandler();
 
 		internal CatchBlockFilter CatchBlockFilter { get; }
 
 		internal PolicyProcessor.ExceptionFilter ErrorFilter => CatchBlockFilter.ErrorFilter;
 
 		internal IBulkErrorProcessor BulkErrorProcessor { get; } = new BulkErrorProcessor();
+	}
+
+	/// <summary>
+	/// Contains an empty <see cref="PoliNorError.CatchBlockFilter"/> filter and error processors that are applied to an exception within the catch block.
+	/// </summary>
+	public class CatchBlockForAllHandler : CatchBlockHandler
+	{
+		internal CatchBlockForAllHandler() : base(CatchBlockFilter.Empty()){}
+	}
+
+	/// <summary>
+	/// Contains a non-empty <see cref="PoliNorError.NonEmptyCatchBlockFilter"/> filter and error processors that are applied to an exception within the catch block.
+	/// </summary>
+	public class CatchBlockFilteredHandler : CatchBlockHandler
+	{
+		internal CatchBlockFilteredHandler(NonEmptyCatchBlockFilter nonEmptyCatchBlockFilter) : base(nonEmptyCatchBlockFilter){}
 	}
 }

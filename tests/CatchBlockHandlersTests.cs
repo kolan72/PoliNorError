@@ -140,7 +140,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-				handler = CatchBlockHandler.FilterExceptionBy(new CatchBlockFilter().IncludeError<NullReferenceException>());
+				handler = CatchBlockHandler.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
 				errorToHandler = new NullReferenceException();
 			}
 			var result = handler.ErrorFilter.GetCanHandle()(errorToHandler);
