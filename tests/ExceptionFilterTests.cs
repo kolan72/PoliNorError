@@ -96,16 +96,16 @@ namespace PoliNorError.Tests
 		[TestCase(true)]
 		public void Should_FilledCatchBlockFilter_CreateByIncluding_Add_ErrorFilter_Expressions_Correctly(bool generic)
 		{
-			FilledCatchBlockFilter filter = null;
+			NonEmptyCatchBlockFilter filter = null;
 			if (generic)
 			{
-				filter = FilledCatchBlockFilter.CreateByIncluding<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter = NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>((ex) => ex.ParamName == "Test");
 				filter.IncludeError<ArgumentException>((_) => true);
 				filter.ExcludeError<ArgumentException>((_) => true);
 			}
 			else
 			{
-				filter = FilledCatchBlockFilter.CreateByIncluding((ex) => ex.Message == "Test");
+				filter = NonEmptyCatchBlockFilter.CreateByIncluding((ex) => ex.Message == "Test");
 				filter.IncludeError((_) => true);
 				filter.ExcludeError((_) => true);
 			}
@@ -119,16 +119,16 @@ namespace PoliNorError.Tests
 		[TestCase(true)]
 		public void Should_FilledCatchBlockFilter_CreateByExcluding_Add_ErrorFilter_Expressions_Correctly(bool generic)
 		{
-			FilledCatchBlockFilter filter = null;
+			NonEmptyCatchBlockFilter filter = null;
 			if (generic)
 			{
-				filter = FilledCatchBlockFilter.CreateByExcluding<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter = NonEmptyCatchBlockFilter.CreateByExcluding<ArgumentException>((ex) => ex.ParamName == "Test");
 				filter.IncludeError<ArgumentException>((_) => true);
 				filter.ExcludeError<ArgumentException>((_) => true);
 			}
 			else
 			{
-				filter = FilledCatchBlockFilter.CreateByExcluding((ex) => ex.Message == "Test");
+				filter = NonEmptyCatchBlockFilter.CreateByExcluding((ex) => ex.Message == "Test");
 				filter.IncludeError((_) => true);
 				filter.ExcludeError((_) => true);
 			}
