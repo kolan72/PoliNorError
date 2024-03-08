@@ -779,6 +779,7 @@ Error filtering supported only for `InvokeWithSimple(Async)` methods (since _ver
 ```csharp
 	Action action = () => File.Copy(filePath, newFilePath);
 	var catchBlockFilter = new CatchBlockFilter().ExcludeError<FileNotFoundException>();
+	
 	//The policyResult.IsFailed property is true only when the FileNotFoundException occurs.
 	var policyResult = action.InvokeWithSimple(catchBlockFilter, (ErrorProcessorParam)logger.Error);
 ```
