@@ -762,7 +762,26 @@ You can reset a policy to its original state (without wrapped policy or collecti
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
 Each method calls corresponding policy method behind the scenes.  
-These methods have parameters that the policy is usually configured by, excluding error filters and `PolicyResult` handlers.  
+
+Complete list of extension methods - for generic and non-generic delegates:
+
+- `InvokeWithRetry(Async)`
+- `InvokeWithWaitAndRetry(Async)`
+- `InvokeWithRetryInfinite(Async)`
+- `InvokeWithWaitAndRetryInfinite(Async)`
+- `InvokeWithFallback(Async)`
+- `InvokeWithSimple(Async)`
+
+These methods have parameters that a library policy is usually configured to use when explicitly created.  
+`PolicyResult` handlers are not supported.  
+Error filtering supported only for `InvokeWithSimple(Async)` methods (since _version_ 2.16.9) using the `CatchBlockFilter` class, for example:
+
+```csharp
+	Action action = () => File.Copy(filePath, newFilePath);
+	var catchBlockFilter = new CatchBlockFilter().ExcludeError<FileNotFoundException>();
+	//The policyResult.IsFailed property is true only when the FileNotFoundException occurs.
+	var policyResult = action.InvokeWithSimple(catchBlockFilter, (ErrorProcessorParam)logger.Error);
+```
 
 Only one error processor is supported and can be set up by a parameter of type `ErrorProcessorParam`.  
 This helper class helps to reduce the number of invoking method overloads, for example:  
@@ -787,16 +806,6 @@ This helper class helps to reduce the number of invoking method overloads, for e
 							ErrorProcessorParam.From(errorSaver.SaveChangesAsync)
 							);
 ```
-
-Full list of extensions methods names:
-
-- `InvokeWithRetry(Async)`
-- `InvokeWithWaitAndRetry(Async)`
-- `InvokeWithRetryInfinite(Async)`
-- `InvokeWithWaitAndRetryInfinite(Async)`
-- `InvokeWithFallback(Async)`
-- `InvokeWithSimple(Async)` (appeared in _version_ 2.0.0-alpha)
-
 
 ### Usage recommendations
 For simple use cases, you could use policy processors. If your case involves more complexity and requires wrapping other policy or handling of policy results, consider using a suitable policy or packing policy with a delegate in the `PolicyDelegate` object.
