@@ -52,18 +52,20 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_InvokeWithSimple_WithErrorFilter_Work(bool errorFilterUnsatisfied)
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        [TestCase(false, true)]
+        public void Should_InvokeWithSimple_WithErrorFilter_Work(bool errorFilterUnsatisfied, bool notEmpty)
         {
             CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
+                errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentNullException>() : new CatchBlockFilter().IncludeError<ArgumentNullException>();
             }
             else
             {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
+                errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>() : new CatchBlockFilter().IncludeError<ArgumentException>();
             }
 
             int i = 0;
@@ -108,18 +110,20 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public async Task Should_InvokeWithSimpleAsync_WithErrorFilter_Work(bool errorFilterUnsatisfied)
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        [TestCase(false, true)]
+        public async Task Should_InvokeWithSimpleAsync_WithErrorFilter_Work(bool errorFilterUnsatisfied, bool notEmpty)
         {
             CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
+                errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentNullException>() : new CatchBlockFilter().IncludeError<ArgumentNullException>();
             }
             else
             {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
+                errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>() : new CatchBlockFilter().IncludeError<ArgumentException>();
             }
             int i = 0;
             Func<CancellationToken, Task> fun = async(_) => { await Task.Delay(1); i++;  throw new ArgumentException("Test"); };
@@ -163,19 +167,21 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public async Task Should_InvokeWithSimpleAsyncT_WithErrorFilter_Work(bool errorFilterUnsatisfied)
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        [TestCase(false, true)]
+        public async Task Should_InvokeWithSimpleAsyncT_WithErrorFilter_Work(bool errorFilterUnsatisfied, bool notEmpty)
         {
             CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
-            }
-            else
-            {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
-            }
+				errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentNullException>() : new CatchBlockFilter().IncludeError<ArgumentNullException>();
+			}
+			else
+			{
+				errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>() : new CatchBlockFilter().IncludeError<ArgumentException>();
+			}
             int i = 0;
             Func<CancellationToken, Task<int>> fun = async (_) => { await Task.Delay(1); i++; throw new ArgumentException("Test"); };
             var policyResult = await fun.InvokeWithSimpleAsync(errorFilter, ErrorProcessorParam.From((_) => { }));
@@ -184,19 +190,21 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_InvokeWithSimpleT_WithErrorFilter_Work(bool errorFilterUnsatisfied)
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        [TestCase(false, true)]
+        public void Should_InvokeWithSimpleT_WithErrorFilter_Work(bool errorFilterUnsatisfied, bool notEmpty)
         {
             CatchBlockFilter errorFilter = null;
             if (errorFilterUnsatisfied)
             {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentNullException>();
-            }
-            else
-            {
-                errorFilter = new CatchBlockFilter().IncludeError<ArgumentException>();
-            }
+				errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentNullException>() : new CatchBlockFilter().IncludeError<ArgumentNullException>();
+			}
+			else
+			{
+				errorFilter = notEmpty ? NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>() : new CatchBlockFilter().IncludeError<ArgumentException>();
+			}
 
             int i = 0;
             Func<int> fun = () => { i++; throw new ArgumentException("Test"); };
