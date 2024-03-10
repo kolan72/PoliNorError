@@ -81,5 +81,60 @@ namespace PoliNorError.Tests
 			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
 			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(1));
 		}
+
+		[Test]
+		public void Should_Empty_Create_Empty_Instance()
+		{
+			var instance = CatchBlockFilter.Empty();
+			Assert.That(instance, Is.Not.Null);
+			Assert.That(instance.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(0));
+			Assert.That(instance.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_FilledCatchBlockFilter_CreateByIncluding_Add_ErrorFilter_Expressions_Correctly(bool generic)
+		{
+			NonEmptyCatchBlockFilter filter = null;
+			if (generic)
+			{
+				filter = NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter.IncludeError<ArgumentException>((_) => true);
+				filter.ExcludeError<ArgumentException>((_) => true);
+			}
+			else
+			{
+				filter = NonEmptyCatchBlockFilter.CreateByIncluding((ex) => ex.Message == "Test");
+				filter.IncludeError((_) => true);
+				filter.ExcludeError((_) => true);
+			}
+
+			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(1));
+			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(2));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_FilledCatchBlockFilter_CreateByExcluding_Add_ErrorFilter_Expressions_Correctly(bool generic)
+		{
+			NonEmptyCatchBlockFilter filter = null;
+			if (generic)
+			{
+				filter = NonEmptyCatchBlockFilter.CreateByExcluding<ArgumentException>((ex) => ex.ParamName == "Test");
+				filter.IncludeError<ArgumentException>((_) => true);
+				filter.ExcludeError<ArgumentException>((_) => true);
+			}
+			else
+			{
+				filter = NonEmptyCatchBlockFilter.CreateByExcluding((ex) => ex.Message == "Test");
+				filter.IncludeError((_) => true);
+				filter.ExcludeError((_) => true);
+			}
+
+			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
+			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(1));
+		}
 	}
 }

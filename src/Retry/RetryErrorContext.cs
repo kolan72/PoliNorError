@@ -4,20 +4,13 @@ namespace PoliNorError
 {
 	internal class RetryErrorContext : ErrorContext<RetryContext>
 	{
-		private readonly bool _isPolicyAliasSet;
+		public RetryErrorContext(int tryCount) : this(new RetryContext(tryCount)){}
 
-		public RetryErrorContext(int tryCount, bool isPolicyAliasSet = true) : this(new RetryContext(tryCount), isPolicyAliasSet){}
-
-		public RetryErrorContext(RetryContext retryContext, bool isPolicyAliasSet = true) : base(retryContext) => _isPolicyAliasSet = isPolicyAliasSet;
+		public RetryErrorContext(RetryContext retryContext) : base(retryContext) {}
 
 		public override ProcessingErrorContext ToProcessingErrorContext()
 		{
-			var res = ProcessingErrorContext.FromRetry(Context.CurrentRetryCount);
-			if (!_isPolicyAliasSet)
-			{
-				res.PolicyKind = PolicyAlias.Retry;
-			}
-			return res;
+			return new RetryProcessingErrorContext(Context.CurrentRetryCount);
 		}
 
 		internal void IncrementCount() => Context.IncrementCount();

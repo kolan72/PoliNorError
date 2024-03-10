@@ -6,8 +6,10 @@ namespace PoliNorError
 	/// <summary>
 	/// Represents a filter that has conditions for an exception to be handled.
 	/// </summary>
-	public sealed class CatchBlockFilter
+	public class CatchBlockFilter
 	{
+		public static CatchBlockFilter Empty() => new CatchBlockFilter();
+
 		internal PolicyProcessor.ExceptionFilter ErrorFilter { get; } = new PolicyProcessor.ExceptionFilter();
 
 		public CatchBlockFilter ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception

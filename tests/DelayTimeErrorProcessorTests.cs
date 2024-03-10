@@ -36,7 +36,7 @@ namespace PoliNorError.Tests
 			var delayProcessor = new DelayErrorProcessor(funcMock);
 			var exc = new Exception();
 			delayProcessor.Process(exc, ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
-			funcMock.Received(1)(0, exc);
+			funcMock.Received(1)(1, exc);
 		}
 
 		[Test]
@@ -47,7 +47,7 @@ namespace PoliNorError.Tests
 			var delayProcessor = new DelayErrorProcessor(funcMock);
 			var exc = new Exception();
 			await delayProcessor.ProcessAsync(exc, ProcessingErrorInfo.FromRetry(1), CancellationToken.None);
-			funcMock.Received(1)(0, exc);
+			funcMock.Received(1)(1, exc);
 		}
 
 		[Test]

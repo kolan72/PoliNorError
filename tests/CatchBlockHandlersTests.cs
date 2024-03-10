@@ -125,5 +125,26 @@ namespace PoliNorError.Tests
 			Assert.That(res.IsFailed, Is.EqualTo(true));
 			Assert.That(res.CatchBlockErrors.FirstOrDefault().IsCritical, Is.EqualTo(true));
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_CatchBlockHandler_InitByFilter_Correctly(bool forAll)
+		{
+			CatchBlockHandler handler = null;
+			Exception errorToHandler = null;
+			if (forAll)
+			{
+				handler = CatchBlockHandler.ForAllExceptions();
+				errorToHandler = TestExceptionHolder.TestException;
+			}
+			else
+			{
+				handler = CatchBlockHandler.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+				errorToHandler = new NullReferenceException();
+			}
+			var result = handler.ErrorFilter.GetCanHandle()(errorToHandler);
+			Assert.That(result, Is.True);
+		}
 	}
 }

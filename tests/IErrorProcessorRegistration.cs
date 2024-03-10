@@ -34,6 +34,115 @@ namespace PoliNorError.Tests
 		int Count { get; }
 	}
 
+	public class CatchBlockHandlerErrorProcessorRegistration : IErrorProcessorRegistration
+	{
+		private readonly CatchBlockHandler _handler = CatchBlockHandler.ForAllExceptions();
+
+		public int Count => _handler.BulkErrorProcessor.Count();
+
+		public void WithErrorProcessor(IErrorProcessor errorProcessor) => _handler.WithErrorProcessor(new DefaultErrorProcessor());
+
+		public void WithErrorProcessorOf(Action<Exception, CancellationToken> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception, ProcessingErrorInfo, CancellationToken> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Action<Exception> actionProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, CancellationToken, Task> funcProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, CancellationToken, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, Action<Exception, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, Action<Exception> actionProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, actionProcessor, cancellationType);
+		}
+
+		public void WithErrorProcessorOf(Func<Exception, Task> funcProcessor, CancellationType cancellationType)
+		{
+			_handler.WithErrorProcessorOf(funcProcessor, cancellationType);
+		}
+	}
+
 	public class BulkErrorProcessorErrorProcessorRegistration : IErrorProcessorRegistration
 	{
 		private readonly BulkErrorProcessor _processor = new BulkErrorProcessor(PolicyAlias.Simple);

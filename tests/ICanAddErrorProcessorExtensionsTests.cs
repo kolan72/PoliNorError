@@ -13,6 +13,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestType.PolicyProc)]
 		[TestCase(TestType.BulkErrorProc)]
 		[TestCase(TestType.PolicyDelegateCol)]
+		[TestCase(TestType.CatchBlockHandler)]
 		[TestCase(TestType.PolicyDelegateColT)]
 		[TestCase(TestType.PolicyCol)]
 		public void Should_WithErrorProcessorOf_AddErrorProcessors(TestType testType)
@@ -27,6 +28,10 @@ namespace PoliNorError.Tests
 			else if (testType == TestType.BulkErrorProc)
 			{
 				v = new BulkErrorProcessorErrorProcessorRegistration();
+			}
+			else if (testType == TestType.CatchBlockHandler)
+			{
+				v = new CatchBlockHandlerErrorProcessorRegistration();
 			}
 			else if (testType == TestType.PolicyDelegateCol)
 			{
@@ -109,6 +114,7 @@ namespace PoliNorError.Tests
 		{
 			PolicyProc,
 			BulkErrorProc,
+			CatchBlockHandler,
 			PolicyDelegateCol,
 			PolicyDelegateColT,
 			PolicyCol
