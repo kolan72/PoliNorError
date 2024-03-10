@@ -1,3 +1,16 @@
+## 2.16.15
+
+- Introduce the `CatchBlockHandler` class and the `CatchBlockFilteredHandler` and `CatchBlockForAllHandler` subclasses.
+- Introduce new `InvokeWithSimple(Async)` extension methods with a `CatchBlockHandler` parameter for non-generic delegates.
+- Introduce new `InvokeWithSimple(Async)<T>` extension methods with a `CatchBlockHandler` parameter for generic delegates.
+- Introduce the `NonEmptyCatchBlockFilter` class.
+- Add the `RetryProcessingErrorInfo` and `RetryProcessingErrorContext` classes to process exceptions by a retry processor in a more object-oriented way.
+- Add `CatchBlockFilter.Empty()` static method.
+- Upgrade tests to NUnit.4.1.0.
+- Update 'Calling Func and Action delegates in a resilient manner' README Chapter.
+- Update 'SimplePolicy' README Chapter.
+
+
 ## 2.16.9
 
 - Add `CatchBlockFilter` class and use it in the `SimplePolicyProcessor` class.
