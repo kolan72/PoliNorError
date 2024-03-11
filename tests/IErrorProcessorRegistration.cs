@@ -36,7 +36,7 @@ namespace PoliNorError.Tests
 
 	public class CatchBlockHandlerErrorProcessorRegistration : IErrorProcessorRegistration
 	{
-		private readonly CatchBlockHandler _handler = CatchBlockHandler.ForAllExceptions();
+		private readonly CatchBlockHandler _handler = CatchBlockHandlerFactory.ForAllExceptions();
 
 		public int Count => _handler.BulkErrorProcessor.Count();
 

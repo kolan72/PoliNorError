@@ -135,12 +135,12 @@ namespace PoliNorError.Tests
 			Exception errorToHandler = null;
 			if (forAll)
 			{
-				handler = CatchBlockHandler.ForAllExceptions();
+				handler = CatchBlockHandlerFactory.ForAllExceptions();
 				errorToHandler = TestExceptionHolder.TestException;
 			}
 			else
 			{
-				handler = CatchBlockHandler.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+				handler = CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
 				errorToHandler = new NullReferenceException();
 			}
 			var result = handler.ErrorFilter.GetCanHandle()(errorToHandler);
