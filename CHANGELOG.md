@@ -1,3 +1,8 @@
+## 2.16.16
+
+- Hotfix introducing new `CatchBlockHandlerFactory` class to prevent inconsistent creation of `CatchBlockHandler` subclasses.  
+
+
 ## 2.16.15
 
 - Introduce the `CatchBlockHandler` class and the `CatchBlockFilteredHandler` and `CatchBlockForAllHandler` subclasses.
