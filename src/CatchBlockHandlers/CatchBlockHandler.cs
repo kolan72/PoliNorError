@@ -1,15 +1,10 @@
 ﻿namespace PoliNorError
 {
 	/// <summary>
-	/// Contains a filter and error processors that are applied to an exception within the catch block.
+	/// Creates classes that inherit from the <see cref="CatchBlockHandler"/> class.
 	/// </summary>
-	public abstract class CatchBlockHandler : ICanAddErrorProcessor
+	public static class CatchBlockHandlerFactory
 	{
-		protected CatchBlockHandler(CatchBlockFilter catchBlockFilter)
-		{
-			CatchBlockFilter = catchBlockFilter;
-		}
-
 		/// <summary>
 		/// Creates <see cref="CatchBlockFilteredHandler"/> that filters an exception using <paramref name="catchBlockFilter"/>.
 		/// </summary>
@@ -22,6 +17,17 @@
 		/// </summary>
 		/// <returns></returns>
 		public static CatchBlockForAllHandler ForAllExceptions() => new CatchBlockForAllHandler();
+	}
+
+	/// <summary>
+	/// Contains a filter and error processors that are applied to an exception within the catch block.
+	/// </summary>
+	public abstract class CatchBlockHandler : ICanAddErrorProcessor
+	{
+		protected CatchBlockHandler(CatchBlockFilter catchBlockFilter)
+		{
+			CatchBlockFilter = catchBlockFilter;
+		}
 
 		internal CatchBlockFilter CatchBlockFilter { get; }
 
