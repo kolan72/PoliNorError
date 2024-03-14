@@ -8,29 +8,78 @@ namespace PoliNorError.Tests
 	internal class TryCatchTests
 	{
 		[Test]
-		[TestCase(false)]
-		[TestCase(true)]
-		public void Should_TryCatchResult_Initialized_From_PolicyResult_Correctly_When_Error_Or_Ok(bool isError)
+		[TestCase(false, null, null)]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, null)]
+		public void Should_TryCatchResult_Initialized_From_PolicyResult_Correctly_When_Error_Or_Ok(bool isError, bool? isWrapped, bool? isGeneric)
 		{
-			var policyResult = new PolicyResult();
+			PolicyResult policyResult;
+			if (isGeneric == true)
+			{
+				policyResult = new PolicyResult<int>();
+			}
+			else
+			{
+				policyResult = new PolicyResult();
+			}
+
 			if (isError)
 			{
-				policyResult.SetFailedWithError(new Exception());
+				if (isWrapped == true)
+				{
+					policyResult.SetOk();
+					if (isGeneric == true)
+					{
+						//Strengthen - even if PolicyResult<T>.Result is set, TryCatchResult.Result should be equal to default.
+						((PolicyResult<int>)policyResult).SetResult(1);
+					}
+					//Imitate an error in a wrapped policy.
+					var polWrappedResult = new PolicyResult().SetFailedWithError(new Exception());
+					policyResult.WrappedPolicyResults = new List<PolicyDelegateResult>() { new PolicyDelegateResult(polWrappedResult, "", null) };
+
+				}
+				else
+				{
+					policyResult.SetFailedWithError(new Exception());
+				}
 			}
 			else
 			{
 				policyResult.SetOk();
+				if (isGeneric == true)
+				{
+					((PolicyResult<int>)policyResult).SetResult(1);
+				}
 			}
-			var tryCatchResult = new TryCatchResult(policyResult);
+
+			TryCatchResult tryCatchResult;
+			if (isGeneric == true)
+			{
+				tryCatchResult = new TryCatchResult<int>((PolicyResult<int>)policyResult);
+			}
+			else
+			{
+				tryCatchResult = new TryCatchResult(policyResult);
+			}
+
 			if (isError)
 			{
 				Assert.That(tryCatchResult.Error, Is.Not.Null);
 				Assert.That(tryCatchResult.IsError, Is.True);
+				if (isGeneric == true)
+				{
+					Assert.That(((TryCatchResult<int>)tryCatchResult).Result, Is.EqualTo(default(int)));
+				}
 			}
 			else
 			{
 				Assert.That(tryCatchResult.Error, Is.Null);
 				Assert.That(tryCatchResult.IsError, Is.False);
+				if (isGeneric == true)
+				{
+					Assert.That(((TryCatchResult<int>)tryCatchResult).Result, Is.EqualTo(1));
+				}
 			}
 		}
 

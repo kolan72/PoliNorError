@@ -310,6 +310,5 @@ namespace PoliNorError
 				}
 			}
 		}
-
 	}
 }
