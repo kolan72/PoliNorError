@@ -37,7 +37,6 @@ namespace PoliNorError.Tests
 					//Imitate an error in a wrapped policy.
 					var polWrappedResult = new PolicyResult().SetFailedWithError(new Exception());
 					policyResult.WrappedPolicyResults = new List<PolicyDelegateResult>() { new PolicyDelegateResult(polWrappedResult, "", null) };
-
 				}
 				else
 				{
