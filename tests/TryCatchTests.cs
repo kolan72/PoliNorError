@@ -2,6 +2,7 @@
 using PoliNorError.TryCatch;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
@@ -80,6 +81,91 @@ namespace PoliNorError.Tests
 					Assert.That(((TryCatchResult<int>)tryCatchResult).Result, Is.EqualTo(1));
 				}
 			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Execute_Or_ExecuteAsync_WithEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool isSync)
+		{
+			int i = 0;
+			var errorToThrow = new InvalidOperationException();
+			var tryCatch = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
+											.ForAllExceptions()
+											.WithErrorProcessorOf((_) => i++))
+											.Build();
+			TryCatchResult tryCatchResult = null;
+			if (isSync)
+			{
+				tryCatchResult = tryCatch
+											.Execute(() => throw errorToThrow);
+			}
+			else
+			{
+				tryCatchResult = await tryCatch
+										.ExecuteAsync(async (_) => { await Task.Delay(1); throw errorToThrow; });
+			}
+			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_Execute_Or_ExecuteAsync_WithNonEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool handleByFirst, bool isSync)
+		{
+			int firstProcFlag = 0;
+			int secProcFlag = 0;
+			var errorToThrow = new InvalidOperationException();
+
+			var testErrorHandler = CatchBlockHandlerFactory
+				.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+			var otherErrorHandler = CatchBlockHandlerFactory
+				.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+
+			TryCatchBuilder builder = null;
+
+			if (handleByFirst)
+			{
+				builder = TryCatchBuilder
+					.CreateFrom(testErrorHandler.WithErrorProcessorOf((_) => firstProcFlag++))
+					.AddCatchBlock(otherErrorHandler.WithErrorProcessorOf((_) => secProcFlag++));
+			}
+			else
+			{
+				builder = TryCatchBuilder
+				.CreateFrom(otherErrorHandler.WithErrorProcessorOf((_) => firstProcFlag++))
+				.AddCatchBlock(testErrorHandler.WithErrorProcessorOf((_) => secProcFlag++));
+			}
+
+			TryCatchResult tryCatchResult = null;
+			var tryCatch = builder.Build();
+
+			if (isSync)
+			{
+				tryCatchResult = tryCatch.Execute(() => throw errorToThrow);
+			}
+			else
+			{
+				tryCatchResult = await tryCatch.ExecuteAsync(async (_) => { await Task.Delay(1); throw errorToThrow; });
+			}
+
+			if (handleByFirst)
+			{
+				Assert.That(firstProcFlag, Is.EqualTo(1));
+				Assert.That(secProcFlag, Is.EqualTo(0));
+			}
+			else
+			{
+				Assert.That(firstProcFlag, Is.EqualTo(0));
+				Assert.That(secProcFlag, Is.EqualTo(1));
+			}
+
+			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
 		}
 
 		[Test]
