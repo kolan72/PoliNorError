@@ -84,6 +84,44 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_Execute_Or_ExecuteAsync_Result_Has_IsError_False_When_NoError(bool isSync, bool withEmptyFilter)
+		{
+			int i = 0;
+			ITryCatchBuilder tryCatchBuilder = null;
+			if (withEmptyFilter)
+			{
+				tryCatchBuilder = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
+															.ForAllExceptions()
+															.WithErrorProcessorOf((_) => i++));
+			}
+			else
+			{
+				tryCatchBuilder = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
+															.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>())
+										.WithErrorProcessorOf((_) => i++));
+			}
+			var tryCatch = tryCatchBuilder.Build();
+			TryCatchResult tryCatchResult = null;
+			if (isSync)
+			{
+				tryCatchResult = tryCatch
+										.Execute(() => { });
+			}
+			else
+			{
+				tryCatchResult = await tryCatch
+										.ExecuteAsync(async(_) => await Task.Delay(1));
+			}
+			Assert.That(tryCatchResult.IsError, Is.False);
+			Assert.That(tryCatchResult.Error, Is.Null);
+			Assert.That(i, Is.EqualTo(0));
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public async Task Should_Execute_Or_ExecuteAsync_WithEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool isSync)
