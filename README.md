@@ -783,8 +783,23 @@ Error filtering supported only for `InvokeWithSimple(Async)` methods (since _ver
 	//The policyResult.IsFailed property is true only when the FileNotFoundException occurs.
 	var policyResult = action.InvokeWithSimple(catchBlockFilter, (ErrorProcessorParam)logger.Error);
 ```
+The  `InvokeWithSimple(Async)` method also has overloads that allow you to add not only error filters to the catch block, but also error processors using the `CatchBlockHandler` class (since _version_ 2.16.16):
 
-Only one error processor is supported and can be set up by a parameter of type `ErrorProcessorParam`.  
+```csharp
+	Action action = () => File.Copy(filePath, newFilePath);
+
+	//Construct a catch block handler with a non-empty catch block filter and few error processors:
+	var catchBlockHandler = CatchBlockHandlerFactory.FilterExceptionsBy(
+		NonEmptyCatchBlockFilter.CreateByIncluding<FileNotFoundException>())
+		.WithErrorProcessorOf((ex) => logger.Error(ex))
+		.WithErrorProcessorOf((ex) =>
+			Console.WriteLine(((FileNotFoundException)ex).FileName + " is not found."));
+
+	//If file is not found, messages are printed to log and Console:
+	var policyResult = action.InvokeWithSimple(catchBlockHandler);
+```
+
+For other methods, only one error processor is supported and can be set using a parameter of type `ErrorProcessorParam`.  
 This helper class helps to reduce the number of invoking method overloads, for example:  
 
 ```csharp
