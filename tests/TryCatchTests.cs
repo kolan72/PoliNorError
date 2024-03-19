@@ -34,10 +34,16 @@ namespace PoliNorError.Tests
 					{
 						//Strengthen - even if PolicyResult<T>.Result is set, TryCatchResult.Result should be equal to default.
 						((PolicyResult<int>)policyResult).SetResult(1);
+						//Imitate an error in a wrapped policy.
+						var polWrappedResult = new PolicyResult<int>().SetFailedWithError(new Exception());
+						((PolicyResult<int>)policyResult).WrappedPolicyResults = new List<PolicyDelegateResult<int>>() { new PolicyDelegateResult<int>(polWrappedResult, "", null) };
 					}
-					//Imitate an error in a wrapped policy.
-					var polWrappedResult = new PolicyResult().SetFailedWithError(new Exception());
-					policyResult.WrappedPolicyResults = new List<PolicyDelegateResult>() { new PolicyDelegateResult(polWrappedResult, "", null) };
+					else
+					{
+						//Imitate an error in a wrapped policy.
+						var polWrappedResult = new PolicyResult().SetFailedWithError(new Exception());
+						policyResult.WrappedPolicyResults = new List<PolicyDelegateResult>() { new PolicyDelegateResult(polWrappedResult, "", null) };
+					}
 				}
 				else
 				{
@@ -53,7 +59,7 @@ namespace PoliNorError.Tests
 				}
 			}
 
-			TryCatchResult tryCatchResult;
+			TryCatchResultBase tryCatchResult;
 			if (isGeneric == true)
 			{
 				tryCatchResult = new TryCatchResult<int>((PolicyResult<int>)policyResult);
@@ -90,20 +96,9 @@ namespace PoliNorError.Tests
 		[TestCase(false, false)]
 		public async Task Should_Execute_Or_ExecuteAsync_Result_Has_IsError_False_When_NoError(bool isSync, bool withEmptyFilter)
 		{
-			int i = 0;
-			ITryCatchBuilder tryCatchBuilder = null;
-			if (withEmptyFilter)
-			{
-				tryCatchBuilder = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
-															.ForAllExceptions()
-															.WithErrorProcessorOf((_) => i++));
-			}
-			else
-			{
-				tryCatchBuilder = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
-															.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>())
-										.WithErrorProcessorOf((_) => i++));
-			}
+			var tryCatchBuilderFactory = new TryCatchBuilderFactoryWhenNoError(withEmptyFilter);
+			var tryCatchBuilder = tryCatchBuilderFactory.CreateBuilder();
+
 			var tryCatch = tryCatchBuilder.Build();
 			TryCatchResult tryCatchResult = null;
 			if (isSync)
@@ -118,7 +113,35 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(tryCatchResult.IsError, Is.False);
 			Assert.That(tryCatchResult.Error, Is.Null);
-			Assert.That(i, Is.EqualTo(0));
+			Assert.That(tryCatchBuilderFactory.I, Is.EqualTo(0));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_ExecuteT_Or_ExecuteAsyncT_Result_Has_IsError_False_When_NoError(bool isSync, bool withEmptyFilter)
+		{
+			var tryCatchBuilderFactory = new TryCatchBuilderFactoryWhenNoError(withEmptyFilter);
+			var tryCatchBuilder = tryCatchBuilderFactory.CreateBuilder();
+
+			var tryCatch = tryCatchBuilder.Build();
+			TryCatchResult<int> tryCatchResult = null;
+			if (isSync)
+			{
+				tryCatchResult = tryCatch
+										.Execute(() => 1);
+			}
+			else
+			{
+				tryCatchResult = await tryCatch
+										.ExecuteAsync(async (_) => { await Task.Delay(1); return 1;});
+			}
+			Assert.That(tryCatchResult.IsError, Is.False);
+			Assert.That(tryCatchResult.Error, Is.Null);
+			Assert.That(tryCatchResult.Result, Is.EqualTo(1));
+			Assert.That(tryCatchBuilderFactory.I, Is.EqualTo(0));
 		}
 
 		[Test]
@@ -145,6 +168,35 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(tryCatchResult.IsError, Is.True);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(i, Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ExecuteT_Or_ExecuteAsyncT_WithEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool isSync)
+		{
+			int i = 0;
+			var errorToThrow = new InvalidOperationException();
+			var tryCatch = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
+											.ForAllExceptions()
+											.WithErrorProcessorOf((_) => i++))
+											.Build();
+			TryCatchResult<int> tryCatchResult = null;
+			if (isSync)
+			{
+				tryCatchResult = tryCatch
+											.Execute<int>(() => throw errorToThrow);
+			}
+			else
+			{
+				tryCatchResult = await tryCatch
+										.ExecuteAsync<int>(async (_) => { await Task.Delay(1); throw errorToThrow; });
+			}
+			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResult.Result, Is.EqualTo(0));
+			Assert.That(i, Is.EqualTo(1));
 		}
 
 		[Test]
@@ -154,30 +206,10 @@ namespace PoliNorError.Tests
 		[TestCase(false, false)]
 		public async Task Should_Execute_Or_ExecuteAsync_WithNonEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool handleByFirst, bool isSync)
 		{
-			int firstProcFlag = 0;
-			int secProcFlag = 0;
 			var errorToThrow = new InvalidOperationException();
 
-			var testErrorHandler = CatchBlockHandlerFactory
-				.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
-
-			var otherErrorHandler = CatchBlockHandlerFactory
-				.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
-
-			TryCatchBuilder builder = null;
-
-			if (handleByFirst)
-			{
-				builder = TryCatchBuilder
-					.CreateFrom(testErrorHandler.WithErrorProcessorOf((_) => firstProcFlag++))
-					.AddCatchBlock(otherErrorHandler.WithErrorProcessorOf((_) => secProcFlag++));
-			}
-			else
-			{
-				builder = TryCatchBuilder
-				.CreateFrom(otherErrorHandler.WithErrorProcessorOf((_) => firstProcFlag++))
-				.AddCatchBlock(testErrorHandler.WithErrorProcessorOf((_) => secProcFlag++));
-			}
+			var tryCatchBuilderFactory = new TryCatchBuilderFactoryWithNonEmptyFilter(handleByFirst);
+			var builder = tryCatchBuilderFactory.CreateBuilder();
 
 			TryCatchResult tryCatchResult = null;
 			var tryCatch = builder.Build();
@@ -193,13 +225,52 @@ namespace PoliNorError.Tests
 
 			if (handleByFirst)
 			{
-				Assert.That(firstProcFlag, Is.EqualTo(1));
-				Assert.That(secProcFlag, Is.EqualTo(0));
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(1));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(0));
 			}
 			else
 			{
-				Assert.That(firstProcFlag, Is.EqualTo(0));
-				Assert.That(secProcFlag, Is.EqualTo(1));
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(0));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(1));
+			}
+
+			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_ExecuteT_Or_ExecuteAsyncT_WithNonEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool handleByFirst, bool isSync)
+		{
+			var errorToThrow = new InvalidOperationException();
+
+			var tryCatchBuilderFactory = new TryCatchBuilderFactoryWithNonEmptyFilter(handleByFirst);
+			var builder = tryCatchBuilderFactory.CreateBuilder();
+
+			TryCatchResult<int> tryCatchResult = null;
+			var tryCatch = builder.Build();
+
+			if (isSync)
+			{
+				tryCatchResult = tryCatch.Execute<int>(() => throw errorToThrow);
+			}
+			else
+			{
+				tryCatchResult = await tryCatch.ExecuteAsync<int>(async (_) => { await Task.Delay(1); throw errorToThrow; });
+			}
+
+			if (handleByFirst)
+			{
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(1));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(0));
+			}
+			else
+			{
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(0));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(1));
 			}
 
 			Assert.That(tryCatchResult.IsError, Is.True);
@@ -248,6 +319,63 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(error, Is.EqualTo(errorToThrow));
+		}
+
+		private class TryCatchBuilderFactoryWhenNoError
+		{
+			private readonly bool _withEmptyFilter;
+			private int _i;
+
+			public TryCatchBuilderFactoryWhenNoError(bool withEmptyFilter)
+			{
+				_withEmptyFilter = withEmptyFilter;
+			}
+
+			public ITryCatchBuilder CreateBuilder()
+			{
+				return _withEmptyFilter
+					? TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
+                                                                .ForAllExceptions()
+                                                                .WithErrorProcessorOf((_) => _i++))
+					: TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory
+                                                                .FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>())
+                                                                .WithErrorProcessorOf((_) => _i++));
+			}
+
+			public int I => _i;
+		}
+
+		private class TryCatchBuilderFactoryWithNonEmptyFilter
+		{
+			private int _firstProcFlag;
+			private int _secProcFlag;
+
+			private readonly bool _handleByFirst;
+
+			public TryCatchBuilderFactoryWithNonEmptyFilter(bool handleByFirst)
+			{
+				_handleByFirst = handleByFirst;
+			}
+
+			public ITryCatchBuilder CreateBuilder()
+			{
+				var testErrorHandler = CatchBlockHandlerFactory
+										.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+				var otherErrorHandler = CatchBlockHandlerFactory
+										.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+
+				return _handleByFirst
+					? TryCatchBuilder
+                        .CreateFrom(testErrorHandler.WithErrorProcessorOf((_) => _firstProcFlag++))
+                        .AddCatchBlock(otherErrorHandler.WithErrorProcessorOf((_) => _secProcFlag++))
+					: TryCatchBuilder
+                        .CreateFrom(otherErrorHandler.WithErrorProcessorOf((_) => _firstProcFlag++))
+                        .AddCatchBlock(testErrorHandler.WithErrorProcessorOf((_) => _secProcFlag++));
+			}
+
+			public int FirstProcFlag => _firstProcFlag;
+			public int SecProcFlag => _secProcFlag;
 		}
 	}
 }

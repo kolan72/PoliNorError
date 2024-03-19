@@ -310,5 +310,28 @@ namespace PoliNorError
 				}
 			}
 		}
+
+		internal static Exception GetErrorInWrappedResults<T>(this PolicyResult<T> policyResult)
+		{
+			if (policyResult?.WrappedPolicyResults is null)
+				return null;
+
+			var currentWrappedResult = policyResult.WrappedPolicyResults.FirstOrDefault();
+			while (true)
+			{
+				if (currentWrappedResult?.Result.Errors.Any() == true)
+				{
+					return currentWrappedResult.Result.Errors.FirstOrDefault();
+				}
+				else if (currentWrappedResult?.Result.WrappedPolicyResults == null)
+				{
+					return null;
+				}
+				else
+				{
+					currentWrappedResult = policyResult.WrappedPolicyResults.FirstOrDefault();
+				}
+			}
+		}
 	}
 }
