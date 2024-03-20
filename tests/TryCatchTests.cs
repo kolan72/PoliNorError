@@ -109,7 +109,7 @@ namespace PoliNorError.Tests
 			else
 			{
 				tryCatchResult = await tryCatch
-										.ExecuteAsync(async(_) => await Task.Delay(1));
+										.ExecuteAsync(async (_) => await Task.Delay(1));
 			}
 			Assert.That(tryCatchResult.IsError, Is.False);
 			Assert.That(tryCatchResult.Error, Is.Null);
@@ -136,7 +136,7 @@ namespace PoliNorError.Tests
 			else
 			{
 				tryCatchResult = await tryCatch
-										.ExecuteAsync(async (_) => { await Task.Delay(1); return 1;});
+										.ExecuteAsync(async (_) => { await Task.Delay(1); return 1; });
 			}
 			Assert.That(tryCatchResult.IsError, Is.False);
 			Assert.That(tryCatchResult.Error, Is.Null);
@@ -275,6 +275,47 @@ namespace PoliNorError.Tests
 
 			Assert.That(tryCatchResult.IsError, Is.True);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Execute_Or_ExecuteAsync_Throw_If_NoCatchBlockHandler_With_MatchedException_Provided(bool isSync, bool isGeneric)
+		{
+			var errorToThrow = new NullReferenceException();
+			var filteredHandler = CatchBlockHandlerFactory
+									.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+			var tryCatch = TryCatchBuilder
+							.CreateFrom(filteredHandler)
+							.Build();
+
+			Exception resException = null;
+			if (isSync)
+			{
+				if (isGeneric)
+				{
+					resException = Assert.Throws<NullReferenceException>(() => tryCatch.Execute<int>(() => throw errorToThrow));
+				}
+				else
+				{
+					resException = Assert.Throws<NullReferenceException>(() => tryCatch.Execute(() => throw errorToThrow));
+				}
+			}
+			else
+			{
+				if (isGeneric)
+				{
+					resException = Assert.ThrowsAsync<NullReferenceException>(async () => await tryCatch.ExecuteAsync<int>(async (_) => { await Task.Delay(1); throw errorToThrow; }));
+				}
+				else
+				{
+					resException = Assert.ThrowsAsync<NullReferenceException>(async () => await tryCatch.ExecuteAsync(async (_) => { await Task.Delay(1); throw errorToThrow; }));
+				}
+			}
+			Assert.That(resException, Is.EqualTo(errorToThrow));
 		}
 
 		[Test]
