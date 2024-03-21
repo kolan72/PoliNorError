@@ -3,6 +3,9 @@ using System.Linq;
 
 namespace PoliNorError.TryCatch
 {
+	/// <summary>
+	/// The result of executing delegates using non-generic methods of the <see cref="ITryCatch"/> interface.
+	/// </summary>
 	public class TryCatchResult : TryCatchResultBase
 	{
 		internal TryCatchResult(PolicyResult policyResult) : base(policyResult)
@@ -12,6 +15,10 @@ namespace PoliNorError.TryCatch
 		}
 	}
 
+	/// <summary>
+	/// The result of executing delegates using generic methods of the <see cref="ITryCatch"/> interface.
+	/// </summary>
+	/// <typeparam name="T">The type of return value of the generic delegate</typeparam>
 	public class TryCatchResult<T> : TryCatchResultBase
 	{
 		internal TryCatchResult(PolicyResult<T> policyResult) : base(policyResult)
@@ -24,6 +31,9 @@ namespace PoliNorError.TryCatch
 			}
 		}
 
+		/// <summary>
+		/// The return value of the generic method if no exception occurs.
+		/// </summary>
 		public T Result { get; }
 	}
 
@@ -34,10 +44,19 @@ namespace PoliNorError.TryCatch
 			IsCanceled = policyResult.IsCanceled;
 		}
 
+		/// <summary>
+		/// Indicates whether the execution was canceled.
+		/// </summary>
 		public bool IsCanceled { get; }
 
+		/// <summary>
+		///  Indicates whether the execution ended with an exception.
+		/// </summary>
 		public bool IsError { get; protected set; }
 
+		/// <summary>
+		/// Represents an exception that occurred during execution.
+		/// </summary>
 		public Exception Error { get; protected set; }
 	}
 }
