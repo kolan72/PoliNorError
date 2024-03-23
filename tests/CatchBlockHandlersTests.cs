@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using PoliNorError.TryCatch;
 using System;
 using System.Linq;
 using System.Threading;
@@ -145,6 +146,24 @@ namespace PoliNorError.Tests
 			}
 			var result = handler.ErrorFilter.GetCanHandle()(errorToHandler);
 			Assert.That(result, Is.True);
+		}
+
+		[Test]
+		public void Should_NonEmptyCatchBlockFilter_ToCatchBlockHandler_Method_Create_Handler_Correctly()
+		{
+			var handler = NonEmptyCatchBlockFilter
+							.CreateByIncluding<NullReferenceException>()
+							.ToCatchBlockHandler();
+			Assert.That(handler, Is.Not.Null);
+			Assert.That(handler.CatchBlockFilter, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_CatchBlockForAllHandler_ToTryCatch_Create_ITryCatch_WithOneCatchBlockHandler()
+		{
+			var tryCatch = CatchBlockHandlerFactory.ForAllExceptions()
+							.ToTryCatch();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
 		}
 	}
 }

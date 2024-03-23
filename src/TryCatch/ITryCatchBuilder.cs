@@ -6,7 +6,7 @@
 	public interface ITryCatchBuilder
 	{
 		/// <summary>
-		/// Builds <see cref="ITryCatch"/>.
+		/// Builds <see cref="ITryCatch"/> with previously added <see cref="CatchBlockHandler"/> handlers..
 		/// </summary>
 		/// <returns></returns>
 		ITryCatch Build();
