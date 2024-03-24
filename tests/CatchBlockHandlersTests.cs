@@ -165,5 +165,27 @@ namespace PoliNorError.Tests
 							.ToTryCatch();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
 		}
+
+		[Test]
+		public void Should_CatchBlockFilteredHandler_ToTryCatch_Create_ITryCatch_WithOneCatchBlockHandler()
+		{
+			var tryCatch = NonEmptyCatchBlockFilter
+						.CreateByIncluding<NullReferenceException>()
+						.ToCatchBlockHandler()
+						.ToTryCatch();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_CatchBlockFilteredHandler_ToTryCatchBuilder_Create_ITryCatch_WithOneCatchBlockHandler()
+		{
+			var builder = NonEmptyCatchBlockFilter
+						.CreateByIncluding<NullReferenceException>()
+						.ToCatchBlockHandler()
+						.ToTryCatchBuilder();
+			Assert.That(builder, Is.TypeOf<TryCatchBuilder>());
+			var tryCatch = builder.Build();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+		}
 	}
 }
