@@ -1,3 +1,13 @@
+## 2.16.20
+
+- Introduce the `TryCatch` class, which implements the `ITryCatch` interface with methods for executing sync or async, generic or non-generic delegates that return `TryCatchResult(<T>)` class..
+- Introduce the `ITryCatchBuilder` interface and `TryCatchBuilder` class.
+- Add `NonEmptyCatchBlockFilter.ToCatchBlockHandler` and `CatchBlockForAllHandler.ToTryCatch` methods.
+- Add `ToTryCatchBuilder` and `ToTryCatch` extension methods to the `CatchBlockFilteredHandler` class.
+- Add CODE_COVERAGE.md.
+- Update 'Calling Func and Action delegates in a resilient manner' README Chapter.
+
+
 ## 2.16.16
 
 - Hotfix introducing new `CatchBlockHandlerFactory` class to prevent inconsistent creation of `CatchBlockHandler` subclasses.  
