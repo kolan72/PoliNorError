@@ -41,5 +41,14 @@ namespace PoliNorError
 			ErrorFilter.AddIncludedErrorFilter(expression);
 			return this;
 		}
+
+		/// <summary>
+		/// Creates the <see cref="CatchBlockFilteredHandler"/> handler with this filter.
+		/// </summary>
+		/// <returns></returns>
+		public CatchBlockFilteredHandler ToCatchBlockHandler()
+		{
+			return new CatchBlockFilteredHandler(this);
+		}
 	}
 }
