@@ -362,6 +362,59 @@ namespace PoliNorError.Tests
 			Assert.That(error, Is.EqualTo(errorToThrow));
 		}
 
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_Execute_Or_ExecuteAsync_With_MoreThanTwo_NonEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool isSync, bool isGeneric)
+		{
+			var errorToThrow = new NullReferenceException();
+
+			var firstErrorHandler = CatchBlockHandlerFactory
+						.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+
+			var secondErrorHandler = CatchBlockHandlerFactory
+									.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<OperationCanceledException>());
+
+			var thirdErrorHandler = CatchBlockHandlerFactory
+						.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+			var tryCatch = TryCatchBuilder
+						.CreateFrom(firstErrorHandler)
+						.AddCatchBlock(secondErrorHandler)
+						.AddCatchBlock(CatchBlockHandlerFactory
+									.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
+						.AddCatchBlock(thirdErrorHandler)
+						.Build();
+
+			TryCatchResultBase tryCatchResultBase = null;
+			if (isSync)
+			{
+				if (isGeneric)
+				{
+					tryCatchResultBase = tryCatch.Execute<int>(() => throw errorToThrow);
+				}
+				else
+				{
+					tryCatchResultBase = tryCatch.Execute(() => throw errorToThrow);
+				}
+			}
+			else
+			{
+				if (isGeneric)
+				{
+					tryCatchResultBase = await tryCatch.ExecuteAsync<int>((_) => throw errorToThrow);
+				}
+				else
+				{
+					tryCatchResultBase = await tryCatch.ExecuteAsync((_) => throw errorToThrow);
+				}
+			}
+			Assert.That(tryCatchResultBase.IsError, Is.True);
+			Assert.That(tryCatchResultBase.Error, Is.EqualTo(errorToThrow));
+		}
+
 		private class TryCatchBuilderFactoryWhenNoError
 		{
 			private readonly bool _withEmptyFilter;

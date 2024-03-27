@@ -306,7 +306,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					currentWrappedResult = policyResult.WrappedPolicyResults.FirstOrDefault();
+					currentWrappedResult = currentWrappedResult.Result.WrappedPolicyResults.FirstOrDefault();
 				}
 			}
 		}
@@ -329,7 +329,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					currentWrappedResult = policyResult.WrappedPolicyResults.FirstOrDefault();
+					currentWrappedResult = currentWrappedResult.Result.WrappedPolicyResults.FirstOrDefault();
 				}
 			}
 		}
