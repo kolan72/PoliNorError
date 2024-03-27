@@ -1,3 +1,8 @@
+## 2.16.21
+
+- `TryCatch/TryCatchBuilder` classes now support more than two `CatchBlockHandler`s.
+
+
 ## 2.16.20
 
 - Introduce the `TryCatch` class, which implements the `ITryCatch` interface with methods for executing sync or async, generic or non-generic delegates that return `TryCatchResult(<T>)` class (no more than two `CatchBlockHandler` supported so far).
