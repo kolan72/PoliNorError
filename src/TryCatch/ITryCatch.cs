@@ -65,22 +65,22 @@ namespace PoliNorError.TryCatch
 
 		public TryCatchResult Execute(Action action, CancellationToken token = default)
 		{
-			return new TryCatchResult(_simplePolicy.Handle(action, token));
+			return new TryCatchResult(_simplePolicy.Handle(action, token), CatchBlockCount);
 		}
 
 		public TryCatchResult<T> Execute<T>(Func<T> func, CancellationToken token = default)
 		{
-			return new TryCatchResult<T>(_simplePolicy.Handle(func, token));
+			return new TryCatchResult<T>(_simplePolicy.Handle(func, token), CatchBlockCount);
 		}
 
 		public async Task<TryCatchResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			return new TryCatchResult(await _simplePolicy.HandleAsync(func, configureAwait, token).ConfigureAwait(configureAwait));
+			return new TryCatchResult(await _simplePolicy.HandleAsync(func, configureAwait, token).ConfigureAwait(configureAwait), CatchBlockCount);
 		}
 
 		public async Task<TryCatchResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			return new TryCatchResult<T>(await _simplePolicy.HandleAsync(func, configureAwait, token).ConfigureAwait(configureAwait));
+			return new TryCatchResult<T>(await _simplePolicy.HandleAsync(func, configureAwait, token).ConfigureAwait(configureAwait), CatchBlockCount);
 		}
 
 		public int CatchBlockCount { get; }
