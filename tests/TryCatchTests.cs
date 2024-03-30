@@ -2,6 +2,7 @@
 using PoliNorError.TryCatch;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
@@ -457,6 +458,49 @@ namespace PoliNorError.Tests
 			Assert.That(tryCatchResultBase.IsError, Is.True);
 			Assert.That(tryCatchResultBase.Error, Is.EqualTo(errorToThrow));
 			Assert.That(tryCatchResultBase.ExceptionHandlerIndex, Is.EqualTo(0));
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		public async Task Should_TryCatchResult_IsCanceled_Equals_True_When_Canceled(bool isSync, bool isGeneric)
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				var errorToThrow = new InvalidOperationException();
+				var tryCatch = NonEmptyCatchBlockFilter
+								.CreateByIncluding<InvalidOperationException>()
+								.ToCatchBlockHandler()
+								.ToTryCatch();
+
+				TryCatchResultBase tryCatchResultBase = null;
+
+				if (isSync)
+				{
+					if (isGeneric)
+					{
+						tryCatchResultBase = tryCatch.Execute<int>(() => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
+					}
+					else
+					{
+						tryCatchResultBase = tryCatch.Execute(() => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
+					}
+				}
+				else
+				{
+					if (isGeneric)
+					{
+						tryCatchResultBase = await tryCatch.ExecuteAsync<int>((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, false, cancelTokenSource.Token);
+					}
+					else
+					{
+						tryCatchResultBase = await tryCatch.ExecuteAsync((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, false, cancelTokenSource.Token);
+					}
+				}
+				Assert.That(tryCatchResultBase.IsCanceled, Is.True);
+			}
 		}
 
 		private class TryCatchBuilderFactoryWhenNoError
