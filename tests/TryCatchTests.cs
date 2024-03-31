@@ -492,11 +492,11 @@ namespace PoliNorError.Tests
 				{
 					if (isGeneric)
 					{
-						tryCatchResultBase = await tryCatch.ExecuteAsync<int>((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, false, cancelTokenSource.Token);
+						tryCatchResultBase = await tryCatch.ExecuteAsync<int>((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
 					}
 					else
 					{
-						tryCatchResultBase = await tryCatch.ExecuteAsync((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, false, cancelTokenSource.Token);
+						tryCatchResultBase = await tryCatch.ExecuteAsync((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
 					}
 				}
 				Assert.That(tryCatchResultBase.IsCanceled, Is.True);
