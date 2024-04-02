@@ -36,6 +36,15 @@ namespace PoliNorError
 			=> simplePolicyProcessor.IncludeErrorSet<ISimplePolicyProcessor, TException1, TException2>();
 
 		/// <summary>
+		/// Specifies the <see cref="IErrorSet"/> interface-based filter conditions for including a set of exceptions in the processing performed by the <paramref name="simplePolicyProcessor"/> processor.
+		/// </summary>
+		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
+		/// <param name="errorSet"><see cref="IErrorSet"/></param>
+		/// <returns>A processor for Simple policy.</returns>
+		public static ISimplePolicyProcessor IncludeErrorSet(this ISimplePolicyProcessor simplePolicyProcessor, IErrorSet errorSet)
+			=> simplePolicyProcessor.IncludeErrorSet<ISimplePolicyProcessor>(errorSet);
+
+		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the processing by the <paramref name="simplePolicyProcessor"/> processor.
 		/// </summary>
 		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
@@ -71,6 +80,15 @@ namespace PoliNorError
 		/// <returns></returns>
 		public static ISimplePolicyProcessor ExcludeErrorSet<TException1, TException2>(this ISimplePolicyProcessor simplePolicyProcessor) where TException1 : Exception where TException2 : Exception
 			=> simplePolicyProcessor.ExcludeErrorSet<ISimplePolicyProcessor, TException1, TException2>();
+
+		/// <summary>
+		/// Specifies the <see cref="IErrorSet"/> interface-based filter conditions for excluding a set of exceptions in the processing performed by the <paramref name="simplePolicyProcessor"/> processor.
+		/// </summary>
+		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
+		/// <param name="errorSet"><see cref="IErrorSet"/></param>
+		/// <returns>A processor for Simple policy.</returns>
+		public static ISimplePolicyProcessor ExcludeErrorSet(this ISimplePolicyProcessor simplePolicyProcessor, IErrorSet errorSet)
+			=> simplePolicyProcessor.ExcludeErrorSet<ISimplePolicyProcessor>(errorSet);
 
 		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the processing by the <paramref name="simplePolicyProcessor"/> processor.

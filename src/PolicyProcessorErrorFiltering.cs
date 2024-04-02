@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using static PoliNorError.ErrorSet;
 
 namespace PoliNorError
 {
@@ -35,6 +36,15 @@ namespace PoliNorError
 			return policyProcessor;
 		}
 
+		internal static T IncludeErrorSet<T>(this T policyProcessor, IErrorSet errorSet) where T : IPolicyProcessor
+		{
+			foreach (var item in errorSet.Items)
+			{
+				policyProcessor.AddIncludedError(item);
+			}
+			return policyProcessor;
+		}
+
 		internal static T ExcludeError<T, TException>(this T policyProcessor, Func<TException, bool> func = null) where T : IPolicyProcessor where TException : Exception
 		{
 			policyProcessor.AddExcludedErrorFilter(func);
@@ -50,6 +60,15 @@ namespace PoliNorError
 		internal static T ExcludeErrorSet<T, TException1, TException2>(this T policyProcessor) where T : IPolicyProcessor where TException1 : Exception where TException2 : Exception
 		{
 			policyProcessor.AddExcludedErrorSet<TException1, TException2>();
+			return policyProcessor;
+		}
+
+		internal static T ExcludeErrorSet<T>(this T policyProcessor, IErrorSet errorSet) where T : IPolicyProcessor
+		{
+			foreach (var item in errorSet.Items)
+			{
+				policyProcessor.AddExcludedError(item);
+			}
 			return policyProcessor;
 		}
 
@@ -95,6 +114,30 @@ namespace PoliNorError
 		internal static void AddExcludedInnerErrorFilter<TInnerException>(this IPolicyProcessor policyProcessor, Func<TInnerException, bool> func = null) where TInnerException : Exception
 		{
 			policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
+		}
+
+		internal static void AddIncludedError(this IPolicyProcessor policyProcessor, ErrorSetItem errorSetItem)
+		{
+			if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.Error)
+			{
+				policyProcessor.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(errorSetItem.ErrorType));
+			}
+			else
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		internal static void AddExcludedError(this IPolicyProcessor policyProcessor, ErrorSetItem errorSetItem)
+		{
+			if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.Error)
+			{
+				policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(errorSetItem.ErrorType));
+			}
+			else
+			{
+				throw new NotImplementedException();
+			}
 		}
 	}
 }
