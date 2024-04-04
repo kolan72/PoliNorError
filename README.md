@@ -798,8 +798,15 @@ The  `InvokeWithSimple(Async)` method also has overloads that allow you to add n
 	//If file is not found, messages are printed to log and Console:
 	var policyResult = action.InvokeWithSimple(catchBlockHandler);
 ```
+In the example above, we created a `CatchBlockHandler` subclass object by using the `CatchBlockHandlerFactory` class. This class is a factory for `CatchBlockHandler` objects and has two static methods:
 
-For other methods, only one error processor is supported and can be set using a parameter of type `ErrorProcessorParam`.  
+- `FilterExceptionsBy(NonEmptyCatchBlockFilter)` - creates a `CatchBlockFilteredHandler` object based on the `NonEmptyCatchBlockFilter` class . The last class contains exception filtering conditions (including the `FileNotFoundException` exception type in the example). The created object mimics try-catch block's catch clause *with* exception filter.
+- `ForAllExceptions` -  creates a `CatchBlockForAllHandler` object that does not filter any exceptions.  The created object mimics try-catch block's catch clause *without* exception filter.
+
+After object creation, you can use `WithErrorProcessor(Of)` methods to add error processors for exception handling, which mimics code that runs within the try-catch block's catch clause (or leave it as is, which mimics swallowing exceptions).
+
+
+For other `InvokeWith...` methods, only one error processor is supported and can be set using a parameter of type `ErrorProcessorParam`.  
 This helper class helps to reduce the number of invoking method overloads, for example:  
 
 ```csharp
