@@ -759,8 +759,8 @@ var result = await PolicyCollection.Create()
 ```
 You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
-### TryCatch
-`SimplePolicy`, rethrowing exceptions, and wrapping allow you to mimic the functionality of the try-catch block using the `TryCatchBuilder` object.  
+### TryCatch (since _version_ 2.16.21)
+`SimplePolicy`, rethrowing exceptions, and wrapping allow you to mimic the functionality of the try-catch block using the  `TryCatch`/`TryCatchBuilder` objects.  
 You can create a `TryCatchBuilder` object from a `CatchBlockFilteredHandler` or from a `CatchBlockForAllHandler` (see more about `CatchBlockHandler`s in [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)).  
 Other `CatchBlockHandler`s can only be added to `TryCatchBuilder` in the first case. No other handlers can be added after `CatchBlockForAllHandler` - similar to the last catch block `catch (Exception ex) ` adding to the try-catch block.  
 
@@ -782,7 +782,7 @@ var result = TryCatchBuilder
 			CatchBlockHandlerFactory.ForAllExceptions()
 				.WithErrorProcessorOf((ex) => Console.WriteLine(ex)))
 		.Build()
-		//We get ITryCatch> after calling the Build method
+		//We get ITryCatch after calling the Build method
 		.Execute(() => File.ReadLines(filePath).ToList());
 ```
 The `TryCatchResult(<T>)` class is very similar to the well-known *Result* pattern, but also has the `IsCanceled` property, which indicates whether the execution was cancelled.  
