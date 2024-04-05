@@ -759,6 +759,62 @@ var result = await PolicyCollection.Create()
 ```
 You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
+### TryCatch
+`SimplePolicy`, rethrowing exceptions, and wrapping allow you to mimic the functionality of the try-catch block using the `TryCatchBuilder` object.  
+You can create a `TryCatchBuilder` object from a `CatchBlockFilteredHandler` or from a `CatchBlockForAllHandler` (see more about `CatchBlockHandler`s in [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)). Other `CatchBlockHandler`s can only be added in the first case. No other handlers can be added after `CatchBlockForAllHandler` - similar to the last catch block `catch (Exception ex) ` adding to the try-catch block.  
+When all needed catchblock handlers are added, just call `Build` method, and get `ITryCatch` interface (we can see the number of added `CatchBlockHandler`s in the `ITryCatch.CatchBlockCount` property) with methods that execute delegates and return `TryCatchResult(<T>)` object:
+```csharp
+var result = TryCatchBuilder
+		.CreateFrom(
+			CatchBlockHandlerFactory.FilterExceptionsBy(
+				NonEmptyCatchBlockFilter
+					.CreateByIncluding<DirectoryNotFoundException>())
+				.WithErrorProcessorOf((ex) => logger.Error(ex)))
+		.AddCatchBlock(
+			CatchBlockHandlerFactory.FilterExceptionsBy(
+				NonEmptyCatchBlockFilter
+					.CreateByIncluding<FileNotFoundException>())
+				.WithErrorProcessorOf((ex) => logger.Warning(ex)))
+		.AddCatchBlock(
+			//Catch and process all other exceptions
+			CatchBlockHandlerFactory.ForAllExceptions()
+				.WithErrorProcessorOf((ex) => Console.WriteLine(ex)))
+		.Build()
+		//We get ITryCatch> after calling the Build method
+		.Execute(() => File.ReadLines(filePath).ToList());
+```
+The `TryCatchResult(<T>)` class is very similar to the well-known *Result* pattern, but also has the `IsCanceled` property, which indicates whether the execution was cancelled.  
+Note that `TryCatch` will not catch all exceptions guaranteed until you add the last `CatchBlockForAllHandler`.  
+As with `SimplePolicy`, you can also use a hybrid approach and wrap the executing delegate of `TryCatch` in the usual try/catch block.  
+
+There are shorthand methods to create `TryCatch`/`TryCatchBuilder` directly from `CatchBlockHandler`s:
+```csharp
+var result = NonEmptyCatchBlockFilter.CreateByIncluding<FileNotFoundException>()
+		.ToCatchBlockHandler()
+		.WithErrorProcessorOf((ex) => logger.Error(ex))
+		//Or convert to ITryCatch directly for just one handler and execute delegate:
+		//.ToTryCatch().Execute(...)
+		.ToTryCatchBuilder()
+		.AddCatchBlock(
+			CatchBlockHandlerFactory.FilterExceptionsBy(
+				NonEmptyCatchBlockFilter.CreateByIncluding<DirectoryNotFoundException>())
+				.WithErrorProcessorOf((ex) => logger.Warning(ex)))
+		.AddCatchBlock(
+			//Catch and process all other exceptions
+			CatchBlockHandlerFactory.ForAllExceptions()
+			.WithErrorProcessorOf((ex) => Console.WriteLine(ex)))
+		.Build()
+		.Execute(() => File.ReadLines(filePath).ToList());
+```
+To mimic just a catch block with no exception filter, convert handler to `TryCatch` directly:
+```csharp
+var result = CatchBlockHandlerFactory.ForAllExceptions()
+			.WithErrorProcessorOf((ex) => Console.WriteLine(ex))
+			.ToTryCatch()
+			.Execute(() => File.ReadLines(filePath).ToList());
+```
+`TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
+
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
 Each method calls corresponding policy method behind the scenes.  
