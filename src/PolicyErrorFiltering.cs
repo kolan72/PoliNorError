@@ -35,9 +35,21 @@ namespace PoliNorError
 			return errorPolicy;
 		}
 
+		internal static T IncludeErrorSet<T>(this T errorPolicy, IErrorSet errorSet) where T : IPolicyBase
+		{
+			errorPolicy.PolicyProcessor.AddIncludedErrorSet(errorSet);
+			return errorPolicy;
+		}
+
 		internal static T ExcludeErrorSet<T, TException1, TException2>(this T errorPolicy) where T : IPolicyBase where TException1 : Exception where TException2 : Exception
 		{
 			errorPolicy.PolicyProcessor.AddExcludedErrorSet<TException1, TException2>();
+			return errorPolicy;
+		}
+
+		internal static T ExcludeErrorSet<T>(this T errorPolicy, IErrorSet errorSet) where T : IPolicyBase
+		{
+			errorPolicy.PolicyProcessor.AddExcludedErrorSet(errorSet);
 			return errorPolicy;
 		}
 

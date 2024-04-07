@@ -38,10 +38,7 @@ namespace PoliNorError
 
 		internal static T IncludeErrorSet<T>(this T policyProcessor, IErrorSet errorSet) where T : IPolicyProcessor
 		{
-			foreach (var item in errorSet.Items)
-			{
-				policyProcessor.AddIncludedError(item);
-			}
+			policyProcessor.AddIncludedErrorSet(errorSet);
 			return policyProcessor;
 		}
 
@@ -65,10 +62,7 @@ namespace PoliNorError
 
 		internal static T ExcludeErrorSet<T>(this T policyProcessor, IErrorSet errorSet) where T : IPolicyProcessor
 		{
-			foreach (var item in errorSet.Items)
-			{
-				policyProcessor.AddExcludedError(item);
-			}
+			policyProcessor.AddExcludedErrorSet(errorSet);
 			return policyProcessor;
 		}
 
@@ -99,11 +93,27 @@ namespace PoliNorError
 			.IncludeError<IPolicyProcessor, TException2>();
 		}
 
+		internal static void AddIncludedErrorSet(this IPolicyProcessor policyProcessor, IErrorSet errorSet)
+		{
+			foreach (var item in errorSet.Items)
+			{
+				policyProcessor.AddIncludedError(item);
+			}
+		}
+
 		internal static void AddExcludedErrorSet<TException1, TException2>(this IPolicyProcessor policyProcessor) where TException1 : Exception where TException2 : Exception
 		{
 			policyProcessor
 			.ExcludeError<IPolicyProcessor, TException1>()
 			.ExcludeError<IPolicyProcessor, TException2>();
+		}
+
+		internal static void AddExcludedErrorSet(this IPolicyProcessor policyProcessor, IErrorSet errorSet)
+		{
+			foreach (var item in errorSet.Items)
+			{
+				policyProcessor.AddExcludedError(item);
+			}
 		}
 
 		internal static void AddIncludedInnerErrorFilter<TInnerException>(this IPolicyProcessor policyProcessor, Func<TInnerException, bool> func = null) where TInnerException : Exception
