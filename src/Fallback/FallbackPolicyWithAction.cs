@@ -43,6 +43,9 @@ namespace PoliNorError
 		public new FallbackPolicyWithAction IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
 			=> this.IncludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
 
+		public new FallbackPolicyWithAction IncludeErrorSet(IErrorSet errorSet)
+			=> this.IncludeErrorSet<FallbackPolicyWithAction>(errorSet);
+
 		///<inheritdoc cref = "FallbackPolicyBase.IncludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
 		public new FallbackPolicyWithAction IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<FallbackPolicyWithAction, TInnerException>(predicate);
 
@@ -53,6 +56,9 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAction ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
 			=> this.ExcludeErrorSet<FallbackPolicyWithAction, TException1, TException2>();
+
+		public new FallbackPolicyWithAction ExcludeErrorSet(IErrorSet errorSet)
+			=> this.ExcludeErrorSet<FallbackPolicyWithAction>(errorSet);
 
 		///<inheritdoc cref = "FallbackPolicyBase.ExcludeInnerError{TInnerException}(Func{TInnerException, bool})"/>
 		public new FallbackPolicyWithAction ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<FallbackPolicyWithAction, TInnerException>(predicate);

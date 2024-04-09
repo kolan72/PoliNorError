@@ -321,6 +321,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true)]
+		[TestCase(TestErrorSetMatch.SecondParam, true)]
+		public void Should_ExcludeErrorSet_WithTwoGenericParams_Work_For_FallbackPolicyWithAction_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction((_) => { });
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
+			_ = fallBackPolicyTest.ExcludeErrorSet(errorSet);
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
+		}
+
+		[Test]
 		[TestCase(TestErrorSetMatch.NoMatch, true)]
 		[TestCase(TestErrorSetMatch.FirstParam, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false)]
@@ -328,6 +342,20 @@ namespace PoliNorError.Tests
 		{
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true)]
+		[TestCase(TestErrorSetMatch.FirstParam, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false)]
+		public void Should_IncludeErrorSet_WithTwoGenericParams_Work_For_FallbackPolicyWithAction_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(async (_) => await Task.Delay(1));
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
+			_ = fallBackPolicyTest.IncludeErrorSet(errorSet);
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
 			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
 			ClassicAssert.AreEqual(isFailed, res.IsFailed);
