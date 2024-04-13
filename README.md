@@ -760,11 +760,12 @@ var result = await PolicyCollection.Create()
 You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
 ### TryCatch (since _version_ 2.16.21)
-`SimplePolicy`, rethrowing exceptions, and wrapping allow you to mimic the functionality of the try-catch block using the  `TryCatch`/`TryCatchBuilder` objects.  
-You can create a `TryCatchBuilder` object from a `CatchBlockFilteredHandler` or from a `CatchBlockForAllHandler` (see more about `CatchBlockHandler`s in [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)).  
-Other `CatchBlockHandler`s can only be added to `TryCatchBuilder` in the first case. No other handlers can be added after `CatchBlockForAllHandler` - similar to the last catch block `catch (Exception ex) ` adding to the try-catch block.  
+`SimplePolicy`, rethrowing exceptions, and wrapping can be used to mimic the functionality of the try-catch block.  
+To create `TryCatch`, first create the `TryCatchBuilder` class from:
+- a `CatchBlockFilteredHandler` - adding more `CatchBlockHandler`s is allowed. (see more about `CatchBlockHandler`s in [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)).
+- a `CatchBlockForAllHandler` - no other handlers can be added if you create `TryCatchBuilder` from this handler or add it later - similar to the last catch block `catch (Exception ex) ` that adds to the try-catch block.  
 
-When all needed catchblock handlers are added, just call `Build` method, and get `ITryCatch` interface (we can see the number of added `CatchBlockHandler`s in the `ITryCatch.CatchBlockCount` property) with methods that execute delegates and return `TryCatchResult(<T>)` object:
+When all needed catchblock handlers are added, just call `Build` method, and get `ITryCatch` interface (we can see the number of added `CatchBlockHandler`s in the `ITryCatch.CatchBlockCount` property) with methods that execute aforementioned delegates and return `TryCatchResult(<T>)` object:
 ```csharp
 var result = TryCatchBuilder
 		.CreateFrom(
