@@ -120,6 +120,8 @@ namespace PoliNorError
 
 		public RetryPolicy ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<RetryPolicy, TException1, TException2>();
 
+		public RetryPolicy ExcludeErrorSet(IErrorSet errorSet) => this.ExcludeErrorSet<RetryPolicy>(errorSet);
+
 		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the Retry policy.
 		/// </summary>
@@ -133,6 +135,8 @@ namespace PoliNorError
 		public RetryPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<RetryPolicy>(expression);
 
 		public RetryPolicy IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<RetryPolicy, TException1, TException2>();
+
+		public RetryPolicy IncludeErrorSet(IErrorSet errorSet) => this.IncludeErrorSet<RetryPolicy>(errorSet);
 
 		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the Retry policy.

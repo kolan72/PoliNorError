@@ -100,6 +100,8 @@ namespace PoliNorError
 
 		public SimplePolicy IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<SimplePolicy, TException1, TException2>();
 
+		public SimplePolicy IncludeErrorSet(IErrorSet errorSet) => this.IncludeErrorSet<SimplePolicy>(errorSet);
+
 		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the Simple policy.
 		/// </summary>
@@ -121,6 +123,8 @@ namespace PoliNorError
 		public SimplePolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<SimplePolicy>(expression);
 
 		public SimplePolicy ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<SimplePolicy, TException1, TException2>();
+
+		public SimplePolicy ExcludeErrorSet(IErrorSet errorSet) => this.ExcludeErrorSet<SimplePolicy>(errorSet);
 
 		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult> action)
 		{

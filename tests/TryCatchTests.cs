@@ -2,6 +2,7 @@
 using PoliNorError.TryCatch;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
@@ -16,6 +17,7 @@ namespace PoliNorError.Tests
 		public void Should_TryCatchResult_Initialized_From_PolicyResult_Correctly_When_Error_Or_Ok(bool isError, bool? isWrapped, bool? isGeneric)
 		{
 			PolicyResult policyResult;
+			int catchBlockCount = 1;
 			if (isGeneric == true)
 			{
 				policyResult = new PolicyResult<int>();
@@ -44,6 +46,7 @@ namespace PoliNorError.Tests
 						var polWrappedResult = new PolicyResult().SetFailedWithError(new Exception());
 						policyResult.WrappedPolicyResults = new List<PolicyDelegateResult>() { new PolicyDelegateResult(polWrappedResult, "", null) };
 					}
+					catchBlockCount = 2;
 				}
 				else
 				{
@@ -62,11 +65,11 @@ namespace PoliNorError.Tests
 			TryCatchResultBase tryCatchResult;
 			if (isGeneric == true)
 			{
-				tryCatchResult = new TryCatchResult<int>((PolicyResult<int>)policyResult);
+				tryCatchResult = new TryCatchResult<int>((PolicyResult<int>)policyResult, catchBlockCount);
 			}
 			else
 			{
-				tryCatchResult = new TryCatchResult(policyResult);
+				tryCatchResult = new TryCatchResult(policyResult, catchBlockCount);
 			}
 
 			if (isError)
@@ -77,11 +80,14 @@ namespace PoliNorError.Tests
 				{
 					Assert.That(((TryCatchResult<int>)tryCatchResult).Result, Is.EqualTo(default(int)));
 				}
+
+				Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(0));
 			}
 			else
 			{
 				Assert.That(tryCatchResult.Error, Is.Null);
 				Assert.That(tryCatchResult.IsError, Is.False);
+				Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(-1));
 				if (isGeneric == true)
 				{
 					Assert.That(((TryCatchResult<int>)tryCatchResult).Result, Is.EqualTo(1));
@@ -113,6 +119,7 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(tryCatchResult.IsError, Is.False);
 			Assert.That(tryCatchResult.Error, Is.Null);
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(-1));
 			Assert.That(tryCatchBuilderFactory.I, Is.EqualTo(0));
 		}
 
@@ -141,6 +148,7 @@ namespace PoliNorError.Tests
 			Assert.That(tryCatchResult.IsError, Is.False);
 			Assert.That(tryCatchResult.Error, Is.Null);
 			Assert.That(tryCatchResult.Result, Is.EqualTo(1));
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(-1));
 			Assert.That(tryCatchBuilderFactory.I, Is.EqualTo(0));
 		}
 
@@ -168,6 +176,7 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(tryCatchResult.IsError, Is.True);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(0));
 			Assert.That(i, Is.EqualTo(1));
 		}
 
@@ -195,6 +204,7 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(tryCatchResult.IsError, Is.True);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(0));
 			Assert.That(tryCatchResult.Result, Is.EqualTo(0));
 			Assert.That(i, Is.EqualTo(1));
 		}
@@ -236,6 +246,7 @@ namespace PoliNorError.Tests
 
 			Assert.That(tryCatchResult.IsError, Is.True);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
 		}
 
 		[Test]
@@ -275,6 +286,7 @@ namespace PoliNorError.Tests
 
 			Assert.That(tryCatchResult.IsError, Is.True);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
 		}
 
 		[Test]
@@ -321,7 +333,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
-		public void Should_CatchBlockHandlerCollectionWrapper_Wrap_Correctly(bool handleByFirst)
+		public void Should_CatchBlockHandlerCollectionWrapper_Wrap_Correctly_If_ForAllHandler_Added(bool handleByFirst)
 		{
 			var collection = new List<CatchBlockHandler>();
 			var errorToThrow = new InvalidOperationException();
@@ -346,7 +358,7 @@ namespace PoliNorError.Tests
 			}
 			var sp = CatchBlockHandlerCollectionWrapper.Wrap(collection);
 			var res = sp.Handle(() => throw errorToThrow);
-			var error = res.GetErrorInWrappedResults();
+			(Exception ex, int index) = res.GetErrorInWrappedResults(collection.Count - 1);
 
 			if (handleByFirst)
 			{
@@ -358,8 +370,40 @@ namespace PoliNorError.Tests
 				Assert.That(i, Is.EqualTo(0));
 				Assert.That(k, Is.EqualTo(1));
 			}
+			Assert.That(index, Is.EqualTo(0));
+			Assert.That(ex, Is.EqualTo(errorToThrow));
+		}
 
-			Assert.That(error, Is.EqualTo(errorToThrow));
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_PolicyResult_GetErrorInWrappedResults_Returns_Correct_ExceptionHandlerIndex(bool handleByLast)
+		{
+			var collection = new List<CatchBlockHandler>();
+			var errorToThrow = new InvalidOperationException();
+
+			var nullRefHandler = CatchBlockHandlerFactory
+				.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+
+			var invalidOperHandler = CatchBlockHandlerFactory
+				.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+			if (handleByLast)
+			{
+				collection.Add(nullRefHandler);
+				collection.Add(invalidOperHandler);
+			}
+			else
+			{
+				collection.Add(nullRefHandler);
+				collection.Add(invalidOperHandler);
+				collection.Add(nullRefHandler);
+			}
+			var sp = CatchBlockHandlerCollectionWrapper.Wrap(collection);
+			var res = sp.Handle(() => throw errorToThrow);
+			(Exception ex, int index) = res.GetErrorInWrappedResults(collection.Count - 1);
+			Assert.That(index, Is.EqualTo(1));
+			Assert.That(ex, Is.EqualTo(errorToThrow));
 		}
 
 		[Test]
@@ -413,6 +457,50 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(tryCatchResultBase.IsError, Is.True);
 			Assert.That(tryCatchResultBase.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResultBase.ExceptionHandlerIndex, Is.EqualTo(0));
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		public async Task Should_TryCatchResult_IsCanceled_Equals_True_When_Canceled(bool isSync, bool isGeneric)
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				var errorToThrow = new InvalidOperationException();
+				var tryCatch = NonEmptyCatchBlockFilter
+								.CreateByIncluding<InvalidOperationException>()
+								.ToCatchBlockHandler()
+								.ToTryCatch();
+
+				TryCatchResultBase tryCatchResultBase = null;
+
+				if (isSync)
+				{
+					if (isGeneric)
+					{
+						tryCatchResultBase = tryCatch.Execute<int>(() => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
+					}
+					else
+					{
+						tryCatchResultBase = tryCatch.Execute(() => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
+					}
+				}
+				else
+				{
+					if (isGeneric)
+					{
+						tryCatchResultBase = await tryCatch.ExecuteAsync<int>((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
+					}
+					else
+					{
+						tryCatchResultBase = await tryCatch.ExecuteAsync((_) => { cancelTokenSource.Cancel(); throw errorToThrow; }, cancelTokenSource.Token);
+					}
+				}
+				Assert.That(tryCatchResultBase.IsCanceled, Is.True);
+			}
 		}
 
 		private class TryCatchBuilderFactoryWhenNoError

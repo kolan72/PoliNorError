@@ -125,6 +125,8 @@ namespace PoliNorError
 
 		public FallbackPolicyBase IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.IncludeErrorSet<FallbackPolicyBase, TException1, TException2>();
 
+		public FallbackPolicyBase IncludeErrorSet(IErrorSet errorSet) => this.IncludeErrorSet<FallbackPolicyBase>(errorSet);
+
 		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the Fallback policy.
 		/// </summary>
@@ -138,6 +140,8 @@ namespace PoliNorError
 		public FallbackPolicyBase ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<FallbackPolicyBase>(expression);
 
 		public FallbackPolicyBase ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception => this.ExcludeErrorSet<FallbackPolicyBase, TException1, TException2>();
+
+		public FallbackPolicyBase ExcludeErrorSet(IErrorSet errorSet) => this.ExcludeErrorSet<FallbackPolicyBase>(errorSet);
 
 		/// <summary>
 		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the Fallback policy.

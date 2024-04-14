@@ -385,6 +385,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true)]
+		[TestCase(TestErrorSetMatch.FirstParam, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false)]
+		public void Should_IncludeErrorSet_WithTwoGenericParams_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var simplePolTest = new SimplePolicy();
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
+			_ = simplePolTest.IncludeErrorSet(errorSet);
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(simplePolTest, testErrorSetMatch);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
+		}
+
+		[Test]
 		[TestCase(TestErrorSetMatch.NoMatch, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true)]
 		[TestCase(TestErrorSetMatch.SecondParam, true)]
@@ -393,6 +407,20 @@ namespace PoliNorError.Tests
 			var retryPolTest = new SimplePolicy();
 			retryPolTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(retryPolTest, testErrorSetMatch);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, res.IsFailed);
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true)]
+		[TestCase(TestErrorSetMatch.SecondParam, true)]
+		public void Should_ExcludeErrorSet_WithTwoGenericParams_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var simplePolTest = new SimplePolicy();
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
+			_ = simplePolTest.ExcludeErrorSet(errorSet);
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(simplePolTest, testErrorSetMatch);
 			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
 			ClassicAssert.AreEqual(isFailed, res.IsFailed);
 		}

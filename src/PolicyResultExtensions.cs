@@ -288,50 +288,52 @@ namespace PoliNorError
 
 		internal static T GetResultOrDefault<T>(this PolicyResult<T> policyResult) => policyResult != null ? policyResult.Result : default;
 
-		internal static Exception GetErrorInWrappedResults(this PolicyResult policyResult)
+		internal static (Exception, int) GetErrorInWrappedResults(this PolicyResult policyResult, int lastIndex)
 		{
-			if (policyResult?.WrappedPolicyResults is null)
-				return null;
+			if (policyResult?.NoError == false)
+				return (policyResult.Errors.FirstOrDefault(), lastIndex);
 
-			var currentWrappedResult = policyResult.WrappedPolicyResults.FirstOrDefault();
-			while (true)
+			var wrappedResults = policyResult?.WrappedPolicyResults;
+			var currentIndex = lastIndex - 1;
+
+			while (wrappedResults != null)
 			{
-				if (currentWrappedResult?.Result.Errors.Any() == true)
+				if (wrappedResults.FirstOrDefault()?.Result.Errors.Any() == true)
 				{
-					return currentWrappedResult.Result.Errors.FirstOrDefault();
-				}
-				else if (currentWrappedResult?.Result.WrappedPolicyResults == null)
-				{
-					return null;
+					break;
 				}
 				else
 				{
-					currentWrappedResult = currentWrappedResult.Result.WrappedPolicyResults.FirstOrDefault();
+					wrappedResults = wrappedResults.FirstOrDefault()?.Result.WrappedPolicyResults;
+					currentIndex--;
 				}
 			}
+			Exception error = wrappedResults?.FirstOrDefault()?.Result.Errors?.FirstOrDefault();
+			return (error, currentIndex);
 		}
 
-		internal static Exception GetErrorInWrappedResults<T>(this PolicyResult<T> policyResult)
+		internal static (Exception, int) GetErrorInWrappedResults<T>(this PolicyResult<T> policyResult, int lastIndex)
 		{
-			if (policyResult?.WrappedPolicyResults is null)
-				return null;
+			if (policyResult?.NoError == false)
+				return (policyResult.Errors.FirstOrDefault(), lastIndex);
 
-			var currentWrappedResult = policyResult.WrappedPolicyResults.FirstOrDefault();
-			while (true)
+			var wrappedResults = policyResult?.WrappedPolicyResults;
+			var currentIndex = lastIndex - 1;
+
+			while (wrappedResults != null)
 			{
-				if (currentWrappedResult?.Result.Errors.Any() == true)
+				if (wrappedResults.FirstOrDefault()?.Result.Errors.Any() == true)
 				{
-					return currentWrappedResult.Result.Errors.FirstOrDefault();
-				}
-				else if (currentWrappedResult?.Result.WrappedPolicyResults == null)
-				{
-					return null;
+					break;
 				}
 				else
 				{
-					currentWrappedResult = currentWrappedResult.Result.WrappedPolicyResults.FirstOrDefault();
+					wrappedResults = wrappedResults.FirstOrDefault()?.Result.WrappedPolicyResults;
+					currentIndex--;
 				}
 			}
+			Exception error = wrappedResults?.FirstOrDefault()?.Result.Errors?.FirstOrDefault();
+			return (error, currentIndex);
 		}
 	}
 }
