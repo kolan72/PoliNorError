@@ -263,6 +263,17 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Specifies the <see cref= "IErrorSet" /> interface-based filter conditions for including an exception in the processing performed by the last policy of the PolicyCollection
+		/// </summary>
+		/// <param name="errorSet"><see cref="IErrorSet"/></param>
+		/// <returns></returns>
+		public PolicyCollection IncludeErrorSet(IErrorSet errorSet)
+		{
+			this.AddIncludedErrorSetFilter(errorSet);
+			return this;
+		}
+
+		/// <summary>
 		/// Specifies two types-based filter condition for excluding an exception from the processing performed by the last policy of the PolicyCollection
 		/// </summary>
 		/// <typeparam name="TException1">A type of exception.</typeparam>
