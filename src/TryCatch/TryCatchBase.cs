@@ -6,6 +6,13 @@ namespace PoliNorError.TryCatch
 {
 	public abstract class TryCatchBase : ITryCatch
 	{
+		protected TryCatchBase(ITryCatch tryCatch)
+		{
+			TryCatch = tryCatch;
+		}
+
+		protected TryCatchBase(){}
+
 		protected ITryCatch TryCatch { get; set; }
 
 		public int CatchBlockCount => TryCatch.CatchBlockCount;
