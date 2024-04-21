@@ -108,7 +108,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Specifies two types-based filter condition for including an exception in the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection"/>
+		/// Specifies two types-based filter conditions for including an exception in the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection"/>
 		/// </summary>
 		/// <typeparam name="TException1">A type of exception.</typeparam>
 		/// <typeparam name="TException2">A type of exception.</typeparam>
@@ -133,7 +133,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Specifies two types-based filter condition for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection"/>
+		/// Specifies two types-based filter conditions for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection"/>
 		/// </summary>
 		/// <typeparam name="TException1">A type of exception.</typeparam>
 		/// <typeparam name="TException2">A type of exception.</typeparam>
@@ -142,6 +142,18 @@ namespace PoliNorError
 		public static IPolicyDelegateCollection ExcludeErrorSet<TException1, TException2>(this IPolicyDelegateCollection policyDelegateCollection) where TException1 : Exception where TException2 : Exception
 		{
 			policyDelegateCollection.AddExcludedErrorSetFilter<TException1, TException2>();
+			return policyDelegateCollection;
+		}
+
+		/// <summary>
+		/// Specifies the <see cref= "IErrorSet" /> interface-based filter conditions for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection"/>
+		/// </summary>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection</param>
+		/// <param name="errorSet"><see cref="IErrorSet"/></param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection ExcludeErrorSet(this IPolicyDelegateCollection policyDelegateCollection, IErrorSet errorSet)
+		{
+			policyDelegateCollection.AddExcludedErrorSetFilter(errorSet);
 			return policyDelegateCollection;
 		}
 
