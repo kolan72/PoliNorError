@@ -8,6 +8,7 @@ namespace PoliNorError.TryCatch
 	public sealed class TryCatchBuilder : ITryCatchBuilder
 	{
 		private readonly List<CatchBlockHandler> _catchBlockHandlers;
+		private bool _hasCatchBlockForAll;
 
 		private TryCatchBuilder()
 		{
@@ -55,9 +56,10 @@ namespace PoliNorError.TryCatch
 		public ITryCatchBuilder AddCatchBlock(CatchBlockForAllHandler filteredHandler)
 		{
 			_catchBlockHandlers.Add(filteredHandler);
+			_hasCatchBlockForAll = true;
 			return this;
 		}
 
-		public ITryCatch Build() => new TryCatch(_catchBlockHandlers);
+		public ITryCatch Build() => new TryCatch(_catchBlockHandlers, _hasCatchBlockForAll);
 	}
 }

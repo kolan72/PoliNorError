@@ -164,6 +164,7 @@ namespace PoliNorError.Tests
 			var tryCatch = CatchBlockHandlerFactory.ForAllExceptions()
 							.ToTryCatch();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
 		}
 
 		[Test]

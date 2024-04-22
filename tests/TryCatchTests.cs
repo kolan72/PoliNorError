@@ -106,6 +106,8 @@ namespace PoliNorError.Tests
 			var tryCatchBuilder = tryCatchBuilderFactory.CreateBuilder();
 
 			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.EqualTo(withEmptyFilter));
+
 			TryCatchResult tryCatchResult = null;
 			if (isSync)
 			{
@@ -134,6 +136,8 @@ namespace PoliNorError.Tests
 			var tryCatchBuilder = tryCatchBuilderFactory.CreateBuilder();
 
 			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.EqualTo(withEmptyFilter));
+
 			TryCatchResult<int> tryCatchResult = null;
 			if (isSync)
 			{
@@ -163,6 +167,9 @@ namespace PoliNorError.Tests
 											.ForAllExceptions()
 											.WithErrorProcessorOf((_) => i++))
 											.Build();
+
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
 			TryCatchResult tryCatchResult = null;
 			if (isSync)
 			{
@@ -191,6 +198,9 @@ namespace PoliNorError.Tests
 											.ForAllExceptions()
 											.WithErrorProcessorOf((_) => i++))
 											.Build();
+
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
 			TryCatchResult<int> tryCatchResult = null;
 			if (isSync)
 			{

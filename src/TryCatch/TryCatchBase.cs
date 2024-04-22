@@ -17,6 +17,8 @@ namespace PoliNorError.TryCatch
 
 		public int CatchBlockCount => TryCatch.CatchBlockCount;
 
+		public bool HasCatchBlockForAll => TryCatch.HasCatchBlockForAll;
+
 		public TryCatchResult Execute(Action action, CancellationToken token = default) => TryCatch.Execute(action, token);
 
 		public TryCatchResult<T> Execute<T>(Func<T> func, CancellationToken token = default) => TryCatch.Execute(func, token);
