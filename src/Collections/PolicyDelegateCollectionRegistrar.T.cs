@@ -132,7 +132,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Specifies two types-based filter condition for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/>
+		/// Specifies two types-based filter conditions for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/>
 		/// </summary>
 		/// <typeparam name="T">A return type of handling delegate</typeparam>
 		/// <typeparam name="TException1">A type of exception.</typeparam>
@@ -142,6 +142,19 @@ namespace PoliNorError
 		public static IPolicyDelegateCollection<T> ExcludeErrorSet<T, TException1, TException2>(this IPolicyDelegateCollection<T> policyDelegateCollection) where TException1 : Exception where TException2 : Exception
 		{
 			policyDelegateCollection.AddExcludedErrorSetFilter<TException1, TException2>();
+			return policyDelegateCollection;
+		}
+
+		/// <summary>
+		/// Specifies the <see cref= "IErrorSet" /> interface-based filter conditions for excluding an exception from the processing performed by the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/>
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection{T}</param>
+		/// <param name="errorSet"><see cref="IErrorSet"/></param>
+		/// <returns></returns>
+		public static IPolicyDelegateCollection<T> ExcludeErrorSet<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, IErrorSet errorSet)
+		{
+			policyDelegateCollection.AddExcludedErrorSetFilter(errorSet);
 			return policyDelegateCollection;
 		}
 

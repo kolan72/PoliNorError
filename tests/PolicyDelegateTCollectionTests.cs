@@ -870,6 +870,25 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true)]
+		[TestCase(TestErrorSetMatch.SecondParam, true)]
+		public async Task Should_ExcludeErrorSet_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		{
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
+			var policyDelegateCollection = PolicyDelegateCollection<int>
+						.Create()
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamFunc(testErrorSetMatch))
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamFunc(testErrorSetMatch))
+						.ExcludeErrorSet(errorSet);
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(true, false)]
 		[TestCase(true, null)]
@@ -1000,6 +1019,9 @@ namespace PoliNorError.Tests
 		{
 			var polCollection = PolicyDelegateCollection<int>.Create();
 			ClassicAssert.DoesNotThrow(() => polCollection.ExcludeErrorSet<int, ArgumentException, ArgumentNullException>());
+
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
+			Assert.DoesNotThrow(() => polCollection.ExcludeErrorSet(errorSet));
 		}
 
 		private class TestClass
