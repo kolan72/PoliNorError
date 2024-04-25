@@ -187,6 +187,18 @@ var result = new RetryPolicy(1)
 				.ExcludeErrorSet<FileNotFoundException, DirectoryNotFoundException>()
 				.Handle(() => File.Copy(filePath, newFilePath));
 ```
+To set an error filter based on a set of exception types, you can also use the `IncludeErrorSet`/`ExcludeErrorSet` methods, which accept the argument of the interface type `IErrorSet` (since _version_ 2.17.0).  
+The library has the `ErrorSet` class that implements this interface, and the previous example can be overwritten:
+```csharp
+var excludeErrorSet = ErrorSet
+		.FromError<FileNotFoundException>()
+		.WithError<DirectoryNotFoundException>();
+
+var result = new RetryPolicy(1)
+		.ExcludeErrorSet(excludeErrorSet)
+		.Handle(() => File.Copy(filePath, newFilePath));
+```
+
 You can also filter exceptions by their `InnerException` property using these methods (since _version_ 2.15.0):  
 
 - `IncludeInnerError<TInnerException>`  
