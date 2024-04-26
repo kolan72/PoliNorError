@@ -798,7 +798,10 @@ var result = TryCatchBuilder
 		//We get ITryCatch after calling the Build method
 		.Execute(() => File.ReadLines(filePath).ToList());
 ```
-The `TryCatchResult(<T>)` class is very similar to the well-known *Result* pattern, but also has the `IsCanceled` property, which indicates whether the execution was cancelled.  
+The `TryCatchResult(<T>)` class is very similar to the well-known *Result* pattern, but also has 
+- the `IsCanceled` property, which indicates whether the execution was cancelled.  
+- the `ExceptionHandlerIndex` property, which represents the index of the `CatchBlockHandler` that handled an exception (since _version_ 2.17.0).  
+
 Note that `TryCatch` will not catch all exceptions guaranteed until you add the last `CatchBlockForAllHandler`.  
 As with `SimplePolicy`, you can also use a hybrid approach and wrap the executing delegate of `TryCatch` in the usual try/catch block.  
 
