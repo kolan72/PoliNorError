@@ -1,3 +1,14 @@
+## 2.17.0
+
+- Introduce `IErrorSet` interface and `ErrorSet` class.
+- Introduce `IncludeErrorSet(IErrorSet)`, `ExcludeErrorSet(IErrorSet)` extension methods for policy processors.
+- Introduce `IncludeErrorSet(IErrorSet)`, `ExcludeErrorSet(IErrorSet)` extension methods for library policies (`RetryPolicy`, `SimplePolicy` and `FallbackPolicy`).
+- Add the `ITryCatch.ExecuteAsync` extension methods with the `configureAwait` = false parameter.
+- Introduce `TryCatchResultBase.ExceptionHandlerIndex` property.
+- Improve conversion of `PolicyResult(<T>)` class to `TryCatchResult(<T>)` class.
+- Add  'TryCatch' README Chapter.
+
+
 ## 2.16.21
 
 - `TryCatch/TryCatchBuilder` classes now support more than two `CatchBlockHandler`s.
