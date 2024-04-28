@@ -1,5 +1,6 @@
 # PoliNorError  
 [![nuget](https://img.shields.io/nuget/v/PoliNorError)](https://www.nuget.org/packages/PoliNorError/)
+[![badge_shieldsio_linecoverage_brightgreen](https://github.com/kolan72/PoliNorError/assets/6088210/632190cb-f61a-4f0c-b2ae-c4cec5e0395d)](https://github.com/kolan72/PoliNorError/blob/main/CODE_COVERAGE.md)
 
 ![alt text](https://github.com/kolan72/kolan72.github.io/blob/master/images/PoliNorError6.png?raw=true)  
 
