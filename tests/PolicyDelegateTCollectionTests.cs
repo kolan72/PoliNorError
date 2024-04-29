@@ -660,28 +660,30 @@ namespace PoliNorError.Tests
 		[TestCase(false)]
 		public void Should_PolicyDelegate_HandleAsyncAsSync_Work(bool canceled)
 		{
-			var cts = new CancellationTokenSource();
-			if (canceled)
+			using (var cts = new CancellationTokenSource())
 			{
-				cts.Cancel();
-			}
-			var excToThrow = new NullReferenceException();
-			var (result, IsCanceled) = new SimplePolicy(true)
-				.ExcludeError<NullReferenceException>()
-				.ToPolicyDelegate<int>(async(_) => { await Task.Delay(1); throw excToThrow; })
-				.HandleAsyncAsSyncSafely(cts.Token);
+				if (canceled)
+				{
+					cts.Cancel();
+				}
+				var excToThrow = new NullReferenceException();
+				var (result, IsCanceled) = new SimplePolicy(true)
+					.ExcludeError<NullReferenceException>()
+					.ToPolicyDelegate<int>(async (_) => { await Task.Delay(1); throw excToThrow; })
+					.HandleAsyncAsSyncSafely(cts.Token);
 
-			if (canceled)
-			{
-				Assert.That(IsCanceled, Is.True);
-				Assert.That(result, Is.Null);
-			}
-			else
-			{
-				Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
-				Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
-				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
-				Assert.That(result.IsFailed, Is.True);
+				if (canceled)
+				{
+					Assert.That(IsCanceled, Is.True);
+					Assert.That(result, Is.Null);
+				}
+				else
+				{
+					Assert.That(result.UnprocessedError, Is.EqualTo(excToThrow));
+					Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnhandledError));
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+					Assert.That(result.IsFailed, Is.True);
+				}
 			}
 		}
 

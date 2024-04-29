@@ -69,7 +69,7 @@ namespace PoliNorError.Tests
 			var testExc = new Exception();
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(100);
-			ClassicAssert.Throws<OperationCanceledException>(() => processor.Process(testExc, ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
+			Assert.Throws<OperationCanceledException>(() => processor.Process(testExc, ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
 			cancelTokenSource.Dispose();
 		}
 
@@ -91,7 +91,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			cancelTokenSource.CancelAfter(1000);
 			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(2000));
-			ClassicAssert.ThrowsAsync<TaskCanceledException>(async () => await delayProcessor.ProcessAsync(new Exception(), ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
+			Assert.ThrowsAsync<TaskCanceledException>(async () => await delayProcessor.ProcessAsync(new Exception(), ProcessingErrorInfo.FromRetry(1), cancelTokenSource.Token));
 			cancelTokenSource.Dispose();
 		}
 

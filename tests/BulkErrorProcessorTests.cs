@@ -94,34 +94,38 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Process_NotCallOtherProcessor_If_Canceled()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
-			cancelTokenSource.CancelAfter(500);
-			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
-			bulkProcessor.AddProcessor(delayProcessor);
-			bulkProcessor.AddProcessor(new BasicErrorProcessor());
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+				cancelTokenSource.CancelAfter(500);
+				var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
+				bulkProcessor.AddProcessor(delayProcessor);
+				bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
-			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
-			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
-			ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().Equals(typeof(OperationCanceledException)));
-			ClassicAssert.IsTrue(res.IsCanceled);
+				var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
+				ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
+				ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().Equals(typeof(OperationCanceledException)));
+				ClassicAssert.IsTrue(res.IsCanceled);
+			}
 		}
 
 		[Test]
 		public async Task Should_ProcessAsync_NotCallOtherProcessor_If_Canceled()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
-			cancelTokenSource.CancelAfter(500);
-			var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
-			bulkProcessor.AddProcessor(delayProcessor);
-			bulkProcessor.AddProcessor(new BasicErrorProcessor());
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+				cancelTokenSource.CancelAfter(500);
+				var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
+				bulkProcessor.AddProcessor(delayProcessor);
+				bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
-			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
-			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
-			//				The real type here id TaskCanceledException.
-			ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().BaseType.Equals(typeof(OperationCanceledException)));
-			ClassicAssert.IsTrue(res.IsCanceled);
+				var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
+				ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
+				//				The real type here id TaskCanceledException.
+				ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().BaseType.Equals(typeof(OperationCanceledException)));
+				ClassicAssert.IsTrue(res.IsCanceled);
+			}
 		}
 
 		[Test]
