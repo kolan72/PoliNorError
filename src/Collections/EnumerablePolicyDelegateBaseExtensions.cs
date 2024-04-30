@@ -93,9 +93,19 @@ namespace PoliNorError
 			policies.GetPolicies().AddIncludedErrorSetFilter<TException1, TException2>();
 		}
 
+		public static void AddIncludedErrorSetFilter(this IEnumerable<PolicyDelegateBase> policies, IErrorSet errorSet)
+		{
+			policies.GetPolicies().AddIncludedErrorSetFilter(errorSet);
+		}
+
 		public static void AddExcludedErrorSetFilter<TException1, TException2>(this IEnumerable<PolicyDelegateBase> policies) where TException1 : Exception where TException2 : Exception
 		{
 			policies.GetPolicies().AddExcludedErrorSetFilter<TException1, TException2>();
+		}
+
+		public static void AddExcludedErrorSetFilter(this IEnumerable<PolicyDelegateBase> policies, IErrorSet errorSet)
+		{
+			policies.GetPolicies().AddExcludedErrorSetFilter(errorSet);
 		}
 
 		public static void AddIncludedInnerErrorFilter<TInnerException>(this IEnumerable<PolicyDelegateBase> policies, Func<TInnerException, bool> predicate = null) where TInnerException : Exception

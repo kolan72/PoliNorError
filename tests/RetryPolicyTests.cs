@@ -100,26 +100,30 @@ namespace PoliNorError.Tests
 		public void Should_Be_Cancelable_ForSyncAction_WithError()
 		{
 			var retryPol = RetryPolicy.InfiniteRetries().WithWait(TimeSpan.FromSeconds(1));
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
 
-			void act() => throw new Exception();
-			var polResult = retryPol.Handle(act, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polResult.IsCanceled);
-			ClassicAssert.AreEqual(retryPol.PolicyName, polResult.PolicyName);
+				void act() => throw new Exception();
+				var polResult = retryPol.Handle(act, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.AreEqual(retryPol.PolicyName, polResult.PolicyName);
+			}
 		}
 
 		[Test]
 		public void Should_Be_Cancelable_ForSyncAction_WithDelay()
 		{
 			var retryPol = RetryPolicy.InfiniteRetries().WithWait(TimeSpan.FromSeconds(1));
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
 
-			void act() => Task.Delay(2000, cancelTokenSource.Token).GetAwaiter().GetResult();
-			var polResult = retryPol.Handle(act, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polResult.IsCanceled);
-			ClassicAssert.IsTrue(polResult.IsFailed);
+				void act() => Task.Delay(2000, cancelTokenSource.Token).GetAwaiter().GetResult();
+				var polResult = retryPol.Handle(act, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+			}
 		}
 
 		[Test]

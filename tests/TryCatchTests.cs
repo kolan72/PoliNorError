@@ -106,6 +106,8 @@ namespace PoliNorError.Tests
 			var tryCatchBuilder = tryCatchBuilderFactory.CreateBuilder();
 
 			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.EqualTo(withEmptyFilter));
+
 			TryCatchResult tryCatchResult = null;
 			if (isSync)
 			{
@@ -134,6 +136,8 @@ namespace PoliNorError.Tests
 			var tryCatchBuilder = tryCatchBuilderFactory.CreateBuilder();
 
 			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.EqualTo(withEmptyFilter));
+
 			TryCatchResult<int> tryCatchResult = null;
 			if (isSync)
 			{
@@ -163,6 +167,9 @@ namespace PoliNorError.Tests
 											.ForAllExceptions()
 											.WithErrorProcessorOf((_) => i++))
 											.Build();
+
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
 			TryCatchResult tryCatchResult = null;
 			if (isSync)
 			{
@@ -191,6 +198,9 @@ namespace PoliNorError.Tests
 											.ForAllExceptions()
 											.WithErrorProcessorOf((_) => i++))
 											.Build();
+
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
 			TryCatchResult<int> tryCatchResult = null;
 			if (isSync)
 			{
@@ -250,6 +260,57 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public async Task Should_TryCatchForDI_Execute_Or_ExecuteAsync_WithNonEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool handleByFirst, bool isSync, bool initByOtherTryCatch)
+		{
+			var errorToThrow = new InvalidOperationException();
+			var tryCatchBuilderFactory = new TryCatchBuilderFactoryWithNonEmptyFilter(handleByFirst);
+
+			TryCatchResult tryCatchResult = null;
+			ITryCatch<TryCatchForDI> tryCatch = null;
+
+			if (initByOtherTryCatch)
+			{
+				tryCatch = new TryCatchForDI(tryCatchBuilderFactory.CreateBuilder().Build());
+			}
+			else
+			{
+				tryCatch = new TryCatchForDI(tryCatchBuilderFactory);
+			}
+
+			if (isSync)
+			{
+				tryCatchResult = tryCatch.Execute(() => throw errorToThrow);
+			}
+			else
+			{
+				tryCatchResult = await tryCatch.ExecuteAsync(async (_) => { await Task.Delay(1); throw errorToThrow; });
+			}
+
+			if (handleByFirst)
+			{
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(1));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(0));
+			}
+			else
+			{
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(0));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(1));
+			}
+
+			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(false, true)]
 		[TestCase(true, false)]
@@ -263,6 +324,58 @@ namespace PoliNorError.Tests
 
 			TryCatchResult<int> tryCatchResult = null;
 			var tryCatch = builder.Build();
+
+			if (isSync)
+			{
+				tryCatchResult = tryCatch.Execute<int>(() => throw errorToThrow);
+			}
+			else
+			{
+				tryCatchResult = await tryCatch.ExecuteAsync<int>(async (_) => { await Task.Delay(1); throw errorToThrow; });
+			}
+
+			if (handleByFirst)
+			{
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(1));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(0));
+			}
+			else
+			{
+				Assert.That(tryCatchBuilderFactory.FirstProcFlag, Is.EqualTo(0));
+				Assert.That(tryCatchBuilderFactory.SecProcFlag, Is.EqualTo(1));
+			}
+
+			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
+			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public async Task Should_TryCatchForDI_ExecuteT_Or_ExecuteAsyncT_WithNonEmptyFilteredCatchBlockHandler_Returns_TryCatchResult_With_Error(bool handleByFirst, bool isSync, bool initByOtherTryCatch)
+		{
+			var errorToThrow = new InvalidOperationException();
+
+			TryCatchResult<int> tryCatchResult = null;
+
+			var tryCatchBuilderFactory = new TryCatchBuilderFactoryWithNonEmptyFilter(handleByFirst);
+			ITryCatch<TryCatchForDI> tryCatch = null;
+
+			if (initByOtherTryCatch)
+			{
+				tryCatch = new TryCatchForDI(tryCatchBuilderFactory.CreateBuilder().Build());
+			}
+			else
+			{
+				tryCatch = new TryCatchForDI(tryCatchBuilderFactory);
+			}
 
 			if (isSync)
 			{
@@ -558,6 +671,16 @@ namespace PoliNorError.Tests
 
 			public int FirstProcFlag => _firstProcFlag;
 			public int SecProcFlag => _secProcFlag;
+		}
+
+		private class TryCatchForDI : TryCatchBase, ITryCatch<TryCatchForDI>
+		{
+			public TryCatchForDI(ITryCatch tryCatch) : base(tryCatch){}
+
+			public TryCatchForDI(TryCatchBuilderFactoryWithNonEmptyFilter factory)
+			{
+				TryCatch = factory.CreateBuilder().Build();
+			}
 		}
 	}
 }

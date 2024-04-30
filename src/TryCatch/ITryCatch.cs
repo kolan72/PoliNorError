@@ -51,16 +51,22 @@ namespace PoliNorError.TryCatch
 		/// A number of <see cref="CatchBlockHandler"/> added.
 		/// </summary>
 		int CatchBlockCount { get; }
+
+		/// <summary>
+		/// Indicates whether <see cref="ITryCatch"/> has a <see cref="CatchBlockForAllHandler"/> handler.
+		/// </summary>
+		bool HasCatchBlockForAll { get; }
 	}
 
 	public class TryCatch : ITryCatch
 	{
 		private readonly SimplePolicy _simplePolicy;
 
-		internal TryCatch(IEnumerable<CatchBlockHandler> catchBlockHandlers)
+		internal TryCatch(IEnumerable<CatchBlockHandler> catchBlockHandlers, bool hasCatchBlockForAll)
 		{
 			_simplePolicy = CatchBlockHandlerCollectionWrapper.Wrap(catchBlockHandlers);
 			CatchBlockCount = catchBlockHandlers.Count();
+			HasCatchBlockForAll = hasCatchBlockForAll;
 		}
 
 		public TryCatchResult Execute(Action action, CancellationToken token = default)
@@ -84,5 +90,7 @@ namespace PoliNorError.TryCatch
 		}
 
 		public int CatchBlockCount { get; }
+
+		public bool HasCatchBlockForAll { get; }
 	}
 }

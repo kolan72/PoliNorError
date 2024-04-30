@@ -23,6 +23,7 @@ namespace PoliNorError.Tests
 			Assert.That(tryCatchBuilder, Is.TypeOf<TryCatchBuilder>());
 			var tryCatch = tryCatchBuilder.Build();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.EqualTo(forAll));
 		}
 
 		[Test]
@@ -45,6 +46,7 @@ namespace PoliNorError.Tests
 
 			var tryCatch = tryCatchBuilder.Build();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.EqualTo(forAll));
 		}
 	}
 }
