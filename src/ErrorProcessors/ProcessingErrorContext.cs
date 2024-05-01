@@ -6,16 +6,11 @@
 
 		public ProcessingErrorContext(PolicyAlias policyKind) => PolicyKind = policyKind;
 
-		public int CurrentRetryCount { get; private set; } = -1;
+		public int CurrentRetryCount { get; } = -1;
 
 		internal bool IsPolicyAliasSet => PolicyKind != PolicyAlias.NotSet;
 
 		internal PolicyAlias PolicyKind { get; set; }
-
-		public static ProcessingErrorContext FromRetry(int currentRetryCount)
-		{
-			return new ProcessingErrorContext() { CurrentRetryCount = currentRetryCount };
-		}
 
 		internal virtual ProcessingErrorInfo ToProcessingErrorInfo(PolicyAlias policyAlias)
 		{
