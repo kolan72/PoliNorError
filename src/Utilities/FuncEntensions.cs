@@ -153,7 +153,7 @@ namespace PoliNorError
 			{
 				if (ct.IsCancellationRequested)
 					return;
-				func(e, k).Wait();
+				func(e, k).GetAwaiter().GetResult();
 			};
 		}
 
