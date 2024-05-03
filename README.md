@@ -98,9 +98,13 @@ It can happen due to these reasons:
 -   A critical exception has occurred within the catch block, specifically related to the saving exception for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
 -   An exception has occurred when applying an error filter. In this case, the exception is also treated as critical and handling is interrupted.
  -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.
+ -  If delegate is handled by policy within collection and exception is unhandled (see [`SimplePolicy`](#simplepolicy) that can rethrow exception).
  -  If the handling result cannot be accepted as a success, and a policy is in use, you can set `IsFailed` to true in a `PolicyResult` handler by using the `SetFailed` method (or `SetPolicyResultFailedIf(<T>)(Func<PolicyResult(<T>), bool> predicate)` policy method since _version_ 2.14.0).  
  
-To find out why `IsFailed` was set to true, there is a property called `FailedReason`. It equals `PolicyResultFailedReason.DelegateIsNull` and `PolicyResultFailedReason.PolicyResultHandlerFailed` for the first and last cases, respectively, and `PolicyResultFailedReason.PolicyProcessorFailed` for the others.  
+To find out why `IsFailed` was set to true, there is a property called `FailedReason`. It equals: 
+- `PolicyResultFailedReason.DelegateIsNull` and `PolicyResultFailedReason.PolicyResultHandlerFailed` for the first and last cases, respectively, 
+- `PolicyResultFailedReason.UnhandledError` when a policy (re-)throws an exception (since _version_ 2.16.9), 
+- and `PolicyResultFailedReason.PolicyProcessorFailed` for the others.  
 
 Having `IsFailed` true, you can check the `UnprocessedError` property (appeared in version 2.0.0-rc3) to see if there was an exception that was not handled properly within the catch block.
 
