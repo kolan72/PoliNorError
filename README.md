@@ -7,6 +7,27 @@
 PoliNorError is a library that provides error handling capabilities through Retry and Fallback policies. The library has a specific focus on handling potential exceptions within the catch block and offers various configuration options.
 Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 
+---
+- [Key Features](#key-features)
+- [Usage](#usage)
+- [PolicyResult](#policyresult)
+- [Error processors](#error-processors)
+- [Error filters](#error-filters)
+- [PolicyResult handlers](#policyresult-handlers)
+- [RetryPolicy](#retrypolicy)
+- [FallbackPolicy](#fallbackpolicy)
+- [SimplePolicy](#simplepolicy)
+- [PolicyDelegate](#policydelegate)
+- [PolicyDelegateCollection](#policydelegatecollection)
+- [PolicyDelegateCollectionResult](#policydelegatecollectionresult)
+- [PolicyCollection](#policycollection)
+- [Policy wrap](#policy-wrap)
+- [TryCatch](#trycatch-since-version-21621)
+- [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)
+- [Usage recommendations](#usage-recommendations)
+- [Nuances of using the library](#nuances-of-using-the-library)
+---
+
 ## Key Features
 - Implements two commonly used resiliency patterns - Retry and Fallback.
 - Also provides `SimplePolicy` for simple handling.
