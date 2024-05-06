@@ -19,5 +19,10 @@ namespace PoliNorError
 		{
 			return (exc) => (exc.InnerException != null) && exc.InnerException.GetType() == typeof(TInnerException) && (func == null || func((TInnerException)exc.InnerException));
 		}
+
+		public static Expression<Func<Exception, bool>> GetTypedInnerErrorFilter(Type innerErrorType)
+		{
+			return (exc) => (exc.InnerException != null) && exc.InnerException.GetType() == innerErrorType;
+		}
 	}
 }

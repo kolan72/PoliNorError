@@ -132,6 +132,10 @@ namespace PoliNorError
 			{
 				policyProcessor.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(errorSetItem.ErrorType));
 			}
+			else if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.InnerError)
+			{
+				policyProcessor.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(errorSetItem.ErrorType));
+			}
 			else
 			{
 				throw new NotImplementedException();
@@ -143,6 +147,10 @@ namespace PoliNorError
 			if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.Error)
 			{
 				policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(errorSetItem.ErrorType));
+			}
+			else if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.InnerError)
+			{
+				policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(errorSetItem.ErrorType));
 			}
 			else
 			{

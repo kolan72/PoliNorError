@@ -17,18 +17,33 @@ namespace PoliNorError.Tests
 			return policyBase.Handle(GetTwoGenericParamAction(testErrorSetMatch));
 		}
 
-		internal static Action GetTwoGenericParamAction(TestErrorSetMatch testErrorSetMatch, string errorParamName = null)
+		internal static Action GetTwoGenericParamAction(TestErrorSetMatch testErrorSetMatch, string errorParamName = null, bool testInnerException  = false)
 		{
 			return () =>
 			{
-				switch (testErrorSetMatch)
+				if (!testInnerException)
 				{
-					case TestErrorSetMatch.NoMatch:
-						throw new Exception("Test");
-					case TestErrorSetMatch.FirstParam:
-						throw new ArgumentException("Test");
-					case TestErrorSetMatch.SecondParam:
-						throw new ArgumentNullException(errorParamName, "Test");
+					switch (testErrorSetMatch)
+					{
+						case TestErrorSetMatch.NoMatch:
+							throw new Exception("Test");
+						case TestErrorSetMatch.FirstParam:
+							throw new ArgumentException("Test");
+						case TestErrorSetMatch.SecondParam:
+							throw new ArgumentNullException(errorParamName, "Test");
+					}
+				}
+				else
+				{
+					switch (testErrorSetMatch)
+					{
+						case TestErrorSetMatch.NoMatch:
+							throw new ArgumentException("Test");
+						case TestErrorSetMatch.FirstParam:
+							throw new TestExceptionWithInnerArgumentException();
+						case TestErrorSetMatch.SecondParam:
+							throw new TestExceptionWithInnerArgumentNullException();
+					}
 				}
 			};
 		}
@@ -50,5 +65,24 @@ namespace PoliNorError.Tests
 				}
 			};
 		}
+	}
+
+#pragma warning disable RCS1194 // Implement exception constructors.
+	public class TestExceptionWithInnerArgumentException : Exception
+#pragma warning restore RCS1194 // Implement exception constructors.
+	{
+		public TestExceptionWithInnerArgumentException() : base("", new ArgumentException("Test")) { }
+	}
+
+#pragma warning disable RCS1194 // Implement exception constructors.
+	public class TestExceptionWithInnerArgumentNullException : Exception
+#pragma warning restore RCS1194 // Implement exception constructors.
+	{
+		public TestExceptionWithInnerArgumentNullException(string e = null) : base("", new ArgumentNullException(nameof(e)))
+		{
+			E = e;
+		}
+
+		public string E { get; }
 	}
 }
