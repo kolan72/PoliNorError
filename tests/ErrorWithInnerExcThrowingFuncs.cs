@@ -11,7 +11,6 @@ namespace PoliNorError.Tests
 
 		public static void Action() => throw new Exception();
 
-		public static int FunWithInner() => throw new TestExceptionWithInnerException();
 		public static int FunWithInnerWithMsg(string innerExceptionMsg) => throw new TestExceptionWithInnerException("", innerExceptionMsg);
 
 		public static int Fun() => throw new Exception();

@@ -79,7 +79,7 @@ namespace PoliNorError.Tests
 				}
 				else
 				{
-					return FunWithInner;
+					return FuncWithInner;
 				}
 			}
 			else
