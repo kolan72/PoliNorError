@@ -280,6 +280,29 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, true, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, false, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false, false)]
+		public void Should_IncludeErrorSet_With_IErrorSetParam_ForInnerExceptions_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, bool consistsOfErrorAndInnerError)
+		{
+			var processor = FallbackProcessor.CreateDefault();
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			processor.IncludeErrorSet(errorSet);
+
+			var tryResCountWithNoInclude = processor.Fallback(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true), (_) => Expression.Empty());
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		public void Should_No_ErrorProcessor_Process_When_ErrorFilterUnsatisfied()
 		{
 			const int init_value = 1;
@@ -343,6 +366,29 @@ namespace PoliNorError.Tests
 			processor.ExcludeErrorSet(errorSet);
 
 			var tryResCountWithNoInclude = processor.Fallback(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, errorParamName), (_) => Expression.Empty());
+			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, false, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, true, false)]
+		public void Should_ExcludeErrorSet_With_IErrorSetParam_ForInnerExceptions_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, bool consistsOfErrorAndInnerError)
+		{
+			var processor = FallbackProcessor.CreateDefault();
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			processor.ExcludeErrorSet(errorSet);
+
+			var tryResCountWithNoInclude = processor.Fallback(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true), (_) => Expression.Empty());
 			ClassicAssert.AreEqual(errFilterUnsatisfied, tryResCountWithNoInclude.ErrorFilterUnsatisfied);
 		}
 
