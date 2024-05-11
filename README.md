@@ -857,6 +857,55 @@ var result = CatchBlockHandlerFactory.ForAllExceptions()
 			.ToTryCatch()
 			.Execute(() => File.ReadLines(filePath).ToList());
 ```
+You can use `ITryCatch` as a service in DI (since _version_ 2.18.0).  
+For example, to handle `DirectoryNotFoundException` or `FileNotFoundException` exceptions that might be thrown when reading a file, create a class named `ReadFileTryCatch` that inherits from the `TryCathBase` class and implements the `ITryCatch<ReadFileTryCatch>` interface:
+```csharp
+public class ReadFileTryCatch : TryCatchBase,  ITryCatch<ReadFileTryCatch>
+{
+	public ReadFileTryCatch(ILogger logger)
+	{
+		TryCatch = TryCatchBuilder
+			.CreateFrom(
+				CatchBlockHandlerFactory.FilterExceptionsBy(
+					NonEmptyCatchBlockFilter
+					.CreateByIncluding<DirectoryNotFoundException>())
+			.WithErrorProcessorOf((ex) => logger.Error(ex, "Directory not found.")))
+			.AddCatchBlock(
+				CatchBlockHandlerFactory.FilterExceptionsBy(
+					NonEmptyCatchBlockFilter
+					.CreateByIncluding<FileNotFoundException>())
+			.WithErrorProcessorOf((ex) => logger.Warning(ex, "File not found.")))
+			.Build();
+	}
+}
+```
+Then register `ReadFileTryCatch` as a transient service and use it in some other service:
+```csharp
+//In Program.cs
+...
+	services.AddTransient<ITryCatch<ReadFileTryCatch>, ReadFileTryCatch>();
+...
+//In SomeService.cs
+public class SomeService
+{
+	private readonly ITryCatch<ReadFileTryCatch> _tryCatch;
+	public SomeService(ITryCatch<ReadFileTryCatch> tryCatch) => _tryCatch = tryCatch;
+
+	public async Task DoWhateverAsync(CancellationToken token)
+	{
+		//If any `DirectoryNotFoundException' or `FileNotFoundException' exceptions
+		//are thrown, we will handle them here
+		var tryCatchResult = await _tryCatch.ExecuteAsync((ct) => File.ReadAllLinesAsync(filePath, ct), token)
+			.ConfigureAwait(false);
+		if (!tryCatchResult.IsError)
+		{
+			//Do something with the lines in tryCatchResult.Result
+			...
+		}
+	}
+}
+```
+
 `TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
 
 ### Calling Func and Action delegates in a resilient manner
