@@ -95,7 +95,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, true)]
 		[TestCase(TestErrorSetMatch.FirstParam, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false)]
-		public void Should_IncludeErrorSet_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
+		public void Should_IncludeErrorSet_With_TwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
 		{
 			var processor = RetryProcessor.CreateDefault();
 			processor.IncludeErrorSet<ArgumentException, ArgumentNullException>();
@@ -108,7 +108,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, true)]
 		[TestCase(TestErrorSetMatch.FirstParam, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false)]
-		public void Should_IncludeErrorSet_With_IErrorSetParam_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
+		public void Should_IncludeErrorSet_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
 		{
 			var processor = RetryProcessor.CreateDefault();
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
@@ -123,7 +123,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, true, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, false, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false, false)]
-		public void Should_IncludeErrorSet_With_IErrorSetParam_ForInnerExceptions_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, bool consistsOfErrorAndInnerError)
+		public void Should_IncludeErrorSet_With_IErrorSetParam_ForInnerExceptions_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, bool consistsOfErrorAndInnerError)
 		{
 			var processor = RetryProcessor.CreateDefault();
 			ErrorSet errorSet;
@@ -169,7 +169,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true)]
 		[TestCase(TestErrorSetMatch.SecondParam, true)]
-		public void Should_ExcludeErrorSet_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
+		public void Should_ExcludeErrorSet_With_TwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
 		{
 			var processor = RetryProcessor.CreateDefault();
 			processor.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
@@ -182,7 +182,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true)]
 		[TestCase(TestErrorSetMatch.SecondParam, true)]
-		public void Should_ExcludeErrorSet_With_IErrorSetParam_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
+		public void Should_ExcludeErrorSet_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, string errorParamName = null)
 		{
 			var processor = RetryProcessor.CreateDefault();
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
@@ -197,7 +197,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, false, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, true, false)]
-		public void Should_ExcludeErrorSet_With_IErrorSetParam_ForInnerExceptions_WithTwoGenericParams_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, bool consistsOfErrorAndInnerError)
+		public void Should_ExcludeErrorSet_With_IErrorSetParam_ForInnerExceptions_Work(TestErrorSetMatch testErrorSetMatch, bool errFilterUnsatisfied, bool consistsOfErrorAndInnerError)
 		{
 			var processor = RetryProcessor.CreateDefault();
 			ErrorSet errorSet;
