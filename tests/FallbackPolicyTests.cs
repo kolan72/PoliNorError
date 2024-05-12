@@ -177,7 +177,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true)]
 		[TestCase(TestErrorSetMatch.SecondParam, true)]
-		public void Should_ExcludeErrorSet_WithTwoGenericParams_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		public void Should_ExcludeErrorSet_With_TwoGenericParams_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed)
 		{
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.ExcludeErrorSet<ArgumentException, ArgumentNullException>();
@@ -190,7 +190,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true)]
 		[TestCase(TestErrorSetMatch.SecondParam, true)]
-		public void Should_ExcludeErrorSet_WithTwoGenericParams_Work_For_FallbackPolicyBaseh_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		public void Should_ExcludeErrorSet_With_IErrorSetParam_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed)
 		{
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
@@ -201,10 +201,32 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, false, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, true, false)]
+		public void Should_ExcludeErrorSet_With_IErrorSetParam_ForInnerExceptions_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed, bool consistsOfErrorAndInnerError)
+		{
+			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			_ = fallBackPolicyTest.ExcludeErrorSet(errorSet);
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch, true);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		[TestCase(TestErrorSetMatch.NoMatch, true)]
 		[TestCase(TestErrorSetMatch.FirstParam, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false)]
-		public void Should_IncludeErrorSet_WithTwoGenericParams_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		public void Should_IncludeErrorSet_With_TwoGenericParams_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed)
 		{
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			_ = fallBackPolicyTest.IncludeErrorSet<ArgumentException, ArgumentNullException>();
@@ -217,7 +239,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, true)]
 		[TestCase(TestErrorSetMatch.FirstParam, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false)]
-		public void Should_IncludeErrorSet_WithTwoGenericParams_Work_For_FallbackPolicyBase_With_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		public void Should_IncludeErrorSet_With_IErrorSetParam_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed)
 		{
 			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
@@ -225,6 +247,28 @@ namespace PoliNorError.Tests
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch);
 			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
 			ClassicAssert.AreEqual(isFailed, res.IsFailed);
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, true, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, false, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false, false)]
+		public void Should_IncludeErrorSet_ForInnerExceptions_With_IErrorSetParam_Work_For_FallbackPolicyBase(TestErrorSetMatch testErrorSetMatch, bool isFailed, bool consistsOfErrorAndInnerError)
+		{
+			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			_ = fallBackPolicyTest.IncludeErrorSet(errorSet);
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(fallBackPolicyTest, testErrorSetMatch, true);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
 		}
 
 		[Test]
