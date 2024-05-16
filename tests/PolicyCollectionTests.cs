@@ -304,7 +304,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, true)]
 		[TestCase(TestErrorSetMatch.FirstParam, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false)]
-		public async Task Should_IncludeErrorSet_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		public async Task Should_IncludeErrorSet_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed)
 		{
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
 			var policyDelegateCollection = PolicyCollection
@@ -313,6 +313,35 @@ namespace PoliNorError.Tests
 						.WithRetry(1)
 						.IncludeErrorSet(errorSet)
 						.ToPolicyDelegateCollection(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch));
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, true, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, false, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false, false)]
+		public async Task Should_IncludeErrorSet_ForInnerExceptions_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed, bool consistsOfErrorAndInnerError)
+		{
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			var policyDelegateCollection = PolicyCollection
+						.Create()
+						.WithRetry(1)
+						.WithRetry(1)
+						.IncludeErrorSet(errorSet)
+						.ToPolicyDelegateCollection(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true));
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
 			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
@@ -375,7 +404,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true)]
 		[TestCase(TestErrorSetMatch.SecondParam, true)]
-		public async Task Should_ExcludeErrorSet_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		public async Task Should_ExcludeErrorSet_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed)
 		{
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
 			var policyDelegateCollection = PolicyCollection
@@ -384,6 +413,35 @@ namespace PoliNorError.Tests
 						.WithRetry(1)
 						.ExcludeErrorSet(errorSet)
 						.ToPolicyDelegateCollection(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch));
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, false, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, true, false)]
+		public async Task Should_ExcludeErrorSet_ForInnerExceptions_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed, bool consistsOfErrorAndInnerError)
+		{
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			var policyDelegateCollection = PolicyCollection
+						.Create()
+						.WithRetry(1)
+						.WithRetry(1)
+						.ExcludeErrorSet(errorSet)
+						.ToPolicyDelegateCollection(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true));
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
 			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
