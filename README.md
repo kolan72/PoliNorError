@@ -7,6 +7,27 @@
 PoliNorError is a library that provides error handling capabilities through Retry and Fallback policies. The library has a specific focus on handling potential exceptions within the catch block and offers various configuration options.
 Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 
+---
+- [Key Features](#key-features)
+- [Usage](#usage)
+- [PolicyResult](#policyresult)
+- [Error processors](#error-processors)
+- [Error filters](#error-filters)
+- [PolicyResult handlers](#policyresult-handlers)
+- [RetryPolicy](#retrypolicy)
+- [FallbackPolicy](#fallbackpolicy)
+- [SimplePolicy](#simplepolicy)
+- [PolicyDelegate](#policydelegate)
+- [PolicyDelegateCollection](#policydelegatecollection)
+- [PolicyDelegateCollectionResult](#policydelegatecollectionresult)
+- [PolicyCollection](#policycollection)
+- [Policy wrap](#policy-wrap)
+- [TryCatch](#trycatch-since-version-21621)
+- [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)
+- [Usage recommendations](#usage-recommendations)
+- [Nuances of using the library](#nuances-of-using-the-library)
+---
+
 ## Key Features
 - Implements two commonly used resiliency patterns - Retry and Fallback.
 - Also provides `SimplePolicy` for simple handling.
@@ -98,9 +119,13 @@ It can happen due to these reasons:
 -   A critical exception has occurred within the catch block, specifically related to the saving exception for  `RetryPolicy`  or calling the fallback delegate for  `FallbackPolicy` (the  `IsCritical`  property of the  `CatchBlockException`  object will also be set to  `true`).
 -   An exception has occurred when applying an error filter. In this case, the exception is also treated as critical and handling is interrupted.
  -  The cancellation occurs after the first call of the handling delegate, but before the execution flow enters in the `PolicyResult` handler.
+ -  If delegate is handled by policy within collection and exception is unhandled (see [`SimplePolicy`](#simplepolicy) that can rethrow exception).
  -  If the handling result cannot be accepted as a success, and a policy is in use, you can set `IsFailed` to true in a `PolicyResult` handler by using the `SetFailed` method (or `SetPolicyResultFailedIf(<T>)(Func<PolicyResult(<T>), bool> predicate)` policy method since _version_ 2.14.0).  
  
-To find out why `IsFailed` was set to true, there is a property called `FailedReason`. It equals `PolicyResultFailedReason.DelegateIsNull` and `PolicyResultFailedReason.PolicyResultHandlerFailed` for the first and last cases, respectively, and `PolicyResultFailedReason.PolicyProcessorFailed` for the others.  
+To find out why `IsFailed` was set to true, there is a property called `FailedReason`. It equals: 
+- `PolicyResultFailedReason.DelegateIsNull` and `PolicyResultFailedReason.PolicyResultHandlerFailed` for the first and last cases, respectively, 
+- `PolicyResultFailedReason.UnhandledError` when a policy (re-)throws an exception (since _version_ 2.16.9), 
+- and `PolicyResultFailedReason.PolicyProcessorFailed` for the others.  
 
 Having `IsFailed` true, you can check the `UnprocessedError` property (appeared in version 2.0.0-rc3) to see if there was an exception that was not handled properly within the catch block.
 
@@ -832,6 +857,55 @@ var result = CatchBlockHandlerFactory.ForAllExceptions()
 			.ToTryCatch()
 			.Execute(() => File.ReadLines(filePath).ToList());
 ```
+You can use `ITryCatch` as a service in DI (since _version_ 2.18.0).  
+For example, to handle `DirectoryNotFoundException` or `FileNotFoundException` exceptions that might be thrown when reading a file, create a class named `ReadFileTryCatch` that inherits from the `TryCathBase` class and implements the `ITryCatch<ReadFileTryCatch>` interface:
+```csharp
+public class ReadFileTryCatch : TryCatchBase,  ITryCatch<ReadFileTryCatch>
+{
+	public ReadFileTryCatch(ILogger logger)
+	{
+		TryCatch = TryCatchBuilder
+			.CreateFrom(
+				CatchBlockHandlerFactory.FilterExceptionsBy(
+					NonEmptyCatchBlockFilter
+					.CreateByIncluding<DirectoryNotFoundException>())
+			.WithErrorProcessorOf((ex) => logger.Error(ex, "Directory not found.")))
+			.AddCatchBlock(
+				CatchBlockHandlerFactory.FilterExceptionsBy(
+					NonEmptyCatchBlockFilter
+					.CreateByIncluding<FileNotFoundException>())
+			.WithErrorProcessorOf((ex) => logger.Warning(ex, "File not found.")))
+			.Build();
+	}
+}
+```
+Then register `ReadFileTryCatch` as a transient service and use it in some other service:
+```csharp
+//In Program.cs
+...
+	services.AddTransient<ITryCatch<ReadFileTryCatch>, ReadFileTryCatch>();
+...
+//In SomeService.cs
+public class SomeService
+{
+	private readonly ITryCatch<ReadFileTryCatch> _tryCatch;
+	public SomeService(ITryCatch<ReadFileTryCatch> tryCatch) => _tryCatch = tryCatch;
+
+	public async Task DoWhateverAsync(CancellationToken token)
+	{
+		//If any `DirectoryNotFoundException' or `FileNotFoundException' exceptions
+		//are thrown, we will handle them here
+		var tryCatchResult = await _tryCatch.ExecuteAsync((ct) => File.ReadAllLinesAsync(filePath, ct), token)
+			.ConfigureAwait(false);
+		if (!tryCatchResult.IsError)
+		{
+			//Do something with the lines in tryCatchResult.Result
+			...
+		}
+	}
+}
+```
+
 `TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
 
 ### Calling Func and Action delegates in a resilient manner

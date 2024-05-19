@@ -1,3 +1,15 @@
+## 2.18.0
+
+- Introduce `IncludeErrorSet(IErrorSet)`, `ExcludeErrorSet(IErrorSet)` methods for `PolicyCollection`.
+- Introduce `IncludeErrorSet(IErrorSet)` and `ExcludeErrorSet(IErrorSet)` extension methods for the `PolicyDelegateCollection(<T>)` classes.
+- Introduce the `TryCatchBase` class and the `ITryCatch<T>` interface for dependency injection scenarios.
+- Introduce `ITryCatch.HasCatchBlockForAll` property.
+- Dispose of `CancellationTokenSource` objects in tests where it was absent.
+- Add code coverage badge.
+- Update 'Error filters' README Chapter.
+- Update 'TryCatch' README Chapter.
+
+
 ## 2.17.0
 
 - Introduce `IErrorSet` interface and `ErrorSet` class.
