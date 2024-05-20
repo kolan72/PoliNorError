@@ -76,6 +76,7 @@ namespace PoliNorError.Tests
 			{
 				Assert.That(tryCatchResult.Error, Is.Not.Null);
 				Assert.That(tryCatchResult.IsError, Is.True);
+				Assert.That(tryCatchResult.IsSuccess, Is.False);
 				if (isGeneric == true)
 				{
 					Assert.That(((TryCatchResult<int>)tryCatchResult).Result, Is.EqualTo(default(int)));
@@ -87,6 +88,7 @@ namespace PoliNorError.Tests
 			{
 				Assert.That(tryCatchResult.Error, Is.Null);
 				Assert.That(tryCatchResult.IsError, Is.False);
+				Assert.That(tryCatchResult.IsSuccess, Is.True);
 				Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(-1));
 				if (isGeneric == true)
 				{
@@ -120,6 +122,7 @@ namespace PoliNorError.Tests
 										.ExecuteAsync(async (_) => await Task.Delay(1));
 			}
 			Assert.That(tryCatchResult.IsError, Is.False);
+			Assert.That(tryCatchResult.IsSuccess, Is.True);
 			Assert.That(tryCatchResult.Error, Is.Null);
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(-1));
 			Assert.That(tryCatchBuilderFactory.I, Is.EqualTo(0));
@@ -150,6 +153,7 @@ namespace PoliNorError.Tests
 										.ExecuteAsync(async (_) => { await Task.Delay(1); return 1; });
 			}
 			Assert.That(tryCatchResult.IsError, Is.False);
+			Assert.That(tryCatchResult.IsSuccess, Is.True);
 			Assert.That(tryCatchResult.Error, Is.Null);
 			Assert.That(tryCatchResult.Result, Is.EqualTo(1));
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(-1));
@@ -182,6 +186,7 @@ namespace PoliNorError.Tests
 										.ExecuteAsync(async (_) => { await Task.Delay(1); throw errorToThrow; });
 			}
 			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.IsSuccess, Is.False);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(0));
 			Assert.That(i, Is.EqualTo(1));
@@ -213,6 +218,7 @@ namespace PoliNorError.Tests
 										.ExecuteAsync<int>(async (_) => { await Task.Delay(1); throw errorToThrow; });
 			}
 			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.IsSuccess, Is.False);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, Is.EqualTo(0));
 			Assert.That(tryCatchResult.Result, Is.EqualTo(0));
@@ -255,6 +261,7 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.IsSuccess, Is.False);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
 		}
@@ -306,6 +313,7 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.IsSuccess, Is.False);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
 		}
@@ -346,6 +354,7 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.IsSuccess, Is.False);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
 		}
@@ -398,6 +407,7 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(tryCatchResult.IsError, Is.True);
+			Assert.That(tryCatchResult.IsSuccess, Is.False);
 			Assert.That(tryCatchResult.Error, Is.EqualTo(errorToThrow));
 			Assert.That(tryCatchResult.ExceptionHandlerIndex, handleByFirst ? Is.EqualTo(0) : Is.EqualTo(1));
 		}
@@ -613,6 +623,7 @@ namespace PoliNorError.Tests
 					}
 				}
 				Assert.That(tryCatchResultBase.IsCanceled, Is.True);
+				Assert.That(tryCatchResultBase.IsSuccess, Is.False);
 			}
 		}
 

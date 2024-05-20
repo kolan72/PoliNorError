@@ -60,6 +60,11 @@ namespace PoliNorError.TryCatch
 		public Exception Error { get; protected set; }
 
 		/// <summary>
+		/// Indicates that the execution did not result in an exception or a cancellation.
+		/// </summary>
+		public bool IsSuccess => !IsError && !IsCanceled;
+
+		/// <summary>
 		/// Represents the index of the <see cref="CatchBlockHandler"/> that handled an exception.
 		/// </summary>
 		public int ExceptionHandlerIndex { get; protected set; } = -1;
