@@ -481,13 +481,42 @@ namespace PoliNorError.Tests
 		[TestCase(TestErrorSetMatch.NoMatch, true)]
 		[TestCase(TestErrorSetMatch.FirstParam, false)]
 		[TestCase(TestErrorSetMatch.SecondParam, false)]
-		public async Task Should_IncludeErrorSet_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed)
+		public async Task Should_IncludeErrorSet_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed)
 		{
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
 			var policyDelegateCollection = PolicyDelegateCollection
 						.Create()
 						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
 						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
+						.IncludeErrorSet(errorSet);
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, true, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, false, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false, false)]
+		public async Task Should_IncludeErrorSet_ForInnerExceptions_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed,bool consistsOfErrorAndInnerError)
+		{
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+
+			var policyDelegateCollection = PolicyDelegateCollection
+						.Create()
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true))
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true))
 						.IncludeErrorSet(errorSet);
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();
@@ -525,6 +554,35 @@ namespace PoliNorError.Tests
 						.Create()
 						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
 						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch))
+						.ExcludeErrorSet(errorSet);
+
+			var handleRes = await policyDelegateCollection.HandleAllAsync();
+			ClassicAssert.IsFalse(handleRes.PolicyDelegateResults.FirstOrDefault().Result.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(isFailed, handleRes.LastPolicyResult.ErrorFilterUnsatisfied);
+			ClassicAssert.AreEqual(0, handleRes.PolicyDelegatesUnused.Count());
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, false, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, true, false)]
+		public async Task Should_ExcludeErrorSet_ForInnerExceptions_With_IErrorSetParam_Work(TestErrorSetMatch testErrorSetMatch, bool isFailed, bool consistsOfErrorAndInnerError)
+		{
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+
+			var policyDelegateCollection = PolicyDelegateCollection
+						.Create()
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true))
+						.WithRetry(1).AndDelegate(TestHandlingForErrorSet.GetTwoGenericParamAction(testErrorSetMatch, null, true))
 						.ExcludeErrorSet(errorSet);
 
 			var handleRes = await policyDelegateCollection.HandleAllAsync();

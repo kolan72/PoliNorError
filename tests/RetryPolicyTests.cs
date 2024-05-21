@@ -458,6 +458,28 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, false, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, true, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, false, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, false, false)]
+		public void Should_IncludeErrorSet_ForInnerExceptions_WithTwoGenericParams_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed, bool consistsOfErrorAndInnerError)
+		{
+			var simplePolTest = new RetryPolicy(1);
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			_ = simplePolTest.IncludeErrorSet(errorSet);
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(simplePolTest, testErrorSetMatch, true);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
 		[TestCase(TestErrorSetMatch.NoMatch, false)]
 		[TestCase(TestErrorSetMatch.FirstParam, true)]
 		[TestCase(TestErrorSetMatch.SecondParam, true)]
@@ -479,6 +501,28 @@ namespace PoliNorError.Tests
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithError<ArgumentNullException>();
 			_ = simplePolTest.ExcludeErrorSet(errorSet);
 			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(simplePolTest, testErrorSetMatch);
+			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
+		}
+
+		[Test]
+		[TestCase(TestErrorSetMatch.NoMatch, true, true)]
+		[TestCase(TestErrorSetMatch.NoMatch, false, false)]
+		[TestCase(TestErrorSetMatch.FirstParam, true, false)]
+		[TestCase(TestErrorSetMatch.SecondParam, true, false)]
+		public void Should_ExcludeErrorSet_ForInnerExceptions_WithTwoGenericParams_Work_IErrorSetParam(TestErrorSetMatch testErrorSetMatch, bool isFailed, bool consistsOfErrorAndInnerError)
+		{
+			var simplePolTest = new RetryPolicy(1);
+			ErrorSet errorSet;
+			if (consistsOfErrorAndInnerError)
+			{
+				errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			else
+			{
+				errorSet = ErrorSet.FromInnerError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			}
+			_ = simplePolTest.ExcludeErrorSet(errorSet);
+			var res = TestHandlingForErrorSet.HandlePolicyWithErrorSet(simplePolTest, testErrorSetMatch, true);
 			ClassicAssert.AreEqual(isFailed, res.ErrorFilterUnsatisfied);
 		}
 

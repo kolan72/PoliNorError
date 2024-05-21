@@ -18,9 +18,20 @@ namespace PoliNorError
 			return new ErrorSet().WithError<TException>();
 		}
 
+		public static ErrorSet FromInnerError<TInnerException>() where TInnerException : Exception
+		{
+			return new ErrorSet().WithInnerError<TInnerException>();
+		}
+
 		public ErrorSet WithError<TException>() where TException : Exception
 		{
 			_set.Add(new ErrorSetItem(typeof(TException), ErrorSetItem.ItemType.Error));
+			return this;
+		}
+
+		public ErrorSet WithInnerError<TInnerException>() where TInnerException : Exception
+		{
+			_set.Add(new ErrorSetItem(typeof(TInnerException), ErrorSetItem.ItemType.InnerError));
 			return this;
 		}
 
@@ -52,7 +63,8 @@ namespace PoliNorError
 			public enum ItemType
 			{
 				None,
-				Error
+				Error,
+				InnerError
 			}
 		}
 	}

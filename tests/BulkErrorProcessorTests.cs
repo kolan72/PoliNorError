@@ -16,7 +16,7 @@ namespace PoliNorError.Tests
 		public async Task Should_ProcessAsync_Return_Status_None_When_No_Processors()
 		{
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
-			var res =  await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), CancellationToken.None);
+			var res =  await bulkProcessor.ProcessAsync(new Exception(), new RetryProcessingErrorContext(1), CancellationToken.None);
 			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
@@ -33,7 +33,7 @@ namespace PoliNorError.Tests
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
 
-			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), default);
+			var res = await bulkProcessor.ProcessAsync(new Exception(), new RetryProcessingErrorContext(1), default);
 			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
 		}
 
@@ -48,7 +48,7 @@ namespace PoliNorError.Tests
 			mockedErrorProcessor.ProcessAsync(Arg.Any<Exception>(), Arg.Any<ProcessingErrorInfo>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(exc);
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
-			var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), default);
+			var res = await bulkProcessor.ProcessAsync(new Exception(), new RetryProcessingErrorContext(1), default);
 			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
@@ -56,7 +56,7 @@ namespace PoliNorError.Tests
 		public void Should_Process_Return_Status_None_When_No_Processors()
 		{
 			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
-			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), CancellationToken.None);
+			var res = bulkProcessor.Process(new Exception(), new RetryProcessingErrorContext(1), CancellationToken.None);
 			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
@@ -72,7 +72,7 @@ namespace PoliNorError.Tests
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
 
-			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), default);
+			var res = bulkProcessor.Process(new Exception(), new RetryProcessingErrorContext(1), default);
 			ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
 		}
 
@@ -87,7 +87,7 @@ namespace PoliNorError.Tests
 			mockedErrorProcessor.Process(Arg.Any<Exception>(), Arg.Any<ProcessingErrorInfo>(), Arg.Any<CancellationToken>()).Returns(exc);
 
 			bulkProcessor.AddProcessor(mockedErrorProcessor);
-			var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), default);
+			var res = bulkProcessor.Process(new Exception(), new RetryProcessingErrorContext(1), default);
 			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
 
@@ -102,7 +102,7 @@ namespace PoliNorError.Tests
 				bulkProcessor.AddProcessor(delayProcessor);
 				bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
-				var res = bulkProcessor.Process(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
+				var res = bulkProcessor.Process(new Exception(), new RetryProcessingErrorContext(1), cancelTokenSource.Token);
 				ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
 				ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().Equals(typeof(OperationCanceledException)));
 				ClassicAssert.IsTrue(res.IsCanceled);
@@ -120,7 +120,7 @@ namespace PoliNorError.Tests
 				bulkProcessor.AddProcessor(delayProcessor);
 				bulkProcessor.AddProcessor(new BasicErrorProcessor());
 
-				var res = await bulkProcessor.ProcessAsync(new Exception(), ProcessingErrorContext.FromRetry(1), cancelTokenSource.Token);
+				var res = await bulkProcessor.ProcessAsync(new Exception(), new RetryProcessingErrorContext(1), cancelTokenSource.Token);
 				ClassicAssert.IsTrue(res.ProcessErrors.Count() == 1);
 				//				The real type here id TaskCanceledException.
 				ClassicAssert.IsTrue(res.ProcessErrors.FirstOrDefault().InnerException?.GetType().BaseType.Equals(typeof(OperationCanceledException)));
