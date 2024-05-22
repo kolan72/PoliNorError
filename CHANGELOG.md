@@ -1,3 +1,14 @@
+## 2.18.4
+
+- Introduce the `FromInnerError`, `WithInnerError` methods of the `ErrorSet` class.
+- Introduce `TryCatchResult(<T>).IsSuccess` property.
+- Directly return `Task` instead of await in asynchronous error processing scenarios with the `CancellationType.Precancelable` argument.
+- Use `Task.GetAwaiter().GetResult()` instead of the `Task.Wait` method in sync-over-async error processing scenarios with the `CancellationType.Precancelable` argument.
+- Remove the obsolete `ProcessingErrorContext.FromRetry` method.
+- Add README main content.
+- Update 'PolicyResult' README Chapter.
+
+
 ## 2.18.0
 
 - Introduce `IncludeErrorSet(IErrorSet)`, `ExcludeErrorSet(IErrorSet)` methods for `PolicyCollection`.
