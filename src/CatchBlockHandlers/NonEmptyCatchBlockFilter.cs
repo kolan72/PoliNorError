@@ -20,26 +20,22 @@ namespace PoliNorError
 
 		public new NonEmptyCatchBlockFilter ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
-			ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
-			return this;
+			return this.ExcludeError<NonEmptyCatchBlockFilter, TException>(func);
 		}
 
 		public new NonEmptyCatchBlockFilter ExcludeError(Expression<Func<Exception, bool>> expression)
 		{
-			ErrorFilter.AddExcludedErrorFilter(expression);
-			return this;
+			return this.ExcludeError<NonEmptyCatchBlockFilter>(expression);
 		}
 
 		public new NonEmptyCatchBlockFilter IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
-			ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
-			return this;
+			return this.IncludeError<NonEmptyCatchBlockFilter, TException>(func);
 		}
 
 		public new NonEmptyCatchBlockFilter IncludeError(Expression<Func<Exception, bool>> expression)
 		{
-			ErrorFilter.AddIncludedErrorFilter(expression);
-			return this;
+			return this.IncludeError<NonEmptyCatchBlockFilter>(expression);
 		}
 
 		/// <summary>
