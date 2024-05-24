@@ -18,9 +18,22 @@ namespace PoliNorError
 
 		public static NonEmptyCatchBlockFilter CreateByExcluding(Expression<Func<Exception, bool>> handledErrorFilter) => new NonEmptyCatchBlockFilter().ExcludeError(handledErrorFilter);
 
-		public new NonEmptyCatchBlockFilter ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+		public new NonEmptyCatchBlockFilter ExcludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
 		{
-			return this.ExcludeError<NonEmptyCatchBlockFilter, TException>(func);
+			return ExcludeError<TException>(null, errorType);
+		}
+
+		public new NonEmptyCatchBlockFilter ExcludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+		{
+			switch (errorType)
+			{
+				case ErrorType.Error:
+					return this.ExcludeError<NonEmptyCatchBlockFilter, TException>(func);
+				case ErrorType.InnerError:
+					return this.ExcludeInnerError(func);
+				default:
+					throw new NotImplementedException();
+			}
 		}
 
 		public new NonEmptyCatchBlockFilter ExcludeError(Expression<Func<Exception, bool>> expression)
@@ -28,9 +41,22 @@ namespace PoliNorError
 			return this.ExcludeError<NonEmptyCatchBlockFilter>(expression);
 		}
 
-		public new NonEmptyCatchBlockFilter IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+		public new NonEmptyCatchBlockFilter IncludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
 		{
-			return this.IncludeError<NonEmptyCatchBlockFilter, TException>(func);
+			return IncludeError<TException>(null, errorType);
+		}
+
+		public new NonEmptyCatchBlockFilter IncludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+		{
+			switch (errorType)
+			{
+				case ErrorType.Error:
+					return this.IncludeError<NonEmptyCatchBlockFilter, TException>(func);
+				case ErrorType.InnerError:
+					return this.IncludeInnerError(func);
+				default:
+					throw new NotImplementedException();
+			}
 		}
 
 		public new NonEmptyCatchBlockFilter IncludeError(Expression<Func<Exception, bool>> expression)

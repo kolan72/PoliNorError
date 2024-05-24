@@ -136,5 +136,85 @@ namespace PoliNorError.Tests
 			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
 			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(1));
 		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_CatchBlockFilter_IncludeError_Works_Correctly_ForInnerError(bool errFilterUnsatisfied)
+		{
+			var filter = CatchBlockFilter.Empty().IncludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
+			Exception errorToHandler;
+			if (errFilterUnsatisfied)
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentNullException();
+			}
+			else
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentException();
+			}
+
+			var actualErrFilterUnsatisfied = !filter.ErrorFilter.GetCanHandle()(errorToHandler);
+			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_CatchBlockFilter_ExcludeError_Works_Correctly_ForInnerError(bool errFilterUnsatisfied)
+		{
+			var filter = CatchBlockFilter.Empty().ExcludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
+			Exception errorToHandler;
+			if (errFilterUnsatisfied)
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentException();
+			}
+			else
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentNullException();
+			}
+
+			var actualErrFilterUnsatisfied = !filter.ErrorFilter.GetCanHandle()(errorToHandler);
+			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_NonEmptyCatchBlockFilter_IncludeError_Works_Correctly_ForInnerError(bool errFilterUnsatisfied)
+		{
+			var filter = NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>().IncludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
+			Exception errorToHandler;
+			if (errFilterUnsatisfied)
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentNullException();
+			}
+			else
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentException();
+			}
+
+			var actualErrFilterUnsatisfied = !filter.ErrorFilter.GetCanHandle()(errorToHandler);
+			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_NonEmptyCatchBlockFilter_ExcludeError_Works_Correctly_ForInnerError(bool errFilterUnsatisfied)
+		{
+			var filter = NonEmptyCatchBlockFilter.CreateByExcluding<ArgumentException>().ExcludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
+			Exception errorToHandler;
+			if (errFilterUnsatisfied)
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentException();
+			}
+			else
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentNullException();
+			}
+
+			var actualErrFilterUnsatisfied = !filter.ErrorFilter.GetCanHandle()(errorToHandler);
+			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
+		}
 	}
 }
