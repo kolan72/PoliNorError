@@ -10,11 +10,15 @@ namespace PoliNorError
 	{
 		private NonEmptyCatchBlockFilter(){}
 
-		public static NonEmptyCatchBlockFilter CreateByIncluding<TException>(Func<TException, bool> func = null) where TException : Exception => new NonEmptyCatchBlockFilter().IncludeError(func);
+		public static NonEmptyCatchBlockFilter CreateByIncluding<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception => CreateByIncluding<TException>(null, errorType);
+
+		public static NonEmptyCatchBlockFilter CreateByIncluding<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception => new NonEmptyCatchBlockFilter().IncludeError(func, errorType);
 
 		public static NonEmptyCatchBlockFilter CreateByIncluding(Expression<Func<Exception, bool>> handledErrorFilter) => new NonEmptyCatchBlockFilter().IncludeError(handledErrorFilter);
 
-		public static NonEmptyCatchBlockFilter CreateByExcluding<TException>(Func<TException, bool> func = null) where TException : Exception => new NonEmptyCatchBlockFilter().ExcludeError(func);
+		public static NonEmptyCatchBlockFilter CreateByExcluding<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception => CreateByExcluding<TException>(null, errorType);
+
+		public static NonEmptyCatchBlockFilter CreateByExcluding<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception => new NonEmptyCatchBlockFilter().ExcludeError(func, errorType);
 
 		public static NonEmptyCatchBlockFilter CreateByExcluding(Expression<Func<Exception, bool>> handledErrorFilter) => new NonEmptyCatchBlockFilter().ExcludeError(handledErrorFilter);
 
