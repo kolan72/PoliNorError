@@ -347,7 +347,7 @@ The whole list of methods, accepting fallback delegate as an argument:
 -    `WithAsyncFallbackFunc<T>`
 
 `FallbackPolicy` has constructor that accepts optional `onlyGenericFallbackForGenericDelegate`  parameter that equals false by default (since _version_ 2.16.1). This parameter is intended for use when a generic delegate is handled by a `FallbackPolicy` with no generic fallback delegate set.  
-If it's `false`, the policy will attempt to find a registered non-generic fallback delegate, convert to a synchronous counterpart if necessary, and execute it. A non-generic delegate of the same synchronous type has priority, and if it is found, no conversion takes place. Whether a non-generic fallback delegate was found and executed or not, the default value of type is returned.  
+If it's `false`, the policy will attempt to find a registered non-generic fallback delegate, convert to (a-)synchronous counterpart if necessary, and execute it. A non-generic delegate of the same synchronous type has priority, and if it is found, no conversion takes place. Whether a non-generic fallback delegate was found and executed or not, the default value of type is returned.  
 If `onlyGenericFallbackForGenericDelegate` is true, trivial `Func`s that return defaults will be called.  
 
 With non-generic handling and only generic delegates present, no generic delegate is called. Instead, trivial functions are called, returning void or `Task`, possibly already obtained from counterpart.  
