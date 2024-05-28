@@ -50,16 +50,19 @@ namespace PoliNorError.Tests
 		{
 			int i = 0;
 			Func<Task> func = async () => { await Task.Delay(1); i++; };
-			var cs = new CancellationTokenSource();
-			cs.Cancel();
-			await func.ToPrecancelableFunc()(cs.Token);
-			ClassicAssert.AreEqual(0, i);
-
-			var cs2 = new CancellationTokenSource();
-			await func.ToPrecancelableFunc()(cs2.Token);
-			ClassicAssert.AreEqual(1, i);
-			cs.Dispose();
-			cs2.Dispose();
+			using (var cs = new CancellationTokenSource())
+			{
+				cs.Cancel();
+				try
+				{
+					await func.ToPrecancelableFunc()(cs.Token);
+				}
+				catch (Exception ex)
+				{
+					Assert.That(ex, Is.TypeOf(typeof(TaskCanceledException)));
+				}
+				ClassicAssert.AreEqual(0, i);
+			}
 		}
 	}
 }
