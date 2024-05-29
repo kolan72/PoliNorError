@@ -102,6 +102,16 @@ namespace PoliNorError
 			return this;
 		}
 
+		protected void SetFallbackAction(Action<CancellationToken> action)
+		{
+			Fallback = action;
+		}
+
+		protected void SetAsyncFallbackFunc(Func<CancellationToken, Task> func)
+		{
+			FallbackAsync = func;
+		}
+
 		internal void SetFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable)
 		{
 			SetFallbackFunc((convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc());

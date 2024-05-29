@@ -227,12 +227,53 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_SetFallbackAction_Work()
+		{
+			Action<CancellationToken> act1 = (_) => { };
+			Action<CancellationToken> act2 = (_) => { };
+
+			var testProvider = new TestFallbackFuncsProvider();
+			testProvider.SetAction(act1);
+			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo(act1));
+			testProvider.SetAction(act2);
+			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo(act2));
+		}
+
+		[Test]
+		public void Should_SetAsyncFunc_Work()
+		{
+			Func<CancellationToken, Task> fn1 = (_) => Task.CompletedTask;
+			Func<CancellationToken, Task> fn2 = (_) => Task.CompletedTask;
+
+			var testProvider = new TestFallbackFuncsProvider();
+			testProvider.SetAsyncFunc(fn1);
+			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo(fn1));
+			testProvider.SetAsyncFunc(fn2);
+			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo(fn2));
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,
 			Exists,
 			CrossSync,
 			FromNonGeneric
+		}
+
+		private class TestFallbackFuncsProvider : FallbackFuncsProvider
+		{
+			public TestFallbackFuncsProvider() : base(false){}
+
+			public void SetAction(Action<CancellationToken> action)
+			{
+				SetFallbackAction(action);
+			}
+
+			public void SetAsyncFunc(Func<CancellationToken, Task> func)
+			{
+				SetAsyncFallbackFunc(func);
+			}
 		}
 	}
 }
