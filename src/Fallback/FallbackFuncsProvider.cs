@@ -102,9 +102,19 @@ namespace PoliNorError
 			return this;
 		}
 
+		protected void SetFallbackAction(Action action, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetFallbackAction(convertType == CancellationType.Precancelable ? action.ToPrecancelableAction(true) : action.ToCancelableAction());
+		}
+
 		protected void SetFallbackAction(Action<CancellationToken> action)
 		{
 			Fallback = action;
+		}
+
+		protected void SetAsyncFallbackFunc(Func<Task> func, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetAsyncFallbackFunc(convertType == CancellationType.Precancelable ? func.ToPrecancelableFunc(true) : func.ToCancelableFunc());
 		}
 
 		protected void SetAsyncFallbackFunc(Func<CancellationToken, Task> func)
