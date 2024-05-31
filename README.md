@@ -248,6 +248,24 @@ var policyResult = await new FallbackPolicy()
 
 ```
 
+Since _version_ 2.18.4, this example could be rewritten using `ErrorSet`, which is constructed from `HttpRequestException` exception and inner `WebException` and `SocketException` exceptions:  
+```csharp
+var errorSet = ErrorSet
+				.FromError<HttpRequestException>()
+				.WithInnerError<WebException>()
+				.WithInnerError<SocketException>();
+
+var policyResult = await new FallbackPolicy()
+				.WithFallbackFunc<SomeResponse>((_) => new FallbackResponse())
+				.IncludeErrorSet(errorSet)
+				.WithErrorProcessorOf((ex) => logger.Error(ex))
+				.AddPolicyResultHandler<SomeResponse>((pr) =>
+				{
+				...
+				})
+				.HandleAsync(serviceThatUseHttpClient.GetSomethingAsync);
+```
+
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers
