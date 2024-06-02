@@ -902,7 +902,7 @@ public class ReadFileTryCatch : TryCatchBase,  ITryCatch<ReadFileTryCatch>
 	}
 }
 ```
-Then register `ReadFileTryCatch` as a transient service and use it in some other service:
+Then register `ReadFileTryCatch` as a transient service and use it in some other service (this example for _version_ 2.18.4):
 ```csharp
 //In Program.cs
 ...
@@ -920,7 +920,7 @@ public class SomeService
 		//are thrown, we will handle them here
 		var tryCatchResult = await _tryCatch.ExecuteAsync((ct) => File.ReadAllLinesAsync(filePath, ct), token)
 			.ConfigureAwait(false);
-		if (!tryCatchResult.IsError)
+		if (tryCatchResult.IsSuccess)
 		{
 			//Do something with the lines in tryCatchResult.Result
 			...
