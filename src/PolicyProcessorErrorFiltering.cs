@@ -128,34 +128,12 @@ namespace PoliNorError
 
 		internal static void AddIncludedError(this IPolicyProcessor policyProcessor, ErrorSetItem errorSetItem)
 		{
-			if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.Error)
-			{
-				policyProcessor.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(errorSetItem.ErrorType));
-			}
-			else if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.InnerError)
-			{
-				policyProcessor.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(errorSetItem.ErrorType));
-			}
-			else
-			{
-				throw new NotImplementedException();
-			}
+			policyProcessor.ErrorFilter.AddIncludedError(errorSetItem);
 		}
 
 		internal static void AddExcludedError(this IPolicyProcessor policyProcessor, ErrorSetItem errorSetItem)
 		{
-			if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.Error)
-			{
-				policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(errorSetItem.ErrorType));
-			}
-			else if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.InnerError)
-			{
-				policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(errorSetItem.ErrorType));
-			}
-			else
-			{
-				throw new NotImplementedException();
-			}
+			policyProcessor.ErrorFilter.AddExcludedError(errorSetItem);
 		}
 	}
 }
