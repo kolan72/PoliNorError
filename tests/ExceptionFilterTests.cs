@@ -158,6 +158,26 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_NonEmptyCatchBlockFilter_Created_From_ErrorSet_By_CreateByIncluding_Method_Correct(bool inner)
+		{
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			var filter = NonEmptyCatchBlockFilter.CreateByIncluding(errorSet);
+			Exception errorToHandler;
+			if (inner)
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentNullException();
+			}
+			else
+			{
+				errorToHandler = new ArgumentException("TestName", inner.ToString());
+			}
+			var canHandle = filter.ErrorFilter.GetCanHandle()(errorToHandler);
+			Assert.That(canHandle, Is.True);
+		}
+
+		[Test]
 		[TestCase(false)]
 		[TestCase(true)]
 		public void Should_CatchBlockFilter_ExcludeError_Works_Correctly_ForInnerError(bool errFilterUnsatisfied)
