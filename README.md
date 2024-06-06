@@ -248,6 +248,24 @@ var policyResult = await new FallbackPolicy()
 
 ```
 
+Since _version_ 2.18.4, this example could be rewritten using `ErrorSet`, which is constructed from `HttpRequestException` exception and inner `WebException` and `SocketException` exceptions:  
+```csharp
+var errorSet = ErrorSet
+				.FromError<HttpRequestException>()
+				.WithInnerError<WebException>()
+				.WithInnerError<SocketException>();
+
+var policyResult = await new FallbackPolicy()
+				.WithFallbackFunc<SomeResponse>((_) => new FallbackResponse())
+				.IncludeErrorSet(errorSet)
+				.WithErrorProcessorOf((ex) => logger.Error(ex))
+				.AddPolicyResultHandler<SomeResponse>((pr) =>
+				{
+				...
+				})
+				.HandleAsync(serviceThatUseHttpClient.GetSomethingAsync);
+```
+
 If filter conditions are unsatisfied, error handling break and set both the `IsFailed` and `ErrorFilterUnsatisfied` properies to `true`.
 
 ### PolicyResult handlers
@@ -346,7 +364,12 @@ The whole list of methods, accepting fallback delegate as an argument:
 -    `WithFallbackFunc<T>`
 -    `WithAsyncFallbackFunc<T>`
 
-If you try to handle a generic func delegate without a corresponding fallback delegate being set, the default value of type will be returned.  
+`FallbackPolicy` has constructor that accepts optional `onlyGenericFallbackForGenericDelegate`  parameter that equals false by default (since _version_ 2.16.1). This parameter is intended for use when a generic delegate is handled by a `FallbackPolicy` with no generic fallback delegate set.  
+If it's `false`, the policy will attempt to find a registered non-generic fallback delegate, convert to (a-)synchronous counterpart if necessary, and execute it. A non-generic delegate of the same synchronous type has priority, and if it is found, no conversion takes place. Whether a non-generic fallback delegate was found and executed or not, the default value of type is returned.  
+If `onlyGenericFallbackForGenericDelegate` is true, trivial `Func`s that return defaults will be called.  
+
+With non-generic handling and only generic delegates present, no generic delegate is called. Instead, trivial functions are called, returning void or `Task`, possibly already obtained from counterpart.  
+
 Note that error processors for fallback policies run *before* calling fallback delegate. This lets you cancel before calling the fallback delegate if you need to, but if you want to get fallback faster, don't add long-running error processors.  
 `FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
 
@@ -879,7 +902,7 @@ public class ReadFileTryCatch : TryCatchBase,  ITryCatch<ReadFileTryCatch>
 	}
 }
 ```
-Then register `ReadFileTryCatch` as a transient service and use it in some other service:
+Then register `ReadFileTryCatch` as a transient service and use it in some other service (this example for _version_ 2.18.4):
 ```csharp
 //In Program.cs
 ...
@@ -897,7 +920,7 @@ public class SomeService
 		//are thrown, we will handle them here
 		var tryCatchResult = await _tryCatch.ExecuteAsync((ct) => File.ReadAllLinesAsync(filePath, ct), token)
 			.ConfigureAwait(false);
-		if (!tryCatchResult.IsError)
+		if (tryCatchResult.IsSuccess)
 		{
 			//Do something with the lines in tryCatchResult.Result
 			...
