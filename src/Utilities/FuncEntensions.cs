@@ -209,16 +209,16 @@ namespace PoliNorError
 
 		public static Func<CancellationToken, Task> ToPrecancelableFunc(this Func<Task> fnTask, bool throwIfCanceled = false)
 		{
-			return async (ct) =>
+			return (ct) =>
 			{
 				if (ct.IsCancellationRequested)
 				{
 					if (throwIfCanceled)
 						throw new OperationCanceledException(ct);
 					else
-						return;
+						return Task.FromCanceled(ct);
 				}
-				await fnTask();
+				return fnTask();
 			};
 		}
 
@@ -251,13 +251,13 @@ namespace PoliNorError
 
 		public static Func<T, CancellationToken, Task> ToPrecancelableFunc<T>(this Func<T, Task> func)
 		{
-			return async (t, ct) =>
+			return (t, ct) =>
 			{
 				if (ct.IsCancellationRequested)
 				{
-					return;
+					return Task.FromCanceled(ct);
 				}
-				await func(t);
+				return func(t);
 			};
 		}
 	}

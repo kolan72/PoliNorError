@@ -227,12 +227,107 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_SetFallbackAction_Work()
+		{
+			Action<CancellationToken> act1 = (_) => { };
+			Action<CancellationToken> act2 = (_) => { };
+
+			var testProvider = new TestFallbackFuncsProvider();
+			testProvider.SetAction(act1);
+			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo(act1));
+			testProvider.SetAction(act2);
+			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo(act2));
+		}
+
+		[Test]
+		[TestCase(CancellationType.Cancelable)]
+		[TestCase(CancellationType.Precancelable)]
+		public void Should_SetFallbackAction_WithCancellationType_Work(CancellationType cancellationType)
+		{
+			void act1()
+			{
+				// Method intentionally left empty.
+			}
+			void act2()
+			{
+				// Method intentionally left empty.
+			}
+
+			var testProvider = new TestFallbackFuncsProvider();
+			testProvider.SetAction(act1, cancellationType);
+			var funcThatWasSet = testProvider.GetFallbackAction();
+			Assert.That(funcThatWasSet, Is.Not.Null);
+
+			testProvider.SetAction(act2, cancellationType);
+			var funcThatWasSet2 = testProvider.GetFallbackAction();
+			Assert.That(funcThatWasSet2, Is.Not.Null);
+			Assert.That(funcThatWasSet2, Is.Not.EqualTo(funcThatWasSet));
+		}
+
+		[Test]
+		public void Should_SetAsyncFunc_Work()
+		{
+			Func<CancellationToken, Task> fn1 = (_) => Task.CompletedTask;
+			Func<CancellationToken, Task> fn2 = (_) => Task.CompletedTask;
+
+			var testProvider = new TestFallbackFuncsProvider();
+			testProvider.SetAsyncFunc(fn1);
+			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo(fn1));
+			testProvider.SetAsyncFunc(fn2);
+			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo(fn2));
+		}
+
+		[Test]
+		[TestCase(CancellationType.Cancelable)]
+		[TestCase(CancellationType.Precancelable)]
+		public void Should_SetAsyncFunc_WithCancellationType_Work(CancellationType cancellationType)
+		{
+			Task fn1() => Task.CompletedTask;
+			Task fn2() => Task.CompletedTask;
+
+			var testProvider = new TestFallbackFuncsProvider();
+			testProvider.SetAsyncFunc(fn1, cancellationType);
+			var funcThatWasSet = testProvider.GetAsyncFallbackFunc();
+			Assert.That(funcThatWasSet, Is.Not.Null);
+
+			testProvider.SetAsyncFunc(fn2, cancellationType);
+			var funcThatWasSet2 = testProvider.GetAsyncFallbackFunc();
+			Assert.That(funcThatWasSet2, Is.Not.Null);
+			Assert.That(funcThatWasSet2, Is.Not.EqualTo(funcThatWasSet));
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,
 			Exists,
 			CrossSync,
 			FromNonGeneric
+		}
+
+		private class TestFallbackFuncsProvider : FallbackFuncsProvider
+		{
+			public TestFallbackFuncsProvider() : base(false){}
+
+			public void SetAction(Action<CancellationToken> action)
+			{
+				SetFallbackAction(action);
+			}
+
+			public void SetAction(Action action, CancellationType convertType = CancellationType.Precancelable)
+			{
+				SetFallbackAction(action, convertType);
+			}
+
+			public void SetAsyncFunc(Func<CancellationToken, Task> func)
+			{
+				SetAsyncFallbackFunc(func);
+			}
+
+			public void SetAsyncFunc(Func<Task> func, CancellationType convertType = CancellationType.Precancelable)
+			{
+				SetAsyncFallbackFunc(func, convertType);
+			}
 		}
 	}
 }

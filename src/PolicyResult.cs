@@ -88,11 +88,7 @@ namespace PoliNorError
 
 		protected void SetErrors(IEnumerable<Exception> exceptions)
 		{
-			if (!(exceptions is FlexSyncEnumerable<Exception>))
-			{
-				throw new ArgumentException($"Collection of {nameof(exceptions)} is not type of {nameof(FlexSyncEnumerable<Exception>)}.");
-			}
-			_errors = (FlexSyncEnumerable<Exception>)exceptions;
+			throw new NotImplementedException();
 		}
 
 		internal void AddError(Exception exception)

@@ -12,28 +12,56 @@ namespace PoliNorError
 
 		internal PolicyProcessor.ExceptionFilter ErrorFilter { get; } = new PolicyProcessor.ExceptionFilter();
 
-		public CatchBlockFilter ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+		public CatchBlockFilter ExcludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
 		{
-			ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
-			return this;
+			return ExcludeError<TException>(null, errorType);
+		}
+
+		public CatchBlockFilter ExcludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+		{
+			switch (errorType)
+			{
+				case ErrorType.Error:
+					return this.ExcludeError<CatchBlockFilter, TException>(func);
+				case ErrorType.InnerError:
+					return this.ExcludeInnerError(func);
+				default:
+					throw new NotImplementedException();
+			}
 		}
 
 		public CatchBlockFilter ExcludeError(Expression<Func<Exception, bool>> expression)
 		{
-			ErrorFilter.AddExcludedErrorFilter(expression);
-			return this;
+			return this.ExcludeError<CatchBlockFilter>(expression);
 		}
 
-		public CatchBlockFilter IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+		public CatchBlockFilter IncludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
 		{
-			ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
-			return this;
+			return IncludeError<TException>(null, errorType);
+		}
+
+		public CatchBlockFilter IncludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+		{
+			switch (errorType)
+			{
+				case ErrorType.Error:
+					return this.IncludeError<CatchBlockFilter, TException>(func);
+				case ErrorType.InnerError:
+					return this.IncludeInnerError(func);
+				default:
+					throw new NotImplementedException();
+			}
 		}
 
 		public CatchBlockFilter IncludeError(Expression<Func<Exception, bool>> expression)
 		{
-			ErrorFilter.AddIncludedErrorFilter(expression);
-			return this;
+			return this.IncludeError<CatchBlockFilter>(expression);
+		}
+
+		public enum ErrorType
+		{
+			Error,
+			InnerError
 		}
 	}
 }
