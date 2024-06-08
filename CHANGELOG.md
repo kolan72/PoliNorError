@@ -1,3 +1,17 @@
+## 2.18.11
+
+- For `CatchBlockFilter`, `NonEmptyCatchBlockFilter` classes. add `ExcludeError`, `IncludeError` fluent methods overloads for inner exception types.
+- For `NonEmptyCatchBlockFilter` class, add `CreateByIncluding`, `CreateByExcluding` fluent methods overloads with possibility to add inner exception types.
+- Introduce `NonEmptyCatchBlockFilter.CreateByIncluding(IErrorSet)`,  `NonEmptyCatchBlockFilter.CreateByExcluding(IErrorSet) static methods`.
+- For `FallbackFuncsProvider` class, add protected `SetFallbackAction`, `SetAsyncFallbackFunc` methods with `CancellationType` param.
+- Directly return `Task` instead of await when converting async uncancelable non-generic delegate to precancelable when registering `PolicyResult` handler with `CancellationType.Precancelable` argument.
+- Directly return `Task` instead of await when converting async uncancelable non generic fallback delegate to cancelable with `CancellationType.Precancelable` argument.
+- Throw a `NotImplementedException` exception in the `PolicyResult.SetErrors` protected method.
+- DRY refactoring for `IncludeError`, `ExcludeError` methods of `CatchBlockFilter`, `NonEmptyCatchBlockFilter` classes.
+- Update 'FallbackPolicy' README Chapter.
+- Update 'Error filters' README Chapter.
+- Update 'TryCatch' README Chapter.
+
 ## 2.18.4
 
 - Introduce the `FromInnerError`, `WithInnerError` methods of the `ErrorSet` class.
