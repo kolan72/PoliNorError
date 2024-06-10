@@ -13,10 +13,7 @@ namespace PoliNorError
 		public static NonEmptyCatchBlockFilter CreateByIncluding(IErrorSet errorSet)
 		{
 			var filter = new NonEmptyCatchBlockFilter();
-			foreach (var item in errorSet.Items)
-			{
-				filter.ErrorFilter.AddIncludedError(item);
-			}
+			filter.ErrorFilter.AddIncludedErrorSet(errorSet);
 			return filter;
 		}
 
@@ -63,6 +60,12 @@ namespace PoliNorError
 		public new NonEmptyCatchBlockFilter ExcludeError(Expression<Func<Exception, bool>> expression)
 		{
 			return this.ExcludeError<NonEmptyCatchBlockFilter>(expression);
+		}
+
+		public NonEmptyCatchBlockFilter IncludeErrorSet(IErrorSet errorSet)
+		{
+			ErrorFilter.AddIncludedErrorSet(errorSet);
+			return this;
 		}
 
 		public new NonEmptyCatchBlockFilter IncludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception

@@ -164,6 +164,23 @@ namespace PoliNorError.Tests
 		{
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
 			var filter = NonEmptyCatchBlockFilter.CreateByIncluding(errorSet);
+			var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilterThatIncludeError(filter, inner);
+			Assert.That(canHandle, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_NonEmptyCatchBlockFilter_With_ErrorSet_Added_By_IncludeErrorSet_Correct(bool inner)
+		{
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			var filter = NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>().IncludeErrorSet(errorSet);
+			var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilterThatIncludeError(filter, inner);
+			Assert.That(canHandle, Is.True);
+		}
+
+		private bool IsErrorCanBeHandledByNonEmptyCatchBlockFilterThatIncludeError(NonEmptyCatchBlockFilter filter, bool inner)
+		{
 			Exception errorToHandler;
 			if (inner)
 			{
@@ -173,8 +190,7 @@ namespace PoliNorError.Tests
 			{
 				errorToHandler = new ArgumentException("TestName", inner.ToString());
 			}
-			var canHandle = filter.ErrorFilter.GetCanHandle()(errorToHandler);
-			Assert.That(canHandle, Is.True);
+			return filter.ErrorFilter.GetCanHandle()(errorToHandler);
 		}
 
 		[Test]
