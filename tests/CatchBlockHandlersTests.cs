@@ -132,8 +132,8 @@ namespace PoliNorError.Tests
 		[TestCase(false)]
 		public void Should_CatchBlockHandler_InitByFilter_Correctly(bool forAll)
 		{
-			CatchBlockHandler handler = null;
-			Exception errorToHandler = null;
+			CatchBlockHandler handler;
+			Exception errorToHandler;
 			if (forAll)
 			{
 				handler = CatchBlockHandlerFactory.ForAllExceptions();
