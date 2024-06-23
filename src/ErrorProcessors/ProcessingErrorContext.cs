@@ -2,8 +2,6 @@
 {
 	public class ProcessingErrorContext
 	{
-		internal ProcessingErrorContext() : this(PolicyAlias.NotSet) { }
-
 		public ProcessingErrorContext(PolicyAlias policyKind) => PolicyKind = policyKind;
 
 		public int CurrentRetryCount { get; } = -1;
