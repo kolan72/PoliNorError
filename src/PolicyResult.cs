@@ -139,6 +139,8 @@ namespace PoliNorError
 		}
 
 		internal bool Async { get; }
+
+		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
 
 	public class PolicyResult<T> : PolicyResult
@@ -157,6 +159,8 @@ namespace PoliNorError
 		public T Result { get; private set; }
 
 		public new IEnumerable<PolicyDelegateResult<T>> WrappedPolicyResults { get; internal set; }
+
+		internal override IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
 
 	public enum PolicyResultFailedReason

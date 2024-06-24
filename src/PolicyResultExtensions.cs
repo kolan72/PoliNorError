@@ -293,46 +293,22 @@ namespace PoliNorError
 			if (policyResult?.NoError == false)
 				return (policyResult.Errors.FirstOrDefault(), lastIndex);
 
-			var wrappedResults = policyResult?.WrappedPolicyResults;
+			var wrappedResults = policyResult?.GetWrappedPolicyResults();
 			var currentIndex = lastIndex - 1;
 
 			while (wrappedResults != null)
 			{
-				if (wrappedResults.FirstOrDefault()?.Result.Errors.Any() == true)
+				if (wrappedResults.FirstOrDefault()?.GetResult().Errors.Any() == true)
 				{
 					break;
 				}
 				else
 				{
-					wrappedResults = wrappedResults.FirstOrDefault()?.Result.WrappedPolicyResults;
+					wrappedResults = wrappedResults.FirstOrDefault()?.GetResult().GetWrappedPolicyResults();
 					currentIndex--;
 				}
 			}
-			Exception error = wrappedResults?.FirstOrDefault()?.Result.Errors?.FirstOrDefault();
-			return (error, currentIndex);
-		}
-
-		internal static (Exception, int) GetErrorInWrappedResults<T>(this PolicyResult<T> policyResult, int lastIndex)
-		{
-			if (policyResult?.NoError == false)
-				return (policyResult.Errors.FirstOrDefault(), lastIndex);
-
-			var wrappedResults = policyResult?.WrappedPolicyResults;
-			var currentIndex = lastIndex - 1;
-
-			while (wrappedResults != null)
-			{
-				if (wrappedResults.FirstOrDefault()?.Result.Errors.Any() == true)
-				{
-					break;
-				}
-				else
-				{
-					wrappedResults = wrappedResults.FirstOrDefault()?.Result.WrappedPolicyResults;
-					currentIndex--;
-				}
-			}
-			Exception error = wrappedResults?.FirstOrDefault()?.Result.Errors?.FirstOrDefault();
+			Exception error = wrappedResults?.FirstOrDefault()?.GetResult().Errors?.FirstOrDefault();
 			return (error, currentIndex);
 		}
 	}
