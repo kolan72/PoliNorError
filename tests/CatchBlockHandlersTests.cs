@@ -149,6 +149,15 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_CatchBlockHandler_Initialized_Correctly_By_Including_ErrorSet()
+		{
+			var errorSet = ErrorSet.FromError<NullReferenceException>();
+			var handler = CatchBlockHandlerFactory.FilterExceptionsByIncluding(errorSet);
+			var result = handler.ErrorFilter.GetCanHandle()(new NullReferenceException());
+			Assert.That(result, Is.True);
+		}
+
+		[Test]
 		public void Should_NonEmptyCatchBlockFilter_ToCatchBlockHandler_Method_Create_Handler_Correctly()
 		{
 			var handler = NonEmptyCatchBlockFilter
