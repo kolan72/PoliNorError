@@ -158,6 +158,25 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_CatchBlockHandler_Initialized_Correctly_By_Excluding_ErrorSet(bool canHandle)
+		{
+			var errorSet = ErrorSet.FromError<NullReferenceException>();
+			var handler = CatchBlockHandlerFactory.FilterExceptionsByExcluding(errorSet);
+			bool result;
+			if (canHandle)
+			{
+				result = handler.ErrorFilter.GetCanHandle()(new InvalidOperationException());
+			}
+			else
+			{
+				result = handler.ErrorFilter.GetCanHandle()(new NullReferenceException());
+			}
+			Assert.That(result, Is.EqualTo(canHandle));
+		}
+
+		[Test]
 		public void Should_NonEmptyCatchBlockFilter_ToCatchBlockHandler_Method_Create_Handler_Correctly()
 		{
 			var handler = NonEmptyCatchBlockFilter

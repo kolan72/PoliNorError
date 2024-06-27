@@ -15,9 +15,16 @@
 		/// <summary>
 		/// Creates a <see cref="CatchBlockFilteredHandler"/> that filters an exception using a filter that includes error types from <paramref name="errorSet"/>.
 		/// </summary>
-		/// <param name="errorSet">ErrorSet to be included in a filter</param>
+		/// <param name="errorSet">ErrorSet to include in a filter.</param>
 		/// <returns></returns>
 		public static CatchBlockFilteredHandler FilterExceptionsByIncluding(IErrorSet errorSet) => new CatchBlockFilteredHandler(NonEmptyCatchBlockFilter.CreateByIncluding(errorSet));
+
+		/// <summary>
+		/// Creates a <see cref="CatchBlockFilteredHandler"/> that filters an exception using a filter that excludes error types from <paramref name="errorSet"/>.
+		/// </summary>
+		/// <param name="errorSet">ErrorSet to exclude from a filter.</param>
+		/// <returns></returns>
+		public static CatchBlockFilteredHandler FilterExceptionsByExcluding(IErrorSet errorSet) => new CatchBlockFilteredHandler(NonEmptyCatchBlockFilter.CreateByExcluding(errorSet));
 
 		/// <summary>
 		/// Creates <see cref="CatchBlockForAllHandler"/> with an empty <see cref="PoliNorError.CatchBlockFilter"/>.
