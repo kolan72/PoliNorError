@@ -6,7 +6,7 @@ namespace PoliNorError
 {
 	public class PolicyResult
 	{
-		private FlexSyncEnumerable<Exception> _errors;
+		private readonly FlexSyncEnumerable<Exception> _errors;
 		private readonly FlexSyncEnumerable<CatchBlockException> _catchBlockErrors;
 		private readonly FlexSyncEnumerable<PolicyResultHandlingException> _handleResultErrors;
 
