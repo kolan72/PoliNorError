@@ -11,7 +11,7 @@ namespace PoliNorError.Tests
 		[TestCase(false)]
 		public void Should_CreateFrom_Really_Create(bool forAll)
 		{
-			ITryCatchBuilder tryCatchBuilder = null;
+			ITryCatchBuilder tryCatchBuilder;
 			if (forAll)
 			{
 				tryCatchBuilder = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory.ForAllExceptions());

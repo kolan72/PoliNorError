@@ -132,8 +132,8 @@ namespace PoliNorError.Tests
 		[TestCase(false)]
 		public void Should_CatchBlockHandler_InitByFilter_Correctly(bool forAll)
 		{
-			CatchBlockHandler handler = null;
-			Exception errorToHandler = null;
+			CatchBlockHandler handler;
+			Exception errorToHandler;
 			if (forAll)
 			{
 				handler = CatchBlockHandlerFactory.ForAllExceptions();
@@ -146,6 +146,34 @@ namespace PoliNorError.Tests
 			}
 			var result = handler.ErrorFilter.GetCanHandle()(errorToHandler);
 			Assert.That(result, Is.True);
+		}
+
+		[Test]
+		public void Should_CatchBlockHandler_Initialized_Correctly_By_Including_ErrorSet()
+		{
+			var errorSet = ErrorSet.FromError<NullReferenceException>();
+			var handler = CatchBlockHandlerFactory.FilterExceptionsByIncluding(errorSet);
+			var result = handler.ErrorFilter.GetCanHandle()(new NullReferenceException());
+			Assert.That(result, Is.True);
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_CatchBlockHandler_Initialized_Correctly_By_Excluding_ErrorSet(bool canHandle)
+		{
+			var errorSet = ErrorSet.FromError<NullReferenceException>();
+			var handler = CatchBlockHandlerFactory.FilterExceptionsByExcluding(errorSet);
+			bool result;
+			if (canHandle)
+			{
+				result = handler.ErrorFilter.GetCanHandle()(new InvalidOperationException());
+			}
+			else
+			{
+				result = handler.ErrorFilter.GetCanHandle()(new NullReferenceException());
+			}
+			Assert.That(result, Is.EqualTo(canHandle));
 		}
 
 		[Test]

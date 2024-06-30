@@ -12,6 +12,8 @@ namespace PoliNorError
 		}
 
 		public PolicyResult Result { get; }
+
+		internal override PolicyResult GetResult() => Result;
 	}
 
 	public sealed class PolicyDelegateResult<T> : PolicyDelegateResultBase
@@ -22,6 +24,8 @@ namespace PoliNorError
 		}
 
 		public PolicyResult<T> Result { get; }
+
+		internal override PolicyResult GetResult() => Result;
 	}
 
 	public abstract class PolicyDelegateResultBase
@@ -50,5 +54,7 @@ namespace PoliNorError
 		public PolicyResultFailedReason FailedReason { get; internal set; }
 
 		public IEnumerable<Exception> Errors { get; }
+
+		internal abstract PolicyResult GetResult();
 	}
 }

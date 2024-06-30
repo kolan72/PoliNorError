@@ -164,6 +164,23 @@ namespace PoliNorError.Tests
 		{
 			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
 			var filter = NonEmptyCatchBlockFilter.CreateByIncluding(errorSet);
+			var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilter(filter, inner);
+			Assert.That(canHandle, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_NonEmptyCatchBlockFilter_With_ErrorSet_Added_By_IncludeErrorSet_Correct(bool inner)
+		{
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			var filter = NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>().IncludeErrorSet(errorSet);
+			var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilter(filter, inner);
+			Assert.That(canHandle, Is.True);
+		}
+
+		private bool IsErrorCanBeHandledByNonEmptyCatchBlockFilter(NonEmptyCatchBlockFilter filter, bool inner)
+		{
 			Exception errorToHandler;
 			if (inner)
 			{
@@ -173,8 +190,7 @@ namespace PoliNorError.Tests
 			{
 				errorToHandler = new ArgumentException("TestName", inner.ToString());
 			}
-			var canHandle = filter.ErrorFilter.GetCanHandle()(errorToHandler);
-			Assert.That(canHandle, Is.True);
+			return filter.ErrorFilter.GetCanHandle()(errorToHandler);
 		}
 
 		[Test]
@@ -189,20 +205,34 @@ namespace PoliNorError.Tests
 			if (canBeHandled)
 			{
 				errorToHandler = new InvalidOperationException();
+				Assert.That(filter.ErrorFilter.GetCanHandle()(errorToHandler), Is.EqualTo(true));
 			}
 			else
 			{
-				if (inner == true)
-				{
-					errorToHandler = new TestExceptionWithInnerArgumentNullException();
-				}
-				else
-				{
-					errorToHandler = new ArgumentException("TestName", inner.ToString());
-				}
+				var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilter(filter, inner.Value);
+				Assert.That(canHandle, Is.EqualTo(false));
 			}
-			var canHandle = filter.ErrorFilter.GetCanHandle()(errorToHandler);
-			Assert.That(canBeHandled, Is.EqualTo(canHandle));
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(null, true)]
+		public void Should_NonEmptyCatchBlockFilter_With_ErrorSet_Added_By_ExcludeErrorSet_Correct(bool? inner, bool canBeHandled)
+		{
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			var filter = NonEmptyCatchBlockFilter.CreateByExcluding<InvalidOperationException>().ExcludeErrorSet(errorSet);
+			Exception errorToHandler;
+			if (canBeHandled)
+			{
+				errorToHandler = new NullReferenceException();
+				Assert.That(filter.ErrorFilter.GetCanHandle()(errorToHandler), Is.EqualTo(true));
+			}
+			else
+			{
+				var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilter(filter, inner.Value);
+				Assert.That(canHandle, Is.EqualTo(false));
+			}
 		}
 
 		[Test]

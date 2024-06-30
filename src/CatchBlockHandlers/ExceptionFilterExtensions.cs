@@ -6,6 +6,22 @@ namespace PoliNorError
 {
 	internal static class ExceptionFilterExtensions
 	{
+		internal static void AddIncludedErrorSet(this ExceptionFilter errorFilter, IErrorSet errorSet)
+		{
+			foreach (var item in errorSet.Items)
+			{
+				errorFilter.AddIncludedError(item);
+			}
+		}
+
+		internal static void AddExcludedErrorSet(this ExceptionFilter errorFilter, IErrorSet errorSet)
+		{
+			foreach (var item in errorSet.Items)
+			{
+				errorFilter.AddExcludedError(item);
+			}
+		}
+
 		internal static void AddIncludedError(this ExceptionFilter errorFilter, ErrorSetItem errorSetItem)
 		{
 			if (errorSetItem.ErrorKind == ErrorSetItem.ItemType.Error)
