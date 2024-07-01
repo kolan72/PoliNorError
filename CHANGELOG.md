@@ -1,3 +1,13 @@
+## 2.18.14
+
+- Introduce the `NonEmptyCatchBlockFilter.ExcludeErrorSet`, `NonEmptyCatchBlockFilter.IncludeErrorSet` methods.
+- Introduce the `CatchBlockHandlerFactory.FilterExceptionsByIncluding(IErrorSet)`, `CatchBlockHandlerFactory.FilterExceptionsByExcluding(IErrorSet)` methods.
+- DRY refactoring of the method that gets the `IsError` property of the `TryCatchResult` and `TryCatchResult<T>` classes.
+- Remove redundant `IErrorsAggregator<T>`, `IErrorsToStringAggregator` interfaces, `DefaultErrorsToStringAggregator` class,  internal `ProcessingErrorContext` constructor.
+- Remove unnecessary value assignment (IDE0059) in tests.
+- Add doc comments to `IErrorSet` interface and `ErrorSet` class.
+
+
 ## 2.18.11
 
 - For `CatchBlockFilter`, `NonEmptyCatchBlockFilter` classes. add `ExcludeError`, `IncludeError` fluent methods overloads for inner exception types.
@@ -11,6 +21,7 @@
 - Update 'FallbackPolicy' README Chapter.
 - Update 'Error filters' README Chapter.
 - Update 'TryCatch' README Chapter.
+
 
 ## 2.18.4
 
