@@ -27,15 +27,12 @@ namespace PoliNorError
 
 		public RetryPolicy WithWait(Func<int, TimeSpan> delayOnRetryFunc)
 		{
-			TimeSpan retryFunc(int retryAttempt, Exception _) => delayOnRetryFunc(retryAttempt);
-			return WithWait(retryFunc);
+			return this.WithErrorProcessor(new DelayErrorProcessor(delayOnRetryFunc));
 		}
 
 		public RetryPolicy WithWait(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg)
 		{
-			TimeSpan retryFunc(int retryAttempt, Exception exc) => delayOnRetryFunc(delayFuncArg, retryAttempt, exc);
-			WithWait(retryFunc);
-			return this;
+			return this.WithErrorProcessor(new DelayErrorProcessor(delayOnRetryFunc, delayFuncArg));
 		}
 
 		public RetryPolicy WithWait(TimeSpan delay)

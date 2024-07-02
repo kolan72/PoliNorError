@@ -736,6 +736,29 @@ namespace PoliNorError.Tests
 			TestHandlingForInnerError.HandlePolicyWithExcludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
 		}
 
+		[Test]
+		public void Should_WithWait_Add_ErrorProcessor()
+		{
+			var policy = new RetryPolicy(1);
+			int i = 0;
+
+			TimeSpan delayOnRetryFunc(int _) { i++; return TimeSpan.Zero; }
+			policy.WithWait(delayOnRetryFunc);
+
+			policy.Handle(() => throw new Exception("Test"));
+			Assert.That(i, Is.EqualTo(1));
+
+			TimeSpan delayOnRetryFunc2(TimeSpan _, int __, Exception ___) { i++; return TimeSpan.Zero; }
+			policy.WithWait(delayOnRetryFunc2, TimeSpan.Zero);
+
+			policy.Handle(() => throw new Exception("Test"));
+			Assert.That(i, Is.EqualTo(3));
+
+			policy.WithWait(TimeSpan.Zero);
+			policy.Handle(() => throw new Exception("Test"));
+			Assert.That(i, Is.EqualTo(5));
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
