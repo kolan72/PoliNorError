@@ -8,18 +8,18 @@ namespace PoliNorError
 
 		protected RetryDelay(){}
 
-        public RetryDelay(RetryDelayOptions retryDelayOptions)
+		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay)
 		{
-            switch (retryDelayOptions.DelayType)
+            switch (delayType)
             {
                 case RetryDelayType.Constant:
-                    _innerDelay = new ConstantRetryDelay((ConstantRetryDelayOptions)retryDelayOptions);
+                    _innerDelay = new ConstantRetryDelay(baseDelay);
                     break;
                 case RetryDelayType.Linear:
-                    _innerDelay = new LinearRetryDelay((LinearRetryDelayOptions)retryDelayOptions);
+                    _innerDelay = new LinearRetryDelay(baseDelay);
                     break;
                 case RetryDelayType.Exponential:
-                    _innerDelay = new ExponentialRetryDelay((ExponentialRetryDelayOptions)retryDelayOptions);
+                    _innerDelay = new ExponentialRetryDelay(baseDelay);
                     break;
                 default:
                     throw new NotImplementedException();

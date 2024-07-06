@@ -7,10 +7,12 @@ namespace PoliNorError
         private readonly TimeSpan _baseDelay;
         private readonly double _exponentialFactor;
 
-        public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions)
-        {
-            _baseDelay = retryDelayOptions.BaseDelay;
-            _exponentialFactor = retryDelayOptions.ExponentialFactor;
+        public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions) : this(retryDelayOptions.BaseDelay, retryDelayOptions.ExponentialFactor){}
+
+        internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = 2.0)
+		{
+            _baseDelay = baseDelay;
+            _exponentialFactor = exponentialFactor;
         }
 
         public override TimeSpan GetDelay(int attempt)
