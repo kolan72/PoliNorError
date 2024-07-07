@@ -1,12 +1,14 @@
 ﻿namespace PoliNorError
 {
-	internal class RetryProcessingErrorInfo : ProcessingErrorInfo
+	public class RetryProcessingErrorInfo : ProcessingErrorInfo
 	{
-		public RetryProcessingErrorInfo(int retryAttempt)
+		internal RetryProcessingErrorInfo(int retryAttempt) : base(PolicyAlias.Retry, new RetryProcessingErrorContext(retryAttempt))
 		{
+#pragma warning disable CS0618 // Type or member is obsolete
 			CurrentRetryCount = retryAttempt;
-			HasContext = true;
-			PolicyKind = PolicyAlias.Retry;
+#pragma warning restore CS0618 // Type or member is obsolete
 		}
+
+		public int RetryCount => ((RetryProcessingErrorContext)CurrentContext).RetryCount;
 	}
 }

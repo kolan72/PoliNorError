@@ -1,4 +1,6 @@
-﻿namespace PoliNorError
+﻿using System;
+
+namespace PoliNorError
 {
 	public class ProcessingErrorInfo
 	{
@@ -9,26 +11,18 @@
 		public ProcessingErrorInfo(PolicyAlias policyKind,  ProcessingErrorContext currentContext = null)
 		{
 			PolicyKind = policyKind;
-			if (currentContext != null)
-			{
-				PopulateContextProperties(currentContext, policyKind);
-				HasContext = true;
-			}
+
+			CurrentContext = currentContext;
+
+			HasContext = CurrentContext != null;
 		}
 
+		public ProcessingErrorContext CurrentContext { get; }
+
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("CurrentRetryCount is obsolete. Use RetryProcessingErrorInfo.RetryCount instead.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public int CurrentRetryCount { get; protected set; } = -1;
-
-		private void PopulateContextProperties(ProcessingErrorContext currentContext, PolicyAlias policyKind)
-		{
-			switch (policyKind)
-			{
-				case PolicyAlias.Retry:
-					CurrentRetryCount = currentContext.CurrentRetryCount;
-					break;
-				default:
-					return;
-			}
-		}
 
 		public static ProcessingErrorInfo FromRetry(int retryAttempt)
 		{
