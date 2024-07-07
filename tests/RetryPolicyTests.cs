@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Diagnostics;
 using NSubstitute;
 using NUnit.Framework.Legacy;
+using System.Collections.Generic;
 
 namespace PoliNorError.Tests
 {
@@ -757,6 +758,83 @@ namespace PoliNorError.Tests
 			policy.WithWait(TimeSpan.Zero);
 			policy.Handle(() => throw new Exception("Test"));
 			Assert.That(i, Is.EqualTo(5));
+		}
+
+		[Test]
+		[TestCase(RetryDelayType.Constant, true)]
+		[TestCase(RetryDelayType.Constant, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
+		[TestCase(RetryDelayType.Exponential, true)]
+		[TestCase(RetryDelayType.Exponential, false)]
+		public void Should_RetryDelay_Returns_Correct_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(0, 1, 2);
+
+			switch (retryDelayType)
+			{
+				case RetryDelayType.Constant:
+					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[1].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[2].TotalSeconds, Is.EqualTo(2));
+					break;
+				case RetryDelayType.Linear:
+					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[1].TotalSeconds, Is.EqualTo(4));
+					Assert.That(res[2].TotalSeconds, Is.EqualTo(6));
+					break;
+				case RetryDelayType.Exponential:
+					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[1].TotalSeconds, Is.EqualTo(4));
+					Assert.That(res[2].TotalSeconds, Is.EqualTo(8));
+					break;
+			}
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Constant:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(2));
+						else
+							return new ConstantRetryDelay(TimeSpan.FromSeconds(2));
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2));
+						else
+							return new LinearRetryDelay(TimeSpan.FromSeconds(2));
+					case RetryDelayType.Exponential:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Exponential,  TimeSpan.FromSeconds(2));
+						else
+							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2));
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		private class RetryDelayChecker
+		{
+			private readonly RetryDelay _retryDelay;
+			public RetryDelayChecker(RetryDelay retryDelay)
+			{
+				_retryDelay = retryDelay;
+			}
+
+			public List<TimeSpan> Attempt(params int[] attemptNumbers)
+			{
+				var times = new List<TimeSpan>();
+				foreach (var an in attemptNumbers)
+				{
+					times.Add(_retryDelay.GetDelay(an));
+				}
+				return times;
+			}
 		}
 
 		private class TestAsyncClass
