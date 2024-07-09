@@ -8,22 +8,55 @@ namespace PoliNorError
 	{
 		private IErrorProcessor _saveErrorProcessor;
 		private readonly bool _failedIfSaveErrorThrows;
+		private IDelayProvider _delayProvider;
 
 		private readonly Func<int, RetryErrorContext> _retryErrorContextCreator;
 
 		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
 
 		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false)
+			: this(bulkErrorProcessor, failedIfSaveErrorThrows, null)
+		{}
+
+		internal DefaultRetryProcessor(IDelayProvider delayProvider): this(null, false, delayProvider) {}
+
+		internal DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows, IDelayProvider delayProvider = null)
 			: base(PolicyAlias.Retry, bulkErrorProcessor)
 		{
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
 			_retryErrorContextCreator = CreateRetryErrorContext;
+			_delayProvider = delayProvider;
+		}
+
+		public PolicyResult RetryInfinite(Action action, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return RetryInternal(action, RetryCountInfo.Infinite(), retryDelay, token);
+		}
+
+		public PolicyResult Retry(Action action, int retryCount, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return Retry(action, RetryCountInfo.Limited(retryCount), retryDelay, token);
+		}
+
+		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return RetryInternal(action, retryCountInfo, retryDelay, token);
 		}
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
+			return RetryInternal(action, retryCountInfo, null, token);
+		}
+
+		internal PolicyResult RetryInternal(Action action, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
+		{
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
+
+			if (!(retryDelay is null) && _delayProvider is null)
+			{
+				_delayProvider = new DelayProvider();
+			}
 
 			var result = PolicyResult.ForSync();
 			result.ErrorsNotUsed = ErrorsNotUsed;
@@ -73,6 +106,10 @@ namespace PoliNorError
 														.Handle(ex, retryContext));
 					if (!result.IsFailed)
 					{
+						if (!(retryDelay is null))
+						{
+							_delayProvider.Backoff(retryDelay.GetDelay(tryCount), token);
+						}
 						tryCount++;
 						retryContext.IncrementCount();
 					}

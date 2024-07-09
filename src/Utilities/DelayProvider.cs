@@ -4,7 +4,13 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal class DelayProvider
+	internal interface IDelayProvider
+	{
+		void Backoff(TimeSpan delay, CancellationToken cancellationToken = default);
+		Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default);
+	}
+
+	internal class DelayProvider : IDelayProvider
 	{
 		public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
 		{
