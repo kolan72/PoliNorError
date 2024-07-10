@@ -2,6 +2,9 @@
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Contains retry parameters
+	/// </summary>
 	public struct RetryCountInfo
 	{
 		public const int DEFAULT_RETRY_COUNT = 1;
@@ -34,11 +37,22 @@ namespace PoliNorError
 			return canRetryInner ?? func;
 		}
 
+		/// <summary>
+		/// Creates a <see cref="RetryCountInfo"/> with a limited number of retries.
+		/// </summary>
+		/// <param name="retryCount">Number of retries.</param>
+		/// <param name="action">Action to configure <see cref="RetryCountInfoOptions"/>.</param>
+		/// <returns><see cref="RetryCountInfo"/></returns>
 		public static RetryCountInfo Limited(int retryCount, Action<RetryCountInfoOptions> action = null)
 		{
 			return GetCountInfo(CorrectRetries(retryCount), action);
 		}
 
+		/// <summary>
+		/// Creates a <see cref="RetryCountInfo"/> with an infinite number of retries.
+		/// </summary>
+		/// <param name="action">Action to configure <see cref="RetryCountInfoOptions"/>.</param>
+		/// <returns></returns>
 		public static RetryCountInfo Infinite(Action<RetryCountInfoOptions> action = null)
 		{
 			return GetCountInfo(CorrectRetries(REAL_INFINITE_RETRY_COUNT), action);
@@ -51,14 +65,31 @@ namespace PoliNorError
 			return new RetryCountInfo(realCount, rco.CanRetryInner, rco.StartTryCount);
 		}
 
+		/// <summary>
+		/// Returns whether retry is possible with <paramref name="numOfCurRetry"/>.
+		/// </summary>
+		/// <param name="numOfCurRetry">Number of retries</param>
+		/// <returns></returns>
 		public bool CanRetry(int numOfCurRetry) => _canRetryFunc(numOfCurRetry);
 
+		/// <summary>
+		/// Number of retries
+		/// </summary>
 		public int RetryCount { get; }
 
+		/// <summary>
+		/// The number of retries from which we will start.
+		/// </summary>
 		public int StartTryCount { get; }
 
+		/// <summary>
+		/// Returns whether retries are infinite.
+		/// </summary>
 		public bool IsInfinite { get; }
 
+		/// <summary>
+		/// Returns whether retries are limited.
+		/// </summary>
 		private bool IsLimited { get; }
 
 		private static int CorrectRetries(int retryCount)
