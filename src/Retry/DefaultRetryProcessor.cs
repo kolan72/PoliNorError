@@ -30,7 +30,12 @@ namespace PoliNorError
 
 		public PolicyResult RetryInfinite(Action action, RetryDelay retryDelay, CancellationToken token = default)
 		{
-			return RetryInternal(action, RetryCountInfo.Infinite(), retryDelay, token);
+			return Retry(action, RetryCountInfo.Infinite(), retryDelay, token);
+		}
+
+		public PolicyResult<T> RetryInfinite<T>(Func<T> func, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return Retry(func, RetryCountInfo.Infinite(), retryDelay, token);
 		}
 
 		public PolicyResult Retry(Action action, int retryCount, RetryDelay retryDelay, CancellationToken token = default)
@@ -46,6 +51,21 @@ namespace PoliNorError
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
 			return RetryInternal(action, retryCountInfo, null, token);
+		}
+
+		public PolicyResult<T> Retry<T>(Func<T> func, int retryCount, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return Retry(func, RetryCountInfo.Limited(retryCount), retryDelay, token);
+		}
+
+		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return RetryInternal(func, retryCountInfo, retryDelay, token);
+		}
+
+		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
+		{
+			return RetryInternal(func, retryCountInfo, null, token);
 		}
 
 		internal PolicyResult RetryInternal(Action action, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
@@ -119,7 +139,7 @@ namespace PoliNorError
 			return result;
 		}
 
-		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
+		internal PolicyResult<T> RetryInternal<T>(Func<T> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -127,6 +147,11 @@ namespace PoliNorError
 			if (typeof(T).Equals(typeof(Task)) || typeof(T).IsSubclassOf(typeof(Task)))
 			{
 				throw new ArgumentException("Do not use this method for task return type!");
+			}
+
+			if (!(retryDelay is null) && _delayProvider is null)
+			{
+				_delayProvider = new DelayProvider();
 			}
 
 			var result = PolicyResult<T>.ForSync();
@@ -177,6 +202,10 @@ namespace PoliNorError
 														.Handle(ex, retryContext));
 					if (!result.IsFailed)
 					{
+						if (!(retryDelay is null))
+						{
+							_delayProvider.Backoff(retryDelay.GetDelay(tryCount), token);
+						}
 						tryCount++;
 						retryContext.IncrementCount();
 					}
