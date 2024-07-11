@@ -7,11 +7,12 @@ namespace PoliNorError
 {
 	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>, IWithInnerErrorFilter<RetryPolicy>
 	{
-		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows) { }
+		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) : this(retryCount, null, failedIfSaveErrorThrows, retryDelay) { }
 
-		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows, action) { }
+		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) : this(retryCount, null, failedIfSaveErrorThrows, action, retryDelay) { }
 
-		public RetryPolicy(int retryCount, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null) : this(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows), retryCount, action) { }
+		public RetryPolicy(int retryCount, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null, RetryDelay retryDelay = null)
+			: this(retryCount, null, bulkErrorProcessor, failedIfSaveErrorThrows, action, retryDelay) { }
 
 		public RetryPolicy(IRetryProcessor retryProcessor, int retryCount, Action<RetryCountInfoOptions> action = null) : this(retryProcessor, RetryCountInfo.Limited(retryCount, action)) { }
 
@@ -22,6 +23,12 @@ namespace PoliNorError
 		public static RetryPolicy InfiniteRetries(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null) => InfiniteRetries(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows), action);
 
 		public static RetryPolicy InfiniteRetries(IRetryProcessor retryProcessor, Action<RetryCountInfoOptions> action) => new RetryPolicy(retryProcessor, RetryCountInfo.Infinite(action));
+
+		internal RetryPolicy(int retryCount, IDelayProvider delayProvider, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null, RetryDelay retryDelay = null)
+			: this(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows, delayProvider), retryCount, action)
+		{
+			Delay = retryDelay;
+		}
 
 		internal RetryPolicy(IRetryProcessor retryProcessor, RetryCountInfo retryCountInfo) : base(retryProcessor) => (RetryInfo, RetryProcessor) = (retryCountInfo, retryProcessor);
 
@@ -224,5 +231,7 @@ namespace PoliNorError
 		internal IRetryProcessor RetryProcessor { get; }
 
 		public RetryCountInfo RetryInfo { get; }
+
+		internal RetryDelay Delay { get; }
 	}
 }
