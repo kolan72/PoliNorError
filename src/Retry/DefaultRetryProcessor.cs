@@ -28,14 +28,24 @@ namespace PoliNorError
 			_delayProvider = delayProvider;
 		}
 
+		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
+		{
+			return RetryInternal(action, retryCountInfo, null, token);
+		}
+
 		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
 			return RetryInternal(func, retryCountInfo, null, token);
 		}
 
-		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
+		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
-			return RetryInternal(action, retryCountInfo, null, token);
+			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
+		}
+
+		public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
 		}
 
 		internal PolicyResult RetryInternal(Action action, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
@@ -250,10 +260,15 @@ namespace PoliNorError
 			return result;
 		}
 
-		public async Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
+		internal async Task<PolicyResult<T>> RetryInternalAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
+
+			if (!(retryDelay is null) && _delayProvider is null)
+			{
+				_delayProvider = new DelayProvider();
+			}
 
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 			result.ErrorsNotUsed = ErrorsNotUsed;
@@ -298,6 +313,10 @@ namespace PoliNorError
 					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
 					{
+						if (!(retryDelay is null))
+						{
+							await _delayProvider.BackoffAsync(retryDelay.GetDelay(tryCount), configureAwait, token).ConfigureAwait(configureAwait);
+						}
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
 					}
@@ -305,11 +324,6 @@ namespace PoliNorError
 			}
 			while (!result.IsFailed);
 			return result;
-		}
-
-		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
-		{
-			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
 		}
 
 		public IRetryProcessor UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)

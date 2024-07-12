@@ -41,12 +41,27 @@ namespace PoliNorError
 			return RetryAsync(func, RetryCountInfo.Infinite(), retryDelay, configureAwait, token);
 		}
 
+		public Task<PolicyResult<T>> RetryInfiniteAsync<T>(Func<CancellationToken, Task<T>> func, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryAsync(func, RetryCountInfo.Infinite(), retryDelay, configureAwait, token);
+		}
+
 		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, int retryCount, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
 		{
 			return RetryAsync(func, RetryCountInfo.Limited(retryCount), retryDelay, configureAwait, token);
 		}
 
 		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryInternalAsync(func, retryCountInfo, retryDelay, configureAwait, token);
+		}
+
+		public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, int retryCount, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryAsync(func, RetryCountInfo.Limited(retryCount), retryDelay, configureAwait, token);
+		}
+
+		public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
 		{
 			return RetryInternalAsync(func, retryCountInfo, retryDelay, configureAwait, token);
 		}

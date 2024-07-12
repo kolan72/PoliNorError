@@ -583,24 +583,5 @@ namespace PoliNorError.Tests
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
 		}
-
-		private class FakeDelayProvider : IDelayProvider
-		{
-			private readonly CancellationTokenSource _source;
-			public FakeDelayProvider(CancellationTokenSource source  = null)
-			{
-				_source = source;
-			}
-
-			public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
-			{
-				NumOfCalls++;
-				_source?.Cancel();
-			}
-
-			public int NumOfCalls { get; private set; }
-
-			public Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-		}
 	}
 }

@@ -269,7 +269,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_Backoff_Occurs_When_RetryInfinite_Method_Has_RetryDelay_Param()
+		public async Task Should_Backoff_Occurs_When_RetryAsyncT_Method_Has_RetryDelay_Param()
+		{
+			var delayProvider = new FakeDelayProvider();
+			var defProcessor = new DefaultRetryProcessor(delayProvider);
+			await defProcessor.RetryAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test"); }, 2, new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+		}
+
+		[Test]
+		public async Task Should_Backoff_Occurs_When_RetryInfiniteAsync_Method_Has_RetryDelay_Param()
 		{
 			using (var source = new CancellationTokenSource())
 			{
@@ -280,23 +289,15 @@ namespace PoliNorError.Tests
 			}
 		}
 
-		private class FakeDelayProvider : IDelayProvider
+		[Test]
+		public async Task Should_Backoff_Occurs_When_RetryInfiniteAsyncT_Method_Has_RetryDelay_Param()
 		{
-			private readonly CancellationTokenSource _source;
-			public FakeDelayProvider(CancellationTokenSource source = null)
+			using (var source = new CancellationTokenSource())
 			{
-				_source = source;
-			}
-
-			public int NumOfCalls { get; private set; }
-
-			public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-
-			public async Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default)
-			{
-				await Task.Delay(1);
-				NumOfCalls++;
-				_source?.Cancel();
+				var delayProvider = new FakeDelayProvider(source);
+				var defProcessor = new DefaultRetryProcessor(delayProvider);
+				await defProcessor.RetryInfiniteAsync<int>((_) => throw new Exception("Test"), new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)), false, source.Token);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
 		}
 	}
