@@ -62,8 +62,17 @@ namespace PoliNorError
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = RetryProcessor.Retry(Act, RetryInfo, token)
-							 .SetWrappedPolicyResults(Wrapper)
+			PolicyResult retryResult;
+			if (Delay is null)
+			{
+				retryResult = RetryProcessor.Retry(Act, RetryInfo, token);
+			}
+			else
+			{
+				retryResult = ((DefaultRetryProcessor)RetryProcessor).Retry(Act, RetryInfo, Delay, token);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
 							 .SetPolicyName(PolicyName);
 
 			HandlePolicyResult(retryResult, token);
@@ -78,9 +87,18 @@ namespace PoliNorError
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = RetryProcessor.Retry(Fn, RetryInfo, token)
-							.SetWrappedPolicyResults(Wrapper)
-							.SetPolicyName(PolicyName);
+			PolicyResult<T> retryResult;
+			if (Delay is null)
+			{
+				retryResult = RetryProcessor.Retry(Fn, RetryInfo, token);
+			}
+			else
+			{
+				retryResult = ((DefaultRetryProcessor)RetryProcessor).Retry(Fn, RetryInfo, Delay, token);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -94,9 +112,19 @@ namespace PoliNorError
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = (await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait))
-				.SetWrappedPolicyResults(Wrapper)
-				.SetPolicyName(PolicyName);
+			PolicyResult retryResult;
+
+			if (Delay is null)
+			{
+				retryResult = await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				retryResult = await ((DefaultRetryProcessor)RetryProcessor).RetryAsync(Fn, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -110,9 +138,19 @@ namespace PoliNorError
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = (await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait))
-				.SetWrappedPolicyResults(Wrapper)
-				.SetPolicyName(PolicyName);
+			PolicyResult<T> retryResult;
+
+			if (Delay is null)
+			{
+				retryResult = await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				retryResult = await ((DefaultRetryProcessor)RetryProcessor).RetryAsync(Fn, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+						.SetPolicyName(PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
