@@ -106,9 +106,10 @@ namespace PoliNorError
 														.Handle(ex, retryContext));
 					if (!result.IsFailed)
 					{
-						if (!(retryDelay is null))
+						var delay = retryDelay?.GetDelay(tryCount);
+						if (delay > TimeSpan.Zero)
 						{
-							_delayProvider.Backoff(retryDelay.GetDelay(tryCount), token);
+							_delayProvider.Backoff(delay.Value, token);
 						}
 						tryCount++;
 						retryContext.IncrementCount();
@@ -182,9 +183,10 @@ namespace PoliNorError
 														.Handle(ex, retryContext));
 					if (!result.IsFailed)
 					{
-						if (!(retryDelay is null))
+						var delay = retryDelay?.GetDelay(tryCount);
+						if (delay > TimeSpan.Zero)
 						{
-							_delayProvider.Backoff(retryDelay.GetDelay(tryCount), token);
+							_delayProvider.Backoff(delay.Value, token);
 						}
 						tryCount++;
 						retryContext.IncrementCount();
@@ -247,9 +249,10 @@ namespace PoliNorError
 					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
 					{
-						if (!(retryDelay is null))
+						var delay = retryDelay?.GetDelay(tryCount);
+						if (delay > TimeSpan.Zero)
 						{
-							await _delayProvider.BackoffAsync(retryDelay.GetDelay(tryCount), configureAwait, token).ConfigureAwait(configureAwait);
+							await _delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
 						}
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
@@ -313,9 +316,10 @@ namespace PoliNorError
 					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
 					{
-						if (!(retryDelay is null))
+						var delay = retryDelay?.GetDelay(tryCount);
+						if (delay > TimeSpan.Zero)
 						{
-							await _delayProvider.BackoffAsync(retryDelay.GetDelay(tryCount), configureAwait, token).ConfigureAwait(configureAwait);
+							await _delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
 						}
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();

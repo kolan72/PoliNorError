@@ -819,39 +819,47 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Backoff_Occurs_In_Handle_Method_When_RetryPolicy_Created_With_RetryDelay_Param()
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Backoff_Occurs_In_Handle_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2,  delayProvider:delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+			var policy = new RetryPolicy(2,  delayProvider:delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			policy.Handle(() => throw new Exception("Test"));
-			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
 
 		[Test]
-		public void Should_Backoff_Occurs_In_HandleT_Method_When_RetryPolicy_Created_With_RetryDelay_Param()
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Backoff_Occurs_In_HandleT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			policy.Handle<int>(() => throw new Exception("Test"));
-			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
 
 		[Test]
-		public async Task Should_Backoff_Occurs_In_HandleAsync_Method_When_RetryPolicy_Created_With_RetryDelay_Param()
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Backoff_Occurs_In_HandleAsync_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			await policy.HandleAsync((_) => throw new Exception("Test")).ConfigureAwait(false);
-			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
 
 		[Test]
-		public async Task Should_Backoff_Occurs_In_HandleAsyncT_Method_When_RetryPolicy_Created_With_RetryDelay_Param()
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Backoff_Occurs_In_HandleAsyncT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			await policy.HandleAsync<int>((_) => throw new Exception("Test")).ConfigureAwait(false);
-			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
 
 		[Test]
@@ -860,7 +868,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
 				policy.Handle(() => throw new Exception("Test"), source.Token);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -872,7 +880,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
 				policy.Handle<int>(() => throw new Exception("Test"), source.Token);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -884,7 +892,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
 				await policy.HandleAsync((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -896,7 +904,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromTicks(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
 				await policy.HandleAsync<int>((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
