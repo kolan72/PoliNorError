@@ -12,7 +12,7 @@ namespace PoliNorError
 		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) : this(retryCount, null, failedIfSaveErrorThrows, action, retryDelay) { }
 
 		public RetryPolicy(int retryCount, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null, RetryDelay retryDelay = null)
-			: this(RetryCountInfo.Limited(retryCount, action), null, bulkErrorProcessor, failedIfSaveErrorThrows, retryDelay) { }
+			: this(retryCount, null, bulkErrorProcessor, failedIfSaveErrorThrows, action, retryDelay) { }
 
 		public RetryPolicy(IRetryProcessor retryProcessor, int retryCount, Action<RetryCountInfoOptions> action = null) : this(retryProcessor, RetryCountInfo.Limited(retryCount, action)) { }
 
