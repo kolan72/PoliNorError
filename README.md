@@ -888,6 +888,21 @@ var result = CatchBlockHandlerFactory.ForAllExceptions()
 			.ToTryCatch()
 			.Execute(() => File.ReadLines(filePath).ToList());
 ```
+Since _version_ 2.18.14 you can create `CatchBlockFilteredHandler` from `ErrorSet`:
+```csharp
+var fatalErrorSet = ErrorSet
+			.FromError<OutOfMemoryException>()
+			.WithError<NotImplementedException>()
+			.WithError<DivideByZeroException>();
+
+var fatalTryCatch = CatchBlockHandlerFactory.FilterExceptionsByIncluding(fatalErrorSet)
+			.WithErrorProcessorOf((ex) => Console.WriteLine(ex))
+			.ToTryCatch();
+...
+//Somewhere in your code:			
+//If a fatal exception is thrown, it will be stored in the tryCatchResult.Error property.
+var tryCatchResult = fatalTryCatch.Execute(DoSomethingThatMayThrowFatalEror);
+```
 You can use `ITryCatch` as a service in DI (since _version_ 2.18.0).  
 For example, to handle `DirectoryNotFoundException` or `FileNotFoundException` exceptions that might be thrown when reading a file, create a class named `ReadFileTryCatch` that inherits from the `TryCathBase` class and implements the `ITryCatch<ReadFileTryCatch>` interface:
 ```csharp
