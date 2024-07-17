@@ -332,7 +332,15 @@ For huge numbers of retries, memory-related exceptions, such as `OutOfMemoryExce
 If you want to interrupt the handling process after that, create a Retry policy or processor with the `failedIfSaveErrorThrow` parameter set to true. In this case, the `CatchBlockException.IsCritical` property will be set to true, as well as the `PolicyResult.IsFailed` property.  
 
 Moreover, you can also customize error saving by calling the `UseCustomErrorSaver` or `UseCustomErrorSaverOf` methods to save errors elsewhere.  
-These methods have the `IErrorProcessor` type or delegates that take an exception argument as a parameter.  
+These methods have the `IErrorProcessor` type or delegates that take an exception argument as a parameter:  
+```csharp
+var retryPolicy = new RetryPolicy(1)
+			.UseCustomErrorSaverOf(async (ex, ct) => await db.SaveErrorAsync(ex, ct));
+...
+await retryPolicy.HandleAsync(DoSomethingAsync);
+...
+```
+Note that unlike error processors, you can only have one custom error saver for a retry policy or processor.  
 When error saving is customized, the `PolicyResult.ErrorsNotUsed` property will be set to true.  
 
 For testing purposes there is a `RetryPolicy` constructor that has `Action<RetryCountInfoOptions>` parameter.  
@@ -879,6 +887,21 @@ var result = CatchBlockHandlerFactory.ForAllExceptions()
 			.WithErrorProcessorOf((ex) => Console.WriteLine(ex))
 			.ToTryCatch()
 			.Execute(() => File.ReadLines(filePath).ToList());
+```
+Since _version_ 2.18.14 you can create `CatchBlockFilteredHandler` from `ErrorSet`:
+```csharp
+var fatalErrorSet = ErrorSet
+			.FromError<OutOfMemoryException>()
+			.WithError<NotImplementedException>()
+			.WithError<DivideByZeroException>();
+
+var fatalTryCatch = CatchBlockHandlerFactory.FilterExceptionsByIncluding(fatalErrorSet)
+			.WithErrorProcessorOf((ex) => Console.WriteLine(ex))
+			.ToTryCatch();
+...
+//Somewhere in your code:			
+//If a fatal exception is thrown, it will be stored in the tryCatchResult.Error property.
+var tryCatchResult = fatalTryCatch.Execute(DoSomethingThatMayThrowFatalEror);
 ```
 You can use `ITryCatch` as a service in DI (since _version_ 2.18.0).  
 For example, to handle `DirectoryNotFoundException` or `FileNotFoundException` exceptions that might be thrown when reading a file, create a class named `ReadFileTryCatch` that inherits from the `TryCathBase` class and implements the `ITryCatch<ReadFileTryCatch>` interface:
