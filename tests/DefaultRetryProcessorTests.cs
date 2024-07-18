@@ -541,5 +541,47 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			ClassicAssert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
 		}
+
+		[Test]
+		public void Should_Backoff_Occurs_When_Retry_Method_Has_RetryDelay_Param()
+		{
+			var delayProvider = new FakeDelayProvider();
+			var defProcessor = new DefaultRetryProcessor(delayProvider);
+			defProcessor.Retry(() => throw new Exception("Test"), 2, new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Should_Backoff_Occurs_When_RetryT_Method_Has_RetryDelay_Param()
+		{
+			var delayProvider = new FakeDelayProvider();
+			var defProcessor = new DefaultRetryProcessor(delayProvider);
+			defProcessor.Retry<int>(() => throw new Exception("Test"), 2, new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Should_Backoff_Occurs_When_RetryInfinite_Method_Has_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var defProcessor = new DefaultRetryProcessor(delayProvider);
+				defProcessor.RetryInfinite(() => throw new Exception("Test"), new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)), source.Token);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
+		public void Should_Backoff_Occurs_When_RetryInfiniteT_Method_Has_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var defProcessor = new DefaultRetryProcessor(delayProvider);
+				defProcessor.RetryInfinite<int>(() => throw new Exception("Test"), new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)), source.Token);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
 	}
 }

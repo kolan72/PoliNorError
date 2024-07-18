@@ -7,8 +7,13 @@ namespace PoliNorError
 	public class DelayErrorProcessor : IErrorProcessor
 	{
 		private readonly Func<int, Exception, TimeSpan> _sleepProvider;
+		private readonly DelayProvider _delayProvider;
 
-		public DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider) => _sleepProvider = sleepProvider;
+		public DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider)
+		{
+			_sleepProvider = sleepProvider;
+			_delayProvider = new DelayProvider();
+		}
 
 		public DelayErrorProcessor(TimeSpan timeSpan) : this((_, __) => timeSpan){}
 
@@ -19,17 +24,13 @@ namespace PoliNorError
 
 		public virtual Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
-			bool waitResult = cancellationToken.WaitHandle.WaitOne(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error));
-			if (waitResult)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-			}
+			_delayProvider.Backoff(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error), cancellationToken);
 			return error;
 		}
 
 		public virtual async Task<Exception> ProcessAsync(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
-			await Task.Delay(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error), cancellationToken).ConfigureAwait(configAwait);
+			await _delayProvider.BackoffAsync(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error), configAwait, cancellationToken).ConfigureAwait(configAwait);
 			return error;
 		}
 
@@ -40,9 +41,9 @@ namespace PoliNorError
 				case null:
 					return 0;
 				default:
-					if (catchBlockProcessErrorInfo.HasContext)
+					if (catchBlockProcessErrorInfo.HasContext && catchBlockProcessErrorInfo is RetryProcessingErrorInfo info)
 					{
-						return catchBlockProcessErrorInfo.CurrentRetryCount;
+						return info.RetryCount;
 					}
 					else
 					{
@@ -51,9 +52,9 @@ namespace PoliNorError
 			}
 		}
 
-		private int GetCurDelay(int retryAttempt, Exception ex)
+		private TimeSpan GetCurDelay(int retryAttempt, Exception ex)
 		{
-			return (int)_sleepProvider(retryAttempt, ex).TotalMilliseconds;
+			return _sleepProvider(retryAttempt, ex);
 		}
 	}
 }

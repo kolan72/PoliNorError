@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Diagnostics;
 using NSubstitute;
 using NUnit.Framework.Legacy;
+using System.Collections.Generic;
 
 namespace PoliNorError.Tests
 {
@@ -734,6 +735,198 @@ namespace PoliNorError.Tests
 
 			var actionToHandle = TestHandlingForInnerError.GetAction(withInnerError, satisfyFilterFunc);
 			TestHandlingForInnerError.HandlePolicyWithExcludeInnerErrorFilter(policy, actionToHandle, withInnerError, satisfyFilterFunc);
+		}
+
+		[Test]
+		public void Should_WithWait_Add_ErrorProcessor()
+		{
+			var policy = new RetryPolicy(1);
+			int i = 0;
+
+			TimeSpan delayOnRetryFunc(int _) { i++; return TimeSpan.Zero; }
+			policy.WithWait(delayOnRetryFunc);
+
+			policy.Handle(() => throw new Exception("Test"));
+			Assert.That(i, Is.EqualTo(1));
+
+			TimeSpan delayOnRetryFunc2(TimeSpan _, int __, Exception ___) { i++; return TimeSpan.Zero; }
+			policy.WithWait(delayOnRetryFunc2, TimeSpan.Zero);
+
+			policy.Handle(() => throw new Exception("Test"));
+			Assert.That(i, Is.EqualTo(3));
+
+			policy.WithWait(TimeSpan.Zero);
+			policy.Handle(() => throw new Exception("Test"));
+			Assert.That(i, Is.EqualTo(5));
+		}
+
+		[Test]
+		[TestCase(RetryDelayType.Constant, true)]
+		[TestCase(RetryDelayType.Constant, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
+		[TestCase(RetryDelayType.Exponential, true)]
+		[TestCase(RetryDelayType.Exponential, false)]
+		public void Should_RetryDelay_Returns_Correct_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(0, 1, 2);
+
+			switch (retryDelayType)
+			{
+				case RetryDelayType.Constant:
+					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[1].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[2].TotalSeconds, Is.EqualTo(2));
+					break;
+				case RetryDelayType.Linear:
+					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[1].TotalSeconds, Is.EqualTo(4));
+					Assert.That(res[2].TotalSeconds, Is.EqualTo(6));
+					break;
+				case RetryDelayType.Exponential:
+					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
+					Assert.That(res[1].TotalSeconds, Is.EqualTo(4));
+					Assert.That(res[2].TotalSeconds, Is.EqualTo(8));
+					break;
+			}
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Constant:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(2));
+						else
+							return new ConstantRetryDelay(TimeSpan.FromSeconds(2));
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2));
+						else
+							return new LinearRetryDelay(TimeSpan.FromSeconds(2));
+					case RetryDelayType.Exponential:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Exponential,  TimeSpan.FromSeconds(2));
+						else
+							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2));
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Backoff_Occurs_In_Handle_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
+		{
+			var delayProvider = new FakeDelayProvider();
+			var policy = new RetryPolicy(2,  delayProvider:delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			policy.Handle(() => throw new Exception("Test"));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Backoff_Occurs_In_HandleT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
+		{
+			var delayProvider = new FakeDelayProvider();
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			policy.Handle<int>(() => throw new Exception("Test"));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Backoff_Occurs_In_HandleAsync_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
+		{
+			var delayProvider = new FakeDelayProvider();
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			await policy.HandleAsync((_) => throw new Exception("Test")).ConfigureAwait(false);
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Backoff_Occurs_In_HandleAsyncT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
+		{
+			var delayProvider = new FakeDelayProvider();
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			await policy.HandleAsync<int>((_) => throw new Exception("Test")).ConfigureAwait(false);
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
+		}
+
+		[Test]
+		public void Should_Backoff_Occurs_In_Handle_Method_When_InfiniteRetryPolicy_Created_With_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				policy.Handle(() => throw new Exception("Test"), source.Token);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
+		public void Should_Backoff_Occurs_In_HandleT_Method_When_InfiniteRetryPolicy_Created_With_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				policy.Handle<int>(() => throw new Exception("Test"), source.Token);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
+		public async Task Should_Backoff_Occurs_In_HandleAsync_Method_When_InfiniteRetryPolicy_Created_With_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				await policy.HandleAsync((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
+		public async Task Should_Backoff_Occurs_In_HandleAsyncT_Method_When_InfiniteRetryPolicy_Created_With_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				await policy.HandleAsync<int>((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
+
+		private class RetryDelayChecker
+		{
+			private readonly RetryDelay _retryDelay;
+			public RetryDelayChecker(RetryDelay retryDelay)
+			{
+				_retryDelay = retryDelay;
+			}
+
+			public List<TimeSpan> Attempt(params int[] attemptNumbers)
+			{
+				var times = new List<TimeSpan>();
+				foreach (var an in attemptNumbers)
+				{
+					times.Add(_retryDelay.GetDelay(an));
+				}
+				return times;
+			}
 		}
 
 		private class TestAsyncClass

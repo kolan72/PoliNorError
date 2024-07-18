@@ -87,6 +87,7 @@
     <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
+    <Compile Include="RetryObjectsToTest.cs" />
     <Compile Include="TryCatchBuilderTests.cs" />
     <Compile Include="TryCatchTests.cs" />
     <Compile Include="UtilitiesTests.cs" />

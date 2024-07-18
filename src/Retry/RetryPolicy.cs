@@ -7,35 +7,46 @@ namespace PoliNorError
 {
 	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>, IWithInnerErrorFilter<RetryPolicy>
 	{
-		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows) { }
+		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) : this(retryCount, null, failedIfSaveErrorThrows, retryDelay) { }
 
-		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false) : this(retryCount, null, failedIfSaveErrorThrows, action) { }
+		public RetryPolicy(int retryCount, Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) : this(retryCount, null, failedIfSaveErrorThrows, action, retryDelay) { }
 
-		public RetryPolicy(int retryCount, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null) : this(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows), retryCount, action) { }
+		public RetryPolicy(int retryCount, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null, RetryDelay retryDelay = null)
+			: this(retryCount, null, bulkErrorProcessor, failedIfSaveErrorThrows, action, retryDelay) { }
 
 		public RetryPolicy(IRetryProcessor retryProcessor, int retryCount, Action<RetryCountInfoOptions> action = null) : this(retryProcessor, RetryCountInfo.Limited(retryCount, action)) { }
 
-		public static RetryPolicy InfiniteRetries(bool failedIfSaveErrorThrows = false) => InfiniteRetries(null, failedIfSaveErrorThrows);
+		internal RetryPolicy(int retryCount, IDelayProvider delayProvider, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null, RetryDelay retryDelay = null)
+			: this(RetryCountInfo.Limited(retryCount, action), delayProvider, bulkErrorProcessor, failedIfSaveErrorThrows, retryDelay) { }
 
-		public static RetryPolicy InfiniteRetries(Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false) => InfiniteRetries(null, failedIfSaveErrorThrows, action);
-
-		public static RetryPolicy InfiniteRetries(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null) => InfiniteRetries(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows), action);
-
-		public static RetryPolicy InfiniteRetries(IRetryProcessor retryProcessor, Action<RetryCountInfoOptions> action) => new RetryPolicy(retryProcessor, RetryCountInfo.Infinite(action));
+		internal RetryPolicy(RetryCountInfo retryCountInfo, IDelayProvider delayProvider, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null)
+			: this(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows, delayProvider), retryCountInfo)
+		{
+			Delay = retryDelay;
+		}
 
 		internal RetryPolicy(IRetryProcessor retryProcessor, RetryCountInfo retryCountInfo) : base(retryProcessor) => (RetryInfo, RetryProcessor) = (retryCountInfo, retryProcessor);
 
+		public static RetryPolicy InfiniteRetries(bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) => InfiniteRetries(null, failedIfSaveErrorThrows, retryDelay);
+
+		public static RetryPolicy InfiniteRetries(Action<RetryCountInfoOptions> action, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) => InfiniteRetries(null, failedIfSaveErrorThrows, action, retryDelay);
+
+		public static RetryPolicy InfiniteRetries(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null, RetryDelay retryDelay = null)
+			=> InfiniteRetries(null, bulkErrorProcessor, failedIfSaveErrorThrows, action, retryDelay);
+
+		public static RetryPolicy InfiniteRetries(IRetryProcessor retryProcessor, Action<RetryCountInfoOptions> action) => new RetryPolicy(retryProcessor, RetryCountInfo.Infinite(action));
+
+		internal static RetryPolicy InfiniteRetries(IDelayProvider delayProvider, IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false, Action<RetryCountInfoOptions> action = null, RetryDelay retryDelay = null)
+			=> new RetryPolicy(RetryCountInfo.Infinite(action), delayProvider, bulkErrorProcessor, failedIfSaveErrorThrows, retryDelay);
+
 		public RetryPolicy WithWait(Func<int, TimeSpan> delayOnRetryFunc)
 		{
-			TimeSpan retryFunc(int retryAttempt, Exception _) => delayOnRetryFunc(retryAttempt);
-			return WithWait(retryFunc);
+			return this.WithErrorProcessor(new DelayErrorProcessor(delayOnRetryFunc));
 		}
 
 		public RetryPolicy WithWait(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg)
 		{
-			TimeSpan retryFunc(int retryAttempt, Exception exc) => delayOnRetryFunc(delayFuncArg, retryAttempt, exc);
-			WithWait(retryFunc);
-			return this;
+			return this.WithErrorProcessor(new DelayErrorProcessor(delayOnRetryFunc, delayFuncArg));
 		}
 
 		public RetryPolicy WithWait(TimeSpan delay)
@@ -58,8 +69,17 @@ namespace PoliNorError
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = RetryProcessor.Retry(Act, RetryInfo, token)
-							 .SetWrappedPolicyResults(Wrapper)
+			PolicyResult retryResult;
+			if (Delay is null)
+			{
+				retryResult = RetryProcessor.Retry(Act, RetryInfo, token);
+			}
+			else
+			{
+				retryResult = ((DefaultRetryProcessor)RetryProcessor).Retry(Act, RetryInfo, Delay, token);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
 							 .SetPolicyName(PolicyName);
 
 			HandlePolicyResult(retryResult, token);
@@ -74,9 +94,18 @@ namespace PoliNorError
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = RetryProcessor.Retry(Fn, RetryInfo, token)
-							.SetWrappedPolicyResults(Wrapper)
-							.SetPolicyName(PolicyName);
+			PolicyResult<T> retryResult;
+			if (Delay is null)
+			{
+				retryResult = RetryProcessor.Retry(Fn, RetryInfo, token);
+			}
+			else
+			{
+				retryResult = ((DefaultRetryProcessor)RetryProcessor).Retry(Fn, RetryInfo, Delay, token);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -90,9 +119,19 @@ namespace PoliNorError
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = (await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait))
-				.SetWrappedPolicyResults(Wrapper)
-				.SetPolicyName(PolicyName);
+			PolicyResult retryResult;
+
+			if (Delay is null)
+			{
+				retryResult = await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				retryResult = await ((DefaultRetryProcessor)RetryProcessor).RetryAsync(Fn, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -106,9 +145,19 @@ namespace PoliNorError
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			var retryResult = (await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait))
-				.SetWrappedPolicyResults(Wrapper)
-				.SetPolicyName(PolicyName);
+			PolicyResult<T> retryResult;
+
+			if (Delay is null)
+			{
+				retryResult = await RetryProcessor.RetryAsync(Fn, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				retryResult = await ((DefaultRetryProcessor)RetryProcessor).RetryAsync(Fn, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+						.SetPolicyName(PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -227,5 +276,7 @@ namespace PoliNorError
 		internal IRetryProcessor RetryProcessor { get; }
 
 		public RetryCountInfo RetryInfo { get; }
+
+		internal RetryDelay Delay { get; }
 	}
 }

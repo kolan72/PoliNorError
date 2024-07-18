@@ -258,5 +258,47 @@ namespace PoliNorError.Tests
 
 			Assert.That(innerProcessors.L, Is.EqualTo(1));
 		}
+
+		[Test]
+		public async Task Should_Backoff_Occurs_When_RetryAsync_Method_Has_RetryDelay_Param()
+		{
+			var delayProvider = new FakeDelayProvider();
+			var defProcessor = new DefaultRetryProcessor(delayProvider);
+			await defProcessor.RetryAsync(async(_) => {await Task.Delay(1); throw new Exception("Test"); }, 2, new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+		}
+
+		[Test]
+		public async Task Should_Backoff_Occurs_When_RetryAsyncT_Method_Has_RetryDelay_Param()
+		{
+			var delayProvider = new FakeDelayProvider();
+			var defProcessor = new DefaultRetryProcessor(delayProvider);
+			await defProcessor.RetryAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test"); }, 2, new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)));
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(2));
+		}
+
+		[Test]
+		public async Task Should_Backoff_Occurs_When_RetryInfiniteAsync_Method_Has_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var defProcessor = new DefaultRetryProcessor(delayProvider);
+				await defProcessor.RetryInfiniteAsync((_) => throw new Exception("Test"), new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)), false, source.Token);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
+		public async Task Should_Backoff_Occurs_When_RetryInfiniteAsyncT_Method_Has_RetryDelay_Param()
+		{
+			using (var source = new CancellationTokenSource())
+			{
+				var delayProvider = new FakeDelayProvider(source);
+				var defProcessor = new DefaultRetryProcessor(delayProvider);
+				await defProcessor.RetryInfiniteAsync<int>((_) => throw new Exception("Test"), new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)), false, source.Token);
+				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
 	}
 }

@@ -110,7 +110,14 @@ namespace PoliNorError.Tests
 
 			public override Task<Exception> ProcessAsync(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 			{
-				CurRetry = catchBlockProcessErrorInfo.CurrentRetryCount;
+				if (catchBlockProcessErrorInfo is RetryProcessingErrorInfo retryProcessingErrorInfo)
+				{
+					CurRetry = retryProcessingErrorInfo.RetryCount;
+				}
+				else
+				{
+					CurRetry = -1;
+				}
 				PolicyKind = catchBlockProcessErrorInfo.PolicyKind;
 				return base.ProcessAsync(error, catchBlockProcessErrorInfo, configAwait, cancellationToken);
 			}
