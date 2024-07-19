@@ -11,6 +11,11 @@ namespace PoliNorError
 
 		protected RetryDelay(){}
 
+		/// <summary>
+		/// Initializes a new instance of <see cref="RetryDelay"/>.
+		/// </summary>
+		/// <param name="delayType">The type of delay.</param>
+		/// <param name="baseDelay">Base delay value between retries.</param>
 		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay)
 		{
 			switch (delayType)
@@ -45,7 +50,14 @@ namespace PoliNorError
 	/// </summary>
 	public abstract class RetryDelayOptions
 	{
+		/// <summary>
+		/// The type of delay.
+		/// </summary>
 		public abstract RetryDelayType DelayType { get;}
+
+		/// <summary>
+		/// Base delay value between retries.
+		/// </summary>
 		public TimeSpan BaseDelay { get; set; }
 	}
 
