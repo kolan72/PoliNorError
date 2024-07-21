@@ -3,27 +3,26 @@
 namespace PoliNorError
 {
 	public class ExponentialRetryDelay : RetryDelay
-    {
-        private readonly TimeSpan _baseDelay;
-        private readonly double _exponentialFactor;
+	{
+		private readonly ExponentialRetryDelayOptions _retryDelayOptions;
 
-        public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions) : this(retryDelayOptions.BaseDelay, retryDelayOptions.ExponentialFactor){}
-
-        internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = 2.0)
+		public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions)
 		{
-            _baseDelay = baseDelay;
-            _exponentialFactor = exponentialFactor;
-        }
+			InnerDelay = this;
+			_retryDelayOptions = retryDelayOptions;
+		}
 
-        public override TimeSpan GetDelay(int attempt)
-        {
-            return TimeSpan.FromMilliseconds(Math.Pow(_exponentialFactor, attempt) * _baseDelay.TotalMilliseconds);
-        }
-    }
+		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = 2.0) : this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor }) {}
 
-    public class ExponentialRetryDelayOptions : RetryDelayOptions
-    {
-        public override RetryDelayType DelayType => RetryDelayType.Exponential;
-        public double ExponentialFactor { get; set; } = 2.0;
-    }
+		protected override TimeSpan GetInnerDelay(int attempt)
+		{
+			return TimeSpan.FromMilliseconds(Math.Pow(_retryDelayOptions.ExponentialFactor, attempt) * _retryDelayOptions.BaseDelay.TotalMilliseconds);
+		}
+	}
+
+	public class ExponentialRetryDelayOptions : RetryDelayOptions
+	{
+		public override RetryDelayType DelayType => RetryDelayType.Exponential;
+		public double ExponentialFactor { get; set; } = 2.0;
+	}
 }

@@ -7,22 +7,23 @@ namespace PoliNorError
 	/// </summary>
 	public class LinearRetryDelay : RetryDelay
 	{
-		private readonly TimeSpan _baseDelay;
+		private readonly LinearRetryDelayOptions _options;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="LinearRetryDelay"/>.
 		/// </summary>
 		/// <param name="retryDelayOptions"><see cref="LinearRetryDelayOptions"/></param>
-		public LinearRetryDelay(LinearRetryDelayOptions retryDelayOptions) : this(retryDelayOptions.BaseDelay) { }
-
-		internal LinearRetryDelay(TimeSpan baseDelay)
+		public LinearRetryDelay(LinearRetryDelayOptions retryDelayOptions)
 		{
-			_baseDelay = baseDelay;
+			InnerDelay = this;
+			_options = retryDelayOptions;
 		}
 
-		public override TimeSpan GetDelay(int attempt)
+		internal LinearRetryDelay(TimeSpan baseDelay) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay }) {}
+
+		protected override TimeSpan GetInnerDelay(int attempt)
 		{
-			return TimeSpan.FromMilliseconds((attempt + 1) * _baseDelay.TotalMilliseconds);
+			return TimeSpan.FromMilliseconds((attempt + 1) * _options.BaseDelay.TotalMilliseconds);
 		}
 	}
 

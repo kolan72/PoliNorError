@@ -7,9 +7,11 @@ namespace PoliNorError
 	/// </summary>
 	public class RetryDelay
 	{
-		private readonly RetryDelay _innerDelay;
+		protected RetryDelay InnerDelay { get; set; }
 
-		protected RetryDelay(){}
+		protected RetryDelay()
+		{
+		}
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="RetryDelay"/>.
@@ -21,13 +23,13 @@ namespace PoliNorError
 			switch (delayType)
 			{
 				case RetryDelayType.Constant:
-					_innerDelay = new ConstantRetryDelay(baseDelay);
+					InnerDelay = new ConstantRetryDelay(baseDelay);
 					break;
 				case RetryDelayType.Linear:
-					_innerDelay = new LinearRetryDelay(baseDelay);
+					InnerDelay = new LinearRetryDelay(baseDelay);
 					break;
 				case RetryDelayType.Exponential:
-					_innerDelay = new ExponentialRetryDelay(baseDelay);
+					InnerDelay = new ExponentialRetryDelay(baseDelay);
 					break;
 				default:
 					throw new NotImplementedException();
@@ -41,7 +43,12 @@ namespace PoliNorError
 		/// <returns></returns>
 		public virtual TimeSpan GetDelay(int attempt)
 		{
-			return _innerDelay.GetDelay(attempt);
+			return InnerDelay.GetInnerDelay(attempt);
+		}
+
+		protected virtual TimeSpan GetInnerDelay(int attempt)
+		{
+			return TimeSpan.Zero;
 		}
 	}
 
