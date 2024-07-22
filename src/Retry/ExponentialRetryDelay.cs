@@ -23,7 +23,12 @@ namespace PoliNorError
 
 		protected override TimeSpan GetInnerDelay(int attempt)
 		{
-			return TimeSpan.FromMilliseconds(Math.Pow(_retryDelayOptions.ExponentialFactor, attempt) * _retryDelayOptions.BaseDelay.TotalMilliseconds);
+			var delay = Math.Pow(_retryDelayOptions.ExponentialFactor, attempt) * _retryDelayOptions.BaseDelay.TotalMilliseconds;
+			if (delay > RetryDelayOptions.MaxTimeSpanMs)
+			{
+				return TimeSpan.MaxValue;
+			}
+			return TimeSpan.FromMilliseconds(delay);
 		}
 	}
 

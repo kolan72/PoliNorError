@@ -818,6 +818,32 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[TestCase(RetryDelayType.Exponential, true)]
+		[TestCase(RetryDelayType.Exponential, false)]
+		public void Should_RetryDelay_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(2);
+
+			Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Exponential:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue);
+						else
+							return new ExponentialRetryDelay(TimeSpan.MaxValue);
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]

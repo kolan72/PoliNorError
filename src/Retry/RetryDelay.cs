@@ -57,6 +57,8 @@ namespace PoliNorError
 	/// </summary>
 	public abstract class RetryDelayOptions
 	{
+		internal static readonly double MaxTimeSpanMs = TimeSpan.MaxValue.TotalMilliseconds;
+
 		/// <summary>
 		/// The type of delay.
 		/// </summary>
