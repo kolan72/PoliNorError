@@ -2,10 +2,17 @@
 
 namespace PoliNorError
 {
+	/// <summary>
+	///  Class to get the delay value calculated exponentially.
+	/// </summary>
 	public class ExponentialRetryDelay : RetryDelay
 	{
 		private readonly ExponentialRetryDelayOptions _retryDelayOptions;
 
+		/// <summary>
+		/// Initializes a new instance of <see cref="ExponentialRetryDelay"/>.
+		/// </summary>
+		/// <param name="retryDelayOptions"><see cref="ExponentialRetryDelayOptions"/></param>
 		public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions)
 		{
 			InnerDelay = this;
@@ -20,6 +27,9 @@ namespace PoliNorError
 		}
 	}
 
+	/// <summary>
+	///  Represents options for the <see cref="ExponentialRetryDelay"/>.
+	/// </summary>
 	public class ExponentialRetryDelayOptions : RetryDelayOptions
 	{
 		public override RetryDelayType DelayType => RetryDelayType.Exponential;
