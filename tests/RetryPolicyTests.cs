@@ -818,6 +818,8 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
 		[TestCase(RetryDelayType.Exponential, true)]
 		[TestCase(RetryDelayType.Exponential, false)]
 		public void Should_RetryDelay_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
@@ -833,6 +835,11 @@ namespace PoliNorError.Tests
 			{
 				switch (retryDelayType)
 				{
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue);
+						else
+							return new LinearRetryDelay(TimeSpan.MaxValue);
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue);
