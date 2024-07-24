@@ -8,8 +8,6 @@
 - Add `DefaultRetryProcessor.Retry<T>` method overloads and `RetryInfinite<T>` method to handle `Func<T>` with `RetryDelay` parameter.  
 - Add `DefaultRetryProcessor.RetryAsync` method overloads and `RetryInfiniteAsync` method to handle `Func<CancellationToken, Task>` with `RetryDelay` parameter.  
 - Add `DefaultRetryProcessor.RetryAsync<T>` method overloads and `RetryInfiniteAsync<T>` method to handle `Func<CancellationToken, Task<T>>` with `RetryDelay` parameter.  
-- Add `DelayProvider` class.  
-- Introduce `RetryProcessingErrorInfo` class, add `ProcessingErrorInfo.CurrentContext` property, deprecate `ProcessingErrorInfo.CurrentRetryCount` property.  
 - Add internal `DelayProvider` class.  
 - Refactoring to use the `DelayProvider` class in the `DelayErrorProcessor` class.  
 - Introduce `RetryProcessingErrorInfo` class, add `ProcessingErrorInfo.CurrentContext` property, deprecate `ProcessingErrorInfo.CurrentRetryCount` property.  
