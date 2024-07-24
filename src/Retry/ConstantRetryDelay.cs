@@ -7,22 +7,23 @@ namespace PoliNorError
 	/// </summary>
 	public class ConstantRetryDelay : RetryDelay
 	{
-		private readonly TimeSpan _baseDelay;
+		private readonly ConstantRetryDelayOptions _retryDelayOptions;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="ConstantRetryDelay"/>.
 		/// </summary>
 		/// <param name="retryDelayOptions"><see cref="ConstantRetryDelayOptions"/></param>
-		public ConstantRetryDelay(ConstantRetryDelayOptions retryDelayOptions) : this(retryDelayOptions.BaseDelay){}
-
-		internal ConstantRetryDelay(TimeSpan baseDelay)
+		public ConstantRetryDelay(ConstantRetryDelayOptions retryDelayOptions)
 		{
-			_baseDelay = baseDelay;
+			InnerDelay = this;
+			_retryDelayOptions = retryDelayOptions;
 		}
 
-		public override TimeSpan GetDelay(int attempt)
+		internal ConstantRetryDelay(TimeSpan baseDelay) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay }){}
+
+		protected override TimeSpan GetInnerDelay(int attempt)
 		{
-			return _baseDelay;
+			return _retryDelayOptions.BaseDelay;
 		}
 	}
 
