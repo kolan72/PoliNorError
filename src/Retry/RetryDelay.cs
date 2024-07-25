@@ -9,6 +9,8 @@ namespace PoliNorError
 	{
 		protected RetryDelay InnerDelay { get; set; }
 
+		protected Func<int, TimeSpan> InnerDelayValueProvider { get; set; }
+
 		protected RetryDelay()
 		{
 		}
@@ -50,6 +52,13 @@ namespace PoliNorError
 		{
 			return TimeSpan.Zero;
 		}
+
+		protected static double ApplyJitter(double delayInMs)
+		{
+			var offset = (delayInMs * RetryDelayOptions.JitterFactor) / 2;
+			var randomDelay = (delayInMs * RetryDelayOptions.JitterFactor * StaticRandom.RandDouble()) - offset;
+			return delayInMs + randomDelay;
+		}
 	}
 
 	/// <summary>
@@ -57,7 +66,9 @@ namespace PoliNorError
 	/// </summary>
 	public abstract class RetryDelayOptions
 	{
-		internal static readonly double MaxTimeSpanMs = TimeSpan.MaxValue.TotalMilliseconds;
+		internal static readonly double MaxTimeSpanMs = (TimeSpan.MaxValue - TimeSpan.FromMilliseconds(2)).TotalMilliseconds;
+
+		internal const double JitterFactor = 0.5;
 
 		/// <summary>
 		/// The type of delay.
@@ -68,6 +79,11 @@ namespace PoliNorError
 		/// Base delay value between retries.
 		/// </summary>
 		public TimeSpan BaseDelay { get; set; }
+
+		/// <summary>
+		/// Indicates whether jitter is used. The default value is <see langword="false"/>.
+		/// </summary>
+		public bool UseJitter { get; set; }
 	}
 
 	/// <summary>
