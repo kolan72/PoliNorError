@@ -761,6 +761,33 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(RetryDelayType.Linear,true)]
+		[TestCase(RetryDelayType.Linear, false)]
+		public void Should_RetryDelay_Returns_Jittered_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var repeater = new RetryDelayRepeater(GetJitteredRetryDelayByRetryDelayType());
+			var res = repeater.Repeat(1, 10);
+			RetryDelay GetJitteredRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+						{
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), true);
+						}
+						else
+						{
+							return new LinearRetryDelay(TimeSpan.FromSeconds(2), true);
+						}
+					default:
+						throw new NotImplementedException();
+				}
+			}
+			Assert.That(res.Exists(t => t.TotalSeconds != 4), Is.True);
+		}
+
+		[Test]
 		[TestCase(RetryDelayType.Constant, true)]
 		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]
@@ -957,6 +984,25 @@ namespace PoliNorError.Tests
 				foreach (var an in attemptNumbers)
 				{
 					times.Add(_retryDelay.GetDelay(an));
+				}
+				return times;
+			}
+		}
+
+		private class RetryDelayRepeater
+		{
+			private readonly RetryDelay _retryDelay;
+			public RetryDelayRepeater(RetryDelay retryDelay)
+			{
+				_retryDelay = retryDelay;
+			}
+
+			public List<TimeSpan> Repeat(int attemptNumber, int numOfRepeats)
+			{
+				var times = new List<TimeSpan>();
+				for (int i = 0; i < numOfRepeats; i++)
+				{
+					times.Add(_retryDelay.GetDelay(attemptNumber));
 				}
 				return times;
 			}

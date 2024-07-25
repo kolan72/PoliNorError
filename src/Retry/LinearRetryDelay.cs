@@ -17,18 +17,39 @@ namespace PoliNorError
 		{
 			InnerDelay = this;
 			_options = retryDelayOptions;
+
+			if (_options.UseJitter)
+			{
+				InnerDelayValueProvider = GetJitteredDelayValue;
+			}
+			else
+			{
+				InnerDelayValueProvider = GetDelayValue;
+			}
 		}
 
-		internal LinearRetryDelay(TimeSpan baseDelay) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay }) {}
+		internal LinearRetryDelay(TimeSpan baseDelay, bool useJitter = false) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter} ) {}
 
 		protected override TimeSpan GetInnerDelay(int attempt)
 		{
-			var delay = (attempt + 1) * _options.BaseDelay.TotalMilliseconds;
-			if (delay > RetryDelayOptions.MaxTimeSpanMs)
-			{
-				return TimeSpan.MaxValue;
-			}
-			return TimeSpan.FromMilliseconds(delay);
+			 return InnerDelayValueProvider(attempt);
+		}
+
+		private TimeSpan GetDelayValue(int attempt)
+		{
+			var ms = GetDelayValueInMs(attempt);
+			return ms >= RetryDelayOptions.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+		}
+
+		private TimeSpan GetJitteredDelayValue(int attempt)
+		{
+			var ms = ApplyJitter(GetDelayValueInMs(attempt));
+			return ms >= RetryDelayOptions.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+		}
+
+		private double GetDelayValueInMs(int attempt)
+		{
+			return (attempt + 1) * _options.BaseDelay.TotalMilliseconds;
 		}
 	}
 
