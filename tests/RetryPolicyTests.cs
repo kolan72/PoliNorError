@@ -761,7 +761,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(RetryDelayType.Linear,true)]
+		[TestCase(RetryDelayType.Constant, true)]
+		[TestCase(RetryDelayType.Constant, false)]
+		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
 		public void Should_RetryDelay_Returns_Jittered_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
 		{
@@ -771,6 +773,11 @@ namespace PoliNorError.Tests
 			{
 				switch (retryDelayType)
 				{
+					case RetryDelayType.Constant:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(4), true);
+						else
+							return new ConstantRetryDelay(TimeSpan.FromSeconds(4), true);
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 						{

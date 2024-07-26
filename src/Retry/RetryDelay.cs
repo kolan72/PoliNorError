@@ -19,14 +19,14 @@ namespace PoliNorError
 		/// Initializes a new instance of <see cref="RetryDelay"/>.
 		/// </summary>
 		/// <param name="delayType">The type of delay.</param>
-		/// <param name="useJitter">Whether jitter is used.</param>
 		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
 		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, bool useJitter = false)
 		{
 			switch (delayType)
 			{
 				case RetryDelayType.Constant:
-					InnerDelay = new ConstantRetryDelay(baseDelay);
+					InnerDelay = new ConstantRetryDelay(baseDelay, useJitter);
 					break;
 				case RetryDelayType.Linear:
 					InnerDelay = new LinearRetryDelay(baseDelay, useJitter);

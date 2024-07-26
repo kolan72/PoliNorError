@@ -7,7 +7,7 @@ namespace PoliNorError
 	/// </summary>
 	public class ConstantRetryDelay : RetryDelay
 	{
-		private readonly ConstantRetryDelayOptions _retryDelayOptions;
+		private readonly ConstantRetryDelayOptions _options;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="ConstantRetryDelay"/>.
@@ -16,15 +16,37 @@ namespace PoliNorError
 		public ConstantRetryDelay(ConstantRetryDelayOptions retryDelayOptions)
 		{
 			InnerDelay = this;
-			_retryDelayOptions = retryDelayOptions;
+			_options = retryDelayOptions;
+
+			if (_options.UseJitter)
+			{
+				InnerDelayValueProvider = GetJitteredDelayValue;
+			}
+			else
+			{
+				InnerDelayValueProvider = GetDelayValue;
+			}
 		}
 
-		internal ConstantRetryDelay(TimeSpan baseDelay) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay }){}
+		internal ConstantRetryDelay(TimeSpan baseDelay, bool useJitter = false) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter }){}
 
 		protected override TimeSpan GetInnerDelay(int attempt)
 		{
-			return _retryDelayOptions.BaseDelay;
+			return InnerDelayValueProvider(attempt);
 		}
+
+		private TimeSpan GetDelayValue(int attempt)
+		{
+			return _options.BaseDelay;
+		}
+
+		private TimeSpan GetJitteredDelayValue(int attempt)
+		{
+			var ms = ApplyJitter(GetDelayValueInMs());
+			return ms >= RetryDelayOptions.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+		}
+
+		private double GetDelayValueInMs() => _options.BaseDelay.TotalMilliseconds;
 	}
 
 	/// <summary>
