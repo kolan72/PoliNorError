@@ -5,7 +5,7 @@ namespace PoliNorError
 	/// <summary>
 	///  Class to get the delay value calculated exponentially.
 	/// </summary>
-	public class ExponentialRetryDelay : RetryDelay
+	public partial class ExponentialRetryDelay : RetryDelay
 	{
 		private readonly ExponentialRetryDelayOptions _retryDelayOptions;
 
