@@ -765,6 +765,8 @@ namespace PoliNorError.Tests
 		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
+		[TestCase(RetryDelayType.Exponential, true)]
+		[TestCase(RetryDelayType.Exponential, false)]
 		public void Should_RetryDelay_Returns_Jittered_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
 		{
 			var repeater = new RetryDelayRepeater(GetJitteredRetryDelayByRetryDelayType());
@@ -787,11 +789,20 @@ namespace PoliNorError.Tests
 						{
 							return new LinearRetryDelay(TimeSpan.FromSeconds(2), true);
 						}
+					case RetryDelayType.Exponential:
+						if (useBaseClass)
+						{
+							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), true);
+						}
+						else
+						{
+							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), useJitter: true);
+						}
 					default:
 						throw new NotImplementedException();
 				}
 			}
-			Assert.That(res.Exists(t => t.TotalSeconds != 4), Is.True);
+			Assert.That(res.Exists(t => Math.Abs(4 - t.TotalSeconds) > 0), Is.True);
 		}
 
 		[Test]

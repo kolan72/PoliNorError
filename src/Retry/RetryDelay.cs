@@ -32,7 +32,7 @@ namespace PoliNorError
 					InnerDelay = new LinearRetryDelay(baseDelay, useJitter);
 					break;
 				case RetryDelayType.Exponential:
-					InnerDelay = new ExponentialRetryDelay(baseDelay);
+					InnerDelay = new ExponentialRetryDelay(baseDelay, useJitter: useJitter);
 					break;
 				default:
 					throw new NotImplementedException();

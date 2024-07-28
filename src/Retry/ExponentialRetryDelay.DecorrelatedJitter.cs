@@ -64,7 +64,7 @@ namespace PoliNorError
 
                 long ticks = (long)Math.Min(formulaIntrinsicValue * RpScalingFactor * targetTicksFirstDelay, MaxTimeSpanTicks);
 
-                return TimeSpan.FromTicks(ticks);
+                return TimeSpan.FromTicks(Math.Abs(ticks));
             }
         }
     }
