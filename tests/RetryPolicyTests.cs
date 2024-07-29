@@ -765,8 +765,6 @@ namespace PoliNorError.Tests
 		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
-		[TestCase(RetryDelayType.Exponential, true)]
-		[TestCase(RetryDelayType.Exponential, false)]
 		public void Should_RetryDelay_Returns_Jittered_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
 		{
 			var repeater = new RetryDelayRepeater(GetJitteredRetryDelayByRetryDelayType());
@@ -789,20 +787,37 @@ namespace PoliNorError.Tests
 						{
 							return new LinearRetryDelay(TimeSpan.FromSeconds(2), true);
 						}
-					case RetryDelayType.Exponential:
-						if (useBaseClass)
-						{
-							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), true);
-						}
-						else
-						{
-							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), useJitter: true);
-						}
 					default:
 						throw new NotImplementedException();
 				}
 			}
 			Assert.That(res.Exists(t => Math.Abs(4 - t.TotalSeconds) > 0), Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ExponentialRetryDelay_Returns_Jittered_Timespan(bool useBaseClass)
+		{
+			var times = new List<TimeSpan>();
+			for (int i = 0; i < 10; i++)
+			{
+				times.Add(GetRetryDelay().GetDelay(1));
+			}
+
+			Assert.That(times.Exists(t => Math.Abs(4 - t.TotalSeconds) > 0), Is.True);
+
+			RetryDelay GetRetryDelay()
+			{
+				if (useBaseClass)
+				{
+					return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), true);
+				}
+				else
+				{
+					return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), useJitter: true);
+				}
+			}
 		}
 
 		[Test]
