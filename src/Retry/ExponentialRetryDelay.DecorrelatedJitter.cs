@@ -62,9 +62,9 @@ namespace PoliNorError
                 double formulaIntrinsicValue = next - _prev;
                 _prev = next;
 
-                long ticks = (long)Math.Min(formulaIntrinsicValue * RpScalingFactor * targetTicksFirstDelay, MaxTimeSpanTicks);
+                long ticks = (long)Math.Min(Math.Abs(formulaIntrinsicValue * RpScalingFactor * targetTicksFirstDelay), MaxTimeSpanTicks);
 
-                return TimeSpan.FromTicks(Math.Abs(ticks));
+                return TimeSpan.FromTicks(ticks);
             }
         }
     }
