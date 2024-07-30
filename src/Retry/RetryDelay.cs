@@ -20,8 +20,20 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="delayType">The type of delay.</param>
 		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="maxDelay">Maximum delay between retries.</param>
 		/// <param name="useJitter">Whether jitter is used.</param>
+		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan maxDelay, bool useJitter = false)
+		{
+			InitInnerDelay(delayType, baseDelay, maxDelay, useJitter);
+		}
+
+		///<inheritdoc cref = "RetryDelay(RetryDelayType, TimeSpan, TimeSpan, Boolean)"/>
 		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, bool useJitter = false)
+		{
+			InitInnerDelay(delayType, baseDelay, null, useJitter);
+		}
+
+		private void InitInnerDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan? maxDelay, bool useJitter)
 		{
 			switch (delayType)
 			{
@@ -32,7 +44,7 @@ namespace PoliNorError
 					InnerDelay = new LinearRetryDelay(baseDelay, useJitter);
 					break;
 				case RetryDelayType.Exponential:
-					InnerDelay = new ExponentialRetryDelay(baseDelay, useJitter: useJitter);
+					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay,  useJitter: useJitter);
 					break;
 				default:
 					throw new NotImplementedException();
@@ -85,6 +97,11 @@ namespace PoliNorError
 		/// Indicates whether jitter is used. The default value is <see langword="false"/>.
 		/// </summary>
 		public bool UseJitter { get; set; }
+
+		/// <summary>
+		/// Maximum delay between retries.
+		/// </summary>
+		public TimeSpan MaxDelay { get; set; } = TimeSpan.MaxValue;
 	}
 
 	/// <summary>

@@ -9,6 +9,8 @@ namespace PoliNorError
 	{
 		private readonly ExponentialRetryDelayOptions _options;
 
+		private readonly double _adoptedMaxDelayMs;
+
 		/// <summary>
 		/// Initializes a new instance of <see cref="ExponentialRetryDelay"/>.
 		/// </summary>
@@ -26,10 +28,13 @@ namespace PoliNorError
 			else
 			{
 				InnerDelayValueProvider = GetDelayValue;
+				_adoptedMaxDelayMs = retryDelayOptions.MaxDelay.TotalMilliseconds > RetryDelayOptions.MaxTimeSpanMs
+																				? RetryDelayOptions.MaxTimeSpanMs : retryDelayOptions.MaxDelay.TotalMilliseconds;
 			}
 		}
 
-		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = 2.0, bool useJitter = false) : this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor, UseJitter = useJitter }) {}
+		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = 2.0, TimeSpan? maxDelay = null, bool useJitter = false) :
+			this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue}) {}
 
 		protected override TimeSpan GetInnerDelay(int attempt)
 		{
@@ -39,7 +44,7 @@ namespace PoliNorError
 		private TimeSpan GetDelayValue(int attempt)
 		{
 			var ms = Math.Pow(_options.ExponentialFactor, attempt) * _options.BaseDelay.TotalMilliseconds;
-			return (ms >= RetryDelayOptions.MaxTimeSpanMs) ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+			return (ms >= _adoptedMaxDelayMs) ? _options.MaxDelay : TimeSpan.FromMilliseconds(ms);
 		}
 	}
 
