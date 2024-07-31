@@ -15,20 +15,27 @@ namespace PoliNorError
 
             private readonly TimeSpan _baseDelay;
             private readonly double _exponentialFactor;
+            private readonly double _maxDelayTicks;
+            private readonly TimeSpan _maxTimeSpanValue;
 
             private double _prev;
 
             private static readonly Func<double> randomizer = StaticRandom.RandDouble;
 
-            // Upper-bound to prevent overflow beyond TimeSpan.MaxValue. Potential truncation during conversion from double to long
-            // (as described at https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions)
-            // is avoided by the arbitrary subtraction of 1,000.
-            private static readonly double MaxTimeSpanTicks = (double)TimeSpan.MaxValue.Ticks - 1_000;
-
-            public DecorrelatedJitter(TimeSpan baseDelay, double exponentialFactor)
+            public DecorrelatedJitter(TimeSpan baseDelay, double exponentialFactor, TimeSpan maxDelay)
 			{
                 _baseDelay = baseDelay;
                 _exponentialFactor = exponentialFactor;
+                if (maxDelay.Ticks > RetryDelayConstants.MaxTimeSpanTicks)
+                {
+                    _maxDelayTicks = RetryDelayConstants.MaxTimeSpanTicks;
+                    _maxTimeSpanValue = RetryDelayConstants.MaxTimeSpanFromTicks;
+                }
+                else
+                {
+                    _maxDelayTicks = maxDelay.Ticks;
+                    _maxTimeSpanValue = maxDelay;
+                }
             }
 
             /// <summary>
@@ -56,13 +63,13 @@ namespace PoliNorError
                 if (double.IsInfinity(next))
                 {
                     _prev = next;
-                    return TimeSpan.MaxValue;
+                    return _maxTimeSpanValue;
                 }
 
                 double formulaIntrinsicValue = next - _prev;
                 _prev = next;
 
-                long ticks = (long)Math.Min(Math.Abs(formulaIntrinsicValue * RpScalingFactor * targetTicksFirstDelay), MaxTimeSpanTicks);
+                long ticks = (long)Math.Min(Math.Abs(formulaIntrinsicValue * RpScalingFactor * targetTicksFirstDelay), _maxDelayTicks);
 
                 return TimeSpan.FromTicks(ticks);
             }

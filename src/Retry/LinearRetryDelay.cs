@@ -38,13 +38,13 @@ namespace PoliNorError
 		private TimeSpan GetDelayValue(int attempt)
 		{
 			var ms = GetDelayValueInMs(attempt);
-			return ms >= RetryDelayOptions.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+			return ms >= RetryDelayConstants.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
 		}
 
 		private TimeSpan GetJitteredDelayValue(int attempt)
 		{
 			var ms = ApplyJitter(GetDelayValueInMs(attempt));
-			return ms >= RetryDelayOptions.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+			return ms >= RetryDelayConstants.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
 		}
 
 		private double GetDelayValueInMs(int attempt)

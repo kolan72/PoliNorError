@@ -22,18 +22,18 @@ namespace PoliNorError
 
 			if (_options.UseJitter)
 			{
-				var dj = new DecorrelatedJitter(_options.BaseDelay, _options.ExponentialFactor);
+				var dj = new DecorrelatedJitter(_options.BaseDelay, _options.ExponentialFactor, _options.MaxDelay);
 				InnerDelayValueProvider = dj.DecorrelatedJitterBackoffV2;
 			}
 			else
 			{
 				InnerDelayValueProvider = GetDelayValue;
-				_adoptedMaxDelayMs = retryDelayOptions.MaxDelay.TotalMilliseconds > RetryDelayOptions.MaxTimeSpanMs
-																				? RetryDelayOptions.MaxTimeSpanMs : retryDelayOptions.MaxDelay.TotalMilliseconds;
+				_adoptedMaxDelayMs = retryDelayOptions.MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
+																				? RetryDelayConstants.MaxTimeSpanMs : retryDelayOptions.MaxDelay.TotalMilliseconds;
 			}
 		}
 
-		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = 2.0, TimeSpan? maxDelay = null, bool useJitter = false) :
+		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = RetryDelayConstants.ExponentialFactor, TimeSpan? maxDelay = null, bool useJitter = false) :
 			this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue}) {}
 
 		protected override TimeSpan GetInnerDelay(int attempt)
@@ -54,6 +54,6 @@ namespace PoliNorError
 	public class ExponentialRetryDelayOptions : RetryDelayOptions
 	{
 		public override RetryDelayType DelayType => RetryDelayType.Exponential;
-		public double ExponentialFactor { get; set; } = 2.0;
+		public double ExponentialFactor { get; set; } = RetryDelayConstants.ExponentialFactor;
 	}
 }

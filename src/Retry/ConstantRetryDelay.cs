@@ -43,7 +43,7 @@ namespace PoliNorError
 		private TimeSpan GetJitteredDelayValue(int attempt)
 		{
 			var ms = ApplyJitter(GetDelayValueInMs());
-			return ms >= RetryDelayOptions.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+			return ms >= RetryDelayConstants.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
 		}
 
 		private double GetDelayValueInMs() => _options.BaseDelay.TotalMilliseconds;

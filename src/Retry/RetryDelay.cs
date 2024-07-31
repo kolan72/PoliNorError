@@ -68,8 +68,8 @@ namespace PoliNorError
 
 		protected static double ApplyJitter(double delayInMs)
 		{
-			var offset = (delayInMs * RetryDelayOptions.JitterFactor) / 2;
-			var randomDelay = (delayInMs * RetryDelayOptions.JitterFactor * StaticRandom.RandDouble()) - offset;
+			var offset = (delayInMs * RetryDelayConstants.JitterFactor) / 2;
+			var randomDelay = (delayInMs * RetryDelayConstants.JitterFactor * StaticRandom.RandDouble()) - offset;
 			return delayInMs + randomDelay;
 		}
 	}
@@ -79,10 +79,6 @@ namespace PoliNorError
 	/// </summary>
 	public abstract class RetryDelayOptions
 	{
-		internal static readonly double MaxTimeSpanMs = (TimeSpan.MaxValue - TimeSpan.FromMilliseconds(2)).TotalMilliseconds;
-
-		internal const double JitterFactor = 0.5;
-
 		/// <summary>
 		/// The type of delay.
 		/// </summary>
