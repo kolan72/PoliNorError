@@ -785,7 +785,7 @@ namespace PoliNorError.Tests
 						}
 						else
 						{
-							return new LinearRetryDelay(TimeSpan.FromSeconds(2), true);
+							return new LinearRetryDelay(TimeSpan.FromSeconds(2), null, true);
 						}
 					default:
 						throw new NotImplementedException();
@@ -939,6 +939,8 @@ namespace PoliNorError.Tests
 
 		[TestCase(RetryDelayType.Exponential, true)]
 		[TestCase(RetryDelayType.Exponential, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
 		public void Should_RetryDelay_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
 		{
 			var rd = GetRetryDelayByRetryDelayType();
@@ -952,6 +954,11 @@ namespace PoliNorError.Tests
 			{
 				switch (retryDelayType)
 				{
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
+						else
+							return new LinearRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
