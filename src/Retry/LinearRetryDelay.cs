@@ -27,9 +27,9 @@ namespace PoliNorError
 			else
 			{
 				InnerDelayValueProvider = GetDelayValue;
-				_adoptedMaxDelayMs = retryDelayOptions.MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
-																? RetryDelayConstants.MaxTimeSpanMs : retryDelayOptions.MaxDelay.TotalMilliseconds;
 			}
+			_adoptedMaxDelayMs = retryDelayOptions.MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
+												? RetryDelayConstants.MaxTimeSpanMs : retryDelayOptions.MaxDelay.TotalMilliseconds;
 		}
 
 		internal LinearRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}
@@ -41,14 +41,17 @@ namespace PoliNorError
 
 		private TimeSpan GetDelayValue(int attempt)
 		{
-			var ms = GetDelayValueInMs(attempt);
-			return (ms >= _adoptedMaxDelayMs) ? _options.MaxDelay : TimeSpan.FromMilliseconds(ms);
+			return GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt));
 		}
 
 		private TimeSpan GetJitteredDelayValue(int attempt)
 		{
-			var ms = ApplyJitter(GetDelayValueInMs(attempt));
-			return ms >= RetryDelayConstants.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+			return GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(attempt)));
+		}
+
+		private TimeSpan GetDelayLimitedToMaxDelayIfNeed(double ms)
+		{
+			return (ms >= _adoptedMaxDelayMs) ? TimeSpan.FromMilliseconds(_adoptedMaxDelayMs) : TimeSpan.FromMilliseconds(ms);
 		}
 
 		private double GetDelayValueInMs(int attempt)

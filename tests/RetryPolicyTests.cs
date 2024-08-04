@@ -878,9 +878,36 @@ namespace PoliNorError.Tests
 			}
 		}
 
-		[TestCase(RetryDelayType.Exponential, true)]
-		[TestCase(RetryDelayType.Exponential, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
 		public void Should_RetryDelayJittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(2);
+
+			Assert.That(res[0], Is.EqualTo(TimeSpan.FromMilliseconds(RetryDelayConstants.MaxTimeSpanMs)));
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue, true);
+						else
+							return new LinearRetryDelay(TimeSpan.MaxValue, useJitter: true);
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ExponentialRetryDelay_Jittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(bool useBaseClass)
 		{
 			var rd = GetRetryDelayByRetryDelayType();
 
@@ -891,16 +918,10 @@ namespace PoliNorError.Tests
 
 			RetryDelay GetRetryDelayByRetryDelayType()
 			{
-				switch (retryDelayType)
-				{
-					case RetryDelayType.Exponential:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue, true);
-						else
-							return new ExponentialRetryDelay(TimeSpan.MaxValue, useJitter: true);
-					default:
-						throw new NotImplementedException();
-				}
+				if (useBaseClass)
+					return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue, true);
+				else
+					return new ExponentialRetryDelay(TimeSpan.MaxValue, useJitter: true);
 			}
 		}
 
@@ -915,7 +936,14 @@ namespace PoliNorError.Tests
 			var rdch = new RetryDelayChecker(rd);
 			var res = rdch.Attempt(2);
 
-			Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
+			if (retryDelayType == RetryDelayType.Exponential)
+			{
+				Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
+			}
+			else
+			{
+				Assert.That(res[0], Is.EqualTo(TimeSpan.FromMilliseconds(RetryDelayConstants.MaxTimeSpanMs)));
+			}
 
 			RetryDelay GetRetryDelayByRetryDelayType()
 			{
