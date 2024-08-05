@@ -28,8 +28,7 @@ namespace PoliNorError
 			{
 				InnerDelayValueProvider = GetDelayValue;
 			}
-			_adoptedMaxDelayMs = retryDelayOptions.MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
-												? RetryDelayConstants.MaxTimeSpanMs : retryDelayOptions.MaxDelay.TotalMilliseconds;
+			_adoptedMaxDelayMs = retryDelayOptions.GetAdoptedMaxDelayMs();
 		}
 
 		internal LinearRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}

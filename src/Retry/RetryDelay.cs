@@ -98,6 +98,13 @@ namespace PoliNorError
 		/// Maximum delay between retries.
 		/// </summary>
 		public TimeSpan MaxDelay { get; set; } = TimeSpan.MaxValue;
+
+		internal double GetAdoptedMaxDelayMs()
+		{
+			return MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
+				? RetryDelayConstants.MaxTimeSpanMs
+				: MaxDelay.TotalMilliseconds;
+		}
 	}
 
 	/// <summary>
