@@ -28,8 +28,7 @@ namespace PoliNorError
 			else
 			{
 				InnerDelayValueProvider = GetDelayValue;
-				_adoptedMaxDelayMs = retryDelayOptions.MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
-																				? RetryDelayConstants.MaxTimeSpanMs : retryDelayOptions.MaxDelay.TotalMilliseconds;
+				_adoptedMaxDelayMs = retryDelayOptions.GetAdoptedMaxDelayMs();
 			}
 		}
 
