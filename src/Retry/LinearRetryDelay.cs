@@ -9,7 +9,7 @@ namespace PoliNorError
 	{
 		private readonly LinearRetryDelayOptions _options;
 
-		private readonly double _adoptedMaxDelayMs;
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="LinearRetryDelay"/>.
@@ -28,7 +28,7 @@ namespace PoliNorError
 			{
 				InnerDelayValueProvider = GetDelayValue;
 			}
-			_adoptedMaxDelayMs = retryDelayOptions.GetAdoptedMaxDelayMs();
+			_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
 		}
 
 		internal LinearRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}
@@ -40,17 +40,12 @@ namespace PoliNorError
 
 		private TimeSpan GetDelayValue(int attempt)
 		{
-			return GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt));
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt));
 		}
 
 		private TimeSpan GetJitteredDelayValue(int attempt)
 		{
-			return GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(attempt)));
-		}
-
-		private TimeSpan GetDelayLimitedToMaxDelayIfNeed(double ms)
-		{
-			return (ms >= _adoptedMaxDelayMs) ? TimeSpan.FromMilliseconds(_adoptedMaxDelayMs) : TimeSpan.FromMilliseconds(ms);
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(attempt)));
 		}
 
 		private double GetDelayValueInMs(int attempt)

@@ -887,7 +887,7 @@ namespace PoliNorError.Tests
 			var rdch = new RetryDelayChecker(rd);
 			var res = rdch.Attempt(2);
 
-			Assert.That(res[0], Is.EqualTo(TimeSpan.FromMilliseconds(RetryDelayConstants.MaxTimeSpanMs)));
+			Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
 
 			RetryDelay GetRetryDelayByRetryDelayType()
 			{
@@ -936,14 +936,7 @@ namespace PoliNorError.Tests
 			var rdch = new RetryDelayChecker(rd);
 			var res = rdch.Attempt(2);
 
-			if (retryDelayType == RetryDelayType.Exponential)
-			{
-				Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
-			}
-			else
-			{
-				Assert.That(res[0], Is.EqualTo(TimeSpan.FromMilliseconds(RetryDelayConstants.MaxTimeSpanMs)));
-			}
+			Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
 
 			RetryDelay GetRetryDelayByRetryDelayType()
 			{

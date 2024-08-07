@@ -133,4 +133,22 @@ namespace PoliNorError
 		/// /// </summary>
 		Exponential
 	}
+
+	internal class MaxDelayDelimiter
+	{
+		private readonly double _adoptedMaxDelayMs;
+
+		private readonly TimeSpan _maxDelay;
+
+		public MaxDelayDelimiter(RetryDelayOptions options)
+		{
+			_adoptedMaxDelayMs = options.GetAdoptedMaxDelayMs();
+			_maxDelay = options.MaxDelay;
+		}
+
+		public TimeSpan GetDelayLimitedToMaxDelayIfNeed(double ms)
+		{
+			return (ms >= _adoptedMaxDelayMs) ? _maxDelay : TimeSpan.FromMilliseconds(ms);
+		}
+	}
 }

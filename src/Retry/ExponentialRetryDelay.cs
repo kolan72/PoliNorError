@@ -8,8 +8,7 @@ namespace PoliNorError
 	public partial class ExponentialRetryDelay : RetryDelay
 	{
 		private readonly ExponentialRetryDelayOptions _options;
-
-		private readonly double _adoptedMaxDelayMs;
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="ExponentialRetryDelay"/>.
@@ -28,7 +27,7 @@ namespace PoliNorError
 			else
 			{
 				InnerDelayValueProvider = GetDelayValue;
-				_adoptedMaxDelayMs = retryDelayOptions.GetAdoptedMaxDelayMs();
+				_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
 			}
 		}
 
@@ -42,8 +41,7 @@ namespace PoliNorError
 
 		private TimeSpan GetDelayValue(int attempt)
 		{
-			var ms = Math.Pow(_options.ExponentialFactor, attempt) * _options.BaseDelay.TotalMilliseconds;
-			return (ms >= _adoptedMaxDelayMs) ? _options.MaxDelay : TimeSpan.FromMilliseconds(ms);
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(_options.ExponentialFactor, attempt) * _options.BaseDelay.TotalMilliseconds);
 		}
 	}
 
