@@ -777,7 +777,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(4), true);
 						else
-							return new ConstantRetryDelay(TimeSpan.FromSeconds(4), true);
+							return new ConstantRetryDelay(TimeSpan.FromSeconds(4),true);
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 						{
@@ -985,6 +985,39 @@ namespace PoliNorError.Tests
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
 						else
 							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		[TestCase(RetryDelayType.Exponential, true)]
+		[TestCase(RetryDelayType.Exponential, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
+		public void Should_RetryDelayJittered_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(2);
+
+			Assert.That(res[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
+						else
+							return new LinearRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), true);
+					case RetryDelayType.Exponential:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
+						else
+							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), useJitter:true);
 					default:
 						throw new NotImplementedException();
 				}
