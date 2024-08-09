@@ -38,7 +38,7 @@ namespace PoliNorError
 			switch (delayType)
 			{
 				case RetryDelayType.Constant:
-					InnerDelay = new ConstantRetryDelay(baseDelay, useJitter);
+					InnerDelay = new ConstantRetryDelay(baseDelay, maxDelay, useJitter);
 					break;
 				case RetryDelayType.Linear:
 					InnerDelay = new LinearRetryDelay(baseDelay, maxDelay, useJitter);

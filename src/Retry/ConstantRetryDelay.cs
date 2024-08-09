@@ -9,6 +9,8 @@ namespace PoliNorError
 	{
 		private readonly ConstantRetryDelayOptions _options;
 
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+
 		/// <summary>
 		/// Initializes a new instance of <see cref="ConstantRetryDelay"/>.
 		/// </summary>
@@ -21,6 +23,7 @@ namespace PoliNorError
 			if (_options.UseJitter)
 			{
 				InnerDelayValueProvider = GetJitteredDelayValue;
+				_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
 			}
 			else
 			{
@@ -28,7 +31,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal ConstantRetryDelay(TimeSpan baseDelay, bool useJitter = false) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter }){}
+		internal ConstantRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue }){}
 
 		protected override TimeSpan GetInnerDelay(int attempt)
 		{
@@ -42,8 +45,7 @@ namespace PoliNorError
 
 		private TimeSpan GetJitteredDelayValue(int attempt)
 		{
-			var ms = ApplyJitter(GetDelayValueInMs());
-			return ms >= RetryDelayConstants.MaxTimeSpanMs ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(ms);
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs()));
 		}
 
 		private double GetDelayValueInMs() => _options.BaseDelay.TotalMilliseconds;

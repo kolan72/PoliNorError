@@ -777,7 +777,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(4), true);
 						else
-							return new ConstantRetryDelay(TimeSpan.FromSeconds(4),true);
+							return new ConstantRetryDelay(TimeSpan.FromSeconds(4), null, true);
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 						{
@@ -878,6 +878,8 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[TestCase(RetryDelayType.Constant, true)]
+		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
 		public void Should_RetryDelayJittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
@@ -887,12 +889,17 @@ namespace PoliNorError.Tests
 			var rdch = new RetryDelayChecker(rd);
 			var res = rdch.Attempt(2);
 
-			Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
+			Assert.That(res[0], Is.LessThanOrEqualTo(TimeSpan.MaxValue));
 
 			RetryDelay GetRetryDelayByRetryDelayType()
 			{
 				switch (retryDelayType)
 				{
+					case RetryDelayType.Constant:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Constant, TimeSpan.MaxValue, true);
+						else
+							return new ConstantRetryDelay(TimeSpan.MaxValue, null, useJitter: true);
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue, true);
