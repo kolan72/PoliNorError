@@ -1032,6 +1032,12 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_ConstantRetryDelayJittered_Throw_If_MaxDelay_LessThan_BaseDelay()
+		{
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ConstantRetryDelay(new ConstantRetryDelayOptions() { BaseDelay = TimeSpan.FromSeconds(2), MaxDelay = TimeSpan.FromSeconds(1) , UseJitter = true}));
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_Backoff_Occurs_In_Handle_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)

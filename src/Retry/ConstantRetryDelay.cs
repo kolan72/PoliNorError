@@ -22,6 +22,9 @@ namespace PoliNorError
 
 			if (_options.UseJitter)
 			{
+				if (_options.MaxDelay < _options.BaseDelay)
+					throw new ArgumentOutOfRangeException(nameof(retryDelayOptions), "MaxDelay must be greater than or equal to BaseDelay.");
+
 				InnerDelayValueProvider = GetJitteredDelayValue;
 				_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
 			}
