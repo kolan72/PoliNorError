@@ -36,11 +36,6 @@ namespace PoliNorError
 
 		internal ConstantRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue }){}
 
-		protected override TimeSpan GetInnerDelay(int attempt)
-		{
-			return InnerDelayValueProvider(attempt);
-		}
-
 		private TimeSpan GetDelayValue(int attempt)
 		{
 			return _options.BaseDelay;

@@ -58,12 +58,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public virtual TimeSpan GetDelay(int attempt)
 		{
-			return InnerDelay.GetInnerDelay(attempt);
-		}
-
-		protected virtual TimeSpan GetInnerDelay(int attempt)
-		{
-			return TimeSpan.Zero;
+			return InnerDelay.InnerDelayValueProvider(attempt);
 		}
 
 		protected static double ApplyJitter(double delayInMs)

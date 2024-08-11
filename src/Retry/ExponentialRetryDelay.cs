@@ -34,11 +34,6 @@ namespace PoliNorError
 		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = RetryDelayConstants.ExponentialFactor, TimeSpan? maxDelay = null, bool useJitter = false) :
 			this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue}) {}
 
-		protected override TimeSpan GetInnerDelay(int attempt)
-		{
-			return InnerDelayValueProvider(attempt);
-		}
-
 		private TimeSpan GetDelayValue(int attempt)
 		{
 			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(_options.ExponentialFactor, attempt) * _options.BaseDelay.TotalMilliseconds);
