@@ -777,7 +777,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(4), true);
 						else
-							return new ConstantRetryDelay(TimeSpan.FromSeconds(4), null, true);
+							return ConstantRetryDelay.Create(TimeSpan.FromSeconds(4), null, true);
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 						{
@@ -861,7 +861,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(2));
 						else
-							return new ConstantRetryDelay(TimeSpan.FromSeconds(2));
+							return ConstantRetryDelay.Create(TimeSpan.FromSeconds(2));
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2));
@@ -899,7 +899,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Constant, TimeSpan.MaxValue, true);
 						else
-							return new ConstantRetryDelay(TimeSpan.MaxValue, null, useJitter: true);
+							return ConstantRetryDelay.Create(TimeSpan.MaxValue, null, useJitter: true);
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue, true);
