@@ -815,7 +815,7 @@ namespace PoliNorError.Tests
 				}
 				else
 				{
-					return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), useJitter: true);
+					return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), useJitter: true);
 				}
 			}
 		}
@@ -871,7 +871,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential,  TimeSpan.FromSeconds(2));
 						else
-							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2));
+							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2));
 					default:
 						throw new NotImplementedException();
 				}
@@ -928,7 +928,7 @@ namespace PoliNorError.Tests
 				if (useBaseClass)
 					return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue, true);
 				else
-					return new ExponentialRetryDelay(TimeSpan.MaxValue, useJitter: true);
+					return ExponentialRetryDelay.Create(TimeSpan.MaxValue, useJitter: true);
 			}
 		}
 
@@ -958,7 +958,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue);
 						else
-							return new ExponentialRetryDelay(TimeSpan.MaxValue);
+							return ExponentialRetryDelay.Create(TimeSpan.MaxValue);
 					default:
 						throw new NotImplementedException();
 				}
@@ -991,7 +991,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
 						else
-							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
+							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
 					default:
 						throw new NotImplementedException();
 				}
@@ -1024,7 +1024,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
 						else
-							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), useJitter:true);
+							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), useJitter:true);
 					default:
 						throw new NotImplementedException();
 				}
