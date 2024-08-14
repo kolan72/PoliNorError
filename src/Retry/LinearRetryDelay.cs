@@ -31,6 +31,15 @@ namespace PoliNorError
 			_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
 		}
 
+		/// <summary>
+		///  Creates <see cref="LinearRetryDelay"/>.
+		/// </summary>
+		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="maxDelay">Maximum delay value.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
+		/// <returns></returns>
+		public static LinearRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new LinearRetryDelay(baseDelay, maxDelay, useJitter);
+
 		internal LinearRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}
 
 		private TimeSpan GetDelayValue(int attempt)

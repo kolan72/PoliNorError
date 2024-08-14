@@ -785,7 +785,7 @@ namespace PoliNorError.Tests
 						}
 						else
 						{
-							return new LinearRetryDelay(TimeSpan.FromSeconds(2), null, true);
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), null, true);
 						}
 					default:
 						throw new NotImplementedException();
@@ -866,7 +866,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2));
 						else
-							return new LinearRetryDelay(TimeSpan.FromSeconds(2));
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2));
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential,  TimeSpan.FromSeconds(2));
@@ -904,7 +904,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue, true);
 						else
-							return new LinearRetryDelay(TimeSpan.MaxValue, useJitter: true);
+							return LinearRetryDelay.Create(TimeSpan.MaxValue, useJitter: true);
 					default:
 						throw new NotImplementedException();
 				}
@@ -953,7 +953,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue);
 						else
-							return new LinearRetryDelay(TimeSpan.MaxValue);
+							return LinearRetryDelay.Create(TimeSpan.MaxValue);
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue);
@@ -986,7 +986,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
 						else
-							return new LinearRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
@@ -1019,7 +1019,7 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
 						else
-							return new LinearRetryDelay(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), true);
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), true);
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
@@ -1043,7 +1043,7 @@ namespace PoliNorError.Tests
 		public void Should_Backoff_Occurs_In_Handle_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2,  delayProvider:delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2,  delayProvider:delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			policy.Handle(() => throw new Exception("Test"));
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -1054,7 +1054,7 @@ namespace PoliNorError.Tests
 		public void Should_Backoff_Occurs_In_HandleT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			policy.Handle<int>(() => throw new Exception("Test"));
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -1065,7 +1065,7 @@ namespace PoliNorError.Tests
 		public async Task Should_Backoff_Occurs_In_HandleAsync_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			await policy.HandleAsync((_) => throw new Exception("Test")).ConfigureAwait(false);
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -1076,7 +1076,7 @@ namespace PoliNorError.Tests
 		public async Task Should_Backoff_Occurs_In_HandleAsyncT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			await policy.HandleAsync<int>((_) => throw new Exception("Test")).ConfigureAwait(false);
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -1087,7 +1087,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1)));
 				policy.Handle(() => throw new Exception("Test"), source.Token);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -1099,7 +1099,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1)));
 				policy.Handle<int>(() => throw new Exception("Test"), source.Token);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -1111,7 +1111,8 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				LinearRetryDelay retryDelay = LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: retryDelay);
 				await policy.HandleAsync((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -1123,7 +1124,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1)));
 				await policy.HandleAsync<int>((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
