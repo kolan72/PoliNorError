@@ -1,3 +1,23 @@
+## 2.19.0
+
+- Add the `RetryDelay` class and its subclasses(`ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay`).  
+- Change `RetryPolicy` ctor signature to accept the `RetryDelay` parameter.  
+- Add the `RetryDelay` parameter to the `RetryPolicy.InfiniteRetries` method overloads.  
+- Modify `RetryPolicy.Handle(Async)<T>` methods to use the `RetryDelay`.  
+- Add `DefaultRetryProcessor.Retry` method overloads and `RetryInfinite` method to handle `Action` with `RetryDelay` parameter.  
+- Add `DefaultRetryProcessor.Retry<T>` method overloads and `RetryInfinite<T>` method to handle `Func<T>` with `RetryDelay` parameter.  
+- Add `DefaultRetryProcessor.RetryAsync` method overloads and `RetryInfiniteAsync` method to handle `Func<CancellationToken, Task>` with `RetryDelay` parameter.  
+- Add `DefaultRetryProcessor.RetryAsync<T>` method overloads and `RetryInfiniteAsync<T>` method to handle `Func<CancellationToken, Task<T>>` with `RetryDelay` parameter.  
+- Add internal `DelayProvider` class.  
+- Refactoring to use the `DelayProvider` class in the `DelayErrorProcessor` class.  
+- Introduce `RetryProcessingErrorInfo` class, add `ProcessingErrorInfo.CurrentContext` property, deprecate `ProcessingErrorInfo.CurrentRetryCount` property.  
+- DRY refactoring and new tests for `RetryPolicy.WithWait` method overloads.  
+- Add doc comments to `IRetryProcessor` class.  
+- Add doc comments to `RetryCountInfoOptions` class and `RetryCountInfo` struct.  
+- Update 'RetryPolicy' README Chapter.  
+- Update 'TryCatch' README Chapter.  
+
+
 ## 2.18.14
 
 - Introduce the `NonEmptyCatchBlockFilter.ExcludeErrorSet`, `NonEmptyCatchBlockFilter.IncludeErrorSet` methods.
