@@ -35,7 +35,7 @@ namespace PoliNorError
 		///  Creates <see cref="LinearRetryDelay"/>.
 		/// </summary>
 		/// <param name="baseDelay">Base delay value between retries.</param>
-		/// <param name="maxDelay">Maximum delay value.</param>
+		/// <param name="maxDelay">Maximum delay value. If null, it will be set to <see cref="TimeSpan.MaxValue"/>.</param>
 		/// <param name="useJitter">Whether jitter is used.</param>
 		/// <returns></returns>
 		public static LinearRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new LinearRetryDelay(baseDelay, maxDelay, useJitter);
