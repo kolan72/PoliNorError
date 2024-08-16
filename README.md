@@ -327,6 +327,16 @@ To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
 These methods create the `DelayErrorProcessor` object behind the scenes.  
 The `WithWait` method also has overload that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.  
 
+Since _version_ 2.19.0, there is an error processor independent way to set the delay between retries - by using the `RetryDelay` class or its subclasses.  
+Simply create a `RetryPolicy` using one of the constructors with the `RetryDelay` parameter, or call one of the `DefaultRetryProcessor.Retry(Async)` method overloads that accepts one.  
+There are three ways to create a `RetryDelay`, represented by the `RetryDelayType` parameter:  
+
+- `RetryDelayType.Constant` with corresponding `ConstantRetryDelay` subclass configured by `ConstantRetryDelayOptions`. For `baseDelay` = 200ms the time delay will be 200ms, 200ms, 200ms.  
+- `RetryDelayType.Linear` with corresponding `LinearRetryDelay` subclass configured by `LinearRetryDelayOptions`. For `baseDelay` = 200ms the time delay will be 200ms, 400ms, 600ms.  
+- `RetryDelayType.Exponential` with corresponding `ExponentialRetryDelay` subclass configured by `ExponentialRetryDelayOptions`. For `baseDelay` = 200ms and  default `ExponentialFactor` = 2.0 the time delay will be 200ms, 400ms, 800ms.  
+
+Using `RetryDelay` is a more accurate alternative to the above approach with `DelayErrorProcessor`. Note that unlike `DelayErrorProcessor`, the `RetryDelay` parameter allows you to configure only one delay for a retry policy or processor.  
+
 For huge numbers of retries, memory-related exceptions, such as `OutOfMemoryException`, may occur while saving handling exceptions in the `PolicyResult.Errors` property. This exception will be handled, wrapped up in a `CatchBlockException`, and saved in the `PolicyResult.CatchBlockErrors`.  
 
 If you want to interrupt the handling process after that, create a Retry policy or processor with the `failedIfSaveErrorThrow` parameter set to true. In this case, the `CatchBlockException.IsCritical` property will be set to true, as well as the `PolicyResult.IsFailed` property.  
