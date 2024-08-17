@@ -5,7 +5,7 @@ namespace PoliNorError
 	/// <summary>
 	/// Class to get the delay value calculated linearly.
 	/// </summary>
-	public class LinearRetryDelay : RetryDelay
+	public sealed class LinearRetryDelay : RetryDelay
 	{
 		private readonly LinearRetryDelayOptions _options;
 
