@@ -5,7 +5,7 @@ namespace PoliNorError
 	/// <summary>
 	/// Class to get the constant delay value.
 	/// </summary>
-	public class ConstantRetryDelay : RetryDelay
+	public sealed class ConstantRetryDelay : RetryDelay
 	{
 		private readonly ConstantRetryDelayOptions _options;
 
