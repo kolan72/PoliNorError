@@ -765,6 +765,66 @@ namespace PoliNorError.Tests
 		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
+		public void Should_RetryDelay_Returns_Jittered_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var repeater = new RetryDelayRepeater(GetJitteredRetryDelayByRetryDelayType());
+			var res = repeater.Repeat(1, 10);
+			RetryDelay GetJitteredRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Constant:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(4), true);
+						else
+							return ConstantRetryDelay.Create(TimeSpan.FromSeconds(4), null, true);
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+						{
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), true);
+						}
+						else
+						{
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), null, true);
+						}
+					default:
+						throw new NotImplementedException();
+				}
+			}
+			Assert.That(res.Exists(t => Math.Abs(4 - t.TotalSeconds) > 0), Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ExponentialRetryDelay_Returns_Jittered_Timespan(bool useBaseClass)
+		{
+			var times = new List<TimeSpan>();
+			for (int i = 0; i < 10; i++)
+			{
+				times.Add(GetRetryDelay().GetDelay(1));
+			}
+
+			Assert.That(times.Exists(t => Math.Abs(4 - t.TotalSeconds) > 0), Is.True);
+
+			RetryDelay GetRetryDelay()
+			{
+				if (useBaseClass)
+				{
+					return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), true);
+				}
+				else
+				{
+					return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), useJitter: true);
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(RetryDelayType.Constant, true)]
+		[TestCase(RetryDelayType.Constant, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
 		[TestCase(RetryDelayType.Exponential, true)]
 		[TestCase(RetryDelayType.Exponential, false)]
 		public void Should_RetryDelay_Returns_Correct_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
@@ -801,20 +861,74 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(2));
 						else
-							return new ConstantRetryDelay(TimeSpan.FromSeconds(2));
+							return ConstantRetryDelay.Create(TimeSpan.FromSeconds(2));
 					case RetryDelayType.Linear:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2));
 						else
-							return new LinearRetryDelay(TimeSpan.FromSeconds(2));
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2));
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential,  TimeSpan.FromSeconds(2));
 						else
-							return new ExponentialRetryDelay(TimeSpan.FromSeconds(2));
+							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2));
 					default:
 						throw new NotImplementedException();
 				}
+			}
+		}
+
+		[TestCase(RetryDelayType.Constant, true)]
+		[TestCase(RetryDelayType.Constant, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
+		public void Should_RetryDelayJittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(2);
+
+			Assert.That(res[0], Is.LessThanOrEqualTo(TimeSpan.MaxValue));
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Constant:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Constant, TimeSpan.MaxValue, true);
+						else
+							return ConstantRetryDelay.Create(TimeSpan.MaxValue, null, useJitter: true);
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue, true);
+						else
+							return LinearRetryDelay.Create(TimeSpan.MaxValue, useJitter: true);
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ExponentialRetryDelay_Jittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(2);
+
+			Assert.That(res[0], Is.EqualTo(RetryDelayConstants.MaxTimeSpanFromTicks));
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				if (useBaseClass)
+					return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue, true);
+				else
+					return ExponentialRetryDelay.Create(TimeSpan.MaxValue, useJitter: true);
 			}
 		}
 
@@ -839,16 +953,88 @@ namespace PoliNorError.Tests
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue);
 						else
-							return new LinearRetryDelay(TimeSpan.MaxValue);
+							return LinearRetryDelay.Create(TimeSpan.MaxValue);
 					case RetryDelayType.Exponential:
 						if (useBaseClass)
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue);
 						else
-							return new ExponentialRetryDelay(TimeSpan.MaxValue);
+							return ExponentialRetryDelay.Create(TimeSpan.MaxValue);
 					default:
 						throw new NotImplementedException();
 				}
 			}
+		}
+
+		[TestCase(RetryDelayType.Exponential, true)]
+		[TestCase(RetryDelayType.Exponential, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
+		public void Should_RetryDelay_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(2);
+
+			Assert.That(res[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
+						else
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
+					case RetryDelayType.Exponential:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
+						else
+							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		[TestCase(RetryDelayType.Exponential, true)]
+		[TestCase(RetryDelayType.Exponential, false)]
+		[TestCase(RetryDelayType.Linear, true)]
+		[TestCase(RetryDelayType.Linear, false)]
+		public void Should_RetryDelayJittered_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
+		{
+			var rd = GetRetryDelayByRetryDelayType();
+
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(2);
+
+			Assert.That(res[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
+
+			RetryDelay GetRetryDelayByRetryDelayType()
+			{
+				switch (retryDelayType)
+				{
+					case RetryDelayType.Linear:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
+						else
+							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), true);
+					case RetryDelayType.Exponential:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
+						else
+							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), useJitter:true);
+					default:
+						throw new NotImplementedException();
+				}
+			}
+		}
+
+		[Test]
+		public void Should_ConstantRetryDelayJittered_Throw_If_MaxDelay_LessThan_BaseDelay()
+		{
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ConstantRetryDelay(new ConstantRetryDelayOptions() { BaseDelay = TimeSpan.FromSeconds(2), MaxDelay = TimeSpan.FromSeconds(1) , UseJitter = true}));
 		}
 
 		[Test]
@@ -857,7 +1043,7 @@ namespace PoliNorError.Tests
 		public void Should_Backoff_Occurs_In_Handle_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2,  delayProvider:delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2,  delayProvider:delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			policy.Handle(() => throw new Exception("Test"));
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -868,7 +1054,7 @@ namespace PoliNorError.Tests
 		public void Should_Backoff_Occurs_In_HandleT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			policy.Handle<int>(() => throw new Exception("Test"));
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -879,7 +1065,7 @@ namespace PoliNorError.Tests
 		public async Task Should_Backoff_Occurs_In_HandleAsync_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			await policy.HandleAsync((_) => throw new Exception("Test")).ConfigureAwait(false);
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -890,7 +1076,7 @@ namespace PoliNorError.Tests
 		public async Task Should_Backoff_Occurs_In_HandleAsyncT_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
 		{
 			var delayProvider = new FakeDelayProvider();
-			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
+			var policy = new RetryPolicy(2, delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(zeroDelay ? 0 : 1)));
 			await policy.HandleAsync<int>((_) => throw new Exception("Test")).ConfigureAwait(false);
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(zeroDelay ? 0 : 2));
 		}
@@ -901,7 +1087,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1)));
 				policy.Handle(() => throw new Exception("Test"), source.Token);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -913,7 +1099,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1)));
 				policy.Handle<int>(() => throw new Exception("Test"), source.Token);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -925,7 +1111,8 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				LinearRetryDelay retryDelay = LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: retryDelay);
 				await policy.HandleAsync((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -937,7 +1124,7 @@ namespace PoliNorError.Tests
 			using (var source = new CancellationTokenSource())
 			{
 				var delayProvider = new FakeDelayProvider(source);
-				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(1)));
+				var policy = RetryPolicy.InfiniteRetries(delayProvider: delayProvider, null, false, retryDelay: LinearRetryDelay.Create(TimeSpan.FromMilliseconds(1)));
 				await policy.HandleAsync<int>((_) => throw new Exception("Test"), source.Token).ConfigureAwait(false);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
@@ -957,6 +1144,25 @@ namespace PoliNorError.Tests
 				foreach (var an in attemptNumbers)
 				{
 					times.Add(_retryDelay.GetDelay(an));
+				}
+				return times;
+			}
+		}
+
+		private class RetryDelayRepeater
+		{
+			private readonly RetryDelay _retryDelay;
+			public RetryDelayRepeater(RetryDelay retryDelay)
+			{
+				_retryDelay = retryDelay;
+			}
+
+			public List<TimeSpan> Repeat(int attemptNumber, int numOfRepeats)
+			{
+				var times = new List<TimeSpan>();
+				for (int i = 0; i < numOfRepeats; i++)
+				{
+					times.Add(_retryDelay.GetDelay(attemptNumber));
 				}
 				return times;
 			}

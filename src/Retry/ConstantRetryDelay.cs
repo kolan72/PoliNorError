@@ -5,9 +5,11 @@ namespace PoliNorError
 	/// <summary>
 	/// Class to get the constant delay value.
 	/// </summary>
-	public class ConstantRetryDelay : RetryDelay
+	public sealed class ConstantRetryDelay : RetryDelay
 	{
-		private readonly ConstantRetryDelayOptions _retryDelayOptions;
+		private readonly ConstantRetryDelayOptions _options;
+
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="ConstantRetryDelay"/>.
@@ -16,15 +18,44 @@ namespace PoliNorError
 		public ConstantRetryDelay(ConstantRetryDelayOptions retryDelayOptions)
 		{
 			InnerDelay = this;
-			_retryDelayOptions = retryDelayOptions;
+			_options = retryDelayOptions;
+
+			if (_options.UseJitter)
+			{
+				if (_options.MaxDelay < _options.BaseDelay)
+					throw new ArgumentOutOfRangeException(nameof(retryDelayOptions), "MaxDelay must be greater than or equal to BaseDelay.");
+
+				InnerDelayValueProvider = GetJitteredDelayValue;
+				_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
+			}
+			else
+			{
+				InnerDelayValueProvider = GetDelayValue;
+			}
 		}
 
-		internal ConstantRetryDelay(TimeSpan baseDelay) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay }){}
+		/// <summary>
+		/// Creates <see cref="ConstantRetryDelay"/>.
+		/// </summary>
+		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="maxDelay">Maximum delay value. Only used if <paramref name="useJitter"/> is true. If null, it will be set to <see cref="TimeSpan.MaxValue"/>.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
+		/// <returns></returns>
+		public static ConstantRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new ConstantRetryDelay(baseDelay, maxDelay, useJitter);
 
-		protected override TimeSpan GetInnerDelay(int attempt)
+		internal ConstantRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue }){}
+
+		private TimeSpan GetDelayValue(int attempt)
 		{
-			return _retryDelayOptions.BaseDelay;
+			return _options.BaseDelay;
 		}
+
+		private TimeSpan GetJitteredDelayValue(int attempt)
+		{
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs()));
+		}
+
+		private double GetDelayValueInMs() => _options.BaseDelay.TotalMilliseconds;
 	}
 
 	/// <summary>

@@ -5,9 +5,10 @@ namespace PoliNorError
 	/// <summary>
 	///  Class to get the delay value calculated exponentially.
 	/// </summary>
-	public class ExponentialRetryDelay : RetryDelay
+	public sealed partial class ExponentialRetryDelay : RetryDelay
 	{
-		private readonly ExponentialRetryDelayOptions _retryDelayOptions;
+		private readonly ExponentialRetryDelayOptions _options;
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="ExponentialRetryDelay"/>.
@@ -16,19 +17,45 @@ namespace PoliNorError
 		public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions)
 		{
 			InnerDelay = this;
-			_retryDelayOptions = retryDelayOptions;
+			_options = retryDelayOptions;
+
+			if (_options.UseJitter)
+			{
+				var dj = new DecorrelatedJitter(_options.BaseDelay, _options.ExponentialFactor, _options.MaxDelay);
+				InnerDelayValueProvider = dj.DecorrelatedJitterBackoffV2;
+			}
+			else
+			{
+				InnerDelayValueProvider = GetDelayValue;
+				_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
+			}
 		}
 
-		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = 2.0) : this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor }) {}
+		/// <summary>
+		/// Creates <see cref="ExponentialRetryDelay"/>.
+		/// </summary>
+		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="maxDelay">>Maximum delay value. If null, it will be set to <see cref="TimeSpan.MaxValue"/>.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
+		/// <returns></returns>
+		public static ExponentialRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
 
-		protected override TimeSpan GetInnerDelay(int attempt)
+		/// <summary>
+		/// Creates <see cref="ExponentialRetryDelay"/>.
+		/// </summary>
+		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="exponentialFactor">Exponential factor to use.</param>
+		/// <param name="maxDelay">>Maximum delay value.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
+		/// <returns></returns>
+		public static ExponentialRetryDelay Create(TimeSpan baseDelay, double exponentialFactor, TimeSpan? maxDelay = null, bool useJitter = false) => new ExponentialRetryDelay(baseDelay, exponentialFactor, maxDelay, useJitter);
+
+		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = RetryDelayConstants.ExponentialFactor, TimeSpan? maxDelay = null, bool useJitter = false) :
+			this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue}) {}
+
+		private TimeSpan GetDelayValue(int attempt)
 		{
-			var delay = Math.Pow(_retryDelayOptions.ExponentialFactor, attempt) * _retryDelayOptions.BaseDelay.TotalMilliseconds;
-			if (delay > RetryDelayOptions.MaxTimeSpanMs)
-			{
-				return TimeSpan.MaxValue;
-			}
-			return TimeSpan.FromMilliseconds(delay);
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(_options.ExponentialFactor, attempt) * _options.BaseDelay.TotalMilliseconds);
 		}
 	}
 
@@ -38,6 +65,10 @@ namespace PoliNorError
 	public class ExponentialRetryDelayOptions : RetryDelayOptions
 	{
 		public override RetryDelayType DelayType => RetryDelayType.Exponential;
-		public double ExponentialFactor { get; set; } = 2.0;
+
+		/// <summary>
+		/// Exponential factor to use.
+		/// </summary>
+		public double ExponentialFactor { get; set; } = RetryDelayConstants.ExponentialFactor;
 	}
 }

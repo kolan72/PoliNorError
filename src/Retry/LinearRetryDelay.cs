@@ -5,9 +5,11 @@ namespace PoliNorError
 	/// <summary>
 	/// Class to get the delay value calculated linearly.
 	/// </summary>
-	public class LinearRetryDelay : RetryDelay
+	public sealed class LinearRetryDelay : RetryDelay
 	{
 		private readonly LinearRetryDelayOptions _options;
+
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
 
 		/// <summary>
 		/// Initializes a new instance of <see cref="LinearRetryDelay"/>.
@@ -17,18 +19,42 @@ namespace PoliNorError
 		{
 			InnerDelay = this;
 			_options = retryDelayOptions;
+
+			if (_options.UseJitter)
+			{
+				InnerDelayValueProvider = GetJitteredDelayValue;
+			}
+			else
+			{
+				InnerDelayValueProvider = GetDelayValue;
+			}
+			_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
 		}
 
-		internal LinearRetryDelay(TimeSpan baseDelay) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay }) {}
+		/// <summary>
+		///  Creates <see cref="LinearRetryDelay"/>.
+		/// </summary>
+		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="maxDelay">Maximum delay value. If null, it will be set to <see cref="TimeSpan.MaxValue"/>.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
+		/// <returns></returns>
+		public static LinearRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new LinearRetryDelay(baseDelay, maxDelay, useJitter);
 
-		protected override TimeSpan GetInnerDelay(int attempt)
+		internal LinearRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}
+
+		private TimeSpan GetDelayValue(int attempt)
 		{
-			var delay = (attempt + 1) * _options.BaseDelay.TotalMilliseconds;
-			if (delay > RetryDelayOptions.MaxTimeSpanMs)
-			{
-				return TimeSpan.MaxValue;
-			}
-			return TimeSpan.FromMilliseconds(delay);
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt));
+		}
+
+		private TimeSpan GetJitteredDelayValue(int attempt)
+		{
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(attempt)));
+		}
+
+		private double GetDelayValueInMs(int attempt)
+		{
+			return (attempt + 1) * _options.BaseDelay.TotalMilliseconds;
 		}
 	}
 

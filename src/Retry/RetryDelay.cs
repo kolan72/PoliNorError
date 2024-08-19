@@ -9,6 +9,8 @@ namespace PoliNorError
 	{
 		protected RetryDelay InnerDelay { get; set; }
 
+		protected Func<int, TimeSpan> InnerDelayValueProvider { get; set; }
+
 		protected RetryDelay()
 		{
 		}
@@ -18,18 +20,31 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="delayType">The type of delay.</param>
 		/// <param name="baseDelay">Base delay value between retries.</param>
-		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay)
+		/// <param name="maxDelay">Maximum delay between retries.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
+		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan maxDelay, bool useJitter = false)
+		{
+			InitInnerDelay(delayType, baseDelay, maxDelay, useJitter);
+		}
+
+		///<inheritdoc cref = "RetryDelay(RetryDelayType, TimeSpan, TimeSpan, Boolean)"/>
+		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, bool useJitter = false)
+		{
+			InitInnerDelay(delayType, baseDelay, null, useJitter);
+		}
+
+		private void InitInnerDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan? maxDelay, bool useJitter)
 		{
 			switch (delayType)
 			{
 				case RetryDelayType.Constant:
-					InnerDelay = new ConstantRetryDelay(baseDelay);
+					InnerDelay = new ConstantRetryDelay(baseDelay, maxDelay, useJitter);
 					break;
 				case RetryDelayType.Linear:
-					InnerDelay = new LinearRetryDelay(baseDelay);
+					InnerDelay = new LinearRetryDelay(baseDelay, maxDelay, useJitter);
 					break;
 				case RetryDelayType.Exponential:
-					InnerDelay = new ExponentialRetryDelay(baseDelay);
+					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay,  useJitter: useJitter);
 					break;
 				default:
 					throw new NotImplementedException();
@@ -43,12 +58,14 @@ namespace PoliNorError
 		/// <returns></returns>
 		public virtual TimeSpan GetDelay(int attempt)
 		{
-			return InnerDelay.GetInnerDelay(attempt);
+			return InnerDelay.InnerDelayValueProvider(attempt);
 		}
 
-		protected virtual TimeSpan GetInnerDelay(int attempt)
+		protected static double ApplyJitter(double delayInMs)
 		{
-			return TimeSpan.Zero;
+			var offset = (delayInMs * RetryDelayConstants.JitterFactor) / 2;
+			var randomDelay = (delayInMs * RetryDelayConstants.JitterFactor * StaticRandom.RandDouble()) - offset;
+			return delayInMs + randomDelay;
 		}
 	}
 
@@ -57,8 +74,6 @@ namespace PoliNorError
 	/// </summary>
 	public abstract class RetryDelayOptions
 	{
-		internal static readonly double MaxTimeSpanMs = TimeSpan.MaxValue.TotalMilliseconds;
-
 		/// <summary>
 		/// The type of delay.
 		/// </summary>
@@ -68,6 +83,23 @@ namespace PoliNorError
 		/// Base delay value between retries.
 		/// </summary>
 		public TimeSpan BaseDelay { get; set; }
+
+		/// <summary>
+		/// Indicates whether jitter is used. The default value is <see langword="false"/>.
+		/// </summary>
+		public bool UseJitter { get; set; }
+
+		/// <summary>
+		/// Maximum delay between retries.
+		/// </summary>
+		public TimeSpan MaxDelay { get; set; } = TimeSpan.MaxValue;
+
+		internal double GetAdoptedMaxDelayMs()
+		{
+			return MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
+				? RetryDelayConstants.MaxTimeSpanMs
+				: MaxDelay.TotalMilliseconds;
+		}
 	}
 
 	/// <summary>
@@ -95,5 +127,23 @@ namespace PoliNorError
 		/// The exponential backoff type.
 		/// /// </summary>
 		Exponential
+	}
+
+	internal class MaxDelayDelimiter
+	{
+		private readonly double _adoptedMaxDelayMs;
+
+		private readonly TimeSpan _maxDelay;
+
+		public MaxDelayDelimiter(RetryDelayOptions options)
+		{
+			_adoptedMaxDelayMs = options.GetAdoptedMaxDelayMs();
+			_maxDelay = options.MaxDelay;
+		}
+
+		public TimeSpan GetDelayLimitedToMaxDelayIfNeed(double ms)
+		{
+			return (ms >= _adoptedMaxDelayMs) ? _maxDelay : TimeSpan.FromMilliseconds(ms);
+		}
 	}
 }
