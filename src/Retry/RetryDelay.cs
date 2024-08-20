@@ -94,7 +94,7 @@ namespace PoliNorError
 		/// </summary>
 		public TimeSpan MaxDelay { get; set; } = TimeSpan.MaxValue;
 
-		internal double GetAdoptedMaxDelayMs()
+		internal double GetAdaptedMaxDelayMs()
 		{
 			return MaxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
 				? RetryDelayConstants.MaxTimeSpanMs
@@ -131,19 +131,19 @@ namespace PoliNorError
 
 	internal class MaxDelayDelimiter
 	{
-		private readonly double _adoptedMaxDelayMs;
+		private readonly double _adaptedMaxDelayMs;
 
 		private readonly TimeSpan _maxDelay;
 
 		public MaxDelayDelimiter(RetryDelayOptions options)
 		{
-			_adoptedMaxDelayMs = options.GetAdoptedMaxDelayMs();
+			_adaptedMaxDelayMs = options.GetAdaptedMaxDelayMs();
 			_maxDelay = options.MaxDelay;
 		}
 
 		public TimeSpan GetDelayLimitedToMaxDelayIfNeed(double ms)
 		{
-			return (ms >= _adoptedMaxDelayMs) ? _maxDelay : TimeSpan.FromMilliseconds(ms);
+			return (ms >= _adaptedMaxDelayMs) ? _maxDelay : TimeSpan.FromMilliseconds(ms);
 		}
 	}
 }

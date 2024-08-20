@@ -45,7 +45,7 @@ namespace PoliNorError
             /// </summary>
             /// <param name="attempt">The current attempt.</param>
             /// <remarks>
-            /// This code was adopted from https://github.com/App-vNext/Polly/blob/main/src/Polly.Core/Retry/RetryHelper.cs.
+            /// This code was adapted from https://github.com/App-vNext/Polly/blob/main/src/Polly.Core/Retry/RetryHelper.cs.
             /// </remarks>
             public TimeSpan DecorrelatedJitterBackoffV2(int attempt)
             {
