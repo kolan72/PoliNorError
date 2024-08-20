@@ -1,3 +1,11 @@
+## 2.19.5
+
+- Introduce jittering for `RetryDelay` subclasses, adapted from Polly.
+- Introduce `RetryDelayOptions.MaxDelay` property.
+- Introduce `Create` static methods for `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay` classes.
+- Bump NUnit3TestAdapter from 4.5.0 to 4.6.0 in the nunit group.
+
+
 ## 2.19.0
 
 - Add the `RetryDelay` class and its subclasses(`ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay`).  
