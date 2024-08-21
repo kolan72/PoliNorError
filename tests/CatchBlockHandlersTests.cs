@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PoliNorError.Extensions.PolicyErrorFiltering;
 
 namespace PoliNorError.Tests
 {
@@ -110,11 +111,11 @@ namespace PoliNorError.Tests
 			bool testFn(Exception _) => throw new Exception("Error in filter");
 			if (include)
 			{
-				policy.IncludeError((Func<Exception, bool>)testFn);
+				((Policy)policy).IncludeError((Func<Exception, bool>)testFn);
 			}
 			else
 			{
-				policy.ExcludeError((Func<Exception, bool>)testFn);
+				((Policy)policy).ExcludeError((Func<Exception, bool>)testFn);
 			}
 			void action() => throw new Exception("Test");
 			var res = policy.Handle(action);
