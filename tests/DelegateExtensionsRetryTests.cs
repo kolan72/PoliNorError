@@ -50,7 +50,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_InvokeWithRetryWithDelay_Work()
+		public void Should_InvokeWithWaitAndRetry_Work()
 		{
 			int i = 0;
 			Action action = () => { i++; throw new Exception(); };
@@ -120,6 +120,28 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(1, i4);
 
 			ClassicAssert.AreEqual(10, i);
+		}
+
+		[Test]
+		public void Should_InvokeWithRetryAndDelay_Work()
+		{
+			int i = 0;
+			Action action = () => { i++; throw new Exception(); };
+
+			const int retryCount = 1;
+
+			int i1 = 0;
+			void actionError(Exception _)
+			{
+				i1++;
+			}
+
+			var retryDelay = new FakeRetryDelay();
+
+			action.InvokeWithRetryAndDelay(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
+
+			Assert.That(i1, Is.EqualTo(1));
+			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(1));
 		}
 
 		[Test]
@@ -345,6 +367,17 @@ namespace PoliNorError.Tests
 			await func.InvokeWithWaitAndRetryInfiniteAsync(retryFunc, token: cancelTokenSource.Token);
 			ClassicAssert.IsTrue(i > 0);
 			cancelTokenSource.Dispose();
+		}
+
+		private class FakeRetryDelay : RetryDelay
+		{
+			public int AttemptsNumber { get; private set; }
+
+			public override TimeSpan GetDelay(int attempt)
+			{
+				AttemptsNumber++;
+				return TimeSpan.Zero;
+			}
 		}
 	}
 }

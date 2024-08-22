@@ -4,6 +4,16 @@ namespace PoliNorError
 {
 	internal static class RetryPolicyErrorProcessorExtensions
 	{
+		public static RetryPolicy ToRetryPolicy(this ErrorProcessorParam policyParams, int retryCount, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false)
+		{
+			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(new RetryPolicy(retryCount, failedIfSaveErrorThrows, retryDelay));
+		}
+
+		public static RetryPolicy ToRetryPolicy(this ErrorProcessorParam policyParams, int retryCount, RetryDelay retryDelay, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
+		{
+			return ToRetryPolicy(policyParams, retryCount, retryDelay, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
+		}
+
 		public static RetryPolicy ToRetryPolicy(this ErrorProcessorParam policyParams, int retryCount, bool failedIfSaveErrorThrows = false)
 		{
 			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(new RetryPolicy(retryCount, failedIfSaveErrorThrows));
