@@ -57,6 +57,12 @@ namespace PoliNorError
 		public static Task<PolicyResult> InvokeWithWaitAndRetryAsync(this Func<CancellationToken, Task> func, int retryCount, Func<int, Exception, TimeSpan> retryFunc, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows, RetryErrorSaverParam errorSaver, bool configureAwait, CancellationToken token)
 				=> policyParams.ToRetryPolicyWithDelayProcessorOf(retryCount, retryFunc, errorSaver, failedIfSaveErrorThrows).HandleAsync(func, configureAwait, token);
 
+		public static Task<PolicyResult> InvokeWithRetryAndDelayAsync(this Func<CancellationToken, Task> func, int retryCount, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
+				=> InvokeWithRetryAndDelayAsync(func, retryCount, retryDelay, policyParams, failedIfSaveErrorThrows, errorSaver, false, token);
+
+		public static Task<PolicyResult> InvokeWithRetryAndDelayAsync(this Func<CancellationToken, Task> func, int retryCount, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows, RetryErrorSaverParam errorSaver, bool configureAwait, CancellationToken token)
+			=> policyParams.ToRetryPolicy(retryCount, retryDelay, errorSaver, failedIfSaveErrorThrows).HandleAsync(func, configureAwait, token);
+
 		public static PolicyResult InvokeWithRetryInfinite(this Action action, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> InvokeWithRetryInfinite(action, null, failedIfSaveErrorThrows, errorSaver, token);
 
