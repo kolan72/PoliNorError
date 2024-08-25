@@ -53,12 +53,19 @@ namespace PoliNorError
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
 
+			var result = PolicyResult.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
 			if (!(retryDelay is null) && _delayProvider is null)
 			{
 				_delayProvider = new DelayProvider();
 			}
 
-			var result = PolicyResult.ForSync();
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
@@ -130,12 +137,19 @@ namespace PoliNorError
 				throw new ArgumentException("Do not use this method for task return type!");
 			}
 
+			var result = PolicyResult<T>.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
 			if (!(retryDelay is null) && _delayProvider is null)
 			{
 				_delayProvider = new DelayProvider();
 			}
 
-			var result = PolicyResult<T>.ForSync();
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
@@ -202,12 +216,19 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
 
+			var result = PolicyResult.InitByConfigureAwait(configureAwait);
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
 			if (!(retryDelay is null) && _delayProvider is null)
 			{
 				_delayProvider = new DelayProvider();
 			}
 
-			var result = PolicyResult.InitByConfigureAwait(configureAwait);
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
@@ -268,12 +289,18 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
+			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
 			if (!(retryDelay is null) && _delayProvider is null)
 			{
 				_delayProvider = new DelayProvider();
 			}
 
-			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
