@@ -74,14 +74,6 @@ namespace PoliNorError
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
-				if (token.IsCancellationRequested)
-				{
-					if (tryCount == retryCountInfo.StartTryCount)
-						result.SetCanceled();
-					else
-						result.SetFailedAndCanceled();
-					break;
-				}
 				try
 				{
 					action();
@@ -117,6 +109,11 @@ namespace PoliNorError
 						if (delay > TimeSpan.Zero)
 						{
 							_delayProvider.Backoff(delay.Value, token);
+						}
+						if (token.IsCancellationRequested)
+						{
+							result.SetFailedAndCanceled();
+							break;
 						}
 						tryCount++;
 						retryContext.IncrementCount();
@@ -158,14 +155,6 @@ namespace PoliNorError
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
-				if (token.IsCancellationRequested)
-				{
-					if (tryCount == retryCountInfo.StartTryCount)
-						result.SetCanceled();
-					else
-						result.SetFailedAndCanceled();
-					break;
-				}
 				try
 				{
 					var res = func();
@@ -202,6 +191,11 @@ namespace PoliNorError
 						{
 							_delayProvider.Backoff(delay.Value, token);
 						}
+						if (token.IsCancellationRequested)
+						{
+							result.SetFailedAndCanceled();
+							break;
+						}
 						tryCount++;
 						retryContext.IncrementCount();
 					}
@@ -237,14 +231,6 @@ namespace PoliNorError
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
-				if (token.IsCancellationRequested)
-				{
-					if (tryCount == retryCountInfo.StartTryCount)
-						result.SetCanceled();
-					else
-						result.SetFailedAndCanceled();
-					break;
-				}
 				try
 				{
 					await func(token).ConfigureAwait(configureAwait);
@@ -274,6 +260,11 @@ namespace PoliNorError
 						if (delay > TimeSpan.Zero)
 						{
 							await _delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+						}
+						if (token.IsCancellationRequested)
+						{
+							result.SetFailedAndCanceled();
+							break;
 						}
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
@@ -309,14 +300,6 @@ namespace PoliNorError
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
-				if (token.IsCancellationRequested)
-				{
-					if (tryCount == retryCountInfo.StartTryCount)
-						result.SetCanceled();
-					else
-						result.SetFailedAndCanceled();
-					break;
-				}
 				try
 				{
 					var res = await func(token).ConfigureAwait(configureAwait);
@@ -347,6 +330,11 @@ namespace PoliNorError
 						if (delay > TimeSpan.Zero)
 						{
 							await _delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+						}
+						if (token.IsCancellationRequested)
+						{
+							result.SetFailedAndCanceled();
+							break;
 						}
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
