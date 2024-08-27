@@ -34,6 +34,16 @@ namespace PoliNorError
 			return policyParams.ToRetryPolicy(retryCount, failedIfSaveErrorThrows).WithWait(delayOnRetryFunc).ConfigureBy(errorSaver);
 		}
 
+		public static RetryPolicy ToInfiniteRetryPolicy(this ErrorProcessorParam policyParams, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false)
+		{
+			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(RetryPolicy.InfiniteRetries(failedIfSaveErrorThrows, retryDelay));
+		}
+
+		public static RetryPolicy ToInfiniteRetryPolicy(this ErrorProcessorParam policyParams, RetryDelay retryDelay, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
+		{
+			return ToInfiniteRetryPolicy(policyParams, retryDelay, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
+		}
+
 		public static RetryPolicy ToInfiniteRetryPolicy(this ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false)
 		{
 			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(RetryPolicy.InfiniteRetries(failedIfSaveErrorThrows));
