@@ -81,6 +81,9 @@ namespace PoliNorError
 		public static PolicyResult InvokeWithWaitAndRetryInfinite(this Action action, Func<int, Exception, TimeSpan> retryFunc, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(retryFunc, errorSaver, failedIfSaveErrorThrows).Handle(action, token);
 
+		public static PolicyResult InvokeWithRetryAndDelayInfinite(this Action action, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
+				=> InvokeWithRetryAndDelayInfinite(action, retryDelay, null, failedIfSaveErrorThrows, errorSaver, token);
+
 		public static PolicyResult InvokeWithRetryAndDelayInfinite(this Action action, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> policyParams.ToInfiniteRetryPolicy(retryDelay, errorSaver, failedIfSaveErrorThrows).Handle(action, token);
 

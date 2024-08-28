@@ -203,6 +203,18 @@ namespace PoliNorError.Tests
 				Assert.That(i > 0, Is.True);
 				Assert.That(i1 > 0, Is.True);
 			}
+
+			int k = 0;
+			Action action2 = () => { k++; throw new Exception(); };
+			using (var cancelTokenSource2 = new CancellationTokenSource())
+			{
+				cancelTokenSource2.CancelAfter(100);
+				action2.InvokeWithRetryAndDelayInfinite(retryDelay, token: cancelTokenSource2.Token);
+
+				Assert.That(k > 0, Is.True);
+			}
+
+			Assert.That(retryDelay.AttemptsNumber > 0, Is.True);
 		}
 
 		[Test]
