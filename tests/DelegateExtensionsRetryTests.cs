@@ -138,12 +138,12 @@ namespace PoliNorError.Tests
 
 			var retryDelay = new FakeRetryDelay();
 
-			action.InvokeWithRetryAndDelay(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
+			action.InvokeWithRetryDelay(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
 
 			Assert.That(i1, Is.EqualTo(1));
 			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(1));
 
-			action.InvokeWithRetryAndDelay(retryCount, retryDelay);
+			action.InvokeWithRetryDelay(retryCount, retryDelay);
 			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(2));
 		}
 
@@ -159,22 +159,22 @@ namespace PoliNorError.Tests
 
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
-			await func.InvokeWithRetryAndDelayAsync(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
 			Assert.That(i1, Is.EqualTo(1));
 
 			int i2 = 0;
 			Action<Exception, CancellationToken> actionCancelError = (_, __) => i2++;
-			await func.InvokeWithRetryAndDelayAsync(retryCount, retryDelay, actionCancelError);
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, actionCancelError);
 			Assert.That(i2, Is.EqualTo(1));
 
 			int i3 = 0;
 			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
-			await func.InvokeWithRetryAndDelayAsync(retryCount, retryDelay, ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
 			Assert.That(i3, Is.EqualTo(1));
 
 			int i4 = 0;
 			Func<Exception, CancellationToken, Task> onBeforeProcessErrorWithTokenAsync = (_, __) => { i4++; return Task.CompletedTask; };
-			await func.InvokeWithRetryAndDelayAsync(retryCount, retryDelay, onBeforeProcessErrorWithTokenAsync);
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, onBeforeProcessErrorWithTokenAsync);
 			Assert.That(i4, Is.EqualTo(1));
 
 			Assert.That(i,Is.EqualTo(8));
@@ -198,7 +198,7 @@ namespace PoliNorError.Tests
 			using (var cancelTokenSource = new CancellationTokenSource())
 			{
 				cancelTokenSource.CancelAfter(100);
-				action.InvokeWithRetryAndDelayInfinite(retryDelay, ErrorProcessorParam.From(actionError), token: cancelTokenSource.Token);
+				action.InvokeWithRetryDelayInfinite(retryDelay, ErrorProcessorParam.From(actionError), token: cancelTokenSource.Token);
 
 				Assert.That(i > 0, Is.True);
 				Assert.That(i1 > 0, Is.True);
@@ -209,7 +209,7 @@ namespace PoliNorError.Tests
 			using (var cancelTokenSource2 = new CancellationTokenSource())
 			{
 				cancelTokenSource2.CancelAfter(100);
-				action2.InvokeWithRetryAndDelayInfinite(retryDelay, token: cancelTokenSource2.Token);
+				action2.InvokeWithRetryDelayInfinite(retryDelay, token: cancelTokenSource2.Token);
 
 				Assert.That(k > 0, Is.True);
 			}
