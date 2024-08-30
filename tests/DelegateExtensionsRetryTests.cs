@@ -218,6 +218,42 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_InvokeWithRetryAndDelayInfiniteWithFunc_Work()
+		{
+			int i = 0;
+			Func<CancellationToken, Task> fn = async(_) => {await Task.Delay(1); i++; throw new Exception(); };
+
+			int i1 = 0;
+			void actionError(Exception _)
+			{
+				i1++;
+			}
+
+			var retryDelay = new FakeRetryDelay();
+
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.CancelAfter(100);
+				await fn.InvokeWithRetryDelayInfiniteAsync(retryDelay, ErrorProcessorParam.From(actionError), token: cancelTokenSource.Token);
+
+				Assert.That(i > 0, Is.True);
+				Assert.That(i1 > 0, Is.True);
+			}
+
+			int k = 0;
+			Func<CancellationToken, Task> fn2 = async (_) => { await Task.Delay(1); k++; throw new Exception(); };
+			using (var cancelTokenSource2 = new CancellationTokenSource())
+			{
+				cancelTokenSource2.CancelAfter(100);
+				await fn2.InvokeWithRetryDelayInfiniteAsync(retryDelay, token: cancelTokenSource2.Token);
+
+				Assert.That(k > 0, Is.True);
+			}
+
+			Assert.That(retryDelay.AttemptsNumber > 0, Is.True);
+		}
+
+		[Test]
 		public async Task Should_InvokeWithRetryAsync_Work()
 		{
 			int i = 0;
