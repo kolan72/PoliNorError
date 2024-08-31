@@ -335,6 +335,13 @@ There are three ways to create a `RetryDelay`, represented by the `RetryDelayTyp
 - `RetryDelayType.Linear` with corresponding `LinearRetryDelay` subclass configured by `LinearRetryDelayOptions`. For `baseDelay` = 200ms the time delay will be 200ms, 400ms, 600ms.  
 - `RetryDelayType.Exponential` with corresponding `ExponentialRetryDelay` subclass configured by `ExponentialRetryDelayOptions`. For `baseDelay` = 200ms and  default `ExponentialFactor` = 2.0 the time delay will be 200ms, 400ms, 800ms.  
 
+Since _version_ 2.19.5, the `ConstantRetryDelayOptions`, `LinearRetryDelayOptions`, and `ExponentialRetryDelayOptions` classes also have `MaxDelay` and `UseJitter` properties in their `RetryDelayOptions` base class:
+
+- `MaxDelay` - the delay will not exceed this value, regardless of the retry attempts. The default is `TimeSpan.MaxValue`.
+- `UseJitter` - indicates if jitter is used. The default is `false`.  
+
+You can also create `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay` classes using the `Create` static methods.
+
 Using `RetryDelay` is a more accurate alternative to the above approach with `DelayErrorProcessor`. Note that unlike `DelayErrorProcessor`, the `RetryDelay` parameter allows you to configure only one delay for a retry policy or processor.  
 
 For huge numbers of retries, memory-related exceptions, such as `OutOfMemoryException`, may occur while saving handling exceptions in the `PolicyResult.Errors` property. This exception will be handled, wrapped up in a `CatchBlockException`, and saved in the `PolicyResult.CatchBlockErrors`.  
