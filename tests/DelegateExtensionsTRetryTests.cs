@@ -111,6 +111,28 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_InvokeWithRetryAndDelayWithFunc_Work()
+		{
+			int i = 0;
+			Func<int> func = () => { i++; throw new Exception(); };
+
+			const int retryCount = 1;
+
+			int i1 = 0;
+			void actionError(Exception _)
+			{
+				i1++;
+			}
+
+			var retryDelay = new FakeRetryDelay();
+
+			func.InvokeWithRetryDelay(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
+
+			Assert.That(i1, Is.EqualTo(1));
+			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(1));
+		}
+
+		[Test]
 		public async Task Should_InvokeWithRetryAsync_Work()
 		{
 			int i = 0;

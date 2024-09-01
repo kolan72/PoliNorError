@@ -27,4 +27,15 @@ namespace PoliNorError.Tests
 			_source?.Cancel();
 		}
 	}
+
+	internal class FakeRetryDelay : RetryDelay
+	{
+		public int AttemptsNumber { get; private set; }
+
+		public override TimeSpan GetDelay(int attempt)
+		{
+			AttemptsNumber++;
+			return TimeSpan.Zero;
+		}
+	}
 }

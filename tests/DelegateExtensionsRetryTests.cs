@@ -477,16 +477,5 @@ namespace PoliNorError.Tests
 			ClassicAssert.IsTrue(i > 0);
 			cancelTokenSource.Dispose();
 		}
-
-		private class FakeRetryDelay : RetryDelay
-		{
-			public int AttemptsNumber { get; private set; }
-
-			public override TimeSpan GetDelay(int attempt)
-			{
-				AttemptsNumber++;
-				return TimeSpan.Zero;
-			}
-		}
 	}
 }
