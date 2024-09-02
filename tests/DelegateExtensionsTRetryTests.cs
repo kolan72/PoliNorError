@@ -130,6 +130,9 @@ namespace PoliNorError.Tests
 
 			Assert.That(i1, Is.EqualTo(1));
 			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(1));
+
+			func.InvokeWithRetryDelay(retryCount, retryDelay);
+			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(2));
 		}
 
 		[Test]
