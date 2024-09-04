@@ -264,6 +264,32 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_InvokeWithRetryAndDelayInfiniteWithFunc_Work()
+		{
+			int i = 0;
+			Func<int> action = () => { i++; throw new Exception(); };
+
+			int i1 = 0;
+			void actionError(Exception _)
+			{
+				i1++;
+			}
+
+			var retryDelay = new FakeRetryDelay();
+
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.CancelAfter(100);
+				action.InvokeWithRetryDelayInfinite(retryDelay, ErrorProcessorParam.From(actionError), token: cancelTokenSource.Token);
+
+				Assert.That(i > 0, Is.True);
+				Assert.That(i1 > 0, Is.True);
+			}
+
+			Assert.That(retryDelay.AttemptsNumber > 0, Is.True);
+		}
+
+		[Test]
 		public void Should_InvokeWithRetryInfinite_Work()
 		{
 			int i = 0;
