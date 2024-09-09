@@ -117,7 +117,7 @@ namespace PoliNorError
 				=> policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(retryFunc, errorSaver, failedIfSaveErrorThrows).HandleAsync(func, configureAwait, token);
 
 		public static Task<PolicyResult<T>> InvokeWithRetryDelayInfiniteAsync<T>(this Func<CancellationToken, Task<T>> func, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
-				=> InvokeWithRetryDelayInfiniteAsync(func, retryDelay, null, failedIfSaveErrorThrows, errorSaver, false, token);
+				=> InvokeWithRetryDelayInfiniteAsync(func, retryDelay, null, failedIfSaveErrorThrows, errorSaver, token);
 
 		public static Task<PolicyResult<T>> InvokeWithRetryDelayInfiniteAsync<T>(this Func<CancellationToken, Task<T>> func, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> InvokeWithRetryDelayInfiniteAsync(func, retryDelay, policyParams, failedIfSaveErrorThrows, errorSaver, false, token);
