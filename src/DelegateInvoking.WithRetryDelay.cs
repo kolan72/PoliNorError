@@ -12,6 +12,9 @@ namespace PoliNorError
 		public static PolicyResult InvokeWithRetryDelay(this Action action, int retryCount, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> policyParams.ToRetryPolicy(retryCount, retryDelay, errorSaver, failedIfSaveErrorThrows).Handle(action, token);
 
+		public static Task<PolicyResult> InvokeWithRetryDelayAsync(this Func<CancellationToken, Task> func, int retryCount, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
+				=> InvokeWithRetryDelayAsync(func, retryCount, retryDelay, null, failedIfSaveErrorThrows, errorSaver, token);
+
 		public static Task<PolicyResult> InvokeWithRetryDelayAsync(this Func<CancellationToken, Task> func, int retryCount, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> InvokeWithRetryDelayAsync(func, retryCount, retryDelay, policyParams, failedIfSaveErrorThrows, errorSaver, false, token);
 
