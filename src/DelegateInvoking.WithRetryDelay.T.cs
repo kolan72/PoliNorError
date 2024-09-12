@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +11,9 @@ namespace PoliNorError
 
 		public static PolicyResult<T> InvokeWithRetryDelay<T>(this Func<T> func, int retryCount, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> policyParams.ToRetryPolicy(retryCount, retryDelay, errorSaver, failedIfSaveErrorThrows).Handle(func, token);
+
+		public static Task<PolicyResult<T>> InvokeWithRetryDelayAsync<T>(this Func<CancellationToken, Task<T>> func, int retryCount, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
+				=> InvokeWithRetryDelayAsync(func, retryCount, retryDelay, null, failedIfSaveErrorThrows, errorSaver, token);
 
 		public static Task<PolicyResult<T>> InvokeWithRetryDelayAsync<T>(this Func<CancellationToken, Task<T>> func, int retryCount, RetryDelay retryDelay, ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null, CancellationToken token = default)
 				=> InvokeWithRetryDelayAsync(func, retryCount, retryDelay, policyParams, failedIfSaveErrorThrows, errorSaver, false, token);

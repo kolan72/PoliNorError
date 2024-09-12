@@ -232,12 +232,14 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_InvokeWithRetryAndDelayWithFuncAsync_Work()
 		{
+			const int retryCount = 1;
+			int i = 0;
+
 			var retryDelay = new FakeRetryDelay();
 
-			int i = 0;
 			Func<CancellationToken, Task<int>> func = async (_) => { i++; await Task.Delay(0); throw new Exception(); };
 
-			const int retryCount = 1;
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay);
 
 			int i1 = 0;
 			void actionError(Exception _) { i1++; }
@@ -259,8 +261,8 @@ namespace PoliNorError.Tests
 			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, onBeforeProcessErrorWithTokenAsync);
 			Assert.That(i4, Is.EqualTo(1));
 
-			Assert.That(i, Is.EqualTo(8));
-			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(4));
+			Assert.That(i, Is.EqualTo(10));
+			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(5));
 		}
 
 		[Test]
