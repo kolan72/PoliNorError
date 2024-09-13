@@ -94,6 +94,7 @@
     <Compile Include="DefaultFallbackProcessorTests.cs" />
     <Compile Include="DefaultRetryProcessorAsyncTests.cs" />
     <Compile Include="DefaultRetryProcessorTests.cs" />
+    <Compile Include="DelayProviderTests.cs" />
     <Compile Include="DelayTimeErrorProcessorTests.cs" />
     <Compile Include="DelegateExtensionsFallbackTests.cs" />
     <Compile Include="DelegateExtensionsRetryTests.cs" />
