@@ -63,4 +63,18 @@ namespace PoliNorError.Tests
 			await Task.Delay(delay, cancellationToken).ConfigureAwait(configAwait);
 		}
 	}
+
+	internal class DelayProviderThatFailed : IDelayProvider
+	{
+		public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
+		{
+			throw new InvalidOperationException();
+		}
+
+		public async Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default)
+		{
+			await Task.Delay(1);
+			throw new InvalidOperationException();
+		}
+	}
 }
