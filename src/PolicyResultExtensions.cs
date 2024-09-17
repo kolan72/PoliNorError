@@ -29,6 +29,21 @@ namespace PoliNorError
 			}
 		}
 
+		internal static void ChangeByRetryBasicResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)
+		{
+			if (!basicResult.IsBasicSuccess)
+			{
+				if (basicResult.IsFailed)
+				{
+					policyResult.SetFailedWithCatchBlockError(basicResult.Error, handlingException, CatchBlockExceptionSource.PolicyRule);
+				}
+				else if (basicResult.IsCanceled)
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+			}
+		}
+
 		internal static bool NotFailedOrCanceled(this PolicyResult prevResult)
 		{
 			return prevResult != null && (prevResult.IsCanceled || !prevResult.IsFailed);

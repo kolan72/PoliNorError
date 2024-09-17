@@ -108,12 +108,11 @@ namespace PoliNorError
 						var delay = retryDelay?.GetDelay(tryCount);
 						if (delay > TimeSpan.Zero)
 						{
-							_delayProvider.Backoff(delay.Value, token);
-						}
-						if (token.IsCancellationRequested)
-						{
-							result.SetFailedAndCanceled();
-							break;
+							result.ChangeByRetryBasicResult(_delayProvider.BackoffSafely(delay.Value, token), ex);
+							if (result.IsFailed)
+							{
+								break;
+							}
 						}
 						tryCount++;
 						retryContext.IncrementCount();
@@ -189,12 +188,11 @@ namespace PoliNorError
 						var delay = retryDelay?.GetDelay(tryCount);
 						if (delay > TimeSpan.Zero)
 						{
-							_delayProvider.Backoff(delay.Value, token);
-						}
-						if (token.IsCancellationRequested)
-						{
-							result.SetFailedAndCanceled();
-							break;
+							result.ChangeByRetryBasicResult(_delayProvider.BackoffSafely(delay.Value, token), ex);
+							if (result.IsFailed)
+							{
+								break;
+							}
 						}
 						tryCount++;
 						retryContext.IncrementCount();
@@ -259,13 +257,16 @@ namespace PoliNorError
 						var delay = retryDelay?.GetDelay(tryCount);
 						if (delay > TimeSpan.Zero)
 						{
-							await _delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+							result.ChangeByRetryBasicResult(
+															await _delayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token)
+																				.ConfigureAwait(configureAwait),
+															ex);
+							if (result.IsFailed)
+							{
+								break;
+							}
 						}
-						if (token.IsCancellationRequested)
-						{
-							result.SetFailedAndCanceled();
-							break;
-						}
+
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
 					}
@@ -329,13 +330,16 @@ namespace PoliNorError
 						var delay = retryDelay?.GetDelay(tryCount);
 						if (delay > TimeSpan.Zero)
 						{
-							await _delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+							result.ChangeByRetryBasicResult(
+															await _delayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token)
+																				.ConfigureAwait(configureAwait),
+															ex);
+							if (result.IsFailed)
+							{
+								break;
+							}
 						}
-						if (token.IsCancellationRequested)
-						{
-							result.SetFailedAndCanceled();
-							break;
-						}
+
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
 					}
