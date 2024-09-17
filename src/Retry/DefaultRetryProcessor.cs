@@ -105,14 +105,10 @@ namespace PoliNorError
 														.Handle(ex, retryContext));
 					if (!result.IsFailed)
 					{
-						var delay = retryDelay?.GetDelay(tryCount);
-						if (delay > TimeSpan.Zero)
+						result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, tryCount, token), ex);
+						if (result.IsFailed)
 						{
-							result.ChangeByRetryBasicResult(_delayProvider.BackoffSafely(delay.Value, token), ex);
-							if (result.IsFailed)
-							{
-								break;
-							}
+							break;
 						}
 						tryCount++;
 						retryContext.IncrementCount();
@@ -185,14 +181,10 @@ namespace PoliNorError
 														.Handle(ex, retryContext));
 					if (!result.IsFailed)
 					{
-						var delay = retryDelay?.GetDelay(tryCount);
-						if (delay > TimeSpan.Zero)
+						result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, tryCount, token), ex);
+						if (result.IsFailed)
 						{
-							result.ChangeByRetryBasicResult(_delayProvider.BackoffSafely(delay.Value, token), ex);
-							if (result.IsFailed)
-							{
-								break;
-							}
+							break;
 						}
 						tryCount++;
 						retryContext.IncrementCount();
@@ -254,17 +246,10 @@ namespace PoliNorError
 					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
 					{
-						var delay = retryDelay?.GetDelay(tryCount);
-						if (delay > TimeSpan.Zero)
+						result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, tryCount, configureAwait, token).ConfigureAwait(configureAwait), ex);
+						if (result.IsFailed)
 						{
-							result.ChangeByRetryBasicResult(
-															await _delayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token)
-																				.ConfigureAwait(configureAwait),
-															ex);
-							if (result.IsFailed)
-							{
-								break;
-							}
+							break;
 						}
 
 						Interlocked.Increment(ref tryCount);
@@ -327,17 +312,10 @@ namespace PoliNorError
 					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
 					if (!result.IsFailed)
 					{
-						var delay = retryDelay?.GetDelay(tryCount);
-						if (delay > TimeSpan.Zero)
+						result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, tryCount, configureAwait, token).ConfigureAwait(configureAwait), ex);
+						if (result.IsFailed)
 						{
-							result.ChangeByRetryBasicResult(
-															await _delayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token)
-																				.ConfigureAwait(configureAwait),
-															ex);
-							if (result.IsFailed)
-							{
-								break;
-							}
+							break;
 						}
 
 						Interlocked.Increment(ref tryCount);
@@ -358,6 +336,28 @@ namespace PoliNorError
 		private RetryErrorContext CreateRetryErrorContext(int tryCount)
 		{
 			return new RetryErrorContext(tryCount);
+		}
+
+		private BasicResult DelayIfNeed(RetryDelay retryDelay, int tryCount, CancellationToken token)
+		{
+			BasicResult res = null;
+			var delay = retryDelay?.GetDelay(tryCount);
+			if (delay > TimeSpan.Zero)
+			{
+				res = _delayProvider.BackoffSafely(delay.Value, token);
+			}
+			return res;
+		}
+
+		private async Task<BasicResult> DelayIfNeedAsync(RetryDelay retryDelay, int tryCount, bool configureAwait, CancellationToken token)
+		{
+			BasicResult res = null;
+			var delay = retryDelay?.GetDelay(tryCount);
+			if (delay > TimeSpan.Zero)
+			{
+				res = await _delayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			return res;
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;

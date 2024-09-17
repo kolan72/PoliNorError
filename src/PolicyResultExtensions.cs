@@ -29,8 +29,11 @@ namespace PoliNorError
 			}
 		}
 
-		internal static void ChangeByRetryBasicResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)
+		internal static void ChangeByRetryDelayResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)
 		{
+			if (basicResult is null)
+				return;
+
 			if (!basicResult.IsBasicSuccess)
 			{
 				if (basicResult.IsFailed)
