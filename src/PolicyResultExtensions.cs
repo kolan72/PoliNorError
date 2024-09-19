@@ -34,10 +34,13 @@ namespace PoliNorError
 			}
 		}
 
-		internal static void ChangeByRetryDelayResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)
+		internal static bool ChangeByRetryDelayResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)
 		{
+			if (policyResult.IsFailed)
+				return false;
+
 			if (basicResult is null)
-				return;
+				return true;
 
 			if (!basicResult.IsBasicSuccess)
 			{
@@ -50,6 +53,7 @@ namespace PoliNorError
 					policyResult.SetFailedAndCanceled();
 				}
 			}
+			return true;
 		}
 
 		internal static bool NotFailedOrCanceled(this PolicyResult prevResult)

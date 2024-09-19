@@ -96,20 +96,8 @@ namespace PoliNorError
 				catch (Exception ex)
 				{
 					SaveError(result, ex, tryCount, token);
-					if (result.IsFailed)
+					if (HandleError(ex, result, tryCount, retryDelay, handler, retryContext, token))
 					{
-						break;
-					}
-
-					result.ChangeByHandleCatchBlockResult(handler
-														.Handle(ex, retryContext));
-					if (!result.IsFailed)
-					{
-						result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, tryCount, token), ex);
-						if (result.IsFailed)
-						{
-							break;
-						}
 						tryCount++;
 						retryContext.IncrementCount();
 					}
@@ -173,19 +161,8 @@ namespace PoliNorError
 				catch (Exception ex)
 				{
 					SaveError(result, ex, tryCount, token);
-					if (result.IsFailed)
+					if (HandleError(ex, result, tryCount, retryDelay, handler, retryContext, token))
 					{
-						break;
-					}
-					result.ChangeByHandleCatchBlockResult(handler
-														.Handle(ex, retryContext));
-					if (!result.IsFailed)
-					{
-						result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, tryCount, token), ex);
-						if (result.IsFailed)
-						{
-							break;
-						}
 						tryCount++;
 						retryContext.IncrementCount();
 					}
@@ -239,19 +216,9 @@ namespace PoliNorError
 				catch (Exception ex)
 				{
 					await SaveErrorAsync(result, ex, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
-					if (result.IsFailed)
-					{
-						break;
-					}
-					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
-					if (!result.IsFailed)
-					{
-						result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, tryCount, configureAwait, token).ConfigureAwait(configureAwait), ex);
-						if (result.IsFailed)
-						{
-							break;
-						}
 
+					if (await HandleErrorAsync(ex, result, tryCount, retryDelay, handler, retryContext,configureAwait, token).ConfigureAwait(configureAwait))
+					{
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
 					}
@@ -305,19 +272,8 @@ namespace PoliNorError
 				catch (Exception ex)
 				{
 					await SaveErrorAsync(result, ex, tryCount, configureAwait, token).ConfigureAwait(configureAwait);
-					if (result.IsFailed)
+					if (await HandleErrorAsync(ex, result, tryCount, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
 					{
-						break;
-					}
-					result.ChangeByHandleCatchBlockResult(await handler.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
-					if (!result.IsFailed)
-					{
-						result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, tryCount, configureAwait, token).ConfigureAwait(configureAwait), ex);
-						if (result.IsFailed)
-						{
-							break;
-						}
-
 						Interlocked.Increment(ref tryCount);
 						retryContext.IncrementCountAtomic();
 					}
@@ -331,6 +287,39 @@ namespace PoliNorError
 		{
 			_saveErrorProcessor = saveErrorProcessor ?? throw new ArgumentNullException(nameof(saveErrorProcessor), "Custom error saver cannot be null.");
 			return this;
+		}
+
+		private bool HandleError(Exception ex,
+							PolicyResult result,
+							int tryCount,
+							RetryDelay retryDelay,
+							PolicyProcessorCatchBlockSyncHandler<RetryContext> handler,
+							RetryErrorContext retryContext,
+							CancellationToken token)
+		{
+			return !result.IsFailed
+						&& result.ChangeByHandleCatchBlockResult(handler
+																.Handle(ex, retryContext))
+						&& !result.IsFailed
+						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, tryCount, token), ex)
+						&& !result.IsFailed;
+		}
+
+		private async Task<bool> HandleErrorAsync(Exception ex,
+							PolicyResult result,
+							int tryCount,
+							RetryDelay retryDelay,
+							PolicyProcessorCatchBlockAsyncHandler<RetryContext> handler,
+							RetryErrorContext retryContext,
+							bool configureAwait,
+							CancellationToken token)
+		{
+			return !result.IsFailed
+						&& result.ChangeByHandleCatchBlockResult(await handler
+																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
+						&& !result.IsFailed
+						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, tryCount, configureAwait, token), ex)
+						&& !result.IsFailed;
 		}
 
 		private RetryErrorContext CreateRetryErrorContext(int tryCount)
