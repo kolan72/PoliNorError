@@ -318,7 +318,7 @@ namespace PoliNorError
 						&& result.ChangeByHandleCatchBlockResult(await handler
 																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
 						&& !result.IsFailed
-						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, tryCount, configureAwait, token), ex)
+						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, tryCount, configureAwait, token).ConfigureAwait(configureAwait), ex)
 						&& !result.IsFailed;
 		}
 
