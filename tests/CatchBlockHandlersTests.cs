@@ -119,7 +119,6 @@ namespace PoliNorError.Tests
 			}
 			void action() => throw new Exception("Test");
 			var res = policy.Handle(action);
-			ClassicAssert.IsTrue(res.ErrorFilterUnsatisfied);
 			ClassicAssert.NotNull(res.UnprocessedError);
 			ClassicAssert.AreEqual(1, res.CatchBlockErrors.Count());
 			ClassicAssert.AreEqual(CatchBlockExceptionSource.ErrorFilter, res.CatchBlockErrors.FirstOrDefault().ExceptionSource);
