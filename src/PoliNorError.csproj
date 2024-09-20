@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Andrey Kolesnichenko</Authors>
     <Copyright>Copyright 2023 Andrey Kolesnichenko</Copyright>
-    <PackageTags>Exception Handling Policy Retry Fallback Resilience Simple Error TryCatch CatchBlockHandler</PackageTags>
+    <PackageTags>Exception Handling Policy Retry Fallback Resilience Simple Error TryCatch CatchBlockHandler Try Catch</PackageTags>
     <PackageIcon>PoliNorError.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryType>git</RepositoryType>
