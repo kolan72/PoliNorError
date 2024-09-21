@@ -2,6 +2,9 @@
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Represents an exception thrown within a catch block.
+	/// </summary>
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
 	public sealed class CatchBlockException : Exception

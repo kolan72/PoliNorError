@@ -50,7 +50,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_InvokeWithRetryWithDelay_Work()
+		public void Should_InvokeWithWaitAndRetry_Work()
 		{
 			int i = 0;
 			Action action = () => { i++; throw new Exception(); };
@@ -120,6 +120,140 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(1, i4);
 
 			ClassicAssert.AreEqual(10, i);
+		}
+
+		[Test]
+		public void Should_InvokeWithRetryAndDelayWithAction_Work()
+		{
+			int i = 0;
+			Action action = () => { i++; throw new Exception(); };
+
+			const int retryCount = 1;
+
+			int i1 = 0;
+			void actionError(Exception _)
+			{
+				i1++;
+			}
+
+			var retryDelay = new FakeRetryDelay();
+
+			action.InvokeWithRetryDelay(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
+
+			Assert.That(i1, Is.EqualTo(1));
+			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(1));
+
+			action.InvokeWithRetryDelay(retryCount, retryDelay);
+			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(2));
+		}
+
+		[Test]
+		public async Task Should_InvokeWithRetryAndDelayWithFuncAsync_Work()
+		{
+			const int retryCount = 1;
+
+			int i = 0;
+
+			var retryDelay = new FakeRetryDelay();
+
+			Func<CancellationToken, Task> func = async (_) => { i++; await Task.Delay(0); throw new Exception(); };
+
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay);
+
+			int i1 = 0;
+			void actionError(Exception _) { i1++; }
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, ErrorProcessorParam.From(actionError));
+			Assert.That(i1, Is.EqualTo(1));
+
+			int i2 = 0;
+			Action<Exception, CancellationToken> actionCancelError = (_, __) => i2++;
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, actionCancelError);
+			Assert.That(i2, Is.EqualTo(1));
+
+			int i3 = 0;
+			Task beforeProcessErrorAsync(Exception _) { i3++; return Task.CompletedTask; }
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, ErrorProcessorParam.From(beforeProcessErrorAsync, CancellationType.Cancelable));
+			Assert.That(i3, Is.EqualTo(1));
+
+			int i4 = 0;
+			Func<Exception, CancellationToken, Task> onBeforeProcessErrorWithTokenAsync = (_, __) => { i4++; return Task.CompletedTask; };
+			await func.InvokeWithRetryDelayAsync(retryCount, retryDelay, onBeforeProcessErrorWithTokenAsync);
+			Assert.That(i4, Is.EqualTo(1));
+
+			Assert.That(i,Is.EqualTo(10));
+			Assert.That(retryDelay.AttemptsNumber, Is.EqualTo(5));
+		}
+
+		[Test]
+		public void Should_InvokeWithRetryAndDelayInfiniteWithAction_Work()
+		{
+			int i = 0;
+			Action action = () => { i++; throw new Exception(); };
+
+			int i1 = 0;
+			void actionError(Exception _)
+			{
+				i1++;
+			}
+
+			var retryDelay = new FakeRetryDelay();
+
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.CancelAfter(100);
+				action.InvokeWithRetryDelayInfinite(retryDelay, ErrorProcessorParam.From(actionError), token: cancelTokenSource.Token);
+
+				Assert.That(i > 0, Is.True);
+				Assert.That(i1 > 0, Is.True);
+			}
+
+			int k = 0;
+			Action action2 = () => { k++; throw new Exception(); };
+			using (var cancelTokenSource2 = new CancellationTokenSource())
+			{
+				cancelTokenSource2.CancelAfter(100);
+				action2.InvokeWithRetryDelayInfinite(retryDelay, token: cancelTokenSource2.Token);
+
+				Assert.That(k > 0, Is.True);
+			}
+
+			Assert.That(retryDelay.AttemptsNumber > 0, Is.True);
+		}
+
+		[Test]
+		public async Task Should_InvokeWithRetryAndDelayInfiniteWithFunc_Work()
+		{
+			int i = 0;
+			Func<CancellationToken, Task> fn = async(_) => {await Task.Delay(1); i++; throw new Exception(); };
+
+			int i1 = 0;
+			void actionError(Exception _)
+			{
+				i1++;
+			}
+
+			var retryDelay = new FakeRetryDelay();
+
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.CancelAfter(100);
+				await fn.InvokeWithRetryDelayInfiniteAsync(retryDelay, ErrorProcessorParam.From(actionError), token: cancelTokenSource.Token);
+
+				Assert.That(i > 0, Is.True);
+				Assert.That(i1 > 0, Is.True);
+			}
+
+			int k = 0;
+			Func<CancellationToken, Task> fn2 = async (_) => { await Task.Delay(1); k++; throw new Exception(); };
+			using (var cancelTokenSource2 = new CancellationTokenSource())
+			{
+				cancelTokenSource2.CancelAfter(100);
+				await fn2.InvokeWithRetryDelayInfiniteAsync(retryDelay, token: cancelTokenSource2.Token);
+
+				Assert.That(k > 0, Is.True);
+			}
+
+			Assert.That(retryDelay.AttemptsNumber > 0, Is.True);
 		}
 
 		[Test]

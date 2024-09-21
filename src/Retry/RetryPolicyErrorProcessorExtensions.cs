@@ -4,6 +4,16 @@ namespace PoliNorError
 {
 	internal static class RetryPolicyErrorProcessorExtensions
 	{
+		public static RetryPolicy ToRetryPolicy(this ErrorProcessorParam policyParams, int retryCount, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false)
+		{
+			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(new RetryPolicy(retryCount, failedIfSaveErrorThrows, retryDelay));
+		}
+
+		public static RetryPolicy ToRetryPolicy(this ErrorProcessorParam policyParams, int retryCount, RetryDelay retryDelay, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
+		{
+			return ToRetryPolicy(policyParams, retryCount, retryDelay, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
+		}
+
 		public static RetryPolicy ToRetryPolicy(this ErrorProcessorParam policyParams, int retryCount, bool failedIfSaveErrorThrows = false)
 		{
 			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(new RetryPolicy(retryCount, failedIfSaveErrorThrows));
@@ -22,6 +32,16 @@ namespace PoliNorError
 		public static RetryPolicy ToRetryPolicyWithDelayProcessorOf(this ErrorProcessorParam policyParams, int retryCount, Func<int, Exception, TimeSpan> delayOnRetryFunc, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
 		{
 			return policyParams.ToRetryPolicy(retryCount, failedIfSaveErrorThrows).WithWait(delayOnRetryFunc).ConfigureBy(errorSaver);
+		}
+
+		public static RetryPolicy ToInfiniteRetryPolicy(this ErrorProcessorParam policyParams, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false)
+		{
+			return (RetryPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(RetryPolicy.InfiniteRetries(failedIfSaveErrorThrows, retryDelay));
+		}
+
+		public static RetryPolicy ToInfiniteRetryPolicy(this ErrorProcessorParam policyParams, RetryDelay retryDelay, RetryErrorSaverParam errorSaver, bool failedIfSaveErrorThrows = false)
+		{
+			return ToInfiniteRetryPolicy(policyParams, retryDelay, failedIfSaveErrorThrows).ConfigureBy(errorSaver);
 		}
 
 		public static RetryPolicy ToInfiniteRetryPolicy(this ErrorProcessorParam policyParams, bool failedIfSaveErrorThrows = false)

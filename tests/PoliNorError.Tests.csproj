@@ -1,5 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="../packages/NUnit.4.2.2/build/NUnit.props" Condition="Exists('../packages/NUnit.4.2.2/build/NUnit.props')" />
+  <Import Project="../packages/NUnit.4.2.1/build/NUnit.props" Condition="Exists('../packages/NUnit.4.2.1/build/NUnit.props')" />
   <Import Project="../packages/NUnit3TestAdapter.4.6.0/build/net462/NUnit3TestAdapter.props" Condition="Exists('../packages/NUnit3TestAdapter.4.6.0/build/net462/NUnit3TestAdapter.props')" />
   <Import Project="..\packages\NUnit.4.1.0\build\NUnit.props" Condition="Exists('..\packages\NUnit.4.1.0\build\NUnit.props')" />
   <Import Project="..\packages\NUnit3TestAdapter.4.2.1\build\net35\NUnit3TestAdapter.props" Condition="Exists('..\packages\NUnit3TestAdapter.4.2.1\build\net35\NUnit3TestAdapter.props')" />
@@ -44,21 +46,39 @@
     <Reference Include="NSubstitute, Version=5.0.0.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
       <HintPath>..\packages\NSubstitute.5.0.0\lib\net462\NSubstitute.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework, Version=4.0.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.4.1.0\lib\net462\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.framework, Version=4.2.2.0, Culture=neutral, PublicKeyToken=2638cd05610744eb">
+      <HintPath>..\packages\NUnit.4.2.2\lib\net462\nunit.framework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework.legacy, Version=4.0.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.4.1.0\lib\net462\nunit.framework.legacy.dll</HintPath>
+    <Reference Include="nunit.framework.legacy, Version=4.2.2.0, Culture=neutral, PublicKeyToken=2638cd05610744eb">
+      <HintPath>..\packages\NUnit.4.2.2\lib\net462\nunit.framework.legacy.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -74,6 +94,7 @@
     <Compile Include="DefaultFallbackProcessorTests.cs" />
     <Compile Include="DefaultRetryProcessorAsyncTests.cs" />
     <Compile Include="DefaultRetryProcessorTests.cs" />
+    <Compile Include="DelayProviderTests.cs" />
     <Compile Include="DelayTimeErrorProcessorTests.cs" />
     <Compile Include="DelegateExtensionsFallbackTests.cs" />
     <Compile Include="DelegateExtensionsRetryTests.cs" />
@@ -88,6 +109,7 @@
     <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
+    <Compile Include="PolicyResultExtensionsTests.cs" />
     <Compile Include="RetryObjectsToTest.cs" />
     <Compile Include="TryCatchBuilderTests.cs" />
     <Compile Include="TryCatchTests.cs" />
@@ -144,5 +166,7 @@
     <Error Condition="!Exists('..\packages\NUnit3TestAdapter.4.2.1\build\net35\NUnit3TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NUnit3TestAdapter.4.2.1\build\net35\NUnit3TestAdapter.props'))" />
     <Error Condition="!Exists('..\packages\NUnit.4.1.0\build\NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NUnit.4.1.0\build\NUnit.props'))" />
     <Error Condition="!Exists('../packages/NUnit3TestAdapter.4.6.0/build/net462/NUnit3TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '../packages/NUnit3TestAdapter.4.6.0/build/net462/NUnit3TestAdapter.props'))" />
+    <Error Condition="!Exists('../packages/NUnit.4.2.1/build/NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '../packages/NUnit.4.2.1/build/NUnit.props'))" />
+    <Error Condition="!Exists('../packages/NUnit.4.2.2/build/NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '../packages/NUnit.4.2.2/build/NUnit.props'))" />
   </Target>
 </Project>

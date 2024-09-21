@@ -27,4 +27,54 @@ namespace PoliNorError.Tests
 			_source?.Cancel();
 		}
 	}
+
+	internal class FakeRetryDelay : RetryDelay
+	{
+		public int AttemptsNumber { get; private set; }
+
+		public override TimeSpan GetDelay(int attempt)
+		{
+			AttemptsNumber++;
+			return TimeSpan.Zero;
+		}
+	}
+
+	internal class DelayProviderThatAlreadyCanceled : IDelayProvider
+	{
+		private readonly CancellationTokenSource _cts;
+		public DelayProviderThatAlreadyCanceled(CancellationTokenSource cts)
+		{
+			_cts = cts;
+		}
+
+		public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
+		{
+			_cts.Cancel();
+			bool waitResult = cancellationToken.WaitHandle.WaitOne(delay);
+			if (waitResult)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+			}
+		}
+
+		public async Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default)
+		{
+			_cts.Cancel();
+			await Task.Delay(delay, cancellationToken).ConfigureAwait(configAwait);
+		}
+	}
+
+	internal class DelayProviderThatFailed : IDelayProvider
+	{
+		public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
+		{
+			throw new InvalidOperationException();
+		}
+
+		public async Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default)
+		{
+			await Task.Delay(1);
+			throw new InvalidOperationException();
+		}
+	}
 }
