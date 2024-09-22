@@ -268,6 +268,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_RetryPolicy_Handle_Preserve_BadResults_In_WrappedPolicyResults_When_RetryPolicy_Wrap_SimplePolicy()
+		{
+			int func() => 1;
+			var simplePolicy = new SimplePolicy().SetPolicyResultFailedIf<int>((_) => true);
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(simplePolicy);
+			var retryResult = retryPolicy.Handle(func);
+			var wprs = retryResult.WrappedPolicyResults.ToArray();
+			Assert.That(wprs[0].Result.Result, Is.EqualTo(1));
+			Assert.That(wprs[1].Result.Result, Is.EqualTo(1));
+		}
+
+		[Test]
 		public async Task Should_Work_For_HandleAsync_Null_Delegate()
 		{
 			var retryPolTest = new RetryPolicy(0);
