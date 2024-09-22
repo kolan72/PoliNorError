@@ -1,3 +1,25 @@
+## 2.19.8
+
+- Introduce `Policy` error filtering extension methods in the `PoliNorError.Extensions.PolicyErrorFiltering` namespace.
+- Fix issue #126 by using the `IDelayProvider.BackoffBackoffSafely(Async)` extension methods.
+- Introduce `Action.InvokeWithRetryDelay` extension methods.
+- Introduce `Action.InvokeWithRetryDelayInfinite`  extension methods.
+- Introduce `Func<CancellationToken, Task>.InvokeWithRetryDelayAsync` extension methods.
+- Introduce `Func<CancellationToken, Task>.InvokeWithRetryDelayInfiniteAsync` extension methods.
+- Introduce `Func<T>.InvokeWithRetryDelay` extension methods.
+- Introduce `Func<T>.InvokeWithRetryDelayInfinite` extension methods.
+- Introduce `Func<CancellationToken, Task<T>>.InvokeWithRetryDelayAsync` extension methods.
+- Introduce `Func<CancellationToken, Task<T>>.InvokeWithRetryDelayInfiniteAsync` extension methods.
+- Add early return in `RetryProcessor.Retry(Async)(<T>)` methods if token is already canceled.
+- DRY Refactoring of the use of `RetryDelay` in `DefaultRetryProcessor` methods.
+- Refactor catch block exception handling in `DefaultRetryProcessor.Retry(Async)<T>` methods.
+- Add 'Try', 'Catch' tags to nuget package.
+- Update 'RetryPolicy' README Chapter.
+- Add doc comments to `CatchBlockExceptionSource`.
+- Bump NUnit from 4.1.0 to 4.2.1.
+- Bump NUnit from  4.2.1  to  4.2.2.
+
+
 ## 2.19.5
 
 - Introduce jittering for `RetryDelay` subclasses, adapted from Polly.
