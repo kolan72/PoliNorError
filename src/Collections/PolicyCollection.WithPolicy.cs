@@ -31,6 +31,11 @@ namespace PoliNorError
 			return this.WithRetryInner(policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
+		public PolicyCollection WithInfiniteRetry(RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
+		{
+			return this.WithRetryInner(retryDelay, failedIfSaveErrorThrows, errorSaver);
+		}
+
 		public PolicyCollection WithWaitAndInfiniteRetry(TimeSpan delay, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return this.WithRetryInner(delay, policyParams, failedIfSaveErrorThrows, errorSaver);

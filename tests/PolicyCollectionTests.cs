@@ -28,12 +28,22 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_WithRetry_WithRetryDelay_Work()
+		public void Should_WithRetry_WithRetryDelay_Adds_Policy_Correctly()
 		{
 			var delay = new ConstantRetryDelay(TimeSpan.FromSeconds(1));
 			var policyCollection = PolicyCollection.Create().WithRetry(1, delay);
 			ClassicAssert.IsInstanceOf<RetryPolicy>(policyCollection.FirstOrDefault());
 			ClassicAssert.AreEqual(1, ((RetryPolicy)policyCollection.FirstOrDefault()).RetryInfo.RetryCount);
+			ClassicAssert.AreEqual(delay, ((RetryPolicy)policyCollection.FirstOrDefault()).Delay);
+		}
+
+		[Test]
+		public void Should_WithInfiniteRetry_WithRetryDelay_Adds_Policy_Correctly()
+		{
+			var delay = new ConstantRetryDelay(TimeSpan.FromSeconds(1));
+			var policyCollection = PolicyCollection.Create().WithInfiniteRetry(delay);
+			ClassicAssert.IsInstanceOf<RetryPolicy>(policyCollection.FirstOrDefault());
+			ClassicAssert.AreEqual(true, ((RetryPolicy)policyCollection.FirstOrDefault()).RetryInfo.IsInfinite);
 			ClassicAssert.AreEqual(delay, ((RetryPolicy)policyCollection.FirstOrDefault()).Delay);
 		}
 
