@@ -42,6 +42,11 @@ namespace PoliNorError
 			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc, errorSaver, failedIfSaveErrorThrows));
 		}
 
+		public static K WithRetryInner<T, K>(this T t, int retryCount, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
+		{
+			return t.WithPolicy(new RetryPolicy(retryCount, failedIfSaveErrorThrows, retryDelay).ConfigureBy(errorSaver));
+		}
+
 		public static K WithFallbackInner<T, K>(this T t, Action fallback, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable) where T : IWithPolicyBase<K>, IEnumerable<PolicyDelegateBase>
 		{
 			return t.WithPolicy(policyParams.ToFallbackPolicy(fallback, convertType));

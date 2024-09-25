@@ -94,6 +94,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_WithRetry_With_RetryDelay_Param_Adds_Policy_Correctly()
+		{
+			var delay = new ConstantRetryDelay(TimeSpan.FromSeconds(1));
+			void actSave() { throw new Exception("Test"); }
+			var policyDelegateCollection = PolicyDelegateCollection.Create(new RetryPolicy(2), actSave).WithRetry(1, delay).AndDelegate(actSave);
+
+			ClassicAssert.IsInstanceOf<RetryPolicy>(policyDelegateCollection.LastOrDefault().Policy);
+			ClassicAssert.AreEqual(1, ((RetryPolicy)policyDelegateCollection.LastOrDefault().Policy).RetryInfo.RetryCount);
+			ClassicAssert.AreEqual(delay, ((RetryPolicy)policyDelegateCollection.LastOrDefault().Policy).Delay);
+		}
+
+		[Test]
 		public async Task Should_SetLastPolicyInfoDelegate_Work()
 		{
 			var testClass = new TestAsyncClass();
