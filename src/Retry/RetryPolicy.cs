@@ -268,6 +268,12 @@ namespace PoliNorError
 			return this.SetPolicyResultFailedIfInner(predicate);
 		}
 
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedWithHandlerIfInner{RetryPolicy, T}"/>
+		public RetryPolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate, Action<PolicyResult<T>> onSetPolicyResultFailed)
+		{
+			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
+		}
+
 		public RetryPolicy UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)
 		{
 			RetryProcessor.UseCustomErrorSaver(saveErrorProcessor);

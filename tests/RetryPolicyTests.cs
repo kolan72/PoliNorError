@@ -723,6 +723,36 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_SetPolicyResultFailedIfWithHandlerT_Work(bool setIsFailedByPolicyResultHandler)
+		{
+			var policy = new RetryPolicy(1);
+			PolicyResult<int> polResult = null;
+			bool continueThrow = true;
+			bool handlerFlag = false;
+			void act(PolicyResult<int> _) => handlerFlag = true;
+			polResult = policy.SetPolicyResultFailedIf<int>(pr => pr.Errors.Any(e => e.Message == "Test"), act)
+				.Handle(() =>
+				{
+					if (continueThrow)
+					{
+						continueThrow = !setIsFailedByPolicyResultHandler;
+						throw new ArgumentException("Test");
+					}
+					return 1;
+				});
+
+			Assert.That(polResult.IsFailed, Is.EqualTo(true));
+
+			Assert.That(polResult.FailedReason, Is.EqualTo(setIsFailedByPolicyResultHandler
+														? PolicyResultFailedReason.PolicyResultHandlerFailed
+														: PolicyResultFailedReason.PolicyProcessorFailed));
+
+			Assert.That(handlerFlag, Is.EqualTo(setIsFailedByPolicyResultHandler));
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(true, false)]
 		[TestCase(true, null)]
