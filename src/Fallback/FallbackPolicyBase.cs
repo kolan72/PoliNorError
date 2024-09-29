@@ -223,5 +223,11 @@ namespace PoliNorError
 		{
 			return this.SetPolicyResultFailedIfInner(predicate);
 		}
+
+		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedWithHandlerIfInner{FallbackPolicyBase, T}"/>
+		public FallbackPolicyBase SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate, Action<PolicyResult<T>> onSetPolicyResultFailed)
+		{
+			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
+		}
 	}
 }

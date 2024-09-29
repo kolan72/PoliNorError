@@ -1375,6 +1375,41 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(false, FallbackTypeForTests.BaseClass)]
+		[TestCase(true, FallbackTypeForTests.BaseClass)]
+		public void Should_SetPolicyResultFailedIfWithHandlerT_Work(bool setIsFailedByPolicyResultHandler, FallbackTypeForTests fallbackType)
+		{
+			PolicyResult polResult = null;
+			bool handlerFlag = false;
+			void act(PolicyResult<int> _) => handlerFlag = true;
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					FallbackPolicyBase fbBase;
+					if (setIsFailedByPolicyResultHandler)
+					{
+						fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
+					}
+					else
+					{
+						fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => throw new Exception());
+					}
+					fbBase.SetPolicyResultFailedIf<int>(pr => pr.Errors.Any(e => e.Message == "Test"), act);
+					polResult = fbBase.Handle<int>(() => throw new ArgumentException("Test"));
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			Assert.That(polResult.IsFailed, Is.EqualTo(true));
+
+			Assert.That(polResult.FailedReason, Is.EqualTo(setIsFailedByPolicyResultHandler
+														? PolicyResultFailedReason.PolicyResultHandlerFailed
+														: PolicyResultFailedReason.PolicyProcessorFailed));
+
+			Assert.That(handlerFlag, Is.EqualTo(setIsFailedByPolicyResultHandler));
+		}
+
+		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
 		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
 		[TestCase(FallbackTypeForTests.BaseClass, true, null)]
