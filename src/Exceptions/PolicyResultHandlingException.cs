@@ -2,6 +2,9 @@
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Represents an exception that occurs during handling by a PolicyResult handler.
+	/// </summary>
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
 	public class PolicyResultHandlingException : Exception
 	{
