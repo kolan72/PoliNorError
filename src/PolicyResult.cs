@@ -5,7 +5,7 @@ using System.Linq;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Class that stores execution results after calling the policy's non-generic <see cref="IPolicyBase.Handle"/> and <see cref="IPolicyBase.HandleAsync"/> methods.
+	/// Stores execution results after calling the policy's non-generic <see cref="IPolicyBase.Handle"/> or <see cref="IPolicyBase.HandleAsync"/> methods.
 	/// </summary>
 	public class PolicyResult
 	{
@@ -192,7 +192,7 @@ namespace PoliNorError
 	}
 
 	/// <summary>
-	/// Class that stores execution results after calling the policy's generic <see cref="IPolicyBase.Handle{T}"/> and <see cref="IPolicyBase.HandleAsync{T}"/> methods.
+	/// Stores execution results after calling the policy's generic <see cref="IPolicyBase.Handle{T}"/> or <see cref="IPolicyBase.HandleAsync{T}"/> methods.
 	/// </summary>
 	/// <typeparam name="T">Type of result.</typeparam>
 	public class PolicyResult<T> : PolicyResult
