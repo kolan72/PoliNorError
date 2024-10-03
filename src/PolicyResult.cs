@@ -84,7 +84,7 @@ namespace PoliNorError
 		public bool NoError { get; protected set; }
 
 		/// <summary>
-		/// Indicates whether the delegate has been handled.
+		/// Indicates failed handling.
 		/// </summary>
 		public bool IsFailed { get; protected set; }
 

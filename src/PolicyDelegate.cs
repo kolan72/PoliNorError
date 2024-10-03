@@ -5,16 +5,35 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	///  Packs a <see cref="Func{CancellationToken, Task}"/> or <see cref="Action"/> delegate with a policy into a single class.
+	/// </summary>
 	public sealed class PolicyDelegate : PolicyDelegateBase
 	{
 		private SingleDelegateContainer _delegateContainer;
 
 		internal PolicyDelegate(IPolicyBase policy) : base(policy){}
 
+		/// <summary>
+		/// Calls the <see cref="IPolicyBase.Handle"/> method of the policy this <see cref="PolicyDelegate"/> packs.
+		/// </summary>
+		/// <param name="cancellationToken">A cancellation token to cancel handling.</param>
+		/// <returns></returns>
 		public PolicyResult Handle(CancellationToken cancellationToken = default) => Policy.Handle(Execute, cancellationToken);
 
+		/// <summary>
+		/// Calls the <see cref="IPolicyBase.HandleAsync"/> method with configureAwait parameter equal to false of the policy that this <see cref="PolicyDelegate"/> packs.
+		/// </summary>
+		/// <param name="cancellationToken">A cancellation token to cancel handling.</param>
+		/// <returns></returns>
 		public Task<PolicyResult> HandleAsync(CancellationToken cancellationToken) => HandleAsync(false, cancellationToken);
 
+		/// <summary>
+		/// Calls the <see cref="IPolicyBase.HandleAsync"/> method for the policy that this <see cref="PolicyDelegate"/> packs.
+		/// </summary>
+		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
+		/// <param name="cancellationToken">A cancellation token to cancel handling.</param>
+		/// <returns></returns>
 		public Task<PolicyResult> HandleAsync(bool configureAwait, CancellationToken cancellationToken) => Policy.HandleAsync(ExecuteAsync, configureAwait, cancellationToken);
 
 		internal void SetDelegate(Func<CancellationToken, Task> executeAsync)
