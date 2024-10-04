@@ -1375,6 +1375,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, FallbackTypeForTests.Creator)]
 		[TestCase(false, FallbackTypeForTests.BaseClass)]
 		[TestCase(true, FallbackTypeForTests.BaseClass)]
 		[TestCase(false, FallbackTypeForTests.WithAction)]
@@ -1411,6 +1412,11 @@ namespace PoliNorError.Tests
 					}
 					fbWithAction.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
 					polResult = fbWithAction.Handle<int>(() => throw new ArgumentException("Test"));
+					break;
+				case FallbackTypeForTests.Creator:
+					var fbCreator = new FallbackPolicy();
+					fbCreator.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
+					polResult = fbCreator.Handle<int>(() => throw new ArgumentException("Test"));
 					break;
 				default:
 					throw new NotImplementedException();
