@@ -1380,6 +1380,8 @@ namespace PoliNorError.Tests
 		[TestCase(true, FallbackTypeForTests.BaseClass)]
 		[TestCase(false, FallbackTypeForTests.WithAction)]
 		[TestCase(true, FallbackTypeForTests.WithAction)]
+		[TestCase(true, FallbackTypeForTests.WithAsyncFunc)]
+		[TestCase(false, FallbackTypeForTests.WithAsyncFunc)]
 		public void Should_SetPolicyResultFailedIfWithHandlerT_Work(bool setIsFailedByPolicyResultHandler, FallbackTypeForTests fallbackType)
 		{
 			PolicyResult polResult = null;
@@ -1417,6 +1419,19 @@ namespace PoliNorError.Tests
 					var fbCreator = new FallbackPolicy();
 					fbCreator.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
 					polResult = fbCreator.Handle<int>(() => throw new ArgumentException("Test"));
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc;
+					if (setIsFailedByPolicyResultHandler)
+					{
+						fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					}
+					else
+					{
+						fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw new Exception(); });
+					}
+					fallbackPolicyWithAsyncFunc.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
+					polResult = fallbackPolicyWithAsyncFunc.Handle<int>(() => throw new ArgumentException("Test"));
 					break;
 				default:
 					throw new NotImplementedException();
