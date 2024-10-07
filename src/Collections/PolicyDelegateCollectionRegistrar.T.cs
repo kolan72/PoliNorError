@@ -38,6 +38,11 @@ namespace PoliNorError
 			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(policyParams, failedIfSaveErrorThrows, errorSaver);
 		}
 
+		public static INeedDelegateCollection<T> WithInfiniteRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
+		{
+			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(retryDelay, failedIfSaveErrorThrows, errorSaver);
+		}
+
 		public static INeedDelegateCollection<T> WithWaitAndInfiniteRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, TimeSpan delay, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
 			return policyDelegateCollection.WithRetryInner<IPolicyDelegateCollection<T>, INeedDelegateCollection<T>>(delay, policyParams, failedIfSaveErrorThrows, errorSaver);
