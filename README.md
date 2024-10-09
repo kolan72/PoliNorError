@@ -983,6 +983,8 @@ Complete list of extension methods - for generic and non-generic delegates:
 - `InvokeWithWaitAndRetry(Async)`
 - `InvokeWithRetryInfinite(Async)`
 - `InvokeWithWaitAndRetryInfinite(Async)`
+- `InvokeWithRetryDelay(Async)` (since _version_ 2.19.8)
+- `InvokeWithRetryDelayInfinite(Async)` (since _version_ 2.19.8)
 - `InvokeWithFallback(Async)`
 - `InvokeWithSimple(Async)`
 
