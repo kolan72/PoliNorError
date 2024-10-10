@@ -38,9 +38,20 @@ namespace PoliNorError
 		/// <param name="maxDelay">Maximum delay value. If null, it will be set to <see cref="TimeSpan.MaxValue"/>.</param>
 		/// <param name="useJitter">Whether jitter is used.</param>
 		/// <returns></returns>
-		public static LinearRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new LinearRetryDelay(baseDelay, maxDelay, useJitter);
+		public static LinearRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new LinearRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
 
-		internal LinearRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}
+		/// <summary>
+		///  Creates <see cref="LinearRetryDelay"/>.
+		/// </summary>
+		/// <param name="baseDelay">Base delay value between retries.</param>
+		/// <param name="slopeFactor">Slope factor to use.</param>
+		/// <param name="maxDelay">Maximum delay value. If null, it will be set to <see cref="TimeSpan.MaxValue"/>.</param>
+		/// <param name="useJitter">Whether jitter is used.</param>
+		/// <returns></returns>
+		public static LinearRetryDelay Create(TimeSpan baseDelay, double slopeFactor, TimeSpan? maxDelay = null, bool useJitter = false) => new LinearRetryDelay(baseDelay, slopeFactor, maxDelay, useJitter);
+
+		internal LinearRetryDelay(TimeSpan baseDelay, double slopeFactor = RetryDelayConstants.SlopeFactor, TimeSpan? maxDelay = null, bool useJitter = false) :
+			 this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, SlopeFactor = slopeFactor, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}
 
 		private TimeSpan GetDelayValue(int attempt)
 		{
@@ -54,7 +65,7 @@ namespace PoliNorError
 
 		private double GetDelayValueInMs(int attempt)
 		{
-			return (attempt + 1) * _options.BaseDelay.TotalMilliseconds;
+			return (attempt + 1) * _options.SlopeFactor * _options.BaseDelay.TotalMilliseconds;
 		}
 	}
 
@@ -64,5 +75,10 @@ namespace PoliNorError
 	public class LinearRetryDelayOptions : RetryDelayOptions
 	{
 		public override RetryDelayType DelayType => RetryDelayType.Linear;
+
+		/// <summary>
+		/// Slope factor to use.
+		/// </summary>
+		public double SlopeFactor { get; set; } = RetryDelayConstants.SlopeFactor;
 	}
 }

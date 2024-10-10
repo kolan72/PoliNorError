@@ -921,6 +921,17 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_LinearRetryDelayWithSlopeFactor_Returns_Correct_Timespan()
+		{
+			var rd = LinearRetryDelay.Create(TimeSpan.FromSeconds(2), 2.0);
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(0, 1, 2);
+			Assert.That(res[0].TotalSeconds, Is.EqualTo(4));
+			Assert.That(res[1].TotalSeconds, Is.EqualTo(8));
+			Assert.That(res[2].TotalSeconds, Is.EqualTo(12));
+		}
+
 		[TestCase(RetryDelayType.Constant, true)]
 		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]

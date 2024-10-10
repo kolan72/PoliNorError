@@ -16,5 +16,7 @@ namespace PoliNorError
 		internal const double JitterFactor = 0.5;
 
 		internal const double ExponentialFactor = 2.0;
+
+		internal const double SlopeFactor = 1.0;
 	}
 }
