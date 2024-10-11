@@ -29,13 +29,13 @@ namespace PoliNorError
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
-			Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
-
 			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 			if (Act == null && Wrapper != null)
 			{
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
+
+			Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
 
 			var fallBackRes = _fallbackProcessor.Fallback(Act, curFallback, token)
 								.SetWrappedPolicyResults(Wrapper)
@@ -47,13 +47,13 @@ namespace PoliNorError
 
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
-			Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
-
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 			if (Fn == null && Wrapper != null)
 			{
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
+
+			Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
 
 			var fallbackResult = _fallbackProcessor.Fallback(Fn, fallBackFunc, token)
 									.SetWrappedPolicyResults(Wrapper)
@@ -65,13 +65,13 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			Func<CancellationToken, Task> curFallbackAsync = _fallbackFuncsProvider.GetAsyncFallbackFunc();
-
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
 			{
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
+
+			Func<CancellationToken, Task> curFallbackAsync = _fallbackFuncsProvider.GetAsyncFallbackFunc();
 
 			var fallBackRes = (await _fallbackProcessor.FallbackAsync(Fn, curFallbackAsync, configureAwait, token).ConfigureAwait(configureAwait))
 				.SetWrappedPolicyResults(Wrapper)
@@ -83,13 +83,13 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
-
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 			if (Fn == null && Wrapper != null)
 			{
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
+
+			Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
 
 			var fallBackRes = (await _fallbackProcessor.FallbackAsync(Fn, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait))
 				.SetWrappedPolicyResults(Wrapper)
