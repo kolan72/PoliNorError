@@ -292,7 +292,7 @@ namespace PoliNorError
 						&& result.ChangeByHandleCatchBlockResult(handler
 																.Handle(ex, retryContext))
 						&& !result.IsFailed
-						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, retryContext.Context.CurrentRetryCount, token), ex)
+						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, retryContext, token), ex)
 						&& !result.IsFailed;
 		}
 
@@ -308,7 +308,7 @@ namespace PoliNorError
 						&& result.ChangeByHandleCatchBlockResult(await handler
 																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
 						&& !result.IsFailed
-						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, retryContext.Context.CurrentRetryCount, configureAwait, token).ConfigureAwait(configureAwait), ex)
+						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, retryContext, configureAwait, token).ConfigureAwait(configureAwait), ex)
 						&& !result.IsFailed;
 		}
 
@@ -317,10 +317,10 @@ namespace PoliNorError
 			return new RetryErrorContext(tryCount);
 		}
 
-		private BasicResult DelayIfNeed(RetryDelay retryDelay, int tryCount, CancellationToken token)
+		private BasicResult DelayIfNeed(RetryDelay retryDelay, RetryErrorContext retryContext, CancellationToken token)
 		{
 			BasicResult res = null;
-			var delay = retryDelay?.GetDelay(tryCount);
+			var delay = retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount);
 			if (delay > TimeSpan.Zero)
 			{
 				res = _delayProvider.BackoffSafely(delay.Value, token);
@@ -328,10 +328,10 @@ namespace PoliNorError
 			return res;
 		}
 
-		private async Task<BasicResult> DelayIfNeedAsync(RetryDelay retryDelay, int tryCount, bool configureAwait, CancellationToken token)
+		private async Task<BasicResult> DelayIfNeedAsync(RetryDelay retryDelay, RetryErrorContext retryContext, bool configureAwait, CancellationToken token)
 		{
 			BasicResult res = null;
-			var delay = retryDelay?.GetDelay(tryCount);
+			var delay = retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount);
 			if (delay > TimeSpan.Zero)
 			{
 				res = await _delayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
