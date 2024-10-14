@@ -344,6 +344,8 @@ You can also create `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryD
 
 Using `RetryDelay` is a more accurate alternative to the above approach with `DelayErrorProcessor`. Note that unlike `DelayErrorProcessor`, the `RetryDelay` parameter allows you to configure only one delay for a retry policy or processor.  
 
+Since _version_ 2.19.8 you can use the `RetryDelay` class or its subclasses [to call Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner).  
+
 For huge numbers of retries, memory-related exceptions, such as `OutOfMemoryException`, may occur while saving handling exceptions in the `PolicyResult.Errors` property. This exception will be handled, wrapped up in a `CatchBlockException`, and saved in the `PolicyResult.CatchBlockErrors`.  
 
 If you want to interrupt the handling process after that, create a Retry policy or processor with the `failedIfSaveErrorThrow` parameter set to true. In this case, the `CatchBlockException.IsCritical` property will be set to true, as well as the `PolicyResult.IsFailed` property.  
@@ -981,6 +983,8 @@ Complete list of extension methods - for generic and non-generic delegates:
 - `InvokeWithWaitAndRetry(Async)`
 - `InvokeWithRetryInfinite(Async)`
 - `InvokeWithWaitAndRetryInfinite(Async)`
+- `InvokeWithRetryDelay(Async)` (since _version_ 2.19.8)
+- `InvokeWithRetryDelayInfinite(Async)` (since _version_ 2.19.8)
 - `InvokeWithFallback(Async)`
 - `InvokeWithSimple(Async)`
 
