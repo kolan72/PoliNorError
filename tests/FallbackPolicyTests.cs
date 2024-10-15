@@ -1375,6 +1375,77 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, FallbackTypeForTests.Creator)]
+		[TestCase(false, FallbackTypeForTests.BaseClass)]
+		[TestCase(true, FallbackTypeForTests.BaseClass)]
+		[TestCase(false, FallbackTypeForTests.WithAction)]
+		[TestCase(true, FallbackTypeForTests.WithAction)]
+		[TestCase(true, FallbackTypeForTests.WithAsyncFunc)]
+		[TestCase(false, FallbackTypeForTests.WithAsyncFunc)]
+		public void Should_SetPolicyResultFailedIfWithHandlerT_Work(bool setIsFailedByPolicyResultHandler, FallbackTypeForTests fallbackType)
+		{
+			PolicyResult polResult = null;
+			bool handlerFlag = false;
+			void act(PolicyResult<int> _) => handlerFlag = true;
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					FallbackPolicyBase fbBase;
+					if (setIsFailedByPolicyResultHandler)
+					{
+						fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => { });
+					}
+					else
+					{
+						fbBase = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1)).WithFallbackAction((_) => throw new Exception());
+					}
+					fbBase.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
+					polResult = fbBase.Handle<int>(() => throw new ArgumentException("Test"));
+					break;
+				case FallbackTypeForTests.WithAction:
+					FallbackPolicyWithAction fbWithAction;
+					if (setIsFailedByPolicyResultHandler)
+					{
+						fbWithAction = new FallbackPolicy().WithFallbackAction((_) => { });
+					}
+					else
+					{
+						fbWithAction = new FallbackPolicy().WithFallbackAction((_) => throw new Exception());
+					}
+					fbWithAction.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
+					polResult = fbWithAction.Handle<int>(() => throw new ArgumentException("Test"));
+					break;
+				case FallbackTypeForTests.Creator:
+					var fbCreator = new FallbackPolicy();
+					fbCreator.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
+					polResult = fbCreator.Handle<int>(() => throw new ArgumentException("Test"));
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc;
+					if (setIsFailedByPolicyResultHandler)
+					{
+						fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					}
+					else
+					{
+						fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw new Exception(); });
+					}
+					fallbackPolicyWithAsyncFunc.SetPolicyResultFailedIf<int>(PredicateFuncsForTests.GenericPredicate, act);
+					polResult = fallbackPolicyWithAsyncFunc.Handle<int>(() => throw new ArgumentException("Test"));
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			Assert.That(polResult.IsFailed, Is.EqualTo(true));
+
+			Assert.That(polResult.FailedReason, Is.EqualTo(setIsFailedByPolicyResultHandler
+														? PolicyResultFailedReason.PolicyResultHandlerFailed
+														: PolicyResultFailedReason.PolicyProcessorFailed));
+
+			Assert.That(handlerFlag, Is.EqualTo(setIsFailedByPolicyResultHandler));
+		}
+
+		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
 		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
 		[TestCase(FallbackTypeForTests.BaseClass, true, null)]

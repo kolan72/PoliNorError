@@ -268,6 +268,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_RetryPolicy_Handle_Preserve_BadResults_In_WrappedPolicyResults_When_RetryPolicy_Wrap_SimplePolicy()
+		{
+			int func() => 1;
+			var simplePolicy = new SimplePolicy().SetPolicyResultFailedIf<int>((_) => true);
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(simplePolicy);
+			var retryResult = retryPolicy.Handle(func);
+			var wprs = retryResult.WrappedPolicyResults.ToArray();
+			Assert.That(wprs[0].Result.Result, Is.EqualTo(1));
+			Assert.That(wprs[1].Result.Result, Is.EqualTo(1));
+		}
+
+		[Test]
 		public async Task Should_Work_For_HandleAsync_Null_Delegate()
 		{
 			var retryPolTest = new RetryPolicy(0);
@@ -710,6 +723,36 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_SetPolicyResultFailedIfWithHandlerT_Work(bool setIsFailedByPolicyResultHandler)
+		{
+			var policy = new RetryPolicy(1);
+			PolicyResult<int> polResult = null;
+			bool continueThrow = true;
+			bool handlerFlag = false;
+			void act(PolicyResult<int> _) => handlerFlag = true;
+			polResult = policy.SetPolicyResultFailedIf<int>(pr => pr.Errors.Any(e => e.Message == "Test"), act)
+				.Handle(() =>
+				{
+					if (continueThrow)
+					{
+						continueThrow = !setIsFailedByPolicyResultHandler;
+						throw new ArgumentException("Test");
+					}
+					return 1;
+				});
+
+			Assert.That(polResult.IsFailed, Is.EqualTo(true));
+
+			Assert.That(polResult.FailedReason, Is.EqualTo(setIsFailedByPolicyResultHandler
+														? PolicyResultFailedReason.PolicyResultHandlerFailed
+														: PolicyResultFailedReason.PolicyProcessorFailed));
+
+			Assert.That(handlerFlag, Is.EqualTo(setIsFailedByPolicyResultHandler));
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(true, false)]
 		[TestCase(true, null)]
@@ -876,6 +919,17 @@ namespace PoliNorError.Tests
 						throw new NotImplementedException();
 				}
 			}
+		}
+
+		[Test]
+		public void Should_LinearRetryDelayWithSlopeFactor_Returns_Correct_Timespan()
+		{
+			var rd = LinearRetryDelay.Create(TimeSpan.FromSeconds(2), 2.0);
+			var rdch = new RetryDelayChecker(rd);
+			var res = rdch.Attempt(0, 1, 2);
+			Assert.That(res[0].TotalSeconds, Is.EqualTo(4));
+			Assert.That(res[1].TotalSeconds, Is.EqualTo(8));
+			Assert.That(res[2].TotalSeconds, Is.EqualTo(12));
 		}
 
 		[TestCase(RetryDelayType.Constant, true)]

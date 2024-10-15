@@ -40,6 +40,16 @@ namespace PoliNorError
 			return t.WithPolicy(policyParams.ToInfiniteRetryPolicyWithDelayProcessorOf(delayOnRetryFunc, errorSaver, failedIfSaveErrorThrows));
 		}
 
+		public static T WithRetryInner<T>(this T t, int retryCount, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null) where T : IWithPolicy<T>
+		{
+			return t.WithPolicy(new RetryPolicy(retryCount, failedIfSaveErrorThrows, retryDelay).ConfigureBy(errorSaver));
+		}
+
+		public static T WithRetryInner<T>(this T t, RetryDelay retryDelay, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null) where T : IWithPolicy<T>
+		{
+			return t.WithPolicy(RetryPolicy.InfiniteRetries(failedIfSaveErrorThrows, retryDelay).ConfigureBy(errorSaver));
+		}
+
 		public static T WithFallbackInner<T>(this T t, Action<CancellationToken> fallback, ErrorProcessorParam policyParams = null, bool onlyGenericFallbackForGenericDelegate = false) where T : IWithPolicy<T>
 		{
 			return t.WithPolicy(policyParams.ToFallbackPolicy(fallback, onlyGenericFallbackForGenericDelegate));

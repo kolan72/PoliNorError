@@ -41,7 +41,7 @@ namespace PoliNorError
 					InnerDelay = new ConstantRetryDelay(baseDelay, maxDelay, useJitter);
 					break;
 				case RetryDelayType.Linear:
-					InnerDelay = new LinearRetryDelay(baseDelay, maxDelay, useJitter);
+					InnerDelay = new LinearRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
 					break;
 				case RetryDelayType.Exponential:
 					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay,  useJitter: useJitter);
