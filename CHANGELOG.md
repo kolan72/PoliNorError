@@ -1,3 +1,20 @@
+## 2.19.11
+
+- Introduce `SlopeFactor` for `LinearRetryDelay`.
+- Slightly improved performance for `RetryPolicy` by removing the overhead of using the `int` `tryCount` argument in the `DefaultRetryProcessor.DelayIfNeedAsync(Async)` methods.  
+- Introduce `PolicyCollection.WithRetry`, `PolicyCollection.WithInfiniteRetry` methods with `RetryDelay` parameter.
+- Introduce `PolicyDelegateCollection.WithRetry`, `PolicyDelegateCollection.WithInfiniteRetry` methods with `RetryDelay` parameter.
+- Introduce `PolicyDelegateCollection<T>.WithRetry`, `PolicyDelegateCollection<T>.WithInfiniteRetry` methods with `RetryDelay` parameter.
+- Introduce `RetryPolicy.SetPolicyResultFailedIf` method overloads with `Action<PolicyResult<T>>` handler parameter for `RetryPolicy`, `SimplePolicy` and `Fallback` policies.  
+- Move null guards before getting a fallback delegate in `FallbackPolicyBase`.  
+- Remove deprecated suppression for `PolicyResultHandlingException`.
+- Add doc comments to the public members of the `PolicyDelegate` and `PolicyDelegate<T>` classes.
+- Add doc comments to the public members of the `PolicyDelegateResult` and `PolicyDelegateResult<T>` classes.
+- Add doc comments to the public members of the `PolicyResult` and `PolicyResult<T>` classes, and to the `PolicyResultFailedReason` enum.
+- Update 'Calling Func and Action delegates in a resilient manner' README Chapter.
+- Update 'RetryPolicy' README Chapter.
+
+
 ## 2.19.8
 
 - Introduce `Policy` error filtering extension methods in the `PoliNorError.Extensions.PolicyErrorFiltering` namespace.
