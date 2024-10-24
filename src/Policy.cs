@@ -13,7 +13,7 @@ namespace PoliNorError
 
 		private readonly PolicyResultHandlerCollection _policyResultHandlerCollection;
 
-		private protected Policy(IPolicyProcessor policyProcessor)
+		protected Policy(IPolicyProcessor policyProcessor)
 		{
 			_policyResultHandlerCollection = new PolicyResultHandlerCollection();
 			PolicyProcessor = policyProcessor;
