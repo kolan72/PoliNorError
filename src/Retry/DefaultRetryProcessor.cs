@@ -12,6 +12,8 @@ namespace PoliNorError
 
 		private readonly Func<int, RetryErrorContext> _retryErrorContextCreator;
 
+		private readonly Func<RetryCountInfo, ErrorContext<RetryContext>, bool> _policyRuleFunc;
+
 		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
 
 		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false)
@@ -26,6 +28,7 @@ namespace PoliNorError
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
 			_retryErrorContextCreator = CreateRetryErrorContext;
 			_delayProvider = delayProvider;
+			_policyRuleFunc = (retryCountInfo, exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 		}
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
@@ -68,7 +71,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
+			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
 
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -130,7 +133,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockSyncHandler<RetryContext>(result, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
+			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
 
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -188,7 +191,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
+			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
 
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -241,7 +244,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockAsyncHandler<RetryContext>(result, configureAwait, token, (exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount));
+			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
 
 			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
