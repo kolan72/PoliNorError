@@ -583,5 +583,23 @@ namespace PoliNorError.Tests
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_IsZeroTry_True_Only_Before_Increment(bool sync)
+		{
+			var rc = new RetryContext(10);
+			Assert.That(rc.IsZeroTry, Is.True);
+			if (sync)
+			{
+				rc.IncrementCount();
+			}
+			else
+			{
+				rc.IncrementCountAtomic();
+			}
+			Assert.That(rc.IsZeroTry, Is.False);
+		}
 	}
 }

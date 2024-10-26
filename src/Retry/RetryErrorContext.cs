@@ -22,7 +22,15 @@ namespace PoliNorError
 	{
 		private int _currentRetryCount;
 
-		public RetryContext(int currentRetryCount) => _currentRetryCount = currentRetryCount;
+		private readonly int _startRetryCount;
+
+		public RetryContext(int currentRetryCount)
+		{
+			_startRetryCount = currentRetryCount;
+			_currentRetryCount = _startRetryCount;
+		}
+
+		public bool IsZeroTry => _currentRetryCount == _startRetryCount;
 
 		public int CurrentRetryCount
 		{
