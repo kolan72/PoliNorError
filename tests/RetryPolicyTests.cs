@@ -1275,6 +1275,8 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3871:Exception types should be \"public\"", Justification = "<Pending>")]
 		private class SimplePolicyException : Exception{}
 	}
 }

@@ -51,11 +51,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_PolicyCollection_WrapUp_For_Func_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
+		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
+		public void Should_PolicyCollection_WrapUp_For_Func_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = CreatePolicyCollectionToTest()
 											.AddPolicyResultHandlerForAll<int>(pr => pr.SetFailed())
-											.WrapUp(new SimplePolicy())
+											.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 											.OuterPolicy
 											.Handle(() => 1);
 
@@ -103,11 +105,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_PolicyCollection_WrapUp_For_AsyncFuncT_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
+		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
+		public async Task Should_PolicyCollection_WrapUp_For_AsyncFuncT_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = await CreatePolicyCollectionToTest()
 											.AddPolicyResultHandlerForAll<int>(pr => pr.SetFailed())
-											.WrapUp(new SimplePolicy())
+											.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 											.OuterPolicy
 											.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 
