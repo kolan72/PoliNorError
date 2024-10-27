@@ -281,6 +281,40 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryPolicy_Handle_Exceptions_When_RetryPolicy_Wrap_SimplePolicy_That_Wrap_OtherPolicy_And_AlwaysSetPolicyResultFailed(bool throwEx)
+		{
+			Func<int> func;
+			if (throwEx)
+			{
+				func = () => throw new InvalidOperationException();
+			}
+			else
+			{
+				func = () => 1;
+			}
+			var simplePolicy = new SimplePolicy(true)
+								.IncludeError<SimplePolicyException>()
+								.SetPolicyResultFailedIf<int>((_) => true)
+								.WrapPolicy(new RetryPolicy(2));
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(simplePolicy).ExcludeError<NotImplementedException>();
+			var retryResult = retryPolicy.Handle(func);
+			if (throwEx)
+			{
+				Assert.That(retryResult.Errors.Count(), Is.EqualTo(2));
+				Assert.That(retryResult.Errors.Any(ex => ex.GetType() != typeof(InvalidOperationException)), Is.False);
+			}
+			else
+			{
+				var wprs = retryResult.WrappedPolicyResults.ToArray();
+				Assert.That(wprs[0].Result.Result, Is.EqualTo(1));
+				Assert.That(wprs[1].Result.Result, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
 		public async Task Should_Work_For_HandleAsync_Null_Delegate()
 		{
 			var retryPolTest = new RetryPolicy(0);
@@ -1240,5 +1274,7 @@ namespace PoliNorError.Tests
 				}
 			}
 		}
+
+		private class SimplePolicyException : Exception{}
 	}
 }
