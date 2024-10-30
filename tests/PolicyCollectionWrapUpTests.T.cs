@@ -132,6 +132,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_Policy_WrapPolicyCollection_Wraps_Collection_For_AsyncFuncT_Correctly()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			var result = await new SimplePolicy()
+							.WrapPolicyCollection(collection)
+							.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test");});
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
+		}
+
+		[Test]
 		public void Should_PolicyCollection_WrapUp_For_FuncT_Has_Correct_PolicyResult_When_Exception()
 		{
 			var collection = PolicyCollection.Create()

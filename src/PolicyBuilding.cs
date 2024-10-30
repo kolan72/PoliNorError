@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace PoliNorError
 {
@@ -17,6 +18,12 @@ namespace PoliNorError
 		public static T WrapPolicy<T>(this T errorPolicyBase, IPolicyBase wrappedPolicy) where T : Policy
 		{
 			errorPolicyBase.SetWrap(wrappedPolicy);
+			return errorPolicyBase;
+		}
+
+		public static T WrapPolicyCollection<T>(this T errorPolicyBase, IEnumerable<IPolicyBase> wrappedPolicyCollection, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.LastError) where T : Policy
+		{
+			errorPolicyBase.SetWrap(wrappedPolicyCollection, throwOnWrappedCollectionFailed);
 			return errorPolicyBase;
 		}
 

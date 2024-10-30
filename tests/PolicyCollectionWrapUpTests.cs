@@ -141,6 +141,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Policy_WrapPolicyCollection_Wraps_Collection_Correctly()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			var result = new SimplePolicy()
+							.WrapPolicyCollection(collection)
+							.Handle(() => throw new Exception("Test"));
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
+		}
+
+		[Test]
 		public void Should_PolicyCollection_WrapUp_For_ThrowOnWrappedCollectionFailed_None_ThrowException()
 		{
 			var collection = PolicyCollection.Create()
