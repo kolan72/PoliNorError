@@ -124,6 +124,10 @@ namespace PoliNorError
 			{
 				throw new ArgumentException("More than one wrapped PolicyCollection is not supported.");
 			}
+			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.None)
+			{
+				throw new ArgumentException($"Value must be {nameof(ThrowOnWrappedCollectionFailed.LastError)} or {nameof(ThrowOnWrappedCollectionFailed.CollectionError)}.");
+			}
 			_policyWrapperFactory = new PolicyWrapperFactory(policies, throwOnWrappedCollectionFailed);
 		}
 

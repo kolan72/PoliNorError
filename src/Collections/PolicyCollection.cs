@@ -403,10 +403,6 @@ namespace PoliNorError
 		/// <returns></returns>
 		public OuterPolicyRegistrar<TWrapperPolicy> WrapUp<TWrapperPolicy>(TWrapperPolicy wrapperPolicy, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.LastError) where TWrapperPolicy : Policy
 		{
-			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.None)
-			{
-				throw new ArgumentException($"Value must be {nameof(ThrowOnWrappedCollectionFailed.LastError)} or {nameof(ThrowOnWrappedCollectionFailed.CollectionError)}.");
-			}
 			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, this, throwOnWrappedCollectionFailed);
 		}
 

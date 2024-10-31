@@ -165,6 +165,18 @@ namespace PoliNorError.Tests
 							   .Handle(() => { }));
 		}
 
+		[Test]
+		public void Should_Policy_WrapPolicyCollection_For_ThrowOnWrappedCollectionFailed_None_ThrowException()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			Assert.Throws<ArgumentException>(() => new SimplePolicy()
+							.WrapPolicyCollection(collection, ThrowOnWrappedCollectionFailed.None)
+							.Handle(() => throw new Exception("Test")));
+		}
+
 		private PolicyCollection CreatePolicyCollectionToTest() => PolicyCollection.Create().WithRetry(2).WithRetry(3);
 	}
 }
