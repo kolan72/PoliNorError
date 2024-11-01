@@ -715,5 +715,34 @@ namespace PoliNorError.Tests
 				ClassicAssert.AreEqual(res, wrapper == null);
 			}
 		}
+
+		[Test]
+		[TestCase(PolicyResultFailedReason.PolicyResultHandlerFailed)]
+		[TestCase(PolicyResultFailedReason.PolicyProcessorFailed)]
+		public void Should_PolicyWrapper_Throws_Correct_Exception_If_Failed(PolicyResultFailedReason failedReason)
+		{
+			var pr = new PolicyResult();
+			pr.AddError(new InvalidOperationException());
+			pr.SetFailedInner(failedReason);
+
+			var pw = new PolicyWrapperTest();
+
+			if (failedReason == PolicyResultFailedReason.PolicyResultHandlerFailed)
+			{
+				var ex = Assert.Throws<PolicyResultHandlerFailedException>(() => pw.ThrowIf(pr));
+				Assert.That(ex.Result, Is.Not.Null);
+			}
+			else
+			{
+				Assert.Throws<InvalidOperationException>(() => pw.ThrowIf(pr));
+			}
+		}
+
+		private class PolicyWrapperTest : PolicyWrapperBase
+		{
+			public PolicyWrapperTest() :base(CancellationToken.None){}
+
+			public void ThrowIf(PolicyResult pr) => base.ThrowIfFailed(pr);
+		}
 	}
 }

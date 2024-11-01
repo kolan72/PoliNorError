@@ -68,7 +68,7 @@ namespace PoliNorError
 			}
 			else
 			{
-				throw new PolicyResultHandlerFailedException();
+				throw new PolicyResultHandlerFailedException(results.LastOrDefault()?.Result);
 			}
 		}
 	}

@@ -20,7 +20,7 @@ namespace PoliNorError
 				if (res.FailedReason != PolicyResultFailedReason.PolicyResultHandlerFailed)
 					throw res.UnprocessedError;
 				else
-					throw new PolicyResultHandlerFailedException();
+					throw new PolicyResultHandlerFailedException(res);
 			}
 		}
 	}
