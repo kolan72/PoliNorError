@@ -61,7 +61,7 @@ namespace PoliNorError.Tests
 											.OuterPolicy
 											.Handle(() => 1);
 
-			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException<int>), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -115,7 +115,7 @@ namespace PoliNorError.Tests
 											.OuterPolicy
 											.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 
-			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException<int>), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]

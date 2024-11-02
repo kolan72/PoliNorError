@@ -738,11 +738,35 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(PolicyResultFailedReason.PolicyResultHandlerFailed)]
+		[TestCase(PolicyResultFailedReason.PolicyProcessorFailed)]
+		public void Should_PolicyWrapper_Throws_Correct_Exception_If_Failed_T(PolicyResultFailedReason failedReason)
+		{
+			var pr = new PolicyResult<int>();
+			pr.AddError(new InvalidOperationException());
+			pr.SetFailedInner(failedReason);
+
+			var pw = new PolicyWrapperTest();
+
+			if (failedReason == PolicyResultFailedReason.PolicyResultHandlerFailed)
+			{
+				var ex = Assert.Throws<PolicyResultHandlerFailedException<int>>(() => pw.ThrowIf(pr));
+				Assert.That(ex.Result, Is.Not.Null);
+			}
+			else
+			{
+				Assert.Throws<InvalidOperationException>(() => pw.ThrowIf(pr));
+			}
+		}
+
 		private class PolicyWrapperTest : PolicyWrapperBase
 		{
 			public PolicyWrapperTest() :base(CancellationToken.None){}
 
-			public void ThrowIf(PolicyResult pr) => base.ThrowIfFailed(pr);
+			public void ThrowIf(PolicyResult pr) => ThrowIfFailed(pr);
+
+			public void ThrowIf<T>(PolicyResult<T> pr) => ThrowIfFailed(pr);
 		}
 	}
 }
