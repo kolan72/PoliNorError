@@ -332,7 +332,7 @@ Simply create a `RetryPolicy` using one of the constructors with the `RetryDelay
 There are three ways to create a `RetryDelay`, represented by the `RetryDelayType` parameter:  
 
 - `RetryDelayType.Constant` with corresponding `ConstantRetryDelay` subclass configured by `ConstantRetryDelayOptions`. For `baseDelay` = 200ms the time delay will be 200ms, 200ms, 200ms.  
-- `RetryDelayType.Linear` with corresponding `LinearRetryDelay` subclass configured by `LinearRetryDelayOptions`. For `baseDelay` = 200ms the time delay will be 200ms, 400ms, 600ms.  
+- `RetryDelayType.Linear` with corresponding `LinearRetryDelay` subclass configured by `LinearRetryDelayOptions`. For `baseDelay` = 200ms and  default `SlopeFactor` = 1.0 (since _version_ 2.19.11) the time delay will be 200ms, 400ms, 600ms.  
 - `RetryDelayType.Exponential` with corresponding `ExponentialRetryDelay` subclass configured by `ExponentialRetryDelayOptions`. For `baseDelay` = 200ms and  default `ExponentialFactor` = 2.0 the time delay will be 200ms, 400ms, 800ms.  
 
 Since _version_ 2.19.5, the `ConstantRetryDelayOptions`, `LinearRetryDelayOptions`, and `ExponentialRetryDelayOptions` classes also have `MaxDelay` and `UseJitter` properties in their `RetryDelayOptions` base class:
