@@ -97,7 +97,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					SaveError(result, ex, retryContext.Context.CurrentRetryCount, token);
+					SaveError(result, ex, retryContext, token);
 					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
 					{
 						retryContext.IncrementCount();
@@ -160,7 +160,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					SaveError(result, ex, retryContext.Context.CurrentRetryCount, token);
+					SaveError(result, ex, retryContext, token);
 					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
 					{
 						retryContext.IncrementCount();
@@ -213,7 +213,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					await SaveErrorAsync(result, ex, retryContext.Context.CurrentRetryCount, configureAwait, token).ConfigureAwait(configureAwait);
+					await SaveErrorAsync(result, ex, retryContext, configureAwait, token).ConfigureAwait(configureAwait);
 
 					if (await HandleErrorAsync(ex, result, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
 					{
@@ -267,7 +267,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					await SaveErrorAsync(result, ex, retryContext.Context.CurrentRetryCount, configureAwait, token).ConfigureAwait(configureAwait);
+					await SaveErrorAsync(result, ex, retryContext, configureAwait, token).ConfigureAwait(configureAwait);
 					if (await HandleErrorAsync(ex, result, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
@@ -344,7 +344,7 @@ namespace PoliNorError
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
 
-		private void SaveError(PolicyResult result, Exception ex, int tryErrorCount, CancellationToken token)
+		private void SaveError(PolicyResult result, Exception ex, ErrorContext<RetryContext> retryContext, CancellationToken token)
 		{
 			try
 			{
@@ -354,7 +354,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					_saveErrorProcessor.Process(ex, new RetryProcessingErrorInfo(tryErrorCount), token);
+					_saveErrorProcessor.Process(ex, new RetryProcessingErrorInfo(retryContext.Context.CurrentRetryCount), token);
 					//We set it here to keep UnprocessedError from being lost.
 					result.UnprocessedError = ex;
 				}
@@ -365,7 +365,7 @@ namespace PoliNorError
 			}
 		}
 
-		private async Task SaveErrorAsync(PolicyResult result, Exception ex, int tryErrorCount, bool configureAwait, CancellationToken token)
+		private async Task SaveErrorAsync(PolicyResult result, Exception ex, ErrorContext<RetryContext> retryContext, bool configureAwait, CancellationToken token)
 		{
 			try
 			{
@@ -375,7 +375,7 @@ namespace PoliNorError
 				}
 				else
 				{
-					await _saveErrorProcessor.ProcessAsync(ex, new RetryProcessingErrorInfo(tryErrorCount), configureAwait, token).ConfigureAwait(configureAwait);
+					await _saveErrorProcessor.ProcessAsync(ex, new RetryProcessingErrorInfo(retryContext.Context.CurrentRetryCount), configureAwait, token).ConfigureAwait(configureAwait);
 					//We set it here to keep UnprocessedError from being lost.
 					result.UnprocessedError = ex;
 				}
