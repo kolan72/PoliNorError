@@ -110,6 +110,10 @@
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="PolicyResultExtensionsTests.cs" />
+    <Compile Include="RetryDelay.Tests\RetryDelayChecker.cs" />
+    <Compile Include="RetryDelay.Tests\RetryDelayJitteredTests.cs" />
+    <Compile Include="RetryDelay.Tests\RetryDelayRepeater.cs" />
+    <Compile Include="RetryDelay.Tests\RetryDelayTests.cs" />
     <Compile Include="RetryObjectsToTest.cs" />
     <Compile Include="TryCatchBuilderTests.cs" />
     <Compile Include="TryCatchTests.cs" />
@@ -157,6 +161,7 @@
       <Name>PoliNorError</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
