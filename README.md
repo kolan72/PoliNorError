@@ -310,8 +310,8 @@ The policy rule for the `RetryPolicy` is that it can handle exceptions only unti
 
 Note that retries start from 0. In some cases it may be more appropriate to use the term *attempt*, which means running a delegate and always starts at 1. I.e. on the time scale:
 
-attempts:	1	2	...		n
-retries :	0	1	...		n-1
+attempts:	1		2		...			n  
+retries :	0		1		...			n-1
 
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
 ```csharp
