@@ -74,7 +74,7 @@ With [`RetryPolicy`](#retrypolicy), more complex case:
 ```csharp
 var result = await new RetryPolicy(5)
 	                 .ExcludeError<DbEntityValidationException>()
-			 .WithWait((retryAttempt) => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+			 .WithWait((currentRetry) => TimeSpan.FromSeconds(Math.Pow(2, currentRetry)))
 			 .AddPolicyResultHandler<int>((pr) =>
 							{ 
 								if (pr.IsCanceled) 
@@ -307,13 +307,19 @@ These methods take the same arguments as the `AddPolicyResultHandler` methods ab
 
 ### RetryPolicy
 The policy rule for the `RetryPolicy` is that it can handle exceptions only until the number of permitted retries does not exceed, so it is the most crucial parameter and is set in policy constructor.  
+
+Note that retries start from 0. In some cases it may be more appropriate to use the term *attempt*, which means running a delegate and always starts at 1. I.e. on the time scale:
+
+attempts:	1	2	...		n
+retries :	0	1	...		n-1
+
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
 ```csharp
             var policy = new RetryPolicy(5)
-                                    .WithWait((retryAttempt, ex) =>
+                                    .WithWait((currentRetry, ex) =>
                                     {
                                         logger.Error(ex.Message);
-                                        return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                                        return TimeSpan.FromSeconds(Math.Pow(2, currentRetry));
                                     });
 ```
 To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
@@ -337,7 +343,7 @@ There are three ways to create a `RetryDelay`, represented by the `RetryDelayTyp
 
 Since _version_ 2.19.5, the `ConstantRetryDelayOptions`, `LinearRetryDelayOptions`, and `ExponentialRetryDelayOptions` classes also have `MaxDelay` and `UseJitter` properties in their `RetryDelayOptions` base class:
 
-- `MaxDelay` - the delay will not exceed this value, regardless of the retry attempts. The default is `TimeSpan.MaxValue`.
+- `MaxDelay` - the delay will not exceed this value, regardless of the number of retries. The default is `TimeSpan.MaxValue`.
 - `UseJitter` - indicates if jitter is used. The default is `false`.  
 
 You can also create `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay` classes using the `Create` static methods.
@@ -659,7 +665,7 @@ This exception contains `InnerExceptions` property with exceptions added from `E
 ### PolicyCollection
 Sometimes one delegate needs to be handled by many policies, and this can be done easily with the `PolicyCollection` class.  
 
-If, for instance, you'd like to read a file that's currently being used by another process, you could try two attempts and, if the error persists, copy the file to the temporary folder and access it from there:
+If, for instance, you'd like to read a file that's currently being used by another process, you could try two retries and, if the error persists, copy the file to the temporary folder and access it from there:
 ```csharp
 	var result = PolicyCollection.Create()
 		.WithRetry(2) 
@@ -825,7 +831,7 @@ The `PolicyCollection.WrapUp` method has an optional parameter of type `ThrowOnW
 You can use `ThrowOnWrappedCollectionFailed.CollectionError` if you want to deal with all the exceptions that happen when `PolicyCollection` handles delegate. In this case, the `PolicyDelegateCollectionException(<T>)` will be thrown as a result of failed handling of wrapped `PolicyCollection`.  
 
 For example, there is a service that should not be used if there are multiple `TimeoutExceptions` within a certain time period.  
-Your strategy may be to repeat a certain number of attempts with a second interval, then with the half-minute interval, and then repeat this set of attempts after an hour.
+Your strategy may be to repeat a certain number of retries with a second interval, then with the half-minute interval, and then repeat this set of retries after an hour.
 But only if the maximum number of `TimeoutException`s were not exceeded:
 ```csharp
 var result = await PolicyCollection.Create()
