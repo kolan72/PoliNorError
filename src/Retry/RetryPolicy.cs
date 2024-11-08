@@ -62,6 +62,12 @@ namespace PoliNorError
 			return this;
 		}
 
+		public RetryPolicy WithWait(DelayErrorProcessor delayErrorProcessor)
+		{
+			this.WithErrorProcessor(delayErrorProcessor);
+			return this;
+		}
+
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
 			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);

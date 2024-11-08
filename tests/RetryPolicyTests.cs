@@ -837,6 +837,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_WithWait_With_DelayErrorProcessorArg_Called_In_Handle_Method()
+		{
+			var policy = new RetryPolicy(1);
+			var delayProcessor = new TestDelayErrorProcessor(TimeSpan.FromMilliseconds(1));
+			policy.WithWait(delayProcessor);
+			var res = policy.Handle(() => throw new InvalidOperationException());
+			Assert.That(policy.PolicyProcessor.Count(), Is.EqualTo(1));
+			Assert.That(delayProcessor.Counter, Is.EqualTo(1));
+			Assert.That(res.IsFailed, Is.True);
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_Backoff_Occurs_In_Handle_Method_When_RetryPolicy_Created_With_RetryDelay_Param(bool zeroDelay)
@@ -946,6 +958,19 @@ namespace PoliNorError.Tests
 					return _i;
 				}
 			}
+		}
+
+		private class TestDelayErrorProcessor : DelayErrorProcessor
+		{
+			public TestDelayErrorProcessor(TimeSpan timeSpan) : base(timeSpan) { }
+
+			public override Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+			{
+				Counter++;
+				return error;
+			}
+
+			public int Counter { get; private set; }
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
