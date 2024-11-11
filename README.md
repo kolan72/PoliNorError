@@ -322,7 +322,7 @@ var retryResult = new RetryPolicy(2)
 				logger.LogError(ex, 
 				"Policy processed exception on {Attempt} attempt:", 
 				(pi as RetryProcessingErrorInfo).RetryCount + 1))
-			.Handle(() => throw new NotImplementedException());
+			.Handle(ActionThatCanThrow);
 ```
 where `RetryProcessingErrorInfo` is the subclass of `ProcessingErrorInfo`.  
 
