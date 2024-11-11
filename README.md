@@ -159,7 +159,7 @@ or synchronous  delegates
 - `Action<Exception, ProcessingErrorInfo, CancellationToken>`
 
 , or a pair of delegates from both lists if you plan to use a policy in sync and async handling scenarios.  
-The last two delegates have the `ProcessingErrorInfo` argument. This type contains a policy alias and may also contain the current context of the policy processor, such as the current retry for the `RetryPolicy`.  
+The last two delegates have the `ProcessingErrorInfo` argument. This type contains a policy alias and it's subtype may also contain the current context of the policy processor, such as the current retry for the `RetryPolicy`.  
 
 You can also add an error processor for `InnerException` using the `WithInnerErrorProcessorOf` method overloads (since _version_ 2.14.0), for example:
 ```csharp
@@ -314,6 +314,17 @@ Note that retries start from 0. In some cases it may be more appropriate to use 
 attempts	:	1		2		...			n  
 retries		:	0		1		...			n-1
 ```
+
+For a `RetryPolicy`, you can get the current attempt in error processor:
+```csharp
+var retryResult = new RetryPolicy(2)
+			.WithErrorProcessorOf((Exception ex, ProcessingErrorInfo pi) =>
+				logger.LogError(ex, 
+				"Policy processed exception on {Attempt} attempt:", 
+				(pi as RetryProcessingErrorInfo).RetryCount + 1))
+			.Handle(() => throw new NotImplementedException());
+```
+where `RetryProcessingErrorInfo` is the subclass of `ProcessingErrorInfo`.  
 
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
 ```csharp
