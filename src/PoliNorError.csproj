@@ -10,6 +10,7 @@
     <Copyright>Copyright 2023 Andrey Kolesnichenko</Copyright>
     <PackageTags>Exception Handling Policy Retry Fallback Resilience Simple Error TryCatch CatchBlockHandler Try Catch</PackageTags>
     <PackageIcon>PoliNorError.png</PackageIcon>
+    <PackageReadmeFile>NuGet.md</PackageReadmeFile>
     <PackageIconUrl />
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/kolan72/PoliNorError</PackageProjectUrl>
@@ -33,8 +34,9 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+    <None Include="docs\NuGet.md" Pack="true" PackagePath="\" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
     <_Parameter1>PoliNorError.Tests</_Parameter1>
@@ -47,4 +49,10 @@
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="docs\" />
+  </ItemGroup>
+
+
 </Project>
