@@ -30,7 +30,7 @@ namespace PoliNorError
 			_currentRetryCount = _startRetryCount;
 		}
 
-		public bool IsZeroTry => _currentRetryCount == _startRetryCount;
+		public bool IsZeroRetry => _currentRetryCount == _startRetryCount;
 
 		public int CurrentRetryCount
 		{

@@ -590,7 +590,7 @@ namespace PoliNorError.Tests
 		public void Should_IsZeroTry_True_Only_Before_Increment(bool sync)
 		{
 			var rc = new RetryContext(10);
-			Assert.That(rc.IsZeroTry, Is.True);
+			Assert.That(rc.IsZeroRetry, Is.True);
 			if (sync)
 			{
 				rc.IncrementCount();
@@ -599,7 +599,7 @@ namespace PoliNorError.Tests
 			{
 				rc.IncrementCountAtomic();
 			}
-			Assert.That(rc.IsZeroTry, Is.False);
+			Assert.That(rc.IsZeroRetry, Is.False);
 		}
 	}
 }

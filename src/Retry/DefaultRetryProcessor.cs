@@ -79,7 +79,7 @@ namespace PoliNorError
 				try
 				{
 					action();
-					if (retryContext.Context.IsZeroTry)
+					if (retryContext.Context.IsZeroRetry)
 					{
 						result.SetOk();
 					}
@@ -141,7 +141,7 @@ namespace PoliNorError
 				try
 				{
 					var res = func();
-					if (retryContext.Context.IsZeroTry)
+					if (retryContext.Context.IsZeroRetry)
 					{
 						result.SetOk();
 					}
@@ -199,7 +199,7 @@ namespace PoliNorError
 				try
 				{
 					await func(token).ConfigureAwait(configureAwait);
-					if (retryContext.Context.IsZeroTry)
+					if (retryContext.Context.IsZeroRetry)
 					{
 						result.SetOk();
 					}
@@ -252,7 +252,7 @@ namespace PoliNorError
 				try
 				{
 					var res = await func(token).ConfigureAwait(configureAwait);
-					if (retryContext.Context.IsZeroTry)
+					if (retryContext.Context.IsZeroRetry)
 					{
 						result.SetOk();
 					}
