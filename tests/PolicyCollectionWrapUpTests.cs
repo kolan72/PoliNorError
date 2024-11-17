@@ -48,11 +48,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_PolicyCollection_WrapUp_For_Action_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
+		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
+		public void Should_PolicyCollection_WrapUp_For_Action_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = CreatePolicyCollectionToTest()
 											.AddPolicyResultHandlerForAll(pr => pr.SetFailed())
-											.WrapUp(new SimplePolicy())
+											.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 											.OuterPolicy
 											.Handle(() => { });
 
@@ -99,11 +101,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_PolicyCollection_WrapUp_For_AsyncFunc_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
+		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
+		public async Task Should_PolicyCollection_WrapUp_For_AsyncFunc_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = await CreatePolicyCollectionToTest()
 											.AddPolicyResultHandlerForAll(pr => pr.SetFailed())
-											.WrapUp(new SimplePolicy())
+											.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 											.OuterPolicy
 											.HandleAsync(async (_) => await Task.Delay(1));
 
@@ -134,6 +138,43 @@ namespace PoliNorError.Tests
 							.OuterPolicy
 							.Handle(() => throw new Exception("Test"));
 			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
+		}
+
+		[Test]
+		public void Should_Policy_WrapPolicyCollection_Wraps_Collection_Correctly()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			var result = new SimplePolicy()
+							.WrapPolicyCollection(collection)
+							.Handle(() => throw new Exception("Test"));
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
+		}
+
+		[Test]
+		public void Should_PolicyCollection_WrapUp_For_ThrowOnWrappedCollectionFailed_None_ThrowException()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			Assert.Throws<ArgumentException>(() => collection.WrapUp(new SimplePolicy(), ThrowOnWrappedCollectionFailed.None)
+							   .OuterPolicy
+							   .Handle(() => { }));
+		}
+
+		[Test]
+		public void Should_Policy_WrapPolicyCollection_For_ThrowOnWrappedCollectionFailed_None_ThrowException()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			Assert.Throws<ArgumentException>(() => new SimplePolicy()
+							.WrapPolicyCollection(collection, ThrowOnWrappedCollectionFailed.None)
+							.Handle(() => throw new Exception("Test")));
 		}
 
 		private PolicyCollection CreatePolicyCollectionToTest() => PolicyCollection.Create().WithRetry(2).WithRetry(3);

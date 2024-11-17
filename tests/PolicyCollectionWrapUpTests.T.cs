@@ -51,15 +51,17 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_PolicyCollection_WrapUp_For_Func_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
+		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
+		public void Should_PolicyCollection_WrapUp_For_Func_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = CreatePolicyCollectionToTest()
 											.AddPolicyResultHandlerForAll<int>(pr => pr.SetFailed())
-											.WrapUp(new SimplePolicy())
+											.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 											.OuterPolicy
 											.Handle(() => 1);
 
-			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException<int>), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -103,15 +105,17 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_PolicyCollection_WrapUp_For_AsyncFuncT_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler()
+		[TestCase(ThrowOnWrappedCollectionFailed.LastError)]
+		[TestCase(ThrowOnWrappedCollectionFailed.CollectionError)]
+		public async Task Should_PolicyCollection_WrapUp_For_AsyncFuncT_Has_Correct_Exception_When_NoException_And_SetFailed_In_Handler(ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
 			var result = await CreatePolicyCollectionToTest()
 											.AddPolicyResultHandlerForAll<int>(pr => pr.SetFailed())
-											.WrapUp(new SimplePolicy())
+											.WrapUp(new SimplePolicy(), throwOnWrappedCollectionFailed)
 											.OuterPolicy
 											.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 
-			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException), result.Errors.FirstOrDefault()?.GetType());
+			ClassicAssert.AreEqual(typeof(PolicyResultHandlerFailedException<int>), result.Errors.FirstOrDefault()?.GetType());
 		}
 
 		[Test]
@@ -124,6 +128,19 @@ namespace PoliNorError.Tests
 			var result = await collection.WrapUp(new SimplePolicy())
 							.OuterPolicy
 							.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test"); });
+			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
+		}
+
+		[Test]
+		public async Task Should_Policy_WrapPolicyCollection_Wraps_Collection_For_AsyncFuncT_Correctly()
+		{
+			var collection = PolicyCollection.Create()
+							.WithRetry(1)
+							.WithRetry(2);
+
+			var result = await new SimplePolicy()
+							.WrapPolicyCollection(collection)
+							.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test");});
 			ClassicAssert.IsTrue(result.WrappedPolicyResults.Any());
 		}
 

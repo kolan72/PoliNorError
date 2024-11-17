@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 using System.Diagnostics;
 using NSubstitute;
 using NUnit.Framework.Legacy;
-using System.Collections.Generic;
 
 namespace PoliNorError.Tests
 {
@@ -278,6 +277,40 @@ namespace PoliNorError.Tests
 			var wprs = retryResult.WrappedPolicyResults.ToArray();
 			Assert.That(wprs[0].Result.Result, Is.EqualTo(1));
 			Assert.That(wprs[1].Result.Result, Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryPolicy_Handle_Exceptions_When_RetryPolicy_Wrap_SimplePolicy_That_Wrap_OtherPolicy_And_AlwaysSetPolicyResultFailed(bool throwEx)
+		{
+			Func<int> func;
+			if (throwEx)
+			{
+				func = () => throw new InvalidOperationException();
+			}
+			else
+			{
+				func = () => 1;
+			}
+			var simplePolicy = new SimplePolicy(true)
+								.IncludeError<SimplePolicyException>()
+								.SetPolicyResultFailedIf<int>((_) => true)
+								.WrapPolicy(new RetryPolicy(2));
+			var retryPolicy = new RetryPolicy(1);
+			retryPolicy.WrapPolicy(simplePolicy).ExcludeError<NotImplementedException>();
+			var retryResult = retryPolicy.Handle(func);
+			if (throwEx)
+			{
+				Assert.That(retryResult.Errors.Count(), Is.EqualTo(2));
+				Assert.That(retryResult.Errors.Any(ex => ex.GetType() != typeof(InvalidOperationException)), Is.False);
+			}
+			else
+			{
+				var wprs = retryResult.WrappedPolicyResults.ToArray();
+				Assert.That(wprs[0].Result.Result, Is.EqualTo(1));
+				Assert.That(wprs[1].Result.Result, Is.EqualTo(1));
+			}
 		}
 
 		[Test]
@@ -804,291 +837,15 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(RetryDelayType.Constant, true)]
-		[TestCase(RetryDelayType.Constant, false)]
-		[TestCase(RetryDelayType.Linear, true)]
-		[TestCase(RetryDelayType.Linear, false)]
-		public void Should_RetryDelay_Returns_Jittered_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
+		public void Should_WithWait_With_DelayErrorProcessorArg_Called_In_Handle_Method()
 		{
-			var repeater = new RetryDelayRepeater(GetJitteredRetryDelayByRetryDelayType());
-			var res = repeater.Repeat(1, 10);
-			RetryDelay GetJitteredRetryDelayByRetryDelayType()
-			{
-				switch (retryDelayType)
-				{
-					case RetryDelayType.Constant:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(4), true);
-						else
-							return ConstantRetryDelay.Create(TimeSpan.FromSeconds(4), null, true);
-					case RetryDelayType.Linear:
-						if (useBaseClass)
-						{
-							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), true);
-						}
-						else
-						{
-							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), null, true);
-						}
-					default:
-						throw new NotImplementedException();
-				}
-			}
-			Assert.That(res.Exists(t => Math.Abs(4 - t.TotalSeconds) > 0), Is.True);
-		}
-
-		[Test]
-		[TestCase(true)]
-		[TestCase(false)]
-		public void Should_ExponentialRetryDelay_Returns_Jittered_Timespan(bool useBaseClass)
-		{
-			var times = new List<TimeSpan>();
-			for (int i = 0; i < 10; i++)
-			{
-				times.Add(GetRetryDelay().GetDelay(1));
-			}
-
-			Assert.That(times.Exists(t => Math.Abs(4 - t.TotalSeconds) > 0), Is.True);
-
-			RetryDelay GetRetryDelay()
-			{
-				if (useBaseClass)
-				{
-					return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), true);
-				}
-				else
-				{
-					return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), useJitter: true);
-				}
-			}
-		}
-
-		[Test]
-		[TestCase(RetryDelayType.Constant, true)]
-		[TestCase(RetryDelayType.Constant, false)]
-		[TestCase(RetryDelayType.Linear, true)]
-		[TestCase(RetryDelayType.Linear, false)]
-		[TestCase(RetryDelayType.Exponential, true)]
-		[TestCase(RetryDelayType.Exponential, false)]
-		public void Should_RetryDelay_Returns_Correct_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
-		{
-			var rd = GetRetryDelayByRetryDelayType();
-
-			var rdch = new RetryDelayChecker(rd);
-			var res = rdch.Attempt(0, 1, 2);
-
-			switch (retryDelayType)
-			{
-				case RetryDelayType.Constant:
-					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
-					Assert.That(res[1].TotalSeconds, Is.EqualTo(2));
-					Assert.That(res[2].TotalSeconds, Is.EqualTo(2));
-					break;
-				case RetryDelayType.Linear:
-					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
-					Assert.That(res[1].TotalSeconds, Is.EqualTo(4));
-					Assert.That(res[2].TotalSeconds, Is.EqualTo(6));
-					break;
-				case RetryDelayType.Exponential:
-					Assert.That(res[0].TotalSeconds, Is.EqualTo(2));
-					Assert.That(res[1].TotalSeconds, Is.EqualTo(4));
-					Assert.That(res[2].TotalSeconds, Is.EqualTo(8));
-					break;
-			}
-
-			RetryDelay GetRetryDelayByRetryDelayType()
-			{
-				switch (retryDelayType)
-				{
-					case RetryDelayType.Constant:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Constant, TimeSpan.FromSeconds(2));
-						else
-							return ConstantRetryDelay.Create(TimeSpan.FromSeconds(2));
-					case RetryDelayType.Linear:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2));
-						else
-							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2));
-					case RetryDelayType.Exponential:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Exponential,  TimeSpan.FromSeconds(2));
-						else
-							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2));
-					default:
-						throw new NotImplementedException();
-				}
-			}
-		}
-
-		[Test]
-		public void Should_LinearRetryDelayWithSlopeFactor_Returns_Correct_Timespan()
-		{
-			var rd = LinearRetryDelay.Create(TimeSpan.FromSeconds(2), 2.0);
-			var rdch = new RetryDelayChecker(rd);
-			var res = rdch.Attempt(0, 1, 2);
-			Assert.That(res[0].TotalSeconds, Is.EqualTo(4));
-			Assert.That(res[1].TotalSeconds, Is.EqualTo(8));
-			Assert.That(res[2].TotalSeconds, Is.EqualTo(12));
-		}
-
-		[TestCase(RetryDelayType.Constant, true)]
-		[TestCase(RetryDelayType.Constant, false)]
-		[TestCase(RetryDelayType.Linear, true)]
-		[TestCase(RetryDelayType.Linear, false)]
-		public void Should_RetryDelayJittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
-		{
-			var rd = GetRetryDelayByRetryDelayType();
-
-			var rdch = new RetryDelayChecker(rd);
-			var res = rdch.Attempt(2);
-
-			Assert.That(res[0], Is.LessThanOrEqualTo(TimeSpan.MaxValue));
-
-			RetryDelay GetRetryDelayByRetryDelayType()
-			{
-				switch (retryDelayType)
-				{
-					case RetryDelayType.Constant:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Constant, TimeSpan.MaxValue, true);
-						else
-							return ConstantRetryDelay.Create(TimeSpan.MaxValue, null, useJitter: true);
-					case RetryDelayType.Linear:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue, true);
-						else
-							return LinearRetryDelay.Create(TimeSpan.MaxValue, useJitter: true);
-					default:
-						throw new NotImplementedException();
-				}
-			}
-		}
-
-		[Test]
-		[TestCase(true)]
-		[TestCase(false)]
-		public void Should_ExponentialRetryDelay_Jittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(bool useBaseClass)
-		{
-			var rd = GetRetryDelayByRetryDelayType();
-
-			var rdch = new RetryDelayChecker(rd);
-			var res = rdch.Attempt(2);
-
-			Assert.That(res[0], Is.EqualTo(RetryDelayConstants.MaxTimeSpanFromTicks));
-
-			RetryDelay GetRetryDelayByRetryDelayType()
-			{
-				if (useBaseClass)
-					return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue, true);
-				else
-					return ExponentialRetryDelay.Create(TimeSpan.MaxValue, useJitter: true);
-			}
-		}
-
-		[TestCase(RetryDelayType.Linear, true)]
-		[TestCase(RetryDelayType.Linear, false)]
-		[TestCase(RetryDelayType.Exponential, true)]
-		[TestCase(RetryDelayType.Exponential, false)]
-		public void Should_RetryDelay_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
-		{
-			var rd = GetRetryDelayByRetryDelayType();
-
-			var rdch = new RetryDelayChecker(rd);
-			var res = rdch.Attempt(2);
-
-			Assert.That(res[0], Is.EqualTo(TimeSpan.MaxValue));
-
-			RetryDelay GetRetryDelayByRetryDelayType()
-			{
-				switch (retryDelayType)
-				{
-					case RetryDelayType.Linear:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue);
-						else
-							return LinearRetryDelay.Create(TimeSpan.MaxValue);
-					case RetryDelayType.Exponential:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.MaxValue);
-						else
-							return ExponentialRetryDelay.Create(TimeSpan.MaxValue);
-					default:
-						throw new NotImplementedException();
-				}
-			}
-		}
-
-		[TestCase(RetryDelayType.Exponential, true)]
-		[TestCase(RetryDelayType.Exponential, false)]
-		[TestCase(RetryDelayType.Linear, true)]
-		[TestCase(RetryDelayType.Linear, false)]
-		public void Should_RetryDelay_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
-		{
-			var rd = GetRetryDelayByRetryDelayType();
-
-			var rdch = new RetryDelayChecker(rd);
-			var res = rdch.Attempt(2);
-
-			Assert.That(res[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
-
-			RetryDelay GetRetryDelayByRetryDelayType()
-			{
-				switch (retryDelayType)
-				{
-					case RetryDelayType.Linear:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
-						else
-							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
-					case RetryDelayType.Exponential:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
-						else
-							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
-					default:
-						throw new NotImplementedException();
-				}
-			}
-		}
-
-		[TestCase(RetryDelayType.Exponential, true)]
-		[TestCase(RetryDelayType.Exponential, false)]
-		[TestCase(RetryDelayType.Linear, true)]
-		[TestCase(RetryDelayType.Linear, false)]
-		public void Should_RetryDelayJittered_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
-		{
-			var rd = GetRetryDelayByRetryDelayType();
-
-			var rdch = new RetryDelayChecker(rd);
-			var res = rdch.Attempt(2);
-
-			Assert.That(res[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
-
-			RetryDelay GetRetryDelayByRetryDelayType()
-			{
-				switch (retryDelayType)
-				{
-					case RetryDelayType.Linear:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Linear, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
-						else
-							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), true);
-					case RetryDelayType.Exponential:
-						if (useBaseClass)
-							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
-						else
-							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), useJitter:true);
-					default:
-						throw new NotImplementedException();
-				}
-			}
-		}
-
-		[Test]
-		public void Should_ConstantRetryDelayJittered_Throw_If_MaxDelay_LessThan_BaseDelay()
-		{
-			Assert.Throws<ArgumentOutOfRangeException>(() => new ConstantRetryDelay(new ConstantRetryDelayOptions() { BaseDelay = TimeSpan.FromSeconds(2), MaxDelay = TimeSpan.FromSeconds(1) , UseJitter = true}));
+			var policy = new RetryPolicy(1);
+			var delayProcessor = new TestDelayErrorProcessor(TimeSpan.FromMilliseconds(1));
+			policy.WithWait(delayProcessor);
+			var res = policy.Handle(() => throw new InvalidOperationException());
+			Assert.That(policy.PolicyProcessor.Count(), Is.EqualTo(1));
+			Assert.That(delayProcessor.Counter, Is.EqualTo(1));
+			Assert.That(res.IsFailed, Is.True);
 		}
 
 		[Test]
@@ -1184,44 +941,6 @@ namespace PoliNorError.Tests
 			}
 		}
 
-		private class RetryDelayChecker
-		{
-			private readonly RetryDelay _retryDelay;
-			public RetryDelayChecker(RetryDelay retryDelay)
-			{
-				_retryDelay = retryDelay;
-			}
-
-			public List<TimeSpan> Attempt(params int[] attemptNumbers)
-			{
-				var times = new List<TimeSpan>();
-				foreach (var an in attemptNumbers)
-				{
-					times.Add(_retryDelay.GetDelay(an));
-				}
-				return times;
-			}
-		}
-
-		private class RetryDelayRepeater
-		{
-			private readonly RetryDelay _retryDelay;
-			public RetryDelayRepeater(RetryDelay retryDelay)
-			{
-				_retryDelay = retryDelay;
-			}
-
-			public List<TimeSpan> Repeat(int attemptNumber, int numOfRepeats)
-			{
-				var times = new List<TimeSpan>();
-				for (int i = 0; i < numOfRepeats; i++)
-				{
-					times.Add(_retryDelay.GetDelay(attemptNumber));
-				}
-				return times;
-			}
-		}
-
 		private class TestAsyncClass
 		{
 			private int _i;
@@ -1240,5 +959,22 @@ namespace PoliNorError.Tests
 				}
 			}
 		}
+
+		private class TestDelayErrorProcessor : DelayErrorProcessor
+		{
+			public TestDelayErrorProcessor(TimeSpan timeSpan) : base(timeSpan) { }
+
+			public override Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+			{
+				Counter++;
+				return error;
+			}
+
+			public int Counter { get; private set; }
+		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3871:Exception types should be \"public\"", Justification = "<Pending>")]
+		private class SimplePolicyException : Exception{}
 	}
 }

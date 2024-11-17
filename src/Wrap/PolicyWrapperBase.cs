@@ -17,11 +17,27 @@ namespace PoliNorError
 		{
 			if (res?.IsFailed == true)
 			{
-				if (res.FailedReason != PolicyResultFailedReason.PolicyResultHandlerFailed)
+				if (IsNaturalFailed(res))
 					throw res.UnprocessedError;
 				else
-					throw new PolicyResultHandlerFailedException();
+					throw new PolicyResultHandlerFailedException(res);
 			}
+		}
+
+		protected void ThrowIfFailed<T>(PolicyResult<T> res)
+		{
+			if (res?.IsFailed == true)
+			{
+				if (IsNaturalFailed(res))
+					throw res.UnprocessedError;
+				else
+					throw new PolicyResultHandlerFailedException<T>(res);
+			}
+		}
+
+		private static bool IsNaturalFailed(PolicyResult res)
+		{
+			return res.FailedReason != PolicyResultFailedReason.PolicyResultHandlerFailed;
 		}
 	}
 }

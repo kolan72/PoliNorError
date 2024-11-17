@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace PoliNorError
 {
@@ -7,9 +8,22 @@ namespace PoliNorError
 	/// </summary>
 	public static class PolicyBuilding
 	{
+		/// <summary>
+		/// Wraps another policy.
+		/// </summary>
+		/// <typeparam name="T">Type of policy that wraps another policy.</typeparam>
+		/// <param name="errorPolicyBase">Policy that wraps wrappedPolicy</param>
+		/// <param name="wrappedPolicy">Policy to be wrapped.</param>
+		/// <returns></returns>
 		public static T WrapPolicy<T>(this T errorPolicyBase, IPolicyBase wrappedPolicy) where T : Policy
 		{
 			errorPolicyBase.SetWrap(wrappedPolicy);
+			return errorPolicyBase;
+		}
+
+		public static T WrapPolicyCollection<T>(this T errorPolicyBase, IEnumerable<IPolicyBase> wrappedPolicyCollection, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.LastError) where T : Policy
+		{
+			errorPolicyBase.SetWrap(wrappedPolicyCollection, throwOnWrappedCollectionFailed);
 			return errorPolicyBase;
 		}
 
@@ -29,6 +43,13 @@ namespace PoliNorError
 			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, policy);
 		}
 
+		/// <summary>
+		/// Gives a name to the <typeparamref name="T"/> policy.
+		/// </summary>
+		/// <typeparam name="T">Type of policy.</typeparam>
+		/// <param name="errorPolicyBase">Policy that will have a name.</param>
+		/// <param name="policyName">Policy name.</param>
+		/// <returns></returns>
 		public static T WithPolicyName<T>(this T errorPolicyBase, string policyName) where T : Policy
 		{
 			errorPolicyBase.PolicyName = policyName;

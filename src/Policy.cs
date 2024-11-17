@@ -13,7 +13,7 @@ namespace PoliNorError
 
 		private readonly PolicyResultHandlerCollection _policyResultHandlerCollection;
 
-		private protected Policy(IPolicyProcessor policyProcessor)
+		protected Policy(IPolicyProcessor policyProcessor)
 		{
 			_policyResultHandlerCollection = new PolicyResultHandlerCollection();
 			PolicyProcessor = policyProcessor;
@@ -123,6 +123,10 @@ namespace PoliNorError
 			if (_policyWrapperFactory != null)
 			{
 				throw new ArgumentException("More than one wrapped PolicyCollection is not supported.");
+			}
+			if (throwOnWrappedCollectionFailed == ThrowOnWrappedCollectionFailed.None)
+			{
+				throw new ArgumentException($"Value must be {nameof(ThrowOnWrappedCollectionFailed.LastError)} or {nameof(ThrowOnWrappedCollectionFailed.CollectionError)}.");
 			}
 			_policyWrapperFactory = new PolicyWrapperFactory(policies, throwOnWrappedCollectionFailed);
 		}

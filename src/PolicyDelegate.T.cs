@@ -26,7 +26,7 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="cancellationToken">A cancellation token to cancel handling.</param>
 		/// <returns></returns>
-		public Task<PolicyResult<T>> HandleAsync(CancellationToken cancellationToken) => HandleAsync(false, cancellationToken);
+		public Task<PolicyResult<T>> HandleAsync(CancellationToken cancellationToken = default) => HandleAsync(false, cancellationToken);
 
 		/// <summary>
 		/// Calls the <see cref="IPolicyBase.HandleAsync{T}"/> method for the policy this <see cref="PolicyDelegate{T}"/> packs.
@@ -34,7 +34,7 @@ namespace PoliNorError
 		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
 		/// <param name="cancellationToken">A cancellation token to cancel handling.</param>
 		/// <returns></returns>
-		public Task<PolicyResult<T>> HandleAsync(bool configureAwait, CancellationToken cancellationToken) => Policy.HandleAsync(ExecuteAsync, configureAwait, cancellationToken);
+		public Task<PolicyResult<T>> HandleAsync(bool configureAwait, CancellationToken cancellationToken = default) => Policy.HandleAsync(ExecuteAsync, configureAwait, cancellationToken);
 
 		internal void SetDelegate(Func<CancellationToken, Task<T>> executeAsync)
 		{
