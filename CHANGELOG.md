@@ -1,3 +1,32 @@
+## 2.19.15
+
+- Introduce `RetryPolicy.WithWait(DelayErrorProcessor)` method.
+- `DefaultRetryProcessor` refactoring - add field representing retry policy rule.
+- Add the `RetryContext.IsZeroRetry` property and use it to set the `PolicyResult.NoError` property to true.
+- Slightly improved performance for the `RetryPolicy` custom error saver by passing the `ErrorContext<RetryContext>` instead of `int` `tryCount` arg in the `DefaultRetryProcessor.SaveError(Async)` methods.
+- Deprecate `ProcessingErrorContext.CurrentRetryCount` property.
+- Introduce the `Policy.WrapPolicyCollection` extension method.
+- Argument exception guard clause for the `PolicyCollection.WrapUp` method with the `ThrowOnWrappedCollectionFailed.None` value for the `throwOnWrappedCollectionFailed` parameter.
+- Argument exception guard clause for the `Policy.WrapPolicyCollection` method with the `ThrowOnWrappedCollectionFailed.None` value for the `throwOnWrappedCollectionFailed` parameter.
+- Made the `Policy` class constructor `protected` (previously `private protected`).
+- Made the `cancellationToken` parameter optional in `PolicyDelegate(<T>).HandleAsync` methods.
+- Introduce `PolicyResultHandlerFailedException.Result` property.
+- Introduce `PolicyResultHandlerFailedException<T>` exception.
+- Directly return Task instead of await when converting async uncancelable generic fallback delegate to cancelable with `CancellationType.Precancelable` argument.
+- New tests for the `PolicyCollection.WrapUp` method with the `ThrowOnWrappedCollectionFailed.CollectionError` parameter.
+- New tests for a wrapped `SimplePolicy` that wraps another policy. 
+- Move the tests for the `RetryDelay` classes to a separate folder. 
+- Add doc comments to the public members of the `PolicyBuilding` class. 
+- Put the nuget README in the file.
+- Update 'RetryPolicy' README Chapter.
+- Correct retry terminology in README.
+- Correct 'Error processors' README Chapters.
+- Bump NSubstitute from 5.1.0 to 5.3.0.
+- Bump System.Numerics.Vectors from 4.5.0 to 4.6.0.
+- Bump System.Buffers from 4.5.1 to 4.6.0.
+- Bump System.Runtime.CompilerServices.Unsafe from 6.0.0 to 6.1.0.
+
+
 ## 2.19.11
 
 - Introduce `SlopeFactor` for `LinearRetryDelay`.
