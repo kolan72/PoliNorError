@@ -60,6 +60,19 @@ namespace PoliNorError.TryCatch
 			return this;
 		}
 
+		/// <summary>
+		/// Adds a <see cref="CatchBlockFilteredHandler"/> handler consisting of <see cref="NonEmptyCatchBlockFilter"/> and <see cref="IBulkErrorProcessor"/> to builder.
+		/// </summary>
+		/// <param name="nonEmptyCatchBlockFilter"><see cref="NonEmptyCatchBlockFilter"/></param>
+		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
+		/// <returns><see cref="TryCatchBuilder"/></returns>
+		public TryCatchBuilder AddCatchBlock(NonEmptyCatchBlockFilter nonEmptyCatchBlockFilter, IBulkErrorProcessor bulkErrorProcessor)
+		{
+			var handler = new CatchBlockFilteredHandler(nonEmptyCatchBlockFilter);
+			handler.SetBulkErrorProcessor(bulkErrorProcessor);
+			return AddCatchBlock(handler);
+		}
+
 		public ITryCatch Build() => new TryCatch(_catchBlockHandlers, _hasCatchBlockForAll);
 	}
 }

@@ -47,7 +47,12 @@
 
 		internal PolicyProcessor.ExceptionFilter ErrorFilter => CatchBlockFilter.ErrorFilter;
 
-		internal IBulkErrorProcessor BulkErrorProcessor { get; } = new BulkErrorProcessor();
+		internal void SetBulkErrorProcessor(IBulkErrorProcessor processor)
+		{
+			BulkErrorProcessor = processor;
+		}
+
+		internal IBulkErrorProcessor BulkErrorProcessor { get; private set; } = new BulkErrorProcessor();
 	}
 
 	/// <summary>
