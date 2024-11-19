@@ -53,7 +53,7 @@ namespace PoliNorError
 			if (NoRunners)
 				return error;
 
-			await(_asyncRunner ?? _syncRunner).RunAsync(error, ParameterConverter(catchBlockProcessErrorInfo), configAwait, cancellationToken);
+			await(_asyncRunner ?? _syncRunner).RunAsync(error, ParameterConverter(catchBlockProcessErrorInfo), configAwait, cancellationToken).ConfigureAwait(configAwait);
 			return error;
 		}
 
