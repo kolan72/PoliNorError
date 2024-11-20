@@ -292,5 +292,85 @@ namespace PoliNorError.Tests
 
 			Assert.That(innerProcessors.L, Is.EqualTo(1));
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_BulkErrorProcessor_Process_Generic_DefaultErrorProcessor_Created_By_Action(bool syncRun)
+		{
+			var bulkProcessor = new BulkErrorProcessor();
+
+			const int contextParam = 2;
+			var processingErrorContext = new ProcessingErrorContext<int>(PolicyAlias.NotSet, contextParam);
+
+			bool errorProcessorWorksFlag = false;
+			var errorProcessor = new DefaultErrorProcessor<int>((_, pir) =>
+			{
+				if (pir.Param == contextParam)
+				{
+					errorProcessorWorksFlag = true;
+				}
+			});
+
+			bool errorProcessorThatShoulNotWorkFlag = false;
+
+			var errorProcessorThatShoulNotWork = new DefaultErrorProcessor<string>((_, __) => errorProcessorThatShoulNotWorkFlag = true);
+
+			bulkProcessor.AddProcessor(errorProcessor);
+			bulkProcessor.AddProcessor(errorProcessorThatShoulNotWork);
+
+			if (syncRun)
+			{
+				bulkProcessor.Process(new Exception(), processingErrorContext);
+			}
+			else
+			{
+				await bulkProcessor.ProcessAsync(new Exception(), processingErrorContext);
+			}
+
+			Assert.That(errorProcessorWorksFlag, Is.True);
+			Assert.That(errorProcessorThatShoulNotWorkFlag, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_BulkErrorProcessor_Process_Generic_DefaultErrorProcessor_Created_By_AsyncFunc(bool syncRun)
+		{
+			var bulkProcessor = new BulkErrorProcessor();
+
+			const int contextParam = 2;
+			var processingErrorContext = new ProcessingErrorContext<int>(PolicyAlias.NotSet, contextParam);
+
+			bool errorProcessorWorksFlag = false;
+			var errorProcessor = new DefaultErrorProcessor<int>(async (_, pir) =>
+			{
+				await Task.Delay(1);
+				if (pir.Param == contextParam)
+				{
+					errorProcessorWorksFlag = true;
+				}
+			});
+
+			bool errorProcessorThatShoulNotWorkFlag = false;
+
+			var errorProcessorThatShoulNotWork = new DefaultErrorProcessor<string>((_, __) => errorProcessorThatShoulNotWorkFlag = true);
+
+			bulkProcessor.AddProcessor(errorProcessor);
+			bulkProcessor.AddProcessor(errorProcessorThatShoulNotWork);
+
+			if (syncRun)
+			{
+				bulkProcessor.Process(new Exception(), processingErrorContext);
+			}
+			else
+			{
+				await bulkProcessor.ProcessAsync(new Exception(), processingErrorContext);
+			}
+
+			Assert.That(errorProcessorWorksFlag, Is.True);
+			Assert.That(errorProcessorThatShoulNotWorkFlag, Is.False);
+		}
+
 	}
 }
