@@ -70,5 +70,26 @@ namespace PoliNorError.Tests
 			Assert.That(res.IsError, Is.True);
 			Assert.That(i, Is.EqualTo(1));
 		}
+
+		[Test]
+		public void Should_AddCatchBlock_With_IBulkErrorProcessor_Param_Really_Create()
+		{
+			int i = 0;
+			void act(Exception _)
+			{
+				i++;
+			}
+
+			var bulkErrorProcessor = new BulkErrorProcessor().WithErrorProcessorOf(act);
+			var tryCatchBuilder =
+				TryCatchBuilder
+					.CreateFrom(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>(), bulkErrorProcessor);
+			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+
+			var res = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(res.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
+		}
 	}
 }

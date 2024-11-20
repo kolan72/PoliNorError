@@ -27,6 +27,18 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
+		/// Creates a <see cref="TryCatchBuilder"/> class based on the  <see cref="NonEmptyCatchBlockFilter"/> and the <see cref="IBulkErrorProcessor"/>. Other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
+		/// </summary>
+		/// <param name="nonEmptyCatchBlockFilter"><see cref="NonEmptyCatchBlockFilter"/></param>
+		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
+		/// <returns><see cref="TryCatchBuilder"/></returns>
+		public static TryCatchBuilder CreateFrom(NonEmptyCatchBlockFilter nonEmptyCatchBlockFilter, IBulkErrorProcessor bulkErrorProcessor)
+		{
+			var builder = new TryCatchBuilder();
+			return builder.AddCatchBlock(nonEmptyCatchBlockFilter, bulkErrorProcessor);
+		}
+
+		/// <summary>
 		/// Creates a <see cref="ITryCatchBuilder"/> class based on the <see cref="CatchBlockForAllHandler"/>. No other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
 		/// </summary>
 		/// <param name="filteredHandler"><see cref="CatchBlockForAllHandler"/></param>
