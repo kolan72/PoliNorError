@@ -627,6 +627,75 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_InvokeWithTryCatch_For_Action_Handle_Or_Throw_Exception_Correctly(bool canHandle)
+		{
+			Exception errorToThrow = null;
+			if (canHandle)
+			{
+				errorToThrow = new NullReferenceException();
+			}
+			else
+			{
+				errorToThrow = new NotImplementedException();
+			}
+
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Action action = () => throw errorToThrow;
+
+			if (canHandle)
+			{
+				var result = action.InvokeWithTryCatch(tryCatch);
+				Assert.That(result.IsError, Is.True);
+				Assert.That(result.Error, Is.EqualTo(errorToThrow));
+				Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.True);
+			}
+			else
+			{
+				var resException = Assert.Throws<NotImplementedException>(() => action.InvokeWithTryCatch(tryCatch));
+				Assert.That(resException, Is.EqualTo(errorToThrow));
+			}
+		}
+
+		[Test]
+		public void Should_InvokeWithTryCatch_Returns_Success_If_NoError()
+		{
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Action action = () => {};
+
+			var result = action.InvokeWithTryCatch(tryCatch);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+		}
+
+		private class TryCatchBuilderFactoryForDelegateInvocationWithTryCatch
+		{
+			private readonly CatchBlockFilteredHandler _catchBlockFilteredHandler;
+
+			public TryCatchBuilderFactoryForDelegateInvocationWithTryCatch()
+			{
+				_catchBlockFilteredHandler = CatchBlockHandlerFactory
+										.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+
+				_catchBlockFilteredHandler.WithErrorProcessorOf((_) => IsErrorProcessorCalled = true);
+			}
+
+			public ITryCatch CreateTryCatch()
+			{
+				return TryCatchBuilder
+				.CreateFrom(_catchBlockFilteredHandler)
+				.Build();
+			}
+
+			public bool IsErrorProcessorCalled { get; private set; }
+		}
+
 		private class TryCatchBuilderFactoryWhenNoError
 		{
 			private readonly bool _withEmptyFilter;
