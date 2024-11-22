@@ -16,5 +16,18 @@ namespace PoliNorError.TryCatch
 		{
 			return tryCatch.Execute(action, token);
 		}
+
+		/// <summary>
+		/// Invokes the <see cref="Func{T}"/> delegate and attempts to catch an exception using the <paramref name="tryCatch"/>.
+		/// </summary>
+		/// <typeparam name="T">The type of the return value of a delegate.</typeparam>
+		/// <param name="func">A delegate to invoke.</param>
+		/// <param name="tryCatch"><see cref="ITryCatch"/></param>
+		/// <param name="token"><see cref="CancellationToken"></see></param>
+		/// <returns><see cref="TryCatchResult{T}"/></returns>
+		public static TryCatchResult<T> InvokeWithTryCatch<T>(this Func<T> func, ITryCatch tryCatch, CancellationToken token = default)
+		{
+			return tryCatch.Execute(func, token);
+		}
 	}
 }

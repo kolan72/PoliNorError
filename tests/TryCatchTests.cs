@@ -662,7 +662,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_InvokeWithTryCatch_Returns_Success_If_NoError()
+		public void Should_InvokeWithTryCatch_For_Action_Returns_Success_If_NoError()
 		{
 			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
 			var tryCatch = tryCatchFactory.CreateTryCatch();
@@ -672,6 +672,40 @@ namespace PoliNorError.Tests
 			var result = action.InvokeWithTryCatch(tryCatch);
 			Assert.That(result.IsSuccess, Is.True);
 			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_InvokeWithTryCatch_For_Func_Handle_Or_Throw_Exception_Correctly(bool canHandle)
+		{
+			Exception errorToThrow = null;
+			if (canHandle)
+			{
+				errorToThrow = new NullReferenceException();
+			}
+			else
+			{
+				errorToThrow = new NotImplementedException();
+			}
+
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<int> action = () => throw errorToThrow;
+
+			if (canHandle)
+			{
+				var result = action.InvokeWithTryCatch(tryCatch);
+				Assert.That(result.IsError, Is.True);
+				Assert.That(result.Error, Is.EqualTo(errorToThrow));
+				Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.True);
+			}
+			else
+			{
+				var resException = Assert.Throws<NotImplementedException>(() => action.InvokeWithTryCatch(tryCatch));
+				Assert.That(resException, Is.EqualTo(errorToThrow));
+			}
 		}
 
 		private class TryCatchBuilderFactoryForDelegateInvocationWithTryCatch
