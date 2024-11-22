@@ -708,6 +708,19 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_InvokeWithTryCatch_For_Func_Returns_Success_If_NoError()
+		{
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<int> action = () => 1;
+
+			var result = action.InvokeWithTryCatch(tryCatch);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+		}
+
 		private class TryCatchBuilderFactoryForDelegateInvocationWithTryCatch
 		{
 			private readonly CatchBlockFilteredHandler _catchBlockFilteredHandler;
