@@ -719,6 +719,7 @@ namespace PoliNorError.Tests
 			var result = action.InvokeWithTryCatch(tryCatch);
 			Assert.That(result.IsSuccess, Is.True);
 			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(1));
 		}
 
 		[Test]
@@ -766,6 +767,54 @@ namespace PoliNorError.Tests
 			var result = await action.InvokeWithTryCatchAsync(tryCatch);
 			Assert.That(result.IsSuccess, Is.True);
 			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_InvokeWithTryCatchAsync_For_Generic_AsyncFunc_Handle_Or_Throw_Exception_Correctly(bool canHandle)
+		{
+			Exception errorToThrow = null;
+			if (canHandle)
+			{
+				errorToThrow = new NullReferenceException();
+			}
+			else
+			{
+				errorToThrow = new NotImplementedException();
+			}
+
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<CancellationToken, Task<int>> action = async (_) => { await Task.Delay(1); throw errorToThrow; };
+
+			if (canHandle)
+			{
+				var result = await action.InvokeWithTryCatchAsync(tryCatch);
+				Assert.That(result.IsError, Is.True);
+				Assert.That(result.Error, Is.EqualTo(errorToThrow));
+				Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.True);
+			}
+			else
+			{
+				var resException = Assert.ThrowsAsync<NotImplementedException>(async () => await action.InvokeWithTryCatchAsync(tryCatch));
+				Assert.That(resException, Is.EqualTo(errorToThrow));
+			}
+		}
+
+		[Test]
+		public async Task Should_InvokeWithTryCatchAsync_For_Generic_AsyncFunc_Returns_Success_If_NoError()
+		{
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<CancellationToken, Task<int>> action = async (_) => { await Task.Delay(1); return 1; };
+
+			var result = await action.InvokeWithTryCatchAsync(tryCatch);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(1));
 		}
 
 		private class TryCatchBuilderFactoryForDelegateInvocationWithTryCatch
