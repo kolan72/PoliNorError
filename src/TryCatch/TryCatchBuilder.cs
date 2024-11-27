@@ -73,6 +73,18 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
+		/// Adds <see cref="CatchBlockForAllHandler"/> handler with the <paramref name="bulkErrorProcessor"/>.
+		/// </summary>
+		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
+		/// <returns><see cref="ITryCatchBuilder"/></returns>
+		public ITryCatchBuilder AddCatchBlock(IBulkErrorProcessor bulkErrorProcessor)
+		{
+			var handlerToAdd = CatchBlockHandlerFactory.ForAllExceptions();
+			handlerToAdd.SetBulkErrorProcessor(bulkErrorProcessor);
+			return AddCatchBlock(handlerToAdd);
+		}
+
+		/// <summary>
 		/// Adds a <see cref="CatchBlockFilteredHandler"/> handler consisting of <see cref="NonEmptyCatchBlockFilter"/> and <see cref="IBulkErrorProcessor"/> to builder.
 		/// </summary>
 		/// <param name="nonEmptyCatchBlockFilter"><see cref="NonEmptyCatchBlockFilter"/></param>
