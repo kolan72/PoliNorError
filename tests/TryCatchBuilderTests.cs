@@ -63,10 +63,25 @@ namespace PoliNorError.Tests
 							.AddCatchBlock(bulkErrorProcessor);
 
 			var tryCatch = builder.Build();
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
 			var result = tryCatch.Execute(() => throw new InvalidOperationException());
 			Assert.That(result.IsError, Is.True);
 			Assert.That(i, Is.EqualTo(1));
 			Assert.That(m, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_CreateFrom_With_IBulkErrorProcessor_Param_Handle_Exception_Correctly()
+		{
+			var bulkErrorProcessor = new BulkErrorProcessor();
+			int i = 0;
+			bulkErrorProcessor.WithErrorProcessorOf((_) => i++);
+			int m = 0;
+			bulkErrorProcessor.WithErrorProcessorOf((_) => m++);
+			var builder = TryCatchBuilder.CreateFrom(bulkErrorProcessor);
+			var tryCatch = builder.Build();
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
 		}
 
 		[Test]
@@ -83,6 +98,7 @@ namespace PoliNorError.Tests
 				TryCatchBuilder
 					.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
 					.AddCatchBlock(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>(), bulkErrorProcessor);
+
 			var tryCatch = tryCatchBuilder.Build();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));
 

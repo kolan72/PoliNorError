@@ -50,6 +50,17 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
+		/// Creates a <see cref="ITryCatchBuilder"/> class based on the <see cref="CatchBlockForAllHandler"/> with the <paramref name="bulkErrorProcessor"/>. No other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
+		/// </summary>
+		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
+		/// <returns><see cref="ITryCatchBuilder"/></returns>
+		public static ITryCatchBuilder CreateFrom(IBulkErrorProcessor bulkErrorProcessor)
+		{
+			var builder = new TryCatchBuilder();
+			return builder.AddCatchBlock(bulkErrorProcessor);
+		}
+
+		/// <summary>
 		/// Adds <see cref="CatchBlockFilteredHandler"/> handler to builder. Other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
 		/// </summary>
 		/// <param name="filteredHandler"><see cref="CatchBlockFilteredHandler"/></param>
@@ -73,7 +84,7 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
-		/// Adds <see cref="CatchBlockForAllHandler"/> handler with the <paramref name="bulkErrorProcessor"/>.
+		/// Adds <see cref="CatchBlockForAllHandler"/> handler with the <paramref name="bulkErrorProcessor"/>. No other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
 		/// </summary>
 		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
 		/// <returns><see cref="ITryCatchBuilder"/></returns>
