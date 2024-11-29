@@ -85,7 +85,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_AddCatchBlock_With_IBulkErrorProcessor_Param_Really_Add()
+		public void Should_AddCatchBlock_With_NonEmptyCatchBlockFilter_And_IBulkErrorProcessor_Params_Really_Add()
 		{
 			int i = 0;
 			void act(Exception _)
@@ -105,6 +105,32 @@ namespace PoliNorError.Tests
 			var res = tryCatch.Execute(() => throw new InvalidOperationException());
 			Assert.That(res.IsError, Is.True);
 			Assert.That(i, Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddCatchBlock_With_NonEmptyCatchBlockFilter_Param_Really_Add(bool canHandle)
+		{
+			var tryCatchBuilder =
+				TryCatchBuilder
+					.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
+					.AddCatchBlock(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));
+
+			if (canHandle)
+			{
+				var res = tryCatch.Execute(() => throw new InvalidOperationException());
+				Assert.That(res.IsError, Is.True);
+			}
+			else
+			{
+				var errorToThrow = new NotImplementedException("Test");
+				var exc = Assert.Throws<NotImplementedException>(() => tryCatch.Execute(() => throw errorToThrow));
+				Assert.That(exc, Is.EqualTo(errorToThrow));
+			}
 		}
 
 		[Test]

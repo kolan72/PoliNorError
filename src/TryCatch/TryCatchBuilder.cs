@@ -108,6 +108,17 @@ namespace PoliNorError.TryCatch
 			return AddCatchBlock(handler);
 		}
 
+		/// <summary>
+		/// Adds a <see cref="CatchBlockFilteredHandler"/> handler consisting of <see cref="NonEmptyCatchBlockFilter"/>
+		/// </summary>
+		/// <param name="nonEmptyCatchBlockFilter"><see cref="NonEmptyCatchBlockFilter"/></param>
+		/// <returns><see cref="TryCatchBuilder"/></returns>
+		public TryCatchBuilder AddCatchBlock(NonEmptyCatchBlockFilter nonEmptyCatchBlockFilter)
+		{
+			var handler = new CatchBlockFilteredHandler(nonEmptyCatchBlockFilter);
+			return AddCatchBlock(handler);
+		}
+
 		public ITryCatch Build() => new TryCatch(_catchBlockHandlers, _hasCatchBlockForAll);
 	}
 }
