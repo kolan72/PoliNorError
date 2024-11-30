@@ -39,6 +39,18 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
+		/// Creates a <see cref="TryCatchBuilder"/> class based on the  <see cref="NonEmptyCatchBlockFilter"/>.
+		/// The <see cref="TryCatchBuilder"/> created contains a <see cref="CatchBlockFilteredHandler"/> that mimics a try/catch block that swallows an exception.
+		/// </summary>
+		/// <param name="nonEmptyCatchBlockFilter"></param>
+		/// <returns></returns>
+		public static TryCatchBuilder CreateFrom(NonEmptyCatchBlockFilter nonEmptyCatchBlockFilter)
+		{
+			var builder = new TryCatchBuilder();
+			return builder.AddCatchBlock(nonEmptyCatchBlockFilter);
+		}
+
+		/// <summary>
 		/// Creates a <see cref="ITryCatchBuilder"/> class based on the <see cref="CatchBlockForAllHandler"/>. No other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
 		/// </summary>
 		/// <param name="filteredHandler"><see cref="CatchBlockForAllHandler"/></param>
@@ -109,7 +121,7 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
-		/// Adds a <see cref="CatchBlockFilteredHandler"/> handler consisting of <see cref="NonEmptyCatchBlockFilter"/>
+		/// Adds a <see cref="CatchBlockFilteredHandler"/> handler consisting of <see cref="NonEmptyCatchBlockFilter"/>. Mimics a try/catch block that swallows an exception.
 		/// </summary>
 		/// <param name="nonEmptyCatchBlockFilter"><see cref="NonEmptyCatchBlockFilter"/></param>
 		/// <returns><see cref="TryCatchBuilder"/></returns>
