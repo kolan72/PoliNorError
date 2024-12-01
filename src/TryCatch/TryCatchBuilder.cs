@@ -16,6 +16,15 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
+		/// Creates <see cref="ITryCatch"/> which mimics a try/catch block without a filter that will swallow any exception.
+		/// </summary>
+		/// <returns><see cref="ITryCatch"/></returns>
+		public static ITryCatch CreateAndBuild()
+		{
+			return CreateFrom(CatchBlockHandlerFactory.ForAllExceptions()).Build();
+		}
+
+		/// <summary>
 		/// Creates a <see cref="TryCatchBuilder"/> class based on the <see cref="CatchBlockFilteredHandler"/>. Other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
 		/// </summary>
 		/// <param name="filteredHandler"><see cref="CatchBlockFilteredHandler"/></param>

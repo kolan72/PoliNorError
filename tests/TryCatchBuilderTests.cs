@@ -167,5 +167,16 @@ namespace PoliNorError.Tests
 			var res = tryCatch.Execute(() => throw new InvalidOperationException());
 			Assert.That(res.IsError, Is.True);
 		}
+
+		[Test]
+		public void Should_CreateAndBuild_Create_ITryCatch_That_Handles_Exception()
+		{
+			var tryCatch = TryCatchBuilder.CreateAndBuild();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
+			var res = tryCatch.Execute(() => throw new Exception("Test"));
+			Assert.That(res.IsError, Is.True);
+		}
 	}
 }
