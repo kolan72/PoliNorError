@@ -627,6 +627,218 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_InvokeWithTryCatch_For_Action_Handle_Or_Throw_Exception_Correctly(bool canHandle)
+		{
+			Exception errorToThrow = null;
+			if (canHandle)
+			{
+				errorToThrow = new NullReferenceException();
+			}
+			else
+			{
+				errorToThrow = new NotImplementedException();
+			}
+
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Action action = () => throw errorToThrow;
+
+			if (canHandle)
+			{
+				var result = action.InvokeWithTryCatch(tryCatch);
+				Assert.That(result.IsError, Is.True);
+				Assert.That(result.Error, Is.EqualTo(errorToThrow));
+				Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.True);
+			}
+			else
+			{
+				var resException = Assert.Throws<NotImplementedException>(() => action.InvokeWithTryCatch(tryCatch));
+				Assert.That(resException, Is.EqualTo(errorToThrow));
+			}
+		}
+
+		[Test]
+		public void Should_InvokeWithTryCatch_For_Action_Returns_Success_If_NoError()
+		{
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Action action = () => {};
+
+			var result = action.InvokeWithTryCatch(tryCatch);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_InvokeWithTryCatch_For_Func_Handle_Or_Throw_Exception_Correctly(bool canHandle)
+		{
+			Exception errorToThrow = null;
+			if (canHandle)
+			{
+				errorToThrow = new NullReferenceException();
+			}
+			else
+			{
+				errorToThrow = new NotImplementedException();
+			}
+
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<int> action = () => throw errorToThrow;
+
+			if (canHandle)
+			{
+				var result = action.InvokeWithTryCatch(tryCatch);
+				Assert.That(result.IsError, Is.True);
+				Assert.That(result.Error, Is.EqualTo(errorToThrow));
+				Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.True);
+			}
+			else
+			{
+				var resException = Assert.Throws<NotImplementedException>(() => action.InvokeWithTryCatch(tryCatch));
+				Assert.That(resException, Is.EqualTo(errorToThrow));
+			}
+		}
+
+		[Test]
+		public void Should_InvokeWithTryCatch_For_Func_Returns_Success_If_NoError()
+		{
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<int> action = () => 1;
+
+			var result = action.InvokeWithTryCatch(tryCatch);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_InvokeWithTryCatchAsync_For_AsyncFunc_Handle_Or_Throw_Exception_Correctly(bool canHandle)
+		{
+			Exception errorToThrow = null;
+			if (canHandle)
+			{
+				errorToThrow = new NullReferenceException();
+			}
+			else
+			{
+				errorToThrow = new NotImplementedException();
+			}
+
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<CancellationToken, Task> action = async (_) => { await Task.Delay(1); throw errorToThrow; };
+
+			if (canHandle)
+			{
+				var result = await action.InvokeWithTryCatchAsync(tryCatch);
+				Assert.That(result.IsError, Is.True);
+				Assert.That(result.Error, Is.EqualTo(errorToThrow));
+				Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.True);
+			}
+			else
+			{
+				var resException = Assert.ThrowsAsync<NotImplementedException>(async() => await action.InvokeWithTryCatchAsync(tryCatch));
+				Assert.That(resException, Is.EqualTo(errorToThrow));
+			}
+		}
+
+		[Test]
+		public async Task Should_InvokeWithTryCatchAsync_For_AsyncFunc_Returns_Success_If_NoError()
+		{
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<CancellationToken, Task> action = async (_) => await Task.Delay(1);
+
+			var result = await action.InvokeWithTryCatchAsync(tryCatch);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_InvokeWithTryCatchAsync_For_Generic_AsyncFunc_Handle_Or_Throw_Exception_Correctly(bool canHandle)
+		{
+			Exception errorToThrow = null;
+			if (canHandle)
+			{
+				errorToThrow = new NullReferenceException();
+			}
+			else
+			{
+				errorToThrow = new NotImplementedException();
+			}
+
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<CancellationToken, Task<int>> action = async (_) => { await Task.Delay(1); throw errorToThrow; };
+
+			if (canHandle)
+			{
+				var result = await action.InvokeWithTryCatchAsync(tryCatch);
+				Assert.That(result.IsError, Is.True);
+				Assert.That(result.Error, Is.EqualTo(errorToThrow));
+				Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.True);
+			}
+			else
+			{
+				var resException = Assert.ThrowsAsync<NotImplementedException>(async () => await action.InvokeWithTryCatchAsync(tryCatch));
+				Assert.That(resException, Is.EqualTo(errorToThrow));
+			}
+		}
+
+		[Test]
+		public async Task Should_InvokeWithTryCatchAsync_For_Generic_AsyncFunc_Returns_Success_If_NoError()
+		{
+			var tryCatchFactory = new TryCatchBuilderFactoryForDelegateInvocationWithTryCatch();
+			var tryCatch = tryCatchFactory.CreateTryCatch();
+
+			Func<CancellationToken, Task<int>> action = async (_) => { await Task.Delay(1); return 1; };
+
+			var result = await action.InvokeWithTryCatchAsync(tryCatch);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(tryCatchFactory.IsErrorProcessorCalled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(1));
+		}
+
+		private class TryCatchBuilderFactoryForDelegateInvocationWithTryCatch
+		{
+			private readonly CatchBlockFilteredHandler _catchBlockFilteredHandler;
+
+			public TryCatchBuilderFactoryForDelegateInvocationWithTryCatch()
+			{
+				_catchBlockFilteredHandler = CatchBlockHandlerFactory
+										.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<NullReferenceException>());
+
+				_catchBlockFilteredHandler.WithErrorProcessorOf((_) => IsErrorProcessorCalled = true);
+			}
+
+			public ITryCatch CreateTryCatch()
+			{
+				return TryCatchBuilder
+				.CreateFrom(_catchBlockFilteredHandler)
+				.Build();
+			}
+
+			public bool IsErrorProcessorCalled { get; private set; }
+		}
+
 		private class TryCatchBuilderFactoryWhenNoError
 		{
 			private readonly bool _withEmptyFilter;

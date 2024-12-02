@@ -50,7 +50,29 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_AddCatchBlock_With_IBulkErrorProcessor_Param_Really_Add()
+		public void Should_AddCatchBlock_With_IBulkErrorProcessor_Param_Handle_Exception_Correctly()
+		{
+			var bulkErrorProcessor = new BulkErrorProcessor();
+			int i = 0;
+			bulkErrorProcessor.WithErrorProcessorOf((_) => i++);
+			int m = 0;
+			bulkErrorProcessor.WithErrorProcessorOf((_) => m++);
+			var builder = TryCatchBuilder.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy
+												(NonEmptyCatchBlockFilter.
+													CreateByExcluding<InvalidOperationException>()))
+							.AddCatchBlock(bulkErrorProcessor);
+
+			var tryCatch = builder.Build();
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
+			var result = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(result.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
+			Assert.That(m, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_AddCatchBlock_With_NonEmptyCatchBlockFilter_And_IBulkErrorProcessor_Params_Really_Add()
 		{
 			int i = 0;
 			void act(Exception _)
@@ -63,6 +85,7 @@ namespace PoliNorError.Tests
 				TryCatchBuilder
 					.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
 					.AddCatchBlock(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>(), bulkErrorProcessor);
+
 			var tryCatch = tryCatchBuilder.Build();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));
 
@@ -72,7 +95,33 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_AddCatchBlock_With_IBulkErrorProcessor_Param_Really_Create()
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddCatchBlock_With_NonEmptyCatchBlockFilter_Param_Really_Add(bool canHandle)
+		{
+			var tryCatchBuilder =
+				TryCatchBuilder
+					.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
+					.AddCatchBlock(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));
+
+			if (canHandle)
+			{
+				var res = tryCatch.Execute(() => throw new InvalidOperationException());
+				Assert.That(res.IsError, Is.True);
+			}
+			else
+			{
+				var errorToThrow = new NotImplementedException("Test");
+				var exc = Assert.Throws<NotImplementedException>(() => tryCatch.Execute(() => throw errorToThrow));
+				Assert.That(exc, Is.EqualTo(errorToThrow));
+			}
+		}
+
+		[Test]
+		public void Should_CreateFrom_With_NonEmptyCatchBlockFilter_And_With_IBulkErrorProcessor_Param_Really_Create()
 		{
 			int i = 0;
 			void act(Exception _)
@@ -90,6 +139,48 @@ namespace PoliNorError.Tests
 			var res = tryCatch.Execute(() => throw new InvalidOperationException());
 			Assert.That(res.IsError, Is.True);
 			Assert.That(i, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_CreateFrom_With_NonEmptyCatchBlockFilter_Param_Really_Create()
+		{
+			var tryCatchBuilder =
+				TryCatchBuilder
+					.CreateFrom(NonEmptyCatchBlockFilter.CreateByIncluding<InvalidOperationException>());
+
+			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+
+			var res = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(res.IsError, Is.True);
+		}
+
+		[Test]
+		public void Should_CreateAndBuild_Create_ITryCatch_That_Handles_Exception()
+		{
+			var tryCatch = TryCatchBuilder.CreateAndBuild();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
+			var res = tryCatch.Execute(() => throw new Exception("Test"));
+			Assert.That(res.IsError, Is.True);
+		}
+
+		[Test]
+		public void Should_CreateAndBuild_With_IBulkErrorProcessor_Param_Create_ITryCatch_That_Handles_Exception()
+		{
+			var bulkErrorProcessor = new BulkErrorProcessor();
+			int i = 0;
+			bulkErrorProcessor.WithErrorProcessorOf((_) => i++);
+			int m = 0;
+			bulkErrorProcessor.WithErrorProcessorOf((_) => m++);
+			var tryCatch = TryCatchBuilder.CreateAndBuild(bulkErrorProcessor);
+			Assert.That(tryCatch.HasCatchBlockForAll, Is.True);
+
+			var res = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(res.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
+			Assert.That(m, Is.EqualTo(1));
 		}
 	}
 }
