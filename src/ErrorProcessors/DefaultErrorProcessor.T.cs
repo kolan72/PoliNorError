@@ -12,9 +12,19 @@ namespace PoliNorError
 			_errorProcessor = DefaultErrorProcessorT.Create(actionProcessor);
 		}
 
+		public DefaultErrorProcessor(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor, CancellationType cancellationType)
+		{
+			_errorProcessor = DefaultErrorProcessorT.Create(actionProcessor, cancellationType);
+		}
+
 		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor)
 		{
 			_errorProcessor = DefaultErrorProcessorT.Create(funcProcessor);
+		}
+
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor, CancellationType cancellationType)
+		{
+			_errorProcessor = DefaultErrorProcessorT.Create(funcProcessor, cancellationType);
 		}
 
 		public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
@@ -32,28 +42,54 @@ namespace PoliNorError
 	{
 		public static DefaultErrorProcessorT Create<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor)
 		{
-			void action(Exception ex, ProcessingErrorInfo pi)
-			{
-				if (pi is ProcessingErrorInfo<TParam> gpi)
-					actionProcessor(ex, gpi);
-			}
+			var action = ConvertToNonGenericAction(actionProcessor);
 			var res = new DefaultErrorProcessorT();
 			res.SetSyncRunner(action);
 			return res;
 		}
 
+		public static DefaultErrorProcessorT Create<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor, CancellationType cancellationType)
+		{
+			var action = ConvertToNonGenericAction(actionProcessor);
+			var res = new DefaultErrorProcessorT();
+			res.SetSyncRunner(action, cancellationType);
+			return res;
+		}
+
 		public static DefaultErrorProcessorT Create<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor)
 		{
-			Task func(Exception ex, ProcessingErrorInfo pi)
+			var func = ConvertToNonGenericFunc(funcProcessor);
+			var res = new DefaultErrorProcessorT();
+			res.SetAsyncRunner(func);
+			return res;
+		}
+
+		public static DefaultErrorProcessorT Create<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor, CancellationType cancellationType)
+		{
+			var func = ConvertToNonGenericFunc(funcProcessor);
+			var res = new DefaultErrorProcessorT();
+			res.SetAsyncRunner(func, cancellationType);
+			return res;
+		}
+
+		private static Action<Exception, ProcessingErrorInfo> ConvertToNonGenericAction<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor)
+		{
+			return (Exception ex, ProcessingErrorInfo pi) =>
+			{
+				if (pi is ProcessingErrorInfo<TParam> gpi)
+					actionProcessor(ex, gpi);
+			};
+		}
+
+		private static Func<Exception, ProcessingErrorInfo, Task> ConvertToNonGenericFunc<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor)
+		{
+			return (Exception ex, ProcessingErrorInfo pi) =>
 			{
 				if (pi is ProcessingErrorInfo<TParam> gpi)
 					return funcProcessor(ex, gpi);
 				else
 					return Task.CompletedTask;
-			}
-			var res = new DefaultErrorProcessorT();
-			res.SetAsyncRunner(func);
-			return res;
+			};
 		}
 
 		protected override Func<ProcessingErrorInfo, ProcessingErrorInfo> ParameterConverter => (_) => _;
