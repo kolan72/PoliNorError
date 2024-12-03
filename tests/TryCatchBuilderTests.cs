@@ -182,5 +182,20 @@ namespace PoliNorError.Tests
 			Assert.That(i, Is.EqualTo(1));
 			Assert.That(m, Is.EqualTo(1));
 		}
+
+		[Test]
+		public void Should_CreateAndBuild_With_Action_Exception_Param_Create_ITryCatch_That_Handles_Exception()
+		{
+			int i = 0;
+			void act(Exception _)
+			{
+				i++;
+			}
+
+			var tryCatch = TryCatchBuilder.CreateAndBuild(act);
+			var res = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(res.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
+		}
 	}
 }
