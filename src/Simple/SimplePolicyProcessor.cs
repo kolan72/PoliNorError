@@ -47,6 +47,17 @@ namespace PoliNorError
 		///<inheritdoc cref = "ISimplePolicyProcessor.Execute"/>
 		public PolicyResult Execute(Action action, CancellationToken token = default)
 		{
+			return Execute(action, _emptyErrorContext, token);
+		}
+
+		public PolicyResult Execute<TParam>(Action action, TParam param, CancellationToken token = default)
+		{
+			var emptyContext = new EmptyErrorContext<TParam>(param);
+			return Execute(action, (EmptyErrorContext)emptyContext, token);
+		}
+
+		private PolicyResult Execute(Action action, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
+		{
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
 
@@ -90,7 +101,7 @@ namespace PoliNorError
 
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, _emptyErrorContext));
+													 .Handle(ex, emptyErrorContext));
 			}
 			return result;
 		}
@@ -240,6 +251,22 @@ namespace PoliNorError
 															.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
 			}
 			return result;
+		}
+
+		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor)
+		{
+			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(actionProcessor));
+		}
+
+		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor, CancellationType cancellationType)
+		{
+			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(actionProcessor, cancellationType));
+		}
+
+		public SimplePolicyProcessor WithErrorProcessor<TParam>(DefaultErrorProcessor<TParam> errorProcessor)
+		{
+			AddErrorProcessor(errorProcessor);
+			return this;
 		}
 
 		private (bool? FilterUnsatisfied, Exception exception) GetFilterUnsatisfiedOrFilterException(Exception ex)

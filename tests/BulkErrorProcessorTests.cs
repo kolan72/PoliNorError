@@ -371,6 +371,5 @@ namespace PoliNorError.Tests
 			Assert.That(errorProcessorWorksFlag, Is.True);
 			Assert.That(errorProcessorThatShoulNotWorkFlag, Is.False);
 		}
-
 	}
 }
