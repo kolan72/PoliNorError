@@ -12,7 +12,7 @@
 		public abstract ProcessingErrorContext ToProcessingErrorContext();
 	}
 
-	internal sealed class EmptyErrorContext : ErrorContext<Unit>
+	internal class EmptyErrorContext : ErrorContext<Unit>
 	{
 		public static EmptyErrorContext Default { get; } = new EmptyErrorContext();
 
@@ -20,10 +20,22 @@
 
 		public static EmptyErrorContext DefaultSimple { get; } = new EmptyErrorContext() { PolicyKind = PolicyAlias.Simple };
 
-		private EmptyErrorContext() : base(Unit.Default){}
+		protected EmptyErrorContext() : base(Unit.Default){}
 
 		public PolicyAlias PolicyKind { get; private set; } = PolicyAlias.NotSet;
 
 		public override ProcessingErrorContext ToProcessingErrorContext() => new ProcessingErrorContext(PolicyKind);
+	}
+
+	internal class EmptyErrorContext<TParam> : EmptyErrorContext
+	{
+		public EmptyErrorContext(TParam param)
+		{
+			Param = param;
+		}
+
+		public TParam Param { get; private set; }
+
+		public override ProcessingErrorContext ToProcessingErrorContext() => new ProcessingErrorContext<TParam>(PolicyKind, Param);
 	}
 }
