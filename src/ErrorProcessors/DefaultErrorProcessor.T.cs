@@ -12,6 +12,11 @@ namespace PoliNorError
 			_errorProcessor = DefaultErrorProcessorT.Create(actionProcessor);
 		}
 
+		public DefaultErrorProcessor(Action<Exception, ProcessingErrorInfo<TParam>, CancellationToken> actionProcessor)
+		{
+			_errorProcessor = DefaultErrorProcessorT.Create(actionProcessor);
+		}
+
 		public DefaultErrorProcessor(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor, CancellationType cancellationType)
 		{
 			_errorProcessor = DefaultErrorProcessorT.Create(actionProcessor, cancellationType);
@@ -43,6 +48,18 @@ namespace PoliNorError
 		public static DefaultErrorProcessorT Create<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor)
 		{
 			var action = ConvertToNonGenericAction(actionProcessor);
+			var res = new DefaultErrorProcessorT();
+			res.SetSyncRunner(action);
+			return res;
+		}
+
+		public static DefaultErrorProcessorT Create<TParam>(Action<Exception, ProcessingErrorInfo<TParam>, CancellationToken> actionProcessor)
+		{
+			void action(Exception ex, ProcessingErrorInfo pi, CancellationToken token)
+			{
+				if (pi is ProcessingErrorInfo<TParam> gpi)
+					actionProcessor(ex, gpi, token);
+			}
 			var res = new DefaultErrorProcessorT();
 			res.SetSyncRunner(action);
 			return res;

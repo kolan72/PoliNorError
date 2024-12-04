@@ -139,6 +139,28 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_DefaultErrorProcessor_TParam_Of_Action_With_TokenPram_Process_Only_ProcessingErrorInfo_TParam(bool isGeneric)
+		{
+			int i = 0;
+			DefaultErrorProcessor<int> errPr = new DefaultErrorProcessor<int>((_, __,  ___) => i++);
+
+			ProcessingErrorInfo piToTest = null;
+			if (isGeneric)
+			{
+				piToTest = new ProcessingErrorInfo<int>(new ProcessingErrorContext<int>(PolicyAlias.NotSet, 1));
+			}
+			else
+			{
+				piToTest = new ProcessingErrorInfo(PolicyAlias.NotSet);
+			}
+			errPr.Process(new Exception(), piToTest);
+
+			Assert.That(i, Is.EqualTo(isGeneric ? 1 : 0));
+		}
+
+		[Test]
 		[TestCase(true, false)]
 		[TestCase(false, false)]
 		[TestCase(true, true)]
