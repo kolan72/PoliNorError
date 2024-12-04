@@ -50,6 +50,11 @@ namespace PoliNorError
 			return Execute(action, _emptyErrorContext, token);
 		}
 
+		public PolicyResult Execute<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
+		{
+			return Execute(action.Apply(param), param, token);
+		}
+
 		public PolicyResult Execute<TParam>(Action action, TParam param, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TParam>(param);
