@@ -27,6 +27,11 @@ namespace PoliNorError
 			_errorProcessor = DefaultErrorProcessorT.Create(funcProcessor);
 		}
 
+		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo<TParam>, CancellationToken, Task> funcProcessor)
+		{
+			_errorProcessor = DefaultErrorProcessorT.Create(funcProcessor);
+		}
+
 		public DefaultErrorProcessor(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor, CancellationType cancellationType)
 		{
 			_errorProcessor = DefaultErrorProcessorT.Create(funcProcessor, cancellationType);
@@ -78,6 +83,20 @@ namespace PoliNorError
 			var func = ConvertToNonGenericFunc(funcProcessor);
 			var res = new DefaultErrorProcessorT();
 			res.SetAsyncRunner(func);
+			return res;
+		}
+
+		public static DefaultErrorProcessorT Create<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, CancellationToken, Task> funcProcessor)
+		{
+			Task fn(Exception ex, ProcessingErrorInfo pi, CancellationToken token)
+			{
+				if (pi is ProcessingErrorInfo<TParam> gpi)
+					return funcProcessor(ex, gpi, token);
+				else
+					return Task.CompletedTask;
+			}
+			var res = new DefaultErrorProcessorT();
+			res.SetAsyncRunner(fn);
 			return res;
 		}
 
