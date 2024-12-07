@@ -283,6 +283,11 @@ namespace PoliNorError
 			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(funcProcessor, cancellationType));
 		}
 
+		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, CancellationToken, Task> funcProcessor)
+		{
+			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(funcProcessor));
+		}
+
 		public SimplePolicyProcessor WithErrorProcessor<TParam>(DefaultErrorProcessor<TParam> errorProcessor)
 		{
 			AddErrorProcessor(errorProcessor);
