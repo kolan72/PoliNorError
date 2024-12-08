@@ -55,9 +55,9 @@ namespace PoliNorError
 			return Execute(action.Apply(param), param, token);
 		}
 
-		public PolicyResult Execute<TParam>(Action action, TParam param, CancellationToken token = default)
+		public PolicyResult Execute<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
 		{
-			var emptyContext = new EmptyErrorContext<TParam>(param);
+			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return Execute(action, (EmptyErrorContext)emptyContext, token);
 		}
 
@@ -111,8 +111,19 @@ namespace PoliNorError
 			return result;
 		}
 
+		public PolicyResult<T> Execute<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
+		{
+			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
+			return Execute(func, (EmptyErrorContext)emptyContext, token);
+		}
+
 		///<inheritdoc cref = "ISimplePolicyProcessor.Execute{T}"/>
 		public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default)
+		{
+			return Execute(func, _emptyErrorContext, token);
+		}
+
+		private PolicyResult<T> Execute<T>(Func<T> func, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -158,7 +169,7 @@ namespace PoliNorError
 
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, _emptyErrorContext));
+													 .Handle(ex, emptyErrorContext));
 			}
 			return result;
 		}
