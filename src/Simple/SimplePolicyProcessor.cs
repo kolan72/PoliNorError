@@ -111,6 +111,11 @@ namespace PoliNorError
 			return result;
 		}
 
+		public PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, CancellationToken token = default)
+		{
+			return Execute(func.Apply(param), param, token);
+		}
+
 		public PolicyResult<T> Execute<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);

@@ -800,7 +800,9 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-				result = processor.Execute((v) => addable += v, 5);
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.Execute((v) => { addable += v; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(addable, Is.EqualTo(6));
 				Assert.That(result.NoError, Is.True);
 			}
@@ -810,7 +812,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
-		public void Should_Execute_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		public void Should_Execute_With_TParam_For_Func_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
 		{
 			int m = 0;
 
@@ -833,6 +835,39 @@ namespace PoliNorError.Tests
 			{
 				result = processor.Execute(() => 1, 5);
 				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Execute_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = processor.Execute<int, int>((_) => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = processor.Execute((v) => addable += v, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
 				Assert.That(result.NoError, Is.True);
 			}
 			Assert.That(result.IsSuccess, Is.True);
