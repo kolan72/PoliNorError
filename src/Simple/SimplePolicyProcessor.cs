@@ -111,6 +111,12 @@ namespace PoliNorError
 			return result;
 		}
 
+		///<inheritdoc cref = "ISimplePolicyProcessor.Execute{T}"/>
+		public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default)
+		{
+			return Execute(func, _emptyErrorContext, token);
+		}
+
 		public PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, CancellationToken token = default)
 		{
 			return Execute(func.Apply(param), param, token);
@@ -120,12 +126,6 @@ namespace PoliNorError
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return Execute(func, (EmptyErrorContext)emptyContext, token);
-		}
-
-		///<inheritdoc cref = "ISimplePolicyProcessor.Execute{T}"/>
-		public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default)
-		{
-			return Execute(func, _emptyErrorContext, token);
 		}
 
 		private PolicyResult<T> Execute<T>(Func<T> func, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
@@ -182,6 +182,17 @@ namespace PoliNorError
 		///<inheritdoc cref = "ISimplePolicyProcessor.ExecuteAsync"/>
 		public async Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
+			return await ExecuteAsync(func, _emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		public async Task<PolicyResult> ExecuteAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, bool configureAwait = false, CancellationToken token = default)
+		{
+			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
+			return await ExecuteAsync(func, (EmptyErrorContext)emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		{
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
 
@@ -221,7 +232,7 @@ namespace PoliNorError
 
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
+															.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait));
 			}
 			return result;
 		}

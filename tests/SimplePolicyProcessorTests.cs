@@ -873,6 +873,37 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsSuccess, Is.True);
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ExecuteAsync_With_TParam_For_NonGeneric_AsyncFunc_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await processor.ExecuteAsync(async(_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await processor.ExecuteAsync(async (_) => await Task.Delay(1), 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
 		private class TestErrorProcessor : IErrorProcessor
 		{
 			public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
