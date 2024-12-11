@@ -285,37 +285,37 @@ namespace PoliNorError
 			return result;
 		}
 
-		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor)
+		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
 		{
-			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(actionProcessor));
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
 		}
 
-		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Action<Exception, ProcessingErrorInfo<TParam>, CancellationToken> actionProcessor)
+		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
 		{
-			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(actionProcessor));
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
 		}
 
-		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Action<Exception, ProcessingErrorInfo<TParam>> actionProcessor, CancellationType cancellationType)
+		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
 		{
-			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(actionProcessor, cancellationType));
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
 		}
 
-		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor)
+		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
 		{
-			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(funcProcessor));
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
 		}
 
-		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, Task> funcProcessor, CancellationType cancellationType)
+		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
 		{
-			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(funcProcessor, cancellationType));
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
 		}
 
-		public SimplePolicyProcessor WithErrorProcessorOf<TParam>(Func<Exception, ProcessingErrorInfo<TParam>, CancellationToken, Task> funcProcessor)
+		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor)
 		{
-			return WithErrorProcessor(new DefaultErrorProcessor<TParam>(funcProcessor));
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
 		}
 
-		public SimplePolicyProcessor WithErrorProcessor<TParam>(DefaultErrorProcessor<TParam> errorProcessor)
+		public SimplePolicyProcessor WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
 			AddErrorProcessor(errorProcessor);
 			return this;

@@ -641,12 +641,12 @@ namespace PoliNorError.Tests
 			if (!withCancellationType)
 			{
 				processor = new SimplePolicyProcessor(true)
-							.WithErrorProcessorOf<int>(action);
+							.WithErrorContextProcessorOf<int>(action);
 			}
 			else
 			{
 				processor = new SimplePolicyProcessor(true)
-						.WithErrorProcessorOf<int>(action, CancellationType.Precancelable);
+						.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
 			}
 
 			PolicyResult result = null;
@@ -685,12 +685,12 @@ namespace PoliNorError.Tests
 			if (!withCancellationType)
 			{
 				processor = new SimplePolicyProcessor(true)
-							.WithErrorProcessorOf<int>(fn);
+							.WithErrorContextProcessorOf<int>(fn);
 			}
 			else
 			{
 				processor = new SimplePolicyProcessor(true)
-							.WithErrorProcessorOf<int>(fn, CancellationType.Precancelable);
+							.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable);
 			}
 
 			PolicyResult result = null;
@@ -724,7 +724,7 @@ namespace PoliNorError.Tests
 			}
 
 			var processor = new SimplePolicyProcessor(true)
-						.WithErrorProcessorOf<int>(fn);
+						.WithErrorContextProcessorOf<int>(fn);
 
 			PolicyResult result;
 
@@ -756,7 +756,7 @@ namespace PoliNorError.Tests
 			}
 
 			var processor = new SimplePolicyProcessor(true)
-						.WithErrorProcessorOf<int>(action);
+						.WithErrorContextProcessorOf<int>(action);
 
 			PolicyResult result;
 
@@ -789,7 +789,7 @@ namespace PoliNorError.Tests
 			}
 
 			var processor = new SimplePolicyProcessor(true)
-							.WithErrorProcessorOf<int>(action);
+							.WithErrorContextProcessorOf<int>(action);
 
 			PolicyResult result = null;
 			if (throwEx)
@@ -822,7 +822,7 @@ namespace PoliNorError.Tests
 			}
 
 			var processor = new SimplePolicyProcessor(true)
-							.WithErrorProcessorOf<int>(action);
+							.WithErrorContextProcessorOf<int>(action);
 
 			PolicyResult result = null;
 			if (throwEx)
@@ -854,7 +854,7 @@ namespace PoliNorError.Tests
 			}
 
 			var processor = new SimplePolicyProcessor(true)
-							.WithErrorProcessorOf<int>(action);
+							.WithErrorContextProcessorOf<int>(action);
 
 			PolicyResult result = null;
 			if (throwEx)
@@ -886,7 +886,7 @@ namespace PoliNorError.Tests
 			}
 
 			var processor = new SimplePolicyProcessor(true)
-							.WithErrorProcessorOf<int>(action);
+							.WithErrorContextProcessorOf<int>(action);
 
 			PolicyResult result = null;
 			if (throwEx)
