@@ -245,6 +245,17 @@ namespace PoliNorError
 		///<inheritdoc cref = "ISimplePolicyProcessor.ExecuteAsync{T}"/>
 		public async Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
+			return await ExecuteAsync(func, _emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		public async Task<PolicyResult<T>> ExecuteAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, bool configureAwait = false, CancellationToken token = default)
+		{
+			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
+			return await ExecuteAsync(func, (EmptyErrorContext)emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
@@ -285,7 +296,7 @@ namespace PoliNorError
 
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
+															.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait));
 			}
 			return result;
 		}

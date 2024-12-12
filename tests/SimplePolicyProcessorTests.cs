@@ -907,7 +907,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
-		public async Task Should_ExecuteAsync_With_TParam_For_NonGeneric_AsyncFunc__With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		public async Task Should_ExecuteAsync_With_TParam_For_NonGeneric_AsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
 		{
 			int m = 0;
 			int addable = 1;
@@ -932,6 +932,37 @@ namespace PoliNorError.Tests
 				result = await processor.ExecuteAsync(async (v,_) => {await Task.Delay(1); addable += v;}, 5);
 				Assert.That(m, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ExecuteAsync_With_TParam_For_Generic_AsyncFunc_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = await processor.ExecuteAsync<int, int>(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await processor.ExecuteAsync(async (_) => { await Task.Delay(1); return 1; }, 5);
+				Assert.That(m, Is.EqualTo(0));
 				Assert.That(result.NoError, Is.True);
 			}
 			Assert.That(result.IsSuccess, Is.True);
