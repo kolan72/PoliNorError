@@ -50,7 +50,7 @@ namespace PoliNorError.Tests
 		public async Task Should_RetryAsync_NotBreak_When_ErrorProcessing_Faulted(bool isGeneric)
 		{
 			var throwingExc = new ApplicationException();
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 			bulkProcessor.AddProcessor(new BasicErrorProcessor((_, __) => throw new Exception("Test")));
 
 			var processor = RetryProcessor.CreateDefault(bulkProcessor);
@@ -79,7 +79,7 @@ namespace PoliNorError.Tests
 		{
 			var cancelSource = new CancellationTokenSource();
 
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 
 			bulkProcessor.AddProcessor(new BasicErrorProcessor((_, __) => cancelSource.Cancel()));
 			bulkProcessor.AddProcessor(new BasicErrorProcessor((_, __) => { }));

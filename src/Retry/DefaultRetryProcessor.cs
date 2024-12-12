@@ -23,7 +23,7 @@ namespace PoliNorError
 		internal DefaultRetryProcessor(IDelayProvider delayProvider): this(null, false, delayProvider) {}
 
 		internal DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows, IDelayProvider delayProvider = null)
-			: base(PolicyAlias.Retry, bulkErrorProcessor)
+			: base(bulkErrorProcessor)
 		{
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
 			_retryErrorContextCreator = CreateRetryErrorContext;

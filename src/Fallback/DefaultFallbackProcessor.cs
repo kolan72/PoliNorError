@@ -7,9 +7,9 @@ namespace PoliNorError
 	public sealed class DefaultFallbackProcessor : PolicyProcessor, IFallbackProcessor
 	{
 		private readonly EmptyErrorContext _emptyErrorContext;
-		public DefaultFallbackProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(PolicyAlias.Fallback, bulkErrorProcessor)
+		public DefaultFallbackProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(bulkErrorProcessor)
 		{
-			_emptyErrorContext = _isPolicyAliasSet ? EmptyErrorContext.Default : EmptyErrorContext.DefaultFallback;
+			_emptyErrorContext = EmptyErrorContext.DefaultFallback;
 		}
 
 		public PolicyResult Fallback(Action action, Action<CancellationToken> fallback, CancellationToken token = default)

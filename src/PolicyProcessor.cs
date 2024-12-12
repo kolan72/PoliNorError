@@ -13,14 +13,13 @@ namespace PoliNorError
 
 		protected bool _isPolicyAliasSet;
 
-		protected PolicyProcessor(PolicyAlias policyAlias, IBulkErrorProcessor bulkErrorProcessor = null) : this(policyAlias, new ExceptionFilter(), bulkErrorProcessor)
+		protected PolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : this(PolicyAlias.NotSet, new ExceptionFilter(), bulkErrorProcessor)
 		{
 		}
 
 		protected PolicyProcessor(PolicyAlias policyAlias, ExceptionFilter exceptionFilter, IBulkErrorProcessor bulkErrorProcessor = null)
 		{
-			_bulkErrorProcessor = bulkErrorProcessor ?? new BulkErrorProcessor(policyAlias);
-			_isPolicyAliasSet = bulkErrorProcessor == null;
+			_bulkErrorProcessor = bulkErrorProcessor ?? new BulkErrorProcessor();
 			ErrorFilter = exceptionFilter;
 		}
 

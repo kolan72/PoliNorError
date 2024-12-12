@@ -7,7 +7,7 @@
 			RetryCount = retryCount;
 		}
 
-		internal override ProcessingErrorInfo ToProcessingErrorInfo(PolicyAlias policyAlias)
+		internal override ProcessingErrorInfo ToProcessingErrorInfo()
 		{
 			return new RetryProcessingErrorInfo(RetryCount);
 		}
