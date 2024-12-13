@@ -248,6 +248,11 @@ namespace PoliNorError
 			return await ExecuteAsync(func, _emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
+		public async Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, bool configureAwait = false, CancellationToken token = default)
+		{
+			return await ExecuteAsync(func.Apply(param), param, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
 		public async Task<PolicyResult<T>> ExecuteAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, bool configureAwait = false, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
