@@ -204,5 +204,16 @@ namespace PoliNorError
 		{
 			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
 		}
+
+		public SimplePolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+
+			processor.WithErrorContextProcessor(errorProcessor);
+			return this;
+		}
 	}
 }

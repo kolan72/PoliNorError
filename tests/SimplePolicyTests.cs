@@ -2,6 +2,8 @@
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -733,6 +735,37 @@ namespace PoliNorError.Tests
 				var exception = Assert.ThrowsAsync<TestExceptionWithInnerException>(async () => await proc.HandleAsync(AsyncFuncWithInnerT));
 				Assert.That(exception.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true), Is.True);
 			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WithErrorContextProcessor_Throws_Only_For_Not_SimplePolicyProcessor(bool throwEx)
+		{
+			SimplePolicy simplePolicy;
+			if (throwEx)
+			{
+				simplePolicy = new SimplePolicy(new TestSimplePolicyProcessor());
+				Assert.Throws<NotImplementedException>(() => simplePolicy.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+			else
+			{
+				simplePolicy = new SimplePolicy();
+				Assert.DoesNotThrow(() => simplePolicy.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+		}
+
+		public class TestSimplePolicyProcessor : ISimplePolicyProcessor
+		{
+			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();
+
+			public void AddErrorProcessor(IErrorProcessor newErrorProcessor) => Expression.Empty();
+			public PolicyResult Execute(Action action, CancellationToken token = default) => throw new NotImplementedException();
+			public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default) => throw new NotImplementedException();
+			public Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+			public Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
+			IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 		}
 	}
 }
