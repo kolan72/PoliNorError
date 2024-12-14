@@ -47,6 +47,26 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public PolicyResult Handle<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
+		{
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
+			if (Act == null && Wrapper != null)
+			{
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+			var retryResult = processor.Execute(Act, param, token)
+							  .SetWrappedPolicyResults(Wrapper)
+							  .SetPolicyName(PolicyName);
+
+			HandlePolicyResult(retryResult, token);
+			return retryResult;
+		}
+
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
@@ -203,6 +223,16 @@ namespace PoliNorError
 		public SimplePolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate, Action<PolicyResult<T>> onSetPolicyResultFailed)
 		{
 			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
 		}
 
 		public SimplePolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)

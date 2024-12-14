@@ -750,9 +750,66 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
+				int m = 0;
+
+				void action(Exception _, ProcessingErrorInfo<int> pi)
+				{
+					m = pi.Param;
+				}
 				simplePolicy = new SimplePolicy();
-				Assert.DoesNotThrow(() => simplePolicy.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+
+				var result = simplePolicy
+					.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action))
+					.Handle(() => throw new InvalidOperationException(), 5);
+
+				Assert.That(result.NoError, Is.False);
+				Assert.That(result.IsSuccess, Is.True);
+
+				Assert.That(m, Is.EqualTo(5));
 			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Execute_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			SimplePolicy policy;
+
+			if (!withCancellationType)
+			{
+				policy = new SimplePolicy(true)
+							.WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				policy = new SimplePolicy(true)
+						.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = policy.Handle(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = policy.Handle(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
 		}
 
 		public class TestSimplePolicyProcessor : ISimplePolicyProcessor
