@@ -240,6 +240,16 @@ namespace PoliNorError
 			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
 		}
 
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
+		}
+
 		public SimplePolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
 			if (!(_simpleProcessor is SimplePolicyProcessor processor))

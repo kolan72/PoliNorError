@@ -844,6 +844,51 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsSuccess, Is.True);
 		}
 
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Execute_For_Action_With_Generic_Param_WithErrorProcessorOf_AsyncFunc_Process_Correctly(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				await Task.Delay(1);
+				m = pi.Param;
+			}
+
+			SimplePolicy policy;
+
+			if (!withCancellationType)
+			{
+				policy = new SimplePolicy(true)
+							.WithErrorContextProcessorOf<int>(fn);
+			}
+			else
+			{
+				policy = new SimplePolicy(true)
+							.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = policy.Handle(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = policy.Handle(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
 		public class TestSimplePolicyProcessor : ISimplePolicyProcessor
 		{
 			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();
