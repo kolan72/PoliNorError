@@ -67,6 +67,25 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public PolicyResult Handle<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return Handle(action.Apply(param), token);
+			}
+			else
+			{
+				if (!(_simpleProcessor is SimplePolicyProcessor processor))
+				{
+					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+				}
+				var result = processor.Execute(action, param, token)
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
