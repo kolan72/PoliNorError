@@ -158,6 +158,56 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public Task<PolicyResult> HandleAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult> HandleAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, bool configureAwait, CancellationToken token)
+		{
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
+			if (Fn == null && Wrapper != null)
+			{
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+
+			var retryResult = (await processor.ExecuteAsync(Fn, param, configureAwait, token).ConfigureAwait(configureAwait))
+									.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
+
+			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
+			return retryResult;
+		}
+
+		public Task<PolicyResult> HandleAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult> HandleAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, bool configureAwait, CancellationToken token)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return await HandleAsync(func.Apply(param), configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				if (!(_simpleProcessor is SimplePolicyProcessor processor))
+				{
+					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+				}
+				var result = (await processor.ExecuteAsync(func, param, configureAwait, token).ConfigureAwait(configureAwait))
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
