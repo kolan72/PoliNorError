@@ -1124,6 +1124,86 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsSuccess, Is.True);
 		}
 
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(null, true)]
+		public async Task Should_HandleAsync_With_TParam_For_Generic_AsyncFunc_WithErrorProcessorOf_Action_Process_Correctly(bool? throwEx, bool notDefaultImpl)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			SimplePolicy policy;
+
+			if (notDefaultImpl)
+			{
+				policy = new SimplePolicy(new TestSimplePolicyProcessor());
+				Assert.ThrowsAsync<NotImplementedException>(async () => await policy.HandleAsync(async (_) => { await Task.Delay(1); return 1; }, 5, false, default));
+			}
+			else
+			{
+				policy = new SimplePolicy(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+				PolicyResult result = null;
+				if (throwEx == true)
+				{
+					result = await policy.HandleAsync<int, int>(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+					Assert.That(m, Is.EqualTo(5));
+					Assert.That(result.NoError, Is.False);
+				}
+				else
+				{
+					result = await policy.HandleAsync(async (_) => { await Task.Delay(1); return 1; }, 5, false, default);
+					Assert.That(m, Is.EqualTo(0));
+					Assert.That(result.NoError, Is.True);
+				}
+				Assert.That(result.IsSuccess, Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, null)]
+		public async Task Should_HandleAsync_With_TParam_For_GenericAsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool? useWrap)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var policyToTest = new SimplePolicy(true).WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap == true)
+			{
+				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await policyToTest.HandleAsync<int, int>(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await policyToTest.HandleAsync(async (v, _) => { await Task.Delay(1); addable += v; return addable; }, 5, false, default);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
 		public class TestSimplePolicyProcessor : ISimplePolicyProcessor
 		{
 			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();
