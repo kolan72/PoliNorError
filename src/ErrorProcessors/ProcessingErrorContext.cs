@@ -15,12 +15,9 @@ namespace PoliNorError
 
 		internal PolicyAlias PolicyKind { get; set; }
 
-		internal virtual ProcessingErrorInfo ToProcessingErrorInfo(PolicyAlias policyAlias)
+		internal virtual ProcessingErrorInfo ToProcessingErrorInfo()
 		{
-			if (policyAlias != PolicyAlias.NotSet)
-				return new ProcessingErrorInfo(policyAlias, this);
-			else
-				return new ProcessingErrorInfo(this);
+			return new ProcessingErrorInfo(this);
 		}
 	}
 }

@@ -14,7 +14,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_PolicyProcessorCatchBlockSyncHandler_Be_Cancelable()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Simple);
+			var bulkProcessor = new BulkErrorProcessor();
 			bulkProcessor.AddProcessor(new BasicErrorProcessor());
 			var filter = new PolicyProcessor.ExceptionFilter();
 			using (var cancelTokenSource = new CancellationTokenSource())
@@ -36,7 +36,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_PolicyProcessorCatchBlockAsyncHandler_Be_Cancelable()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Simple);
+			var bulkProcessor = new BulkErrorProcessor();
 			bulkProcessor.AddProcessor(new BasicErrorProcessor());
 			var filter = new PolicyProcessor.ExceptionFilter();
 			using (var cancelTokenSource = new CancellationTokenSource())
@@ -63,7 +63,7 @@ namespace PoliNorError.Tests
 		[TestCase(1, HandleCatchBlockResult.Success, false)]
 		public async Task Should_PolicyProcessorCatchBlockHandler_When_ErrorContext_CanNotBeHandled_Returns_FailedByPolicyRules(int retryCount, HandleCatchBlockResult result, bool sync)
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Simple);
+			var bulkProcessor = new BulkErrorProcessor();
 			bulkProcessor.AddProcessor(new BasicErrorProcessor());
 			var filter = new PolicyProcessor.ExceptionFilter();
 

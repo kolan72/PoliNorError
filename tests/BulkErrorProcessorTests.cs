@@ -15,7 +15,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_ProcessAsync_Return_Status_None_When_No_Processors()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 			var res =  await bulkProcessor.ProcessAsync(new Exception(), new RetryProcessingErrorContext(1), CancellationToken.None);
 			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
@@ -23,7 +23,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_ProcessAsync_Return_Status_ProcessorException_When_ProcessorWithError()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 
 			var mockedErrorProcessor = Substitute.For<IErrorProcessor>();
 
@@ -40,7 +40,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_ProcessAsync_Return_Status_Success_And_CorrectProcessor()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 
 			var exc = new Exception();
 
@@ -55,7 +55,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Process_Return_Status_None_When_No_Processors()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 			var res = bulkProcessor.Process(new Exception(), new RetryProcessingErrorContext(1), CancellationToken.None);
 			ClassicAssert.IsTrue(!res.ProcessErrors.Any());
 		}
@@ -63,7 +63,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Process_Return_Status_ProcessorException_When_ProcessorWithError2()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 
 			var exc = new Exception();
 
@@ -79,7 +79,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Process_Return_Status_Success_When_CorrectProcessor()
 		{
-			var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+			var bulkProcessor = new BulkErrorProcessor();
 
 			var exc = new Exception();
 
@@ -96,7 +96,7 @@ namespace PoliNorError.Tests
 		{
 			using (var cancelTokenSource = new CancellationTokenSource())
 			{
-				var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+				var bulkProcessor = new BulkErrorProcessor();
 				cancelTokenSource.CancelAfter(500);
 				var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
 				bulkProcessor.AddProcessor(delayProcessor);
@@ -114,7 +114,7 @@ namespace PoliNorError.Tests
 		{
 			using (var cancelTokenSource = new CancellationTokenSource())
 			{
-				var bulkProcessor = new BulkErrorProcessor(PolicyAlias.Retry);
+				var bulkProcessor = new BulkErrorProcessor();
 				cancelTokenSource.CancelAfter(500);
 				var delayProcessor = new DelayErrorProcessor(TimeSpan.FromMilliseconds(1000));
 				bulkProcessor.AddProcessor(delayProcessor);

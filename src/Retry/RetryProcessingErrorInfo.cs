@@ -2,7 +2,7 @@
 {
 	public class RetryProcessingErrorInfo : ProcessingErrorInfo
 	{
-		internal RetryProcessingErrorInfo(int retryAttempt) : base(PolicyAlias.Retry, new RetryProcessingErrorContext(retryAttempt))
+		internal RetryProcessingErrorInfo(int retryAttempt) : base(new RetryProcessingErrorContext(retryAttempt))
 		{
 #pragma warning disable CS0618 // Type or member is obsolete
 			CurrentRetryCount = retryAttempt;

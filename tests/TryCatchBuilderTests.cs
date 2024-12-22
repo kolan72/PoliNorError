@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using PoliNorError.TryCatch;
 using System;
+using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
@@ -181,6 +182,49 @@ namespace PoliNorError.Tests
 			Assert.That(res.IsError, Is.True);
 			Assert.That(i, Is.EqualTo(1));
 			Assert.That(m, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_CreateAndBuild_With_Action_With_Exception_Param_Create_ITryCatch_That_Handles_Exception()
+		{
+			int i = 0;
+			void act(Exception _)
+			{
+				i++;
+			}
+
+			var tryCatch = TryCatchBuilder.CreateAndBuild(act);
+			var res = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(res.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_CreateAndBuild_With_AsyncFunc_With_Exception_Param_Create_ITryCatch_That_Handles_Exception(bool isSync)
+		{
+			int i = 0;
+			async Task fn(Exception _)
+			{
+				await Task.Delay(1);
+				i++;
+			}
+
+			var tryCatch = TryCatchBuilder.CreateAndBuild(fn);
+
+			TryCatchResult res;
+			if (isSync)
+			{
+				res = tryCatch.Execute(() => throw new InvalidOperationException());
+			}
+			else
+			{
+				res = await tryCatch.ExecuteAsync(async(_) => { await Task.Delay(1); throw new InvalidOperationException(); });
+			}
+
+			Assert.That(res.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
 		}
 	}
 }

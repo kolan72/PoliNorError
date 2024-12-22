@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PoliNorError.TryCatch
 {
@@ -33,6 +35,28 @@ namespace PoliNorError.TryCatch
 		{
 			var builder = new TryCatchBuilder();
 			return builder.AddCatchBlock(bulkErrorProcessor).Build();
+		}
+
+		/// <summary>
+		/// Creates <see cref="ITryCatch"/> which mimics a try/catch block without a filter that will process an exception by the <paramref name="errorProcessorAction"/>.
+		/// </summary>
+		/// <param name="errorProcessorAction">Delegate that will process an exception.</param>
+		/// <returns><see cref="ITryCatch"/></returns>
+		public static ITryCatch CreateAndBuild(Action<Exception> errorProcessorAction)
+		{
+			var bulkProcessor = new BulkErrorProcessor().WithErrorProcessorOf(errorProcessorAction);
+			return CreateAndBuild(bulkProcessor);
+		}
+
+		/// <summary>
+		/// Creates <see cref="ITryCatch"/> which mimics a try/catch block without a filter that will process an exception by the <paramref name="errorProcessorFunc"/>.
+		/// </summary>
+		/// <param name="errorProcessorFunc">Delegate that will process an exception.</param>
+		/// <returns><see cref="ITryCatch"/></returns>
+		public static ITryCatch CreateAndBuild(Func<Exception, Task> errorProcessorFunc)
+		{
+			var bulkProcessor = new BulkErrorProcessor().WithErrorProcessorOf(errorProcessorFunc);
+			return CreateAndBuild(bulkProcessor);
 		}
 
 		/// <summary>

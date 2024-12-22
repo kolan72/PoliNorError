@@ -11,14 +11,14 @@ namespace PoliNorError
 	{
 		private readonly List<IErrorProcessor> _errorProcessors = new List<IErrorProcessor>();
 
-		private readonly PolicyAlias _policyAlias;
+		public BulkErrorProcessor() {}
 
-		public BulkErrorProcessor(): this(PolicyAlias.NotSet) {}
-
-		public BulkErrorProcessor(PolicyAlias policyAlias)
-		{
-			_policyAlias = policyAlias;
-		}
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This constructor is obsolete. Use parameterless constructor instead.")]
+#pragma warning restore S1133 // Deprecated code should be removed
+#pragma warning disable RCS1163 // Unused parameter.
+		public BulkErrorProcessor(PolicyAlias policyAlias){}
+#pragma warning restore RCS1163 // Unused parameter.
 
 		public void AddProcessor(IErrorProcessor errorProcessor)
 		{
@@ -33,7 +33,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo(_policyAlias);
+			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo();
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
@@ -83,7 +83,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo(_policyAlias);
+			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo();
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
