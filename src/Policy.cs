@@ -111,7 +111,7 @@ namespace PoliNorError
 
 		internal void SetWrap(IPolicyBase policyToWrap)
 		{
-			if (_policyWrapperFactory != null)
+			if (HasPolicyWrapperFactory)
 			{
 				throw new NotImplementedException("More than one wrapped policy is not supported.");
 			}
@@ -120,7 +120,7 @@ namespace PoliNorError
 
 		internal void SetWrap(IEnumerable<IPolicyBase> policies, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed)
 		{
-			if (_policyWrapperFactory != null)
+			if (HasPolicyWrapperFactory)
 			{
 				throw new ArgumentException("More than one wrapped PolicyCollection is not supported.");
 			}
@@ -133,7 +133,7 @@ namespace PoliNorError
 
 		internal (Action Act, PolicyWrapper Wrapper) WrapDelegateIfNeed(Action action, CancellationToken token)
 		{
-			if (_policyWrapperFactory == null)
+			if (!HasPolicyWrapperFactory)
 			{
 				return (action, null);
 			}
@@ -149,7 +149,7 @@ namespace PoliNorError
 
 		internal (Func<T> Fn, PolicyWrapper<T> Wrapper) WrapDelegateIfNeed<T>(Func<T> fn, CancellationToken token)
 		{
-			if (_policyWrapperFactory == null)
+			if (!HasPolicyWrapperFactory)
 			{
 				return (fn, null);
 			}
@@ -165,7 +165,7 @@ namespace PoliNorError
 
 		internal (Func<CancellationToken, Task> Fn, PolicyWrapper Wrapper) WrapDelegateIfNeed(Func<CancellationToken, Task> fn, CancellationToken token, bool configureAwait)
 		{
-			if (_policyWrapperFactory == null)
+			if (!HasPolicyWrapperFactory)
 			{
 				return (fn, null);
 			}
@@ -181,7 +181,7 @@ namespace PoliNorError
 
 		internal (Func<CancellationToken, Task<T>> Fn, PolicyWrapper<T> Wrapper) WrapDelegateIfNeed<T>(Func<CancellationToken, Task<T>> fn, CancellationToken token, bool configureAwait)
 		{
-			if (_policyWrapperFactory == null)
+			if (!HasPolicyWrapperFactory)
 			{
 				return (fn, null);
 			}
@@ -194,6 +194,8 @@ namespace PoliNorError
 				return (wrapper.HandleAsync, wrapper);
 			}
 		}
+
+		protected bool HasPolicyWrapperFactory => _policyWrapperFactory != null;
 
 		public void ResetWrap()
 		{

@@ -47,6 +47,45 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public PolicyResult Handle<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
+		{
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
+			if (Act == null && Wrapper != null)
+			{
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+			var retryResult = processor.Execute(Act, param, token)
+							  .SetWrappedPolicyResults(Wrapper)
+							  .SetPolicyName(PolicyName);
+
+			HandlePolicyResult(retryResult, token);
+			return retryResult;
+		}
+
+		public PolicyResult Handle<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return Handle(action.Apply(param), token);
+			}
+			else
+			{
+				if (!(_simpleProcessor is SimplePolicyProcessor processor))
+				{
+					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+				}
+				var result = processor.Execute(action, param, token)
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
@@ -56,6 +95,46 @@ namespace PoliNorError
 			}
 
 			var retryResult = _simpleProcessor.Execute(Fn, token)
+							  .SetWrappedPolicyResults(Wrapper)
+							  .SetPolicyName(PolicyName);
+
+			HandlePolicyResult(retryResult, token);
+			return retryResult;
+		}
+
+		public PolicyResult<T> Handle<TParam, T>(Func<TParam, T> func, TParam param, CancellationToken token = default)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return Handle(func.Apply(param), token);
+			}
+			else
+			{
+				if (!(_simpleProcessor is SimplePolicyProcessor processor))
+				{
+					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+				}
+				var result = processor.Execute(func, param, token)
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
+		public PolicyResult<T> Handle<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
+		{
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
+			if (Fn == null && Wrapper != null)
+			{
+				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+
+			var retryResult = processor.Execute(Fn, param, token)
 							  .SetWrappedPolicyResults(Wrapper)
 							  .SetPolicyName(PolicyName);
 
@@ -79,6 +158,56 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public Task<PolicyResult> HandleAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult> HandleAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, bool configureAwait, CancellationToken token)
+		{
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
+			if (Fn == null && Wrapper != null)
+			{
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+
+			var retryResult = (await processor.ExecuteAsync(Fn, param, configureAwait, token).ConfigureAwait(configureAwait))
+									.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
+
+			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
+			return retryResult;
+		}
+
+		public Task<PolicyResult> HandleAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult> HandleAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, bool configureAwait, CancellationToken token)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return await HandleAsync(func.Apply(param), configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				if (!(_simpleProcessor is SimplePolicyProcessor processor))
+				{
+					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+				}
+				var result = (await processor.ExecuteAsync(func, param, configureAwait, token).ConfigureAwait(configureAwait))
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
@@ -88,6 +217,56 @@ namespace PoliNorError
 			}
 
 			var retryResult = (await _simpleProcessor.ExecuteAsync(Fn, configureAwait, token).ConfigureAwait(configureAwait))
+									.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
+
+			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
+			return retryResult;
+		}
+
+		public Task<PolicyResult<T>> HandleAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult<T>> HandleAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, bool configureAwait, CancellationToken token)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return await HandleAsync(func.Apply(param), configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				if (!(_simpleProcessor is SimplePolicyProcessor processor))
+				{
+					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+				}
+				var result = (await processor.ExecuteAsync(func, param, configureAwait, token).ConfigureAwait(configureAwait))
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
+		public Task<PolicyResult<T>> HandleAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult<T>> HandleAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, bool configureAwait, CancellationToken token)
+		{
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
+			if (Fn == null && Wrapper != null)
+			{
+				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+
+			var retryResult = (await processor.ExecuteAsync(Fn, param, configureAwait, token).ConfigureAwait(configureAwait))
 									.SetWrappedPolicyResults(Wrapper)
 									.SetPolicyName(PolicyName);
 
@@ -203,6 +382,47 @@ namespace PoliNorError
 		public SimplePolicy SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate, Action<PolicyResult<T>> onSetPolicyResultFailed)
 		{
 			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
+		}
+
+		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+		}
+
+		public SimplePolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			if (!(_simpleProcessor is SimplePolicyProcessor processor))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+
+			processor.WithErrorContextProcessor(errorProcessor);
+			return this;
 		}
 	}
 }

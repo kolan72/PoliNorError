@@ -622,6 +622,386 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Execute_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			SimplePolicyProcessor processor;
+
+			if (!withCancellationType)
+			{
+				processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				processor = new SimplePolicyProcessor(true)
+						.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Execute_For_Action_With_Generic_Param_WithErrorProcessorOf_AsyncFunc_Process_Correctly(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				await Task.Delay(1);
+				m = pi.Param;
+			}
+
+			SimplePolicyProcessor processor;
+
+			if (!withCancellationType)
+			{
+				processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(fn);
+			}
+			else
+			{
+				processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Execute_For_Action_With_Generic_Param_WithErrorProcessorOf_AsyncFunc_With_Token_Param_Process_Correctly(bool shouldWork)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				await Task.Delay(1);
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+						.WithErrorContextProcessorOf<int>(fn);
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Execute_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_With_Token_Param_Process_Correctly(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+						.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Execute_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = processor.Execute((_) => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.Execute((v) => { addable += v; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Execute_With_TParam_For_Func_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = processor.Execute<int, int>(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = processor.Execute(() => 1, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Execute_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = processor.Execute<int, int>((_) => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = processor.Execute((v) => addable += v, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ExecuteAsync_With_TParam_For_NonGeneric_AsyncFunc_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await processor.ExecuteAsync(async(_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await processor.ExecuteAsync(async (_) => await Task.Delay(1), 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ExecuteAsync_With_TParam_For_NonGeneric_AsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await processor.ExecuteAsync(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await processor.ExecuteAsync(async (v,_) => {await Task.Delay(1); addable += v;}, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ExecuteAsync_With_TParam_For_Generic_AsyncFunc_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = await processor.ExecuteAsync<int, int>(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await processor.ExecuteAsync(async (_) => { await Task.Delay(1); return 1; }, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_ExecuteAsync_With_TParam_For_Generic_AsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = await processor.ExecuteAsync<int, int>(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await processor.ExecuteAsync(async (v, _) => { await Task.Delay(1); addable += v; return addable; }, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.Result, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
 		private class TestErrorProcessor : IErrorProcessor
 		{
 			public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
