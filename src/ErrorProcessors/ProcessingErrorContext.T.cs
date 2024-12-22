@@ -8,12 +8,9 @@
 		}
 		public TParam Param { get; set; }
 
-		internal override ProcessingErrorInfo ToProcessingErrorInfo(PolicyAlias policyAlias)
+		internal override ProcessingErrorInfo ToProcessingErrorInfo()
 		{
-			if (policyAlias != PolicyAlias.NotSet)
-				return new ProcessingErrorInfo<TParam>(policyAlias, this);
-			else
-				return new ProcessingErrorInfo<TParam>(this);
+			return new ProcessingErrorInfo<TParam>(this);
 		}
 	}
 }
