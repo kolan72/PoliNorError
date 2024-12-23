@@ -864,6 +864,8 @@ var result = await PolicyCollection.Create()
 		})
 		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct), token);
 ```
+Note that if the `FailedReason` property of the last `PolicyResult` is `PolicyResultFailedReason.PolicyResultHandlerFailed`, a `PolicyResultHandlerFailedException` is thrown for both the `ThrowOnWrappedCollectionFailed.LastError` and `ThrowOnWrappedCollectionFailed.CollectionError` settings.  
+
 You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
 ### TryCatch (since _version_ 2.16.21)
