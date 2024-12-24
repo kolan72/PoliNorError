@@ -321,10 +321,11 @@ var retryResult = new RetryPolicy(2)
 			.WithErrorProcessorOf((Exception ex, ProcessingErrorInfo pi) =>
 				logger.LogError(ex, 
 				"Policy processed exception on {Attempt} attempt:", 
-				(pi as RetryProcessingErrorInfo).RetryCount + 1))
+				((RetryProcessingErrorInfo)pi).RetryCount + 1))
 			.Handle(ActionThatCanThrow);
 ```
 where `RetryProcessingErrorInfo` is the subclass of `ProcessingErrorInfo`.  
+Note that within the `RetryPolicy`, the `RetryProcessingErrorInfo` class is always used instead of the base `ProcessingErrorInfo` class, so the direct cast is always successful.  
 
 You can also specify the delay time before next retry with `WithWait(TimeSpan)` method, or use one of the overloads with Func, returning TimeSpan, for example:
 ```csharp
