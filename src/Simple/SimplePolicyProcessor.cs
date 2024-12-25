@@ -66,7 +66,7 @@ namespace PoliNorError
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
 
-			PolicyResult result = PolicyResult.ForSync();
+			var result = PolicyResult.ForSync();
 
 			if (token.IsCancellationRequested)
 			{
@@ -91,7 +91,7 @@ namespace PoliNorError
 			{
 				if (_rethrowIfErrorFilterUnsatisfied)
 				{
-					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
 						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
@@ -159,7 +159,7 @@ namespace PoliNorError
 			{
 				if (_rethrowIfErrorFilterUnsatisfied)
 				{
-					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
 						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
@@ -201,7 +201,7 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
 
-			PolicyResult result = PolicyResult.InitByConfigureAwait(configureAwait);
+			var result = PolicyResult.InitByConfigureAwait(configureAwait);
 
 			if (token.IsCancellationRequested)
 			{
@@ -222,7 +222,7 @@ namespace PoliNorError
 			{
 				if (_rethrowIfErrorFilterUnsatisfied)
 				{
-					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
 						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
@@ -286,7 +286,7 @@ namespace PoliNorError
 			{
 				if (_rethrowIfErrorFilterUnsatisfied)
 				{
-					(bool? filterUnsatisfied, Exception filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
 					if (filterUnsatisfied == true)
 					{
 						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
