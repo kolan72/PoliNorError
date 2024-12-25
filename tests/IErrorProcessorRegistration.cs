@@ -145,7 +145,7 @@ namespace PoliNorError.Tests
 
 	public class BulkErrorProcessorErrorProcessorRegistration : IErrorProcessorRegistration
 	{
-		private readonly BulkErrorProcessor _processor = new BulkErrorProcessor(PolicyAlias.Simple);
+		private readonly BulkErrorProcessor _processor = new BulkErrorProcessor();
 		public int Count => _processor.Count();
 
 		public void WithErrorProcessor(IErrorProcessor errorProcessor) => _processor.WithErrorProcessor(new DefaultErrorProcessor());
