@@ -11,7 +11,7 @@ var result =
 	.WithErrorProcessorOf((Exception ex, ProcessingErrorInfo pi) =>
 		logger.LogError(ex, 
 		"Policy processed exception on {Attempt} attempt:", 
-		(pi as RetryProcessingErrorInfo).RetryCount + 1))
+		((RetryProcessingErrorInfo)pi).RetryCount + 1))
 
 	.AddPolicyResultHandler((PolicyResult pr) =>
 		logger.LogWarning(
