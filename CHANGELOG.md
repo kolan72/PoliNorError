@@ -1,3 +1,48 @@
+## 2.20.0
+
+- Introduce the `DefaultErrorProcessor<TParam>` , `ProcessingErrorContext<TParam>` and `ProcessingErrorInfo<TParam>` classes.
+- Introduce the `SimplePolicy.Handle<TErrorContext>(Action, TErrorContext, CancellationToken)` method.
+- Introduce the `SimplePolicy.Handle<TParam>(Action<TParam>, TParam, CancellationToken)` method.
+- Introduce the `Handle<TParam, T>(Func<TParam, T>, TParam, CancellationToken)` and `Handle<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken)` methods of `SimplePolicy`.
+- Introduce overloads for the `SimplePolicy.HandleAsync<TParam>` and `SimplePolicy.HandleAsync<TErrorContext>` methods.
+- Introduce overloads for the `SimplePolicy.HandleAsync<TParam, T>` and `SimplePolicy.HandleAsync<TErrorContext, T>` methods.
+- Introduce the `SimplePolicy.WithErrorContextProcessor<TErrorContext>` and `SimplePolicy.WithErrorContextProcessorOf<TErrorContext>` method overloads.
+- Introduce the `SimplePolicyProcessor.Execute<TParam>(Action)` method.
+- Introduce the `SimplePolicyProcessor.Execute<TParam>(Action<TParam>, TParam, token)` method.
+- Introduce the `SimplePolicyProcessor.Execute<TErrorContext, T>(Func<T>, TErrorContext, CancellationToken)` method.
+- Introduce the `SimplePolicyProcessor.Execute<TParam, T>(Func<TParam, T>, TParam, CancellationToken)` method.
+- Introduce the `SimplePolicyProcessor.ExecuteAsync<TErrorContext>(Func<CancellationToken, Task>, TErrorContext, bool, CancellationToken)` method.
+- Introduce the `SimplePolicyProcessor.ExecuteAsync<TParam>(Func<TParam, CancellationToken, Task>, TParam, bool, CancellationToken)` method.
+- Introduce the `SimplePolicyProcessor.ExecuteAsync<TErrorContext, T>(Func<CancellationToken, Task<T>>, TErrorContext, bool, CancellationToken)` method.
+- Introduce the `SimplePolicyProcessor.ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>>, TParam, bool, CancellationToken)` method.
+- Introduce the `SimplePolicyProcessor.WithErrorContextProcessor<TErrorContext>`  and `SimplePolicyProcessor.WithErrorContextProcessorOf<TErrorContext>`  method overloads.
+- Introduce the `Func<CancellationToken, Task<T>>.InvokeWithTryCatchAsync` extension method.
+- Introduce `InvokeWithTryCatchAsync` extension methods overloads for the `Func<CancellationToken, Task<T>>`, `Func<CancellationToken, Task>` delegates.
+- Introduce the `Func<CancellationToken, Task>.InvokeWithTryCatchAsync` extension method.
+- Introduce the `Func<T>.InvokeWithTryCatch` extension method.
+- Introduce the `Action.InvokeWithTryCatch` extension method.
+- Introduce `TryCatchBuilder.AddCatchBlock` method overloads with `NonEmptyCatchBlockFilter`, `IBulkErrorProcessor` parameters.
+- Introduce the `TryCatchBuilder.AddCatchBlock` method overload with the `NonEmptyCatchBlockFilter` parameter.
+- Introduce the `TryCatchBuilder.AddCatchBlock` method overload with the `IBulkErrorProcessor` parameter.
+- Introduce `TryCatchBuilder.CreateFrom` method overload with `NonEmptyCatchBlockFilter`, `IBulkErrorProcessor` parameters.
+- Introduce the `TryCatchBuilder.CreateFrom` method overload with the `NonEmptyCatchBlockFilter` parameter.
+- Introduce the `TryCatchBuilder.CreateFrom` method overload with the `IBulkErrorProcessor` parameter.
+- Introduce shorthand `TryCatchBuilder.CreateAndBuild` method without parameters.
+- Introduce shorthand `TryCatchBuilder.CreateAndBuild` method with the `IBulkErrorProcessor` parameter
+- Introduce shorthand `TryCatchBuilder.CreateAndBuild` method with the `Func<Exception, Task>` parameter.
+- Introduce shorthand `TryCatchBuilder.CreateAndBuild` method with the `Action<Exception>` parameter.
+- Deprecate the `BulkErrorProcessor(PolicyAlias)` constructor.
+- Made `PolicyProcessor` constructors that use the `PolicyAlias` parameter and the `_isPolicyAliasSet` field obsolete.
+- Call the `ConfigureAwait` method in the `ErrorProcessorBase.ProcessAsync` method with the `configAwait` parameter passed.
+- Add the internal class `EmptyErrorContext<TParam>`.
+- Add the `Policy.HasPolicyWrapperFactory` internal property.
+- Add the Rider-related .gitignore.
+- Edit 'Policy wrap' README Chapter.
+- Update 'RetryPolicy' README Chapter and example in README for NuGet package.
+- Bump the nunit group with 7 updates.
+- Remove old references to NUnit-related nuget packages in the PoliNorError.Tests project file.
+
+
 ## 2.19.15
 
 - Introduce `RetryPolicy.WithWait(DelayErrorProcessor)` method.
