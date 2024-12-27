@@ -14,6 +14,17 @@ namespace PoliNorError
 
 		public PolicyResult Fallback(Action action, Action<CancellationToken> fallback, CancellationToken token = default)
 		{
+			return Fallback(action, fallback, _emptyErrorContext, token);
+		}
+
+		public PolicyResult Fallback<TErrorContext>(Action action, TErrorContext param, Action<CancellationToken> fallback, CancellationToken token = default)
+		{
+			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
+			return Fallback(action, fallback, emptyContext, token);
+		}
+
+		private PolicyResult Fallback(Action action, Action<CancellationToken> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
+		{
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
 
@@ -42,7 +53,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													.Handle(ex, _emptyErrorContext));
+													.Handle(ex, emptyErrorContext));
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
@@ -160,6 +171,22 @@ namespace PoliNorError
 				}
 			}
 			return result;
+		}
+
+		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+		}
+
+		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
+		}
+
+		public DefaultFallbackProcessor WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			AddErrorProcessor(errorProcessor);
+			return this;
 		}
 	}
 }

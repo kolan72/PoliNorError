@@ -411,5 +411,48 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, fallbackResult.FailedReason);
 			ClassicAssert.AreEqual(typeof(NoDelegateException), fallbackResult.Errors.FirstOrDefault()?.GetType());
 		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Fallback_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			DefaultFallbackProcessor processor;
+
+			if (!withCancellationType)
+			{
+				processor = new DefaultFallbackProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				processor = new DefaultFallbackProcessor()
+							.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.Fallback(() => throw new InvalidOperationException(), 5, (_) => {});
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Fallback(() => throw new InvalidOperationException(), (_) => { });
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
 	}
 }
