@@ -454,5 +454,37 @@ namespace PoliNorError.Tests
 			Assert.That(result.NoError, Is.False);
 			Assert.That(result.IsSuccess, Is.True);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Fallback_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_With_Token_Param_Process_Correctly(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new DefaultFallbackProcessor()
+						.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Fallback(() => throw new InvalidOperationException(), 5, (_) => { });
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Fallback(() => throw new InvalidOperationException(), (_) => { });
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
 	}
 }
