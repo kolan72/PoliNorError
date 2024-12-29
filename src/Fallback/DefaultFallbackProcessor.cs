@@ -188,6 +188,16 @@ namespace PoliNorError
 			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
 		}
 
+		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+		}
+
+		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
+		{
+			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
+		}
+
 		public DefaultFallbackProcessor WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
 			AddErrorProcessor(errorProcessor);
