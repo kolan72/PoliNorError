@@ -564,5 +564,39 @@ namespace PoliNorError.Tests
 			Assert.That(result.NoError, Is.False);
 			Assert.That(result.IsSuccess, Is.True);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Fallback_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new DefaultFallbackProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = processor.Fallback((_) => throw new InvalidOperationException(), 5, (_) => { });
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.Fallback((v) => { addable += v; }, 5, (_) => { });
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
 	}
 }

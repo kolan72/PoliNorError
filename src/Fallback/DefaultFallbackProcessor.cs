@@ -17,6 +17,11 @@ namespace PoliNorError
 			return Fallback(action, fallback, _emptyErrorContext, token);
 		}
 
+		public PolicyResult Fallback<TParam>(Action<TParam> action, TParam param, Action<CancellationToken> fallback, CancellationToken token = default)
+		{
+			return Fallback(action.Apply(param), param, fallback, token);
+		}
+
 		public PolicyResult Fallback<TErrorContext>(Action action, TErrorContext param, Action<CancellationToken> fallback, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
