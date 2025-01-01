@@ -69,6 +69,17 @@ namespace PoliNorError
 
 		public PolicyResult<T> Fallback<T>(Func<T> func, Func<CancellationToken, T> fallback, CancellationToken token = default)
 		{
+			return Fallback(func, fallback, _emptyErrorContext, token);
+		}
+
+		public PolicyResult<T> Fallback<TErrorContext, T>(Func<T> func, TErrorContext param, Func<CancellationToken, T> fallback, CancellationToken token = default)
+		{
+			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
+			return Fallback(func, fallback, emptyContext, token);
+		}
+
+		private PolicyResult<T> Fallback<T>(Func<T> func, Func<CancellationToken, T> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
+		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
@@ -98,7 +109,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													.Handle(ex, _emptyErrorContext));
+													.Handle(ex, emptyErrorContext));
 				if (!result.IsFailed)
 				{
 					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
