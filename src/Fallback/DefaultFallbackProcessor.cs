@@ -125,6 +125,17 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> FallbackAsync(Func<CancellationToken, Task> func, Func<CancellationToken, Task> fallback, bool configureAwait = false, CancellationToken token = default)
 		{
+			return await FallbackAsync(func, fallback, _emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		public async Task<PolicyResult> FallbackAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, Func<CancellationToken, Task> fallback, bool configureAwait = false, CancellationToken token = default)
+		{
+			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
+			return await FallbackAsync(func, fallback, emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<PolicyResult> FallbackAsync(Func<CancellationToken, Task> func, Func<CancellationToken, Task> fallback, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		{
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
 
@@ -149,7 +160,7 @@ namespace PoliNorError
 			{
 				result.AddError(ex);
 				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-													.HandleAsync(ex, _emptyErrorContext).ConfigureAwait(configureAwait));
+													.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait));
 				if (!result.IsFailed)
 				{
 					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
