@@ -385,5 +385,38 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(result.IsSuccess, Is.True);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_FallbackAsync_With_TParam_For_Generic_AsyncFunc_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new DefaultFallbackProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = await processor.FallbackAsync(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, async(_) => { await Task.Delay(1); return 10;});
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+				Assert.That(result.Result, Is.EqualTo(10));
+			}
+			else
+			{
+				result = await processor.FallbackAsync(async (_) => { await Task.Delay(1); return 1; }, 5, async (_) => { await Task.Delay(1); return 10;});
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+				Assert.That(result.Result, Is.EqualTo(1));
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
 	}
 }
