@@ -228,38 +228,37 @@ namespace PoliNorError
 
 		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+			return this.WithErrorContextProcessorOf<DefaultFallbackProcessor, TErrorContext>(actionProcessor);
 		}
 
 		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
+			return this.WithErrorContextProcessorOf<DefaultFallbackProcessor, TErrorContext>(actionProcessor, cancellationType);
 		}
 
 		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+			return this.WithErrorContextProcessorOf<DefaultFallbackProcessor, TErrorContext>(actionProcessor);
 		}
 
 		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			return this.WithErrorContextProcessorOf<DefaultFallbackProcessor, TErrorContext>(funcProcessor);
 		}
 
 		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
+			return this.WithErrorContextProcessorOf<DefaultFallbackProcessor, TErrorContext>(funcProcessor, cancellationType);
 		}
 
 		public DefaultFallbackProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			return this.WithErrorContextProcessorOf<DefaultFallbackProcessor, TErrorContext>(funcProcessor);
 		}
 
 		public DefaultFallbackProcessor WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
-			AddErrorProcessor(errorProcessor);
-			return this;
+			return this.WithErrorContextProcessor<DefaultFallbackProcessor, TErrorContext>(errorProcessor);
 		}
 	}
 }

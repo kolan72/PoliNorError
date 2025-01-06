@@ -308,38 +308,37 @@ namespace PoliNorError
 
 		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
-		}
-
-		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
-		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+			return this.WithErrorContextProcessorOf<SimplePolicyProcessor, TErrorContext>(actionProcessor);
 		}
 
 		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
+			return this.WithErrorContextProcessorOf<SimplePolicyProcessor, TErrorContext>(actionProcessor, cancellationType);
+		}
+
+		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
+		{
+			return this.WithErrorContextProcessorOf<SimplePolicyProcessor, TErrorContext>(actionProcessor);
 		}
 
 		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			return this.WithErrorContextProcessorOf<SimplePolicyProcessor, TErrorContext>(funcProcessor);
 		}
 
 		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
+			return this.WithErrorContextProcessorOf<SimplePolicyProcessor, TErrorContext>(funcProcessor, cancellationType);
 		}
 
 		public SimplePolicyProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			return this.WithErrorContextProcessorOf<SimplePolicyProcessor, TErrorContext>(funcProcessor);
 		}
 
 		public SimplePolicyProcessor WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
-			AddErrorProcessor(errorProcessor);
-			return this;
+			return this.WithErrorContextProcessor<SimplePolicyProcessor, TErrorContext>(errorProcessor);
 		}
 
 		private (bool? FilterUnsatisfied, Exception exception) GetFilterUnsatisfiedOrFilterException(Exception ex)
