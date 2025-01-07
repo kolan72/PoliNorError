@@ -55,10 +55,8 @@ namespace PoliNorError
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			if (!(_simpleProcessor is SimplePolicyProcessor processor))
-			{
-				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-			}
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
+
 			var retryResult = processor.Execute(Act, param, token)
 							  .SetWrappedPolicyResults(Wrapper)
 							  .SetPolicyName(PolicyName);
@@ -75,10 +73,8 @@ namespace PoliNorError
 			}
 			else
 			{
-				if (!(_simpleProcessor is SimplePolicyProcessor processor))
-				{
-					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-				}
+				ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
+
 				var result = processor.Execute(action, param, token)
 								  .SetPolicyName(PolicyName);
 				HandlePolicyResult(result, token);
@@ -110,10 +106,8 @@ namespace PoliNorError
 			}
 			else
 			{
-				if (!(_simpleProcessor is SimplePolicyProcessor processor))
-				{
-					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-				}
+				ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
+
 				var result = processor.Execute(func, param, token)
 								  .SetPolicyName(PolicyName);
 				HandlePolicyResult(result, token);
@@ -128,11 +122,7 @@ namespace PoliNorError
 			{
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
-
-			if (!(_simpleProcessor is SimplePolicyProcessor processor))
-			{
-				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-			}
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = processor.Execute(Fn, param, token)
 							  .SetWrappedPolicyResults(Wrapper)
@@ -171,10 +161,7 @@ namespace PoliNorError
 				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			if (!(_simpleProcessor is SimplePolicyProcessor processor))
-			{
-				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-			}
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = (await processor.ExecuteAsync(Fn, param, configureAwait, token).ConfigureAwait(configureAwait))
 									.SetWrappedPolicyResults(Wrapper)
@@ -197,10 +184,8 @@ namespace PoliNorError
 			}
 			else
 			{
-				if (!(_simpleProcessor is SimplePolicyProcessor processor))
-				{
-					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-				}
+				ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
+
 				var result = (await processor.ExecuteAsync(func, param, configureAwait, token).ConfigureAwait(configureAwait))
 								  .SetPolicyName(PolicyName);
 				HandlePolicyResult(result, token);
@@ -237,10 +222,8 @@ namespace PoliNorError
 			}
 			else
 			{
-				if (!(_simpleProcessor is SimplePolicyProcessor processor))
-				{
-					throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-				}
+				ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
+
 				var result = (await processor.ExecuteAsync(func, param, configureAwait, token).ConfigureAwait(configureAwait))
 								  .SetPolicyName(PolicyName);
 				HandlePolicyResult(result, token);
@@ -261,10 +244,7 @@ namespace PoliNorError
 				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
 			}
 
-			if (!(_simpleProcessor is SimplePolicyProcessor processor))
-			{
-				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-			}
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = (await processor.ExecuteAsync(Fn, param, configureAwait, token).ConfigureAwait(configureAwait))
 									.SetWrappedPolicyResults(Wrapper)
@@ -416,13 +396,19 @@ namespace PoliNorError
 
 		public SimplePolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
-			if (!(_simpleProcessor is SimplePolicyProcessor processor))
-			{
-				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-			}
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			processor.WithErrorContextProcessor(errorProcessor);
 			return this;
+		}
+
+		private void ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor proc)
+		{
+			if (!(_simpleProcessor is SimplePolicyProcessor inproc))
+			{
+				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
+			}
+			proc = inproc;
 		}
 	}
 }
