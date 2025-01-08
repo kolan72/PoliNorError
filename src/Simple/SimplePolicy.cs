@@ -366,49 +366,49 @@ namespace PoliNorError
 
 		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor _);
+			return this.WithErrorContextProcessorOf<SimplePolicy, TErrorContext>(actionProcessor);
 		}
 
 		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor _);
+			return this.WithErrorContextProcessorOf<SimplePolicy, TErrorContext>(actionProcessor, cancellationType);
 		}
 
 		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor _);
+			return this.WithErrorContextProcessorOf<SimplePolicy, TErrorContext>(actionProcessor);
 		}
 
 		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor _);
+			return this.WithErrorContextProcessorOf<SimplePolicy, TErrorContext>(funcProcessor);
 		}
 
 		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor _);
+			return this.WithErrorContextProcessorOf<SimplePolicy, TErrorContext>(funcProcessor, cancellationType);
 		}
 
 		public SimplePolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor)
 		{
-			return WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor _);
+			return this.WithErrorContextProcessorOf<SimplePolicy, TErrorContext>(funcProcessor);
 		}
 
 		public SimplePolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
-			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
-
-			processor.WithErrorContextProcessor(errorProcessor);
-			return this;
+			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor _);
+			return this.WithErrorContextProcessor<SimplePolicy, TErrorContext>(errorProcessor);
 		}
 
 		private void ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor proc)
 		{
-			if (!(_simpleProcessor is SimplePolicyProcessor inproc))
-			{
-				throw new NotImplementedException("This method is only supported for the SimplePolicyProcessor implementation of the ISimplePolicyProcessor interface.");
-			}
-			proc = inproc;
+			ThrowHelper.ThrowIfNotImplemented(_simpleProcessor, out proc);
 		}
 	}
 }
