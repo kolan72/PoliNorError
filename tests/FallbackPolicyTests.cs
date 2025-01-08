@@ -1,6 +1,8 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -1621,6 +1623,26 @@ namespace PoliNorError.Tests
 			{
 				Assert.That(fbPolicyWithGenericFallbackFunc.HasAsyncFallbackFunc<int>(), Is.True);
 			}
+		}
+
+		[Test]
+		public void Should_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor()
+		{
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+		}
+
+		public class TestFallbackPolicyProcessor : IFallbackProcessor
+		{
+			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();
+
+			public void AddErrorProcessor(IErrorProcessor newErrorProcessor) => throw new NotImplementedException();
+			public PolicyResult Fallback(Action action, Action<CancellationToken> fallback, CancellationToken token = default) => throw new NotImplementedException();
+			public PolicyResult<T> Fallback<T>(Func<T> func, Func<CancellationToken, T> fallback, CancellationToken token = default) => throw new NotImplementedException();
+			public Task<PolicyResult> FallbackAsync(Func<CancellationToken, Task> func, Func<CancellationToken, Task> fallback, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+			public Task<PolicyResult<T>> FallbackAsync<T>(Func<CancellationToken, Task<T>> func, Func<CancellationToken, Task<T>> fallback, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
+			IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 		}
 	}
 }

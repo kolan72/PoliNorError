@@ -229,5 +229,16 @@ namespace PoliNorError
 		{
 			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
 		}
+
+		public FallbackPolicyBase WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
+			return this.WithErrorContextProcessor<FallbackPolicyBase, TErrorContext>(errorProcessor);
+		}
+
+		private void ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor proc)
+		{
+			ThrowHelper.ThrowIfNotImplemented(_fallbackProcessor, out proc);
+		}
 	}
 }
