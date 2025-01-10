@@ -1655,6 +1655,17 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_WithErrorProcessorOf_Action_With_Token_Throws_For_Not_DefaultFallbackProcessor()
+		{
+			void action(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				// Method intentionally left empty.
+			}
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(action));
+		}
+
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
 		{
 			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();

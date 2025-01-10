@@ -230,12 +230,6 @@ namespace PoliNorError
 			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
 		}
 
-		public FallbackPolicyBase WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
-		{
-			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
-			return this.WithErrorContextProcessor<FallbackPolicyBase, TErrorContext>(errorProcessor);
-		}
-
 		public FallbackPolicyBase WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
 		{
 			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
@@ -246,6 +240,18 @@ namespace PoliNorError
 		{
 			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
 			return this.WithErrorContextProcessorOf<FallbackPolicyBase, TErrorContext>(actionProcessor, cancellationType);
+		}
+
+		public FallbackPolicyBase WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
+			return this.WithErrorContextProcessorOf<FallbackPolicyBase, TErrorContext>(actionProcessor);
+		}
+
+		public FallbackPolicyBase WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
+			return this.WithErrorContextProcessor<FallbackPolicyBase, TErrorContext>(errorProcessor);
 		}
 
 		private void ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor proc)
