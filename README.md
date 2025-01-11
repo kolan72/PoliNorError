@@ -62,6 +62,8 @@ So, the process of handling a delegate consists of checking error filters, runni
 A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling aforementioned delegates.  
 The policy can have [`PolicyResult` handlers](#policyresult-handlers) that handle the `PolicyResult` after the policy processor has finished.  
 
+![Set up for handledelegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
+
 Below are some examples of how policies and policy processors are used.
 For retries using default retry policy processor:
 ```csharp
