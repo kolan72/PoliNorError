@@ -62,7 +62,7 @@ So, the process of handling a delegate consists of checking error filters, runni
 A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling aforementioned delegates.  
 The policy can have [`PolicyResult` handlers](#policyresult-handlers) that handle the `PolicyResult` after the policy processor has finished.  
 
-![Set up for handledelegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
+![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
 
 Below are some examples of how policies and policy processors are used.
 For retries using default retry policy processor:
@@ -1047,6 +1047,8 @@ In the example above, we created a `CatchBlockHandler` subclass object by using 
 
 - `FilterExceptionsBy(NonEmptyCatchBlockFilter)` - creates a `CatchBlockFilteredHandler` object based on the `NonEmptyCatchBlockFilter` class. The last class contains exception filtering conditions (including the `FileNotFoundException` exception type in the example). The created object mimics try-catch block's catch clause *with* exception filter.
 - `ForAllExceptions` -  creates a `CatchBlockForAllHandler` object that does not filter any exceptions.  The created object mimics try-catch block's catch clause *without* exception filter.
+
+![CatchBlockHandlerFactory methods](/src/docs/diagrams/catchBlockHandlerFactory-methods.png)
 
 After creating the `CatchBlockHandler` object, you can use its the `WithErrorProcessor(Of)` methods to add error processors for exception handling, which mimics the code that runs inside the catch clause of the try-catch block (or leave it as is, which mimics swallowing exceptions).
 
