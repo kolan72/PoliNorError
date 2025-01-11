@@ -897,7 +897,7 @@ var result = TryCatchBuilder
 		.Execute(() => File.ReadLines(filePath).ToList());
 ```
 
-![TryCatch flow](/docs/diagrams/try-catch-flow.png)
+![TryCatch flow](/src/docs/diagrams/try-catch-flow.png)
 
 The `TryCatchResult(<T>)` class is very similar to the well-known *Result* pattern, but also has 
 - the `IsCanceled` property, which indicates whether the execution was cancelled.  
