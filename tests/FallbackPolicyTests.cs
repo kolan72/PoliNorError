@@ -1686,6 +1686,47 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true, null)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor(bool throwEx, bool? wrap)
+		{
+			FallbackPolicyBase fallBackPolicyTest;
+			if (throwEx)
+			{
+				fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor())
+									.WithFallbackAction(() => { })
+									.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+				Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.Handle(() => throw new OperationCanceledException(), 5));
+			}
+			else
+			{
+				int m = 0;
+
+				void action(Exception _, ProcessingErrorInfo<int> pi)
+				{
+					m = pi.Param;
+				}
+
+				fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+								.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+
+				if (wrap == true)
+				{
+					fallBackPolicyTest = fallBackPolicyTest.WrapPolicy(new RetryPolicy(1));
+				}
+
+				var result = fallBackPolicyTest
+							.Handle(() => throw new InvalidOperationException(), 5);
+
+				Assert.That(result.NoError, Is.False);
+				Assert.That(result.IsSuccess, Is.True);
+
+				Assert.That(m, Is.EqualTo(5));
+			}
+		}
+
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
 		{
 			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();

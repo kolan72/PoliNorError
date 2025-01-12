@@ -45,6 +45,26 @@ namespace PoliNorError
 			return fallBackRes;
 		}
 
+		public PolicyResult Handle<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
+		{
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
+			if (Act == null && Wrapper != null)
+			{
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor processor);
+
+			Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
+
+			var fallBackRes = processor.Fallback(Act, param, curFallback, token)
+								.SetWrappedPolicyResults(Wrapper)
+								.SetPolicyName(PolicyName);
+
+			HandlePolicyResult(fallBackRes, token);
+			return fallBackRes;
+		}
+
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
