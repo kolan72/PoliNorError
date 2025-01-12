@@ -1626,7 +1626,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor()
+		public void Should_FallbackPolicyBase_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor()
 		{
 			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
@@ -1635,7 +1635,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
-		public void Should_WithErrorContextProcessorOf_Action_Throws_For_Not_DefaultFallbackProcessor(bool withCancellationType)
+		public void Should_FallbackPolicyBase_WithErrorContextProcessorOf_Action_Throws_For_Not_DefaultFallbackProcessor(bool withCancellationType)
 		{
 			int m = 0;
 
@@ -1656,7 +1656,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_WithErrorProcessorOf_Action_With_Token_Throws_For_Not_DefaultFallbackProcessor()
+		public void Should_FallbackPolicyBase_WithErrorProcessorOf_Action_With_Token_Throws_For_Not_DefaultFallbackProcessor()
 		{
 			void action(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
 			{
@@ -1664,6 +1664,26 @@ namespace PoliNorError.Tests
 			}
 			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(action));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_FallbackPolicyBase_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_SimplePolicyProcessor(bool withCancellationType)
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __)
+			{
+				await Task.Delay(1);
+			}
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(fn));
+			}
 		}
 
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
