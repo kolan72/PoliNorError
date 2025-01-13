@@ -1669,7 +1669,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
-		public void Should_FallbackPolicyBase_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_SimplePolicyProcessor(bool withCancellationType)
+		public void Should_FallbackPolicyBase_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_DefaultFallbackProcessor(bool withCancellationType)
 		{
 			async Task fn(Exception _, ProcessingErrorInfo<int> __)
 			{
@@ -1684,6 +1684,18 @@ namespace PoliNorError.Tests
 			{
 				Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(fn));
 			}
+		}
+
+		[Test]
+		public void Should_FallbackPolicyBase_WithErrorProcessorOf_AsyncFunc_With_Token_Throws_For_Not_DefaultFallbackProcessor()
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				await Task.Delay(1);
+			}
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(fn));
 		}
 
 		[Test]
