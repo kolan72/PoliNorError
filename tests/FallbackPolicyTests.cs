@@ -1687,44 +1687,41 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, null)]
-		[TestCase(false, true)]
-		[TestCase(false, false)]
-		public void Should_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor(bool throwEx, bool? wrap)
+		public void Should_FallbackPolicyBase_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor()
 		{
-			FallbackPolicyBase fallBackPolicyTest;
-			if (throwEx)
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor())
+								.WithFallbackAction(() => { })
+								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.Handle(() => throw new OperationCanceledException(), 5));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Be_Correct(bool wrap)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor())
-									.WithFallbackAction(() => { })
-									.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
-				Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.Handle(() => throw new OperationCanceledException(), 5));
+				m = pi.Param;
 			}
-			else
+
+			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+
+			if (wrap)
 			{
-				int m = 0;
-
-				void action(Exception _, ProcessingErrorInfo<int> pi)
-				{
-					m = pi.Param;
-				}
-
-				fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
-								.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
-
-				if (wrap == true)
-				{
-					fallBackPolicyTest = fallBackPolicyTest.WrapPolicy(new RetryPolicy(1));
-				}
-
-				var result = fallBackPolicyTest
-							.Handle(() => throw new InvalidOperationException(), 5);
-
-				Assert.That(result.NoError, Is.False);
-				Assert.That(result.IsSuccess, Is.True);
-
-				Assert.That(m, Is.EqualTo(5));
+				fallBackPolicyTest = fallBackPolicyTest.WrapPolicy(new RetryPolicy(1));
 			}
+
+			var result = fallBackPolicyTest
+						.Handle(() => throw new InvalidOperationException(), 5);
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+
+			Assert.That(m, Is.EqualTo(5));
 		}
 
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
