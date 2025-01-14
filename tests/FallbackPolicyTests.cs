@@ -1633,6 +1633,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_FallbackPolicyWithAction_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor()
+		{
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { });
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_FallbackPolicyBase_WithErrorContextProcessorOf_Action_Throws_For_Not_DefaultFallbackProcessor(bool withCancellationType)
@@ -1708,9 +1715,11 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true)]
-		[TestCase(false)]
-		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Be_Correct(bool wrap)
+		[TestCase(FallbackTypeForTests.BaseClass, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false)]
+		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Be_Correct(FallbackTypeForTests fallbackType, bool wrap)
 		{
 			int m = 0;
 
@@ -1719,8 +1728,21 @@ namespace PoliNorError.Tests
 				m = pi.Param;
 			}
 
-			var fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+			FallbackPolicyBase fallBackPolicyTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
 							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				case FallbackTypeForTests.WithAction:
+					fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { })
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				default:
+					throw new NotImplementedException();
+			}
 
 			if (wrap)
 			{

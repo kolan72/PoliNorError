@@ -292,7 +292,7 @@ namespace PoliNorError
 			return this.WithErrorContextProcessor<FallbackPolicyBase, TErrorContext>(errorProcessor);
 		}
 
-		private void ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor proc)
+		protected void ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor proc)
 		{
 			ThrowHelper.ThrowIfNotImplemented(_fallbackProcessor, out proc);
 		}
