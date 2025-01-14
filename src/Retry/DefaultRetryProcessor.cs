@@ -113,7 +113,7 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
-			if (typeof(T).Equals(typeof(Task)) || typeof(T).IsSubclassOf(typeof(Task)))
+			if (typeof(T) == typeof(Task) || typeof(T).IsSubclassOf(typeof(Task)))
 			{
 				throw new ArgumentException("Do not use this method for task return type!");
 			}
