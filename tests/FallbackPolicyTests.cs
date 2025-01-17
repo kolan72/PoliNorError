@@ -1749,6 +1749,26 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_FallbackPolicyWithAction_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_DefaultFallbackProcessor(bool withCancellationType)
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __)
+			{
+				await Task.Delay(1);
+			}
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { });
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessorOf<int>(fn));
+			}
+		}
+
+		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass, true)]
 		[TestCase(FallbackTypeForTests.BaseClass, false)]
 		[TestCase(FallbackTypeForTests.WithAction, true)]
