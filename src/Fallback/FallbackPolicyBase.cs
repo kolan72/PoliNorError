@@ -65,6 +65,25 @@ namespace PoliNorError
 			return fallBackRes;
 		}
 
+		public PolicyResult Handle<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return Handle(action.Apply(param), token);
+			}
+			else
+			{
+				ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor processor);
+
+				Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
+
+				var result = processor.Fallback(action, param, curFallback, token)
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
