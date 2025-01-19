@@ -1825,13 +1825,11 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(true, false)]
-		[TestCase(false, null)]
-		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool? useWrap)
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool useWrap)
 		{
 			int m = 0;
-			int addable = 1;
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
@@ -1841,28 +1839,37 @@ namespace PoliNorError.Tests
 			var policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
 							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
 
-			if (useWrap == true)
+			if (useWrap)
 			{
 				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
 			}
 
-			PolicyResult result = null;
-			if (throwEx)
-			{
-				result = policyToTest.Handle((_) => throw new InvalidOperationException(), 5);
-				//With wrapping, we fallback to no-param handling
-				Assert.That(m, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(5));
-				Assert.That(result.NoError, Is.False);
-			}
-			else
-			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
-				result = policyToTest.Handle((v) => { addable += v; }, 5);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
-				Assert.That(addable, Is.EqualTo(6));
-				Assert.That(result.NoError, Is.True);
-			}
+			PolicyResult result = policyToTest.Handle((_) => throw new InvalidOperationException(), 5);
+			//With wrapping, we fallback to no-param handling
+			Assert.That(m, useWrap? Is.EqualTo(0) : Is.EqualTo(5));
+			Assert.That(result.NoError, Is.False);
+
 			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		public void Should_Handle_With_TParam_For_Action_With_TParam_Work_Correctly_If_NoError()
+		{
+			int m = 0;
+			int addable = 1;
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+			var policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+			var result = policyToTest.Handle((v) => { addable += v; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+			Assert.That(addable, Is.EqualTo(6));
+			Assert.That(result.NoError, Is.True);
+			Assert.That(result.NoError, Is.True);
 		}
 
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
