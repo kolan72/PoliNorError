@@ -1108,3 +1108,5 @@ To check if a delegate was handled successfully use these `PolicyResult` success
 -   `NoError`- should be used to ensure that there were no exceptions during handling, especially when getting `SimplePolicy`'s `PolicyResult.Result`.
 -   `IsSuccess`- no matter how the success was gotten, there may have been no error at all (`NoError` = `true`) or the policy handled the delegate successfully.
 -   `IsPolicySuccess`- at least one exception occurred (`NoError` = `false`), the policy came into play and handled the delegate successfully. For example, you can use it in a `PolicyResult` handler to write some policy-specific information into a log.
+
+![PolicyResult success indicators](/src/docs/diagrams/policyresult-success-props.png)
