@@ -1699,11 +1699,23 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FallbackPolicyBase_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.WithAction)]
+		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
 		{
-			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor())
-								.WithFallbackAction(() => { })
-								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+			FallbackPolicyBase fallBackPolicyTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					break;
+				case FallbackTypeForTests.WithAction:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { });
+					break;
+				default:
+					throw new NotImplementedException();
+			}
 			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.Handle(() => throw new OperationCanceledException(), 5));
 		}
 
@@ -1825,9 +1837,11 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true)]
-		[TestCase(false)]
-		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool useWrap)
+		[TestCase(FallbackTypeForTests.BaseClass, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false)]
+		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(FallbackTypeForTests fallbackType, bool useWrap)
 		{
 			int m = 0;
 
@@ -1836,8 +1850,21 @@ namespace PoliNorError.Tests
 				m = pi.Param;
 			}
 
-			var policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+			FallbackPolicyBase policyToTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
 							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				case FallbackTypeForTests.WithAction:
+					policyToTest = new FallbackPolicy().WithFallbackAction(() => { })
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				default:
+					throw new NotImplementedException();
+			}
 
 			if (useWrap)
 			{
@@ -1853,7 +1880,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Handle_With_TParam_For_Action_With_TParam_Work_Correctly_If_NoError()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.WithAction)]
+		public void Should_Handle_With_TParam_For_Action_With_TParam_Work_Correctly_If_NoError(FallbackTypeForTests fallbackType)
 		{
 			int m = 0;
 			int addable = 1;
@@ -1861,8 +1890,22 @@ namespace PoliNorError.Tests
 			{
 				m = pi.Param;
 			}
-			var policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+
+			FallbackPolicyBase policyToTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
 							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				case FallbackTypeForTests.WithAction:
+					policyToTest = new FallbackPolicy().WithFallbackAction(() => { })
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				default:
+					throw new NotImplementedException();
+			}
 
 #pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 			var result = policyToTest.Handle((v) => { addable += v; }, 5);
