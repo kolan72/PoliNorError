@@ -134,5 +134,11 @@ namespace PoliNorError
 		{
 			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
 		}
+
+		public new FallbackPolicyWithAsyncFunc WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
+			return this.WithErrorContextProcessor<FallbackPolicyWithAsyncFunc, TErrorContext>(errorProcessor);
+		}
 	}
 }
