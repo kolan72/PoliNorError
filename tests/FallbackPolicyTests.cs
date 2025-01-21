@@ -1863,7 +1863,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
-		public void Should_Handle_With_TParam_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
+		public void Should_Handle_With_TParam_For_Action_With_Generic_Param_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
 		{
 			FallbackPolicyBase fallBackPolicyTest = null;
 
@@ -1938,6 +1938,88 @@ namespace PoliNorError.Tests
 				Assert.That(result.NoError, Is.True);
 				Assert.That(m, Is.EqualTo(0));
 			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
+		public void Should_HandleAsync_With_TParam_For_NonGeneric_AsyncFunc_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
+		{
+			FallbackPolicyBase fallBackPolicyTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithAsyncFallbackFunc(async () => await Task.Delay(1));
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			Assert.ThrowsAsync<NotImplementedException>(async() => await fallBackPolicyTest.HandleAsync(async(_) => {await Task.Delay(1); throw new OperationCanceledException();}, 5, false, default));
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true)]
+		public async Task Should_HandleAsync_With_TParam_For_NonGeneric_AsyncFunc_WithErrorContextProcessor_Be_Correct(FallbackTypeForTests fallbackType, bool wrap, bool throwEx)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			FallbackPolicyBase fallBackPolicyTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallBackPolicyTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallBackPolicyTest = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+
+			if (wrap)
+			{
+				fallBackPolicyTest = fallBackPolicyTest.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+
+			if (throwEx)
+			{
+				result = await fallBackPolicyTest
+						.HandleAsync(async(_) => {await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+
+				Assert.That(result.NoError, Is.False);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = await fallBackPolicyTest
+					.HandleAsync(async(_) => await Task.Delay(1), 5, false, default);
+
+				Assert.That(result.NoError, Is.True);
+				Assert.That(m, Is.EqualTo(0));
+			}
+
 			Assert.That(result.IsSuccess, Is.True);
 		}
 
