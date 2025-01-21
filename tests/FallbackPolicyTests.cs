@@ -1699,27 +1699,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(FallbackTypeForTests.BaseClass)]
-		[TestCase(FallbackTypeForTests.WithAction)]
-		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
-		{
-			FallbackPolicyBase fallBackPolicyTest = null;
-
-			switch (fallbackType)
-			{
-				case FallbackTypeForTests.BaseClass:
-					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
-					break;
-				case FallbackTypeForTests.WithAction:
-					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { });
-					break;
-				default:
-					throw new NotImplementedException();
-			}
-			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.Handle(() => throw new OperationCanceledException(), 5));
-		}
-
-		[Test]
 		public void Should_FallbackPolicyWithAction_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor()
 		{
 			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { });
@@ -1800,11 +1779,36 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(FallbackTypeForTests.BaseClass, true)]
-		[TestCase(FallbackTypeForTests.BaseClass, false)]
-		[TestCase(FallbackTypeForTests.WithAction, true)]
-		[TestCase(FallbackTypeForTests.WithAction, false)]
-		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Be_Correct(FallbackTypeForTests fallbackType, bool wrap)
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.WithAction)]
+		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
+		{
+			FallbackPolicyBase fallBackPolicyTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					break;
+				case FallbackTypeForTests.WithAction:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { });
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.Handle(() => throw new OperationCanceledException(), 5));
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true)]
+		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Be_Correct(FallbackTypeForTests fallbackType, bool wrap, bool throwEx)
 		{
 			int m = 0;
 
@@ -1834,23 +1838,62 @@ namespace PoliNorError.Tests
 				fallBackPolicyTest = fallBackPolicyTest.WrapPolicy(new RetryPolicy(1));
 			}
 
-			var result = fallBackPolicyTest
+			PolicyResult result = null;
+
+			if (throwEx)
+			{
+				result = fallBackPolicyTest
 						.Handle(() => throw new InvalidOperationException(), 5);
 
-			Assert.That(result.NoError, Is.False);
-			Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.NoError, Is.False);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = fallBackPolicyTest
+					.Handle(() => { }, 5);
 
-			Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.True);
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.IsSuccess, Is.True);
 		}
 
 		[Test]
-		[TestCase(FallbackTypeForTests.BaseClass, true)]
-		[TestCase(FallbackTypeForTests.BaseClass, false)]
-		[TestCase(FallbackTypeForTests.WithAction, true)]
-		[TestCase(FallbackTypeForTests.WithAction, false)]
-		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(FallbackTypeForTests fallbackType, bool useWrap)
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.WithAction)]
+		public void Should_Handle_With_TParam_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
+		{
+			FallbackPolicyBase fallBackPolicyTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					break;
+				case FallbackTypeForTests.WithAction:
+					fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackAction(() => { });
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.Handle((_) => throw new OperationCanceledException(), 5));
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false)]
+		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(FallbackTypeForTests fallbackType, bool useWrap, bool throwEx)
 		{
 			int m = 0;
+			int addable = 1;
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
@@ -1878,48 +1921,24 @@ namespace PoliNorError.Tests
 				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
 			}
 
-			PolicyResult result = policyToTest.Handle((_) => throw new InvalidOperationException(), 5);
-			//With wrapping, we fallback to no-param handling
-			Assert.That(m, useWrap? Is.EqualTo(0) : Is.EqualTo(5));
-			Assert.That(result.NoError, Is.False);
-
-			Assert.That(result.IsSuccess, Is.True);
-		}
-
-		[Test]
-		[TestCase(FallbackTypeForTests.BaseClass)]
-		[TestCase(FallbackTypeForTests.WithAction)]
-		public void Should_Handle_With_TParam_For_Action_With_TParam_Work_Correctly_If_NoError(FallbackTypeForTests fallbackType)
-		{
-			int m = 0;
-			int addable = 1;
-			void action(Exception _, ProcessingErrorInfo<int> pi)
+			PolicyResult result = null;
+			if (throwEx)
 			{
-				m = pi.Param;
+				result = policyToTest.Handle((_) => throw new InvalidOperationException(), 5);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
 			}
-
-			FallbackPolicyBase policyToTest = null;
-
-			switch (fallbackType)
+			else
 			{
-				case FallbackTypeForTests.BaseClass:
-					policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
-							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
-					break;
-				case FallbackTypeForTests.WithAction:
-					policyToTest = new FallbackPolicy().WithFallbackAction(() => { })
-							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
-					break;
-				default:
-					throw new NotImplementedException();
-			}
-
 #pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
-			var result = policyToTest.Handle((v) => { addable += v; }, 5);
+				result = policyToTest.Handle((v) => { addable += v; }, 5);
 #pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
-			Assert.That(addable, Is.EqualTo(6));
-			Assert.That(result.NoError, Is.True);
-			Assert.That(result.NoError, Is.True);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.IsSuccess, Is.True);
 		}
 
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
