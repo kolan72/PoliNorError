@@ -2077,6 +2077,62 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsSuccess, Is.True);
 		}
 
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false)]
+		public async Task Should_HandleAsync_With_TParam_For_AsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(FallbackTypeForTests fallbackType, bool throwEx, bool? useWrap)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			FallbackPolicyBase policyToTest = null;
+
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					policyToTest = new FallbackPolicy().WithFallbackAction(() => { }).WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					policyToTest = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+							.WithErrorContextProcessor(new DefaultErrorProcessor<int>(action));
+
+					break;
+			}
+
+			if (useWrap == true)
+			{
+				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await policyToTest.HandleAsync(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = await policyToTest.HandleAsync(async (v, _) => { await Task.Delay(1); addable += v; }, 5, false, default);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
 		{
 			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();
