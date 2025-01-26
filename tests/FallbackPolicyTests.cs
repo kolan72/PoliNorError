@@ -2019,6 +2019,46 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Handle_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool useWrap)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var policyToTest = new FallbackPolicy().WithFallbackFunc(() => 1).WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap)
+			{
+				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = policyToTest.Handle<int, int>((_) => throw new InvalidOperationException(), 5);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+			}
+			else
+			{
+				result = policyToTest.Handle((v) => { addable += v; return addable; }, 5);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.Result, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public void Should_HandleAsync_With_TParam_For_NonGeneric_AsyncFunc_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
