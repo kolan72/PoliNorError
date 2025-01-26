@@ -164,5 +164,17 @@ namespace PoliNorError
 		{
 			return this.SetPolicyResultFailedWithHandlerIfInner(predicate, onSetPolicyResultFailed);
 		}
+
+		public new FallbackPolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
+			return this.WithErrorContextProcessorOf<FallbackPolicy, TErrorContext>(actionProcessor);
+		}
+
+		public new FallbackPolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
+			return this.WithErrorContextProcessorOf<FallbackPolicy, TErrorContext>(actionProcessor, cancellationType);
+		}
 	}
 }
