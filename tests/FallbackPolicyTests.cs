@@ -1868,6 +1868,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_FallbackPolicyWitFunc_WithErrorContextProcessor_Throws_Only_For_Not_DefaultFallbackProcessor()
+		{
+			var fallBackPolicyTest = new FallbackPolicy(new TestFallbackPolicyProcessor()).WithFallbackFunc((_) => 1);
+			Assert.Throws<NotImplementedException>(() => fallBackPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+		}
+
+		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
 		public void Should_Handle_For_Action_With_Generic_Param_WithErrorContextProcessor_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)
