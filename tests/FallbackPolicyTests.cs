@@ -2078,6 +2078,44 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Handle_With_TParam_For_Func_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool wrap)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var policy = new FallbackPolicy().WithFallbackFunc(() => 1).WithErrorContextProcessorOf<int>(action);
+
+			if (wrap)
+			{
+				policy = policy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = policy.Handle<int, int>(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.NoError, Is.False);
+				Assert.That(result.Result, Is.EqualTo(1));
+			}
+			else
+			{
+				result = policy.Handle(() => 1, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+			}
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public void Should_HandleAsync_With_TParam_For_NonGeneric_AsyncFunc_Throws_For_Not_DefaultFallbackProcessor(FallbackTypeForTests fallbackType)

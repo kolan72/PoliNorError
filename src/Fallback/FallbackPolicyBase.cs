@@ -121,6 +121,25 @@ namespace PoliNorError
 			}
 		}
 
+		public PolicyResult<T> Handle<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
+		{
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
+			if (Fn == null && Wrapper != null)
+			{
+				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor processor);
+
+			Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
+
+			var retryResult = processor.Fallback(Fn, param, fallBackFunc, token)
+							  .SetWrappedPolicyResults(Wrapper)
+							  .SetPolicyName(PolicyName);
+
+			HandlePolicyResult(retryResult, token);
+			return retryResult;
+		}
+
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
