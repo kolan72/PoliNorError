@@ -177,6 +177,12 @@ namespace PoliNorError
 			return this.WithErrorContextProcessorOf<FallbackPolicy, TErrorContext>(actionProcessor, cancellationType);
 		}
 
+		public new FallbackPolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
+			return this.WithErrorContextProcessorOf<FallbackPolicy, TErrorContext>(actionProcessor);
+		}
+
 		public new FallbackPolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
 			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
