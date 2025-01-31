@@ -225,6 +225,30 @@ namespace PoliNorError
 			return fallBackRes;
 		}
 
+		public Task<PolicyResult<T>> HandleAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult<T>> HandleAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, bool configureAwait, CancellationToken token)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return await HandleAsync(func.Apply(param), configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
+
+				ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor processor);
+
+				var result = (await processor.FallbackAsync(func, param, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait))
+								  .SetPolicyName(PolicyName);
+				HandlePolicyResult(result, token);
+				return result;
+			}
+		}
+
 		/// <summary>
 		/// Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.
 		/// </summary>
