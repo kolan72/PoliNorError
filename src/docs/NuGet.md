@@ -19,4 +19,17 @@ var result =
 		pr.Errors.Count()))
 
 	.Handle(ActionThatCanThrowSomeException);
+
+
+var simplePolicyResult = new SimplePolicy()
+
+	.WithErrorContextProcessorOf<int>((ex, pi) =>
+		loggerTest.LogError(ex,
+		"Delegate call with parameter value {Param} failed with an exception.", 
+		pi.Param))
+		
+	//If the random value variable is zero,
+	//the previous line of code
+	//logs an error with {Param} set to zero.
+	.Handle((i) => 5 / i, random);
 ```
