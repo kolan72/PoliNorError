@@ -999,6 +999,7 @@ public class SomeService
 	}
 }
 ```
+Since _version_ 2.20.0, you can use the `InvokeWithTryCatch(-Async)` extension methods for delegates handled by this library.
 
 `TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
 
