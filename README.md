@@ -68,6 +68,8 @@ So, the process of handling a delegate consists of checking error filters, runni
 A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling aforementioned delegates.  
 The policy can have [`PolicyResult` handlers](#policyresult-handlers) that handle the `PolicyResult` after the policy processor has finished.  
 
+![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
+
 Below are some examples of how policies and policy processors are used.
 For retries using default retry policy processor:
 ```csharp
@@ -745,6 +747,8 @@ var wrapperPolicyResult = await new RetryPolicy(2)
 						 //before handling a delegate
 						.HandleAsync(async(_) => await SendEmailAsync("someuser@somedomain.com"));
 ```
+![Policy WrapUp flow](/src/docs/diagrams/policy_wrapup_flow.png)
+
 Behind the scenes wrapped policy's `Handle(Async)(<T>)`  method will be called as a handling delegate with throwing its `PolicyResult.UnprocessedError` if it fails or `PolicyResultHandlerFailedException` exception  if the `IsFailed` property was set to true in a `PolicyResult` handler.
 
 Results of handling a wrapped policy are stored in the `WrappedPolicyResults` property of the wrapper `PolicyResult`.  
@@ -902,6 +906,9 @@ var result = TryCatchBuilder
 		//We get ITryCatch after calling the Build method
 		.Execute(() => File.ReadLines(filePath).ToList());
 ```
+
+![TryCatch flow](/src/docs/diagrams/try-catch-flow.png)
+
 The `TryCatchResult(<T>)` class is very similar to the well-known *Result* pattern, but also has 
 - the `IsCanceled` property, which indicates whether the execution was cancelled.  
 - the `ExceptionHandlerIndex` property, which represents the index of the `CatchBlockHandler` that handled an exception (since _version_ 2.17.0).  
@@ -1047,6 +1054,8 @@ In the example above, we created a `CatchBlockHandler` subclass object by using 
 - `FilterExceptionsBy(NonEmptyCatchBlockFilter)` - creates a `CatchBlockFilteredHandler` object based on the `NonEmptyCatchBlockFilter` class. The last class contains exception filtering conditions (including the `FileNotFoundException` exception type in the example). The created object mimics try-catch block's catch clause *with* exception filter.
 - `ForAllExceptions` -  creates a `CatchBlockForAllHandler` object that does not filter any exceptions.  The created object mimics try-catch block's catch clause *without* exception filter.
 
+![CatchBlockHandlerFactory methods](/src/docs/diagrams/catchBlockHandlerFactory-methods.png)
+
 After creating the `CatchBlockHandler` object, you can use its the `WithErrorProcessor(Of)` methods to add error processors for exception handling, which mimics the code that runs inside the catch clause of the try-catch block (or leave it as is, which mimics swallowing exceptions).
 
 
@@ -1105,3 +1114,5 @@ To check if a delegate was handled successfully use these `PolicyResult` success
 -   `NoError`- should be used to ensure that there were no exceptions during handling, especially when getting `SimplePolicy`'s `PolicyResult.Result`.
 -   `IsSuccess`- no matter how the success was gotten, there may have been no error at all (`NoError` = `true`) or the policy handled the delegate successfully.
 -   `IsPolicySuccess`- at least one exception occurred (`NoError` = `false`), the policy came into play and handled the delegate successfully. For example, you can use it in a `PolicyResult` handler to write some policy-specific information into a log.
+
+![PolicyResult success indicators](/src/docs/diagrams/policyresult-success-props.png)
