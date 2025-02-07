@@ -980,7 +980,7 @@ var fatalTryCatch = CatchBlockHandlerFactory.FilterExceptionsByIncluding(fatalEr
 ...
 //Somewhere in your code:			
 //If a fatal exception is thrown, it will be stored in the tryCatchResult.Error property.
-var tryCatchResult = fatalTryCatch.Execute(DoSomethingThatMayThrowFatalEror);
+var tryCatchResult = fatalTryCatch.Execute(DoSomethingThatMayThrowFatalError);
 ```
 You can use `ITryCatch` as a service in DI (since _version_ 2.18.0).  
 For example, to handle `DirectoryNotFoundException` or `FileNotFoundException` exceptions that might be thrown when reading a file, create a class named `ReadFileTryCatch` that inherits from the `TryCathBase` class and implements the `ITryCatch<ReadFileTryCatch>` interface:
@@ -1030,6 +1030,7 @@ public class SomeService
 	}
 }
 ```
+Since _version_ 2.20.0, you can use the `InvokeWithTryCatch(-Async)` extension methods for delegates handled by this library.
 
 `TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
 
