@@ -10,9 +10,9 @@ namespace PoliNorError
 		private readonly bool _failedIfSaveErrorThrows;
 		private IDelayProvider _delayProvider;
 
-		private readonly Func<int, RetryErrorContext> _retryErrorContextCreator;
+		private static readonly Func<int, RetryErrorContext> _retryErrorContextCreator = (tryCount) => new RetryErrorContext(tryCount);
 
-		private readonly Func<RetryCountInfo, ErrorContext<RetryContext>, bool> _policyRuleFunc;
+		private static readonly Func<RetryCountInfo, ErrorContext<RetryContext>, bool> _policyRuleFunc = (retryCountInfo, exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 
 		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
 
@@ -26,9 +26,7 @@ namespace PoliNorError
 			: base(bulkErrorProcessor)
 		{
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
-			_retryErrorContextCreator = CreateRetryErrorContext;
 			_delayProvider = delayProvider;
-			_policyRuleFunc = (retryCountInfo, exCtx) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 		}
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
@@ -113,7 +111,7 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
-			if (typeof(T).Equals(typeof(Task)) || typeof(T).IsSubclassOf(typeof(Task)))
+			if (typeof(T) == typeof(Task) || typeof(T).IsSubclassOf(typeof(Task)))
 			{
 				throw new ArgumentException("Do not use this method for task return type!");
 			}
@@ -313,11 +311,6 @@ namespace PoliNorError
 						&& !result.IsFailed
 						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, retryContext, configureAwait, token).ConfigureAwait(configureAwait), ex)
 						&& !result.IsFailed;
-		}
-
-		private RetryErrorContext CreateRetryErrorContext(int tryCount)
-		{
-			return new RetryErrorContext(tryCount);
 		}
 
 		private BasicResult DelayIfNeed(RetryDelay retryDelay, RetryErrorContext retryContext, CancellationToken token)

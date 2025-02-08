@@ -50,6 +50,12 @@ The types of delegates that can be handled include:
 - `Func<T>`
 - `Func<CancellationToken, Task>`
 - `Func<CancellationToken, Task<T>>`
+- `Action<TParam>` <sup>*</sup>
+- `Func<TParam, T>` <sup>*</sup>
+- `Func<TParam, CancellationToken, Task>` <sup>*</sup>
+- `Func<TParam, CancellationToken, Task<T>>` <sup>*</sup>
+
+<sup>*</sup> For `SimplePolicy` only since _version_ 2.20.0.
 
 Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface. Policy processors implicitly determine *policy inner rules* (further for simplicity referred to as *policy rules*) - built-in behavioral features that determine whether or not a policy can handle exception. For example, the policy rule for the Retry is that it can handle exceptions only until the number of permitted retries does not exceed.  
 
@@ -185,7 +191,32 @@ var simplePolicy = new SimplePolicy(bulkErrorProcessor);
 var fallbackPolicy = new FallbackPolicy(bulkErrorProcessor).WithFallbackAction(DoSomething);
 ```
 
-Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate handling will be interrupted, and the `IsFailed` and `IsCanceled` properties of the `PolicyResult` will be set to true.
+Note that if cancellation occurs during `BulkErrorProcessor` execution, delegate handling will be interrupted, and the `IsFailed` and `IsCanceled` properties of the `PolicyResult` will be set to true.  
+
+Since _version_ 2.20, `WithErrorContextProcessorOf<TErrorContext>` overloads have been added to `SimplePolicy` and `SimplePolicyProcessor` to support 
+
+- `Action<TParam>`
+- `Func<TParam, T>`
+- `Func<TParam, CancellationToken, Task>`
+- `Func<TParam, CancellationToken, Task<T>>`
+
+ or to account for exception context in processing.  
+ 
+For example, if the random value variable is zero, the error message is logged with the {Param} placeholder replaced with zero:  
+
+```csharp
+var simplePolicyResult = new SimplePolicy()
+
+	.WithErrorContextProcessorOf<int>((ex, pi) =>
+		loggerTest.LogError(ex,
+		"Delegate call with parameter value {Param} failed with an exception.", 
+		pi.Param))
+		
+	//If the random value variable is zero,
+	//the previous line of code
+	//logs an error with {Param} set to zero.
+	.Handle((i) => 5 / i, random);
+```
 
 ### Error filters
 If no filter is set, the delegate will try to be handled with any exception.  

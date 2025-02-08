@@ -1,8 +1,5 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,8 +14,8 @@ namespace PoliNorError.Tests
 		public void Should_GetFallbackAction_Return_Preset_Action(TestFallbackFuncType testFallbackFuncType)
 		{
 			FallbackFuncsProvider provider = new FallbackFuncsProvider(false);
-			Action<CancellationToken> resultAction = null;
-			int i = 0;
+			Action<CancellationToken> resultAction;
+			var i = 0;
 			switch (testFallbackFuncType)
 			{
 				case TestFallbackFuncType.NoFuncs:
@@ -37,6 +34,10 @@ namespace PoliNorError.Tests
 					resultAction(default);
 					Assert.That(i, Is.EqualTo(1));
 					break;
+				case TestFallbackFuncType.FromNonGeneric:
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(testFallbackFuncType), testFallbackFuncType, null);
 			}
 		}
 
@@ -47,7 +48,7 @@ namespace PoliNorError.Tests
 		public async Task Should_GetAsyncFallbackFunc_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType)
 		{
 			FallbackFuncsProvider provider = new FallbackFuncsProvider(false);
-			Func<CancellationToken, Task> resultFunc = null;
+			Func<CancellationToken, Task> resultFunc;
 			int i = 0;
 			switch (testFallbackFuncType)
 			{
@@ -78,9 +79,9 @@ namespace PoliNorError.Tests
 		[TestCase(TestFallbackFuncType.FromNonGeneric, false, true)]
 		public void Should_GetFallbackFuncT_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType, bool? crossSync, bool? onlyGenericFallbackForGenericDelegate)
 		{
-			FallbackFuncsProvider provider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate ?? false);
-			Func<CancellationToken, int> resultFunc = null;
-			int i = 0;
+			var provider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate ?? false);
+			Func<CancellationToken, int> resultFunc;
+			var i = 0;
 			switch (testFallbackFuncType)
 			{
 				case TestFallbackFuncType.NoFuncs:
@@ -94,7 +95,7 @@ namespace PoliNorError.Tests
 					Assert.That(i, Is.EqualTo(1));
 					break;
 				case TestFallbackFuncType.FromNonGeneric:
-					if (crossSync.Value)
+					if (crossSync == true)
 					{
 						provider.FallbackAsync = async (_) => { await Task.Delay(1); i++; };
 					}
@@ -113,6 +114,10 @@ namespace PoliNorError.Tests
 						Assert.That(i, Is.EqualTo(0));
 					}
 					break;
+				case TestFallbackFuncType.CrossSync:
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(testFallbackFuncType), testFallbackFuncType, null);
 			}
 		}
 
@@ -124,9 +129,9 @@ namespace PoliNorError.Tests
 		[TestCase(TestFallbackFuncType.FromNonGeneric, false, true)]
 		public async Task Should_GetAsyncFallbackFuncT_Return_Preset_Func(TestFallbackFuncType testFallbackFuncType, bool? crossSync, bool? onlyGenericFallbackForGenericDelegate)
 		{
-			FallbackFuncsProvider provider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate ?? false);
-			Func<CancellationToken, Task<int>> resultFunc = null;
-			int i = 0;
+			var provider = new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate ?? false);
+			Func<CancellationToken, Task<int>> resultFunc;
+			var i = 0;
 			switch (testFallbackFuncType)
 			{
 				case TestFallbackFuncType.NoFuncs:
@@ -140,7 +145,7 @@ namespace PoliNorError.Tests
 					Assert.That(i, Is.EqualTo(1));
 					break;
 				case TestFallbackFuncType.FromNonGeneric:
-					if (crossSync.Value)
+					if (crossSync == true)
 					{
 						provider.Fallback = (_) => i++;
 					}
@@ -150,15 +155,12 @@ namespace PoliNorError.Tests
 					}
 					resultFunc = provider.GetAsyncFallbackFunc<int>(false);
 					await resultFunc(default);
-					if (onlyGenericFallbackForGenericDelegate == false)
-					{
-						Assert.That(i, Is.EqualTo(1));
-					}
-					else
-					{
-						Assert.That(i, Is.EqualTo(0));
-					}
+					Assert.That(i, onlyGenericFallbackForGenericDelegate == false ? Is.EqualTo(1) : Is.EqualTo(0));
 					break;
+				case TestFallbackFuncType.CrossSync:
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(testFallbackFuncType), testFallbackFuncType, null);
 			}
 		}
 
@@ -181,13 +183,14 @@ namespace PoliNorError.Tests
 					Assert.That(funcsProvider.HasAsyncFallbackFunc(), Is.True);
 					break;
 				case null:
-					if (forAllNonGeneric == true)
+					switch (forAllNonGeneric)
 					{
-						funcsProvider = FallbackFuncsProvider.Create(async (_) => await Task.Delay(1), (_) => { });
-					}
-					else if (forAllNonGeneric == false)
-					{
-						funcsProvider = FallbackFuncsProvider.Create();
+						case true:
+							funcsProvider = FallbackFuncsProvider.Create(async (_) => await Task.Delay(1), (_) => { });
+							break;
+						case false:
+							funcsProvider = FallbackFuncsProvider.Create();
+							break;
 					}
 					Assert.That(funcsProvider.HasFallbackAction(), Is.EqualTo(forAllNonGeneric));
 					Assert.That(funcsProvider.HasAsyncFallbackFunc(), Is.EqualTo(forAllNonGeneric));
@@ -230,14 +233,20 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_SetFallbackAction_Work()
 		{
-			Action<CancellationToken> act1 = (_) => { };
-			Action<CancellationToken> act2 = (_) => { };
+			void act1(CancellationToken _)
+			{
+				// Method intentionally left empty.
+			}
+			void act2(CancellationToken _)
+			{
+				// Method intentionally left empty.
+			}
 
 			var testProvider = new TestFallbackFuncsProvider();
 			testProvider.SetAction(act1);
-			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo(act1));
+			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo((Action<CancellationToken>)act1));
 			testProvider.SetAction(act2);
-			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo(act2));
+			Assert.That(testProvider.GetFallbackAction(), Is.EqualTo((Action<CancellationToken>)act2));
 		}
 
 		[Test]
@@ -268,14 +277,21 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_SetAsyncFunc_Work()
 		{
-			Func<CancellationToken, Task> fn1 = (_) => Task.CompletedTask;
-			Func<CancellationToken, Task> fn2 = (_) => Task.CompletedTask;
+			Task fn1(CancellationToken _)
+			{
+				return Task.CompletedTask;
+			}
+
+			Task fn2(CancellationToken _)
+			{
+				return Task.CompletedTask;
+			}
 
 			var testProvider = new TestFallbackFuncsProvider();
 			testProvider.SetAsyncFunc(fn1);
-			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo(fn1));
+			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo((Func<CancellationToken, Task>)fn1));
 			testProvider.SetAsyncFunc(fn2);
-			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo(fn2));
+			Assert.That(testProvider.GetAsyncFallbackFunc(), Is.EqualTo((Func<CancellationToken, Task>)fn2));
 		}
 
 		[Test]

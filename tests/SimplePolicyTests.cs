@@ -738,6 +738,73 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WithErrorContextProcessorOf_Action_Throws_For_Not_SimplePolicyProcessor(bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var simplePolicy = new SimplePolicy(new TestSimplePolicyProcessor());
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => simplePolicy.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => simplePolicy.WithErrorContextProcessorOf<int>(action));
+			}
+		}
+
+		[Test]
+		public void Should_WithErrorProcessorOf_Action_With_Token_Throws_For_Not_SimplePolicyProcessor()
+		{
+			void action(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				// Method intentionally left empty.
+			}
+
+			var simplePolicy = new SimplePolicy(new TestSimplePolicyProcessor());
+			Assert.Throws<NotImplementedException>(() => simplePolicy.WithErrorContextProcessorOf<int>(action));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_SimplePolicyProcessor(bool withCancellationType)
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __)
+			{
+				await Task.Delay(1);
+			}
+			var simplePolicy = new SimplePolicy(new TestSimplePolicyProcessor());
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => simplePolicy.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => simplePolicy.WithErrorContextProcessorOf<int>(fn));
+			}
+		}
+
+		[Test]
+		public void Should_WithErrorProcessorOf_AsyncFunc_With_Token_Throws_For_Not_SimplePolicyProcessor()
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				await Task.Delay(1);
+			}
+			var simplePolicy = new SimplePolicy(new TestSimplePolicyProcessor());
+
+			Assert.Throws<NotImplementedException>(() => simplePolicy.WithErrorContextProcessorOf<int>(fn));
+		}
+
+		[Test]
 		[TestCase(true, null)]
 		[TestCase(false, true)]
 		[TestCase(false, false)]
@@ -1211,7 +1278,7 @@ namespace PoliNorError.Tests
 			public void AddErrorProcessor(IErrorProcessor newErrorProcessor) => Expression.Empty();
 			public PolicyResult Execute(Action action, CancellationToken token = default) => throw new NotImplementedException();
 			public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default) => throw new NotImplementedException();
-			public Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+			public Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default) => throw new Exception();
 			public Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
 			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
 			IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
