@@ -1,3 +1,30 @@
+## 2.21.0
+
+- Introduced the `FallbackPolicyBase.Handle<TErrorContext>(Action, TErrorContext, CancellationToken)` and `FallbackPolicyBase.Handle<TParam>(Action<TParam>, TParam, CancellationToken)` methods.
+- Introduced the `FallbackPolicyBase.Handle<TParam, T>(Func<TParam, T>, TParam, CancellationToken)` and `FallbackPolicyBase.Handle<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken)` methods.
+- Introduced overloads for the `FallbackPolicyBase.HandleAsync<TParam>` and `FallbackPolicyBase.HandleAsync<TErrorContext>` methods.
+- Introduced overloads for the `FallbackPolicyBase.HandleAsync<TParam, T>` and `FallbackPolicyBase.HandleAsync<TErrorContext, T>` methods.
+- Introduced the `WithErrorContextProcessor<TErrorContext>` and `WithErrorContextProcessorOf<TErrorContext>` method overloads for `FallbackPolicy`, `FallbackPolicyBase`, `FallbackPolicyWithAction`, and `FallbackPolicyWithAsyncFunc` policies.
+- Introduced the `DefaultFallbackProcessor.Fallback<TErrorContext>(Action, TErrorContext, Action<CancellationToken>, CancellationToken)` method.
+- Introduced the `DefaultFallbackProcessor.Fallback<TParam>(Action<TParam>, TParam, Action<CancellationToken>)` method.
+- Introduced the `DefaultFallbackProcessor.Fallback<TErrorContext, T>(Func<T>, TErrorContext, Func<CancellationToken, T>)` method.
+- Introduced the `DefaultFallbackProcessor.Fallback<TParam, T>(Func<TParam, T>, TParam, Func<CancellationToken, T>, CancellationToken)` method.
+- Introduced the `DefaultFallbackProcessor.FallbackAsync<TErrorContext>(Func<CancellationToken, Task>, TErrorContext, Func<CancellationToken, Task>, bool, CancellationToken)` method.
+- Introduced the `DefaultFallbackProcessor.FallbackAsync<TParam>(Func<TParam, CancellationToken, Task>, TParam, Func<CancellationToken, Task>, bool, CancellationToken)` method.
+- Introduced the `DefaultFallbackProcessor.FallbackAsync<TErrorContext, T>(Func<CancellationToken, Task<T>>, TErrorContext, Func<CancellationToken, Task<T>>, bool, CancellationToken)` method.
+- Introduced the `DefaultFallbackProcessor.FallbackAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>>, TParam, Func<CancellationToken, Task<T>>, bool, CancellationToken)` method.
+- Introduced the `WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext>)` method in `DefaultFallbackProcessor`.
+- Introduced the `DefaultFallbackProcessor.WithErrorContextProcessorOf<TErrorContext>` method overloads.
+- `DefaultRetryProcessor` refactoring - make the field representing the retry policy rule static and simplify `RetryErrorContext` creation.
+- Apply the 'check reference equality instead' Rider rule to type comparisons in the `DefaultRetryProcessor.RetryInternal<T>` method.
+- Update NuGet README.
+- Updated 'Usage' in README for 2.20.0 changes.
+- Update 'TryCatch' README Chapter.
+- Update the Error processors chapter in the README.
+- Add diagrams to README.
+- Bump the nunit group with 7 updates.
+
+
 ## 2.20.0
 
 - Introduce the `DefaultErrorProcessor<TParam>` , `ProcessingErrorContext<TParam>` and `ProcessingErrorInfo<TParam>` classes.
