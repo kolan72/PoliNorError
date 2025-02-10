@@ -62,11 +62,6 @@ namespace PoliNorError
 				return result;
 			}
 
-			if (!(retryDelay is null) && _delayProvider is null)
-			{
-				_delayProvider = new DelayProvider();
-			}
-
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -124,11 +119,6 @@ namespace PoliNorError
 				return result;
 			}
 
-			if (!(retryDelay is null) && _delayProvider is null)
-			{
-				_delayProvider = new DelayProvider();
-			}
-
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -182,11 +172,6 @@ namespace PoliNorError
 				return result;
 			}
 
-			if (!(retryDelay is null) && _delayProvider is null)
-			{
-				_delayProvider = new DelayProvider();
-			}
-
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -235,11 +220,6 @@ namespace PoliNorError
 				return result;
 			}
 
-			if (!(retryDelay is null) && _delayProvider is null)
-			{
-				_delayProvider = new DelayProvider();
-			}
-
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -282,6 +262,8 @@ namespace PoliNorError
 			return this;
 		}
 
+		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
+
 		private bool HandleError(Exception ex,
 							PolicyResult result,
 							RetryDelay retryDelay,
@@ -319,7 +301,7 @@ namespace PoliNorError
 			var delay = retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount);
 			if (delay > TimeSpan.Zero)
 			{
-				res = _delayProvider.BackoffSafely(delay.Value, token);
+				res = DelayProvider.BackoffSafely(delay.Value, token);
 			}
 			return res;
 		}
@@ -330,7 +312,7 @@ namespace PoliNorError
 			var delay = retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount);
 			if (delay > TimeSpan.Zero)
 			{
-				res = await _delayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+				res = await DelayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return res;
 		}
