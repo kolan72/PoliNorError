@@ -18,6 +18,18 @@ namespace PoliNorError
 		internal void IncrementCountAtomic() => Context.IncrementCountAtomic();
 	}
 
+	internal class RetryErrorContext<TParam> : RetryErrorContext
+	{
+		public RetryErrorContext(TParam param, int tryCount) : base(tryCount)
+		{
+			Param = param;
+		}
+
+		public TParam Param { get; private set; }
+
+		public override ProcessingErrorContext ToProcessingErrorContext() => new RetryProcessingErrorContext<TParam>(Context.CurrentRetryCount, Param);
+	}
+
 	internal class RetryContext
 	{
 		private int _currentRetryCount;
