@@ -31,7 +31,18 @@ namespace PoliNorError
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
-			return RetryInternal(action, retryCountInfo, null, token);
+			return RetryInternal(action, retryCountInfo, null, _retryErrorContextCreator, token);
+		}
+
+		public PolicyResult Retry<TErrorContext>(Action action, TErrorContext param, int retryCount, CancellationToken token = default)
+		{
+			return Retry(action, param, RetryCountInfo.Limited(retryCount), token);
+		}
+
+		public PolicyResult Retry<TErrorContext>(Action action, TErrorContext param, RetryCountInfo retryCountInfo, CancellationToken token = default)
+		{
+			var retryErrorContextCreator = GetRetryErrorContextCreator<TErrorContext>().Apply(param);
+			return RetryInternal(action, retryCountInfo, null, retryErrorContextCreator, token);
 		}
 
 		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
@@ -49,7 +60,7 @@ namespace PoliNorError
 			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
 		}
 
-		internal PolicyResult RetryInternal(Action action, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
+		internal PolicyResult RetryInternal(Action action, RetryCountInfo retryCountInfo, RetryDelay retryDelay, Func<int, RetryErrorContext> retryErrorContextCreator, CancellationToken token)
 		{
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
@@ -66,7 +77,7 @@ namespace PoliNorError
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
 
-			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
+			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
 				try
@@ -262,6 +273,16 @@ namespace PoliNorError
 			return this;
 		}
 
+		public DefaultRetryProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
+		{
+			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(actionProcessor);
+		}
+
+		public DefaultRetryProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType)
+		{
+			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(actionProcessor, cancellationType);
+		}
+
 		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
 
 		private bool HandleError(Exception ex,
@@ -373,5 +394,8 @@ namespace PoliNorError
 			}
 			result.UnprocessedError = ex;
 		}
+
+		private static Func<TErrorContext, int, RetryErrorContext<TErrorContext>> GetRetryErrorContextCreator<TErrorContext>()
+					=> (context, tryCount) => new RetryErrorContext<TErrorContext>(context, tryCount);
 	}
 }

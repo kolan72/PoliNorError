@@ -601,5 +601,51 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(rc.IsZeroRetry, Is.False);
 		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			DefaultRetryProcessor processor;
+
+			if (!withCancellationType)
+			{
+				processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.Retry(() => throw new InvalidOperationException(), 5, 2);
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+			}
+			else
+			{
+				result = processor.Retry(() => throw new InvalidOperationException(), 2);
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.Errors.Count, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.True);
+		}
 	}
 }
