@@ -1,12 +1,11 @@
 ﻿namespace PoliNorError
 {
-	public class RetryProcessingErrorInfo<TParam> : RetryProcessingErrorInfo
+	public class RetryProcessingErrorInfo<TParam> : ProcessingErrorInfo<TParam>
 	{
-		internal RetryProcessingErrorInfo(RetryProcessingErrorContext<TParam> currentContext) : base(currentContext.RetryCount)
+		internal RetryProcessingErrorInfo(RetryProcessingErrorContext<TParam> currentContext) : base(PolicyAlias.Retry, currentContext)
 		{
-			Param = currentContext.Param;
 		}
 
-		public TParam Param { get; private set; }
+		public int RetryCount => ((RetryProcessingErrorContext<TParam>)CurrentContext).RetryCount;
 	}
 }
