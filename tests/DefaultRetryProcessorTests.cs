@@ -603,11 +603,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(false, true)]
-		[TestCase(true, false)]
-		[TestCase(false, false)]
-		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withCancellationType)
+		[TestCase(true, null, true)]
+		[TestCase(false, null, true)]
+		[TestCase(true, null, false)]
+		[TestCase(false, null, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool? withRetryDelay, bool withCancellationType)
 		{
 			int m = 0;
 			int retryCount = 0;
@@ -635,7 +637,15 @@ namespace PoliNorError.Tests
 
 			if (shouldWork)
 			{
-				result = processor.Retry(() => throw new InvalidOperationException(), 5, 2);
+				if (withRetryDelay == false)
+				{
+					result = processor.Retry(() => throw new InvalidOperationException(), 5, 2);
+				}
+				else
+				{
+					result = processor.Retry(() => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
 				Assert.That(m, Is.EqualTo(10));
 				Assert.That(retryCount, Is.EqualTo(1));
 			}
