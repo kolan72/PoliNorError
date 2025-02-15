@@ -26,6 +26,16 @@ namespace PoliNorError
 			return RetryInternal(action, retryCountInfo, retryDelay, _retryErrorContextCreator, token);
 		}
 
+		public PolicyResult Retry<TParam>(Action<TParam> action, TParam param, int retryCount, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return Retry(action.Apply(param), param, RetryCountInfo.Limited(retryCount), retryDelay, token);
+		}
+
+		public PolicyResult Retry<TParam>(Action<TParam> action, TParam param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return Retry(action.Apply(param), param, retryCountInfo, retryDelay, token);
+		}
+
 		public PolicyResult Retry<TErrorContext>(Action action, TErrorContext param, int retryCount, RetryDelay retryDelay, CancellationToken token = default)
 		{
 			return Retry(action, param, RetryCountInfo.Limited(retryCount), retryDelay, token);

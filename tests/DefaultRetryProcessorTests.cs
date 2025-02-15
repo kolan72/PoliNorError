@@ -603,13 +603,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, null, true)]
-		[TestCase(false, null, true)]
-		[TestCase(true, null, false)]
-		[TestCase(false, null, false)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
 		[TestCase(true, true, true)]
 		[TestCase(true, true, false)]
-		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool? withRetryDelay, bool withCancellationType)
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withRetryDelay, bool withCancellationType)
 		{
 			int m = 0;
 			int retryCount = 0;
@@ -637,7 +637,7 @@ namespace PoliNorError.Tests
 
 			if (shouldWork)
 			{
-				if (withRetryDelay == false)
+				if (!withRetryDelay)
 				{
 					result = processor.Retry(() => throw new InvalidOperationException(), 5, 2);
 				}
@@ -659,9 +659,10 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true)]
-		[TestCase(false)]
-		public void Should_Retry_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		public void Should_Retry_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
 		{
 			int m = 0;
 			int retryCount = 0;
@@ -679,7 +680,14 @@ namespace PoliNorError.Tests
 			PolicyResult result = null;
 			if (throwEx)
 			{
-				result = processor.Retry((_) => throw new InvalidOperationException(), 5, 2);
+				if (!withRetryDelay)
+				{
+					result = processor.Retry((_) => throw new InvalidOperationException(), 5, 2);
+				}
+				else
+				{
+					result = processor.Retry((_) => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
 				Assert.That(m, Is.EqualTo(10));
 				Assert.That(retryCount, Is.EqualTo(1));
 				Assert.That(result.IsFailed, Is.True);
