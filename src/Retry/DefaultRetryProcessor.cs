@@ -60,6 +60,11 @@ namespace PoliNorError
 			return RetryInternal(func, retryCountInfo, null, token);
 		}
 
+		public PolicyResult RetryInfiniteWithErrorContext<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
+		{
+			return Retry(action, param, RetryCountInfo.Infinite(), token);
+		}
+
 		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
 			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);

@@ -659,6 +659,36 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_RetryInfiniteWithContext_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly()
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int i = 0;
+			void actToHandle()
+			{
+				if (i < 2)
+				{
+					i++;
+					throw new Exception("Test");
+				}
+			}
+
+			var result = processor.RetryInfiniteWithErrorContext(actToHandle, 5);
+			Assert.That(m, Is.EqualTo(10));
+			Assert.That(result.Errors.Count, Is.EqualTo(2));
+		}
+
+		[Test]
 		[TestCase(true, false)]
 		[TestCase(false, false)]
 		[TestCase(true, true)]
