@@ -11,7 +11,10 @@ namespace PoliNorError
 	{
 		public static void AddIncludedErrorFilterForAll<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			policies.AddIncludedErrorFilterForAll(ExpressionHelper.GetTypedErrorFilter(func));
+			foreach (var pol in policies)
+			{
+				pol.PolicyProcessor.AddIncludedErrorFilter(func);
+			}
 		}
 
 		public static void AddIncludedErrorFilterForAll(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
@@ -24,7 +27,10 @@ namespace PoliNorError
 
 		public static void AddExcludedErrorFilterForAll<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			policies.AddExcludedErrorFilterForAll(ExpressionHelper.GetTypedErrorFilter(func));
+			foreach (var pol in policies)
+			{
+				pol.PolicyProcessor.AddExcludedErrorFilter(func);
+			}
 		}
 
 		public static void AddExcludedErrorFilterForAll(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
@@ -37,7 +43,7 @@ namespace PoliNorError
 
 		public static void AddIncludedErrorFilterForLast<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			policies.AddIncludedErrorFilterForLast(ExpressionHelper.GetTypedErrorFilter(func));
+			policies.LastOrDefault()?.PolicyProcessor.AddIncludedErrorFilter(func);
 		}
 
 		public static void AddIncludedErrorFilterForLast(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
@@ -47,7 +53,7 @@ namespace PoliNorError
 
 		public static void AddExcludedErrorFilterForLast<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			policies.AddExcludedErrorFilterForLast(ExpressionHelper.GetTypedErrorFilter(func));
+			policies.LastOrDefault()?.PolicyProcessor.AddExcludedErrorFilter(func);
 		}
 
 		public static void AddExcludedErrorFilterForLast(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)

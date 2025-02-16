@@ -7,7 +7,7 @@ namespace PoliNorError
 	{
 		public static T IncludeError<T, TException>(this T filter, Func<TException, bool> func = null) where T : CatchBlockFilter where TException : Exception
 		{
-			filter.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+			filter.ErrorFilter.AddIncludedErrorFilter(func);
 			return filter;
 		}
 
@@ -25,7 +25,7 @@ namespace PoliNorError
 
 		public static T ExcludeError<T, TException>(this T filter, Func<TException, bool> func = null) where T : CatchBlockFilter where TException : Exception
 		{
-			filter.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+			filter.ErrorFilter.AddExcludedErrorFilter(func);
 			return filter;
 		}
 
