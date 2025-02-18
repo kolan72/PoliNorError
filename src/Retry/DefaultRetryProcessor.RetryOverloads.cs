@@ -28,7 +28,7 @@ namespace PoliNorError
 
 		public PolicyResult Retry<TParam>(Action<TParam> action, TParam param, int retryCount, RetryDelay retryDelay, CancellationToken token = default)
 		{
-			return Retry(action.Apply(param), param, RetryCountInfo.Limited(retryCount), retryDelay, token);
+			return Retry(action, param, RetryCountInfo.Limited(retryCount), retryDelay, token);
 		}
 
 		public PolicyResult Retry<TParam>(Action<TParam> action, TParam param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token = default)
