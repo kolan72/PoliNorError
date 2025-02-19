@@ -747,9 +747,10 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true)]
-		[TestCase(false)]
-		public void Should_RetryInfinite_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		public void Should_RetryInfinite_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
 		{
 			int failedAttemptCount = 0;
 			int numOfFailedAttemptsMultipliedByParam = 0;
@@ -781,7 +782,14 @@ namespace PoliNorError.Tests
 			PolicyResult result = null;
 			if (throwEx)
 			{
-				result = processor.RetryInfinite(actToHandle, 5);
+				if (!withRetryDelay)
+				{
+					result = processor.RetryInfinite(actToHandle, 5);
+				}
+				else
+				{
+					result = processor.RetryInfinite(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
 				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
 				Assert.That(failedAttemptCount, Is.EqualTo(2));
 				Assert.That(attemptsCount, Is.EqualTo(3));
