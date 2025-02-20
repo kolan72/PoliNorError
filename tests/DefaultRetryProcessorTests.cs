@@ -805,5 +805,28 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(result.IsFailed, Is.False);
 		}
+
+		[Test]
+		public async Task Should_RetryWithErrorContextAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly()
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			var result = await processor.RetryWithErrorContextAsync(async(_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+			Assert.That(m, Is.EqualTo(10));
+			Assert.That(retryCount, Is.EqualTo(1));
+
+			Assert.That(result.Errors.Count, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.True);
+		}
 	}
 }
