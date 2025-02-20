@@ -639,11 +639,11 @@ namespace PoliNorError.Tests
 			{
 				if (!withRetryDelay)
 				{
-					result = processor.Retry(() => throw new InvalidOperationException(), 5, 2);
+					result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 2);
 				}
 				else
 				{
-					result = processor.Retry(() => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+					result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
 				}
 
 				Assert.That(m, Is.EqualTo(10));

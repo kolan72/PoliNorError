@@ -34,11 +34,6 @@ namespace PoliNorError
 			return RetryInternal(action, retryCountInfo, null, _retryErrorContextCreator, token);
 		}
 
-		public PolicyResult Retry<TErrorContext>(Action action, TErrorContext param, int retryCount, CancellationToken token = default)
-		{
-			return Retry(action, param, RetryCountInfo.Limited(retryCount), token);
-		}
-
 		public PolicyResult Retry<TParam>(Action<TParam> action, TParam param, int retryCount, CancellationToken token = default)
 		{
 			return Retry(action, param, RetryCountInfo.Limited(retryCount), token);
@@ -46,13 +41,7 @@ namespace PoliNorError
 
 		public PolicyResult Retry<TParam>(Action<TParam> action, TParam param, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
-			return Retry(action.Apply(param), param, retryCountInfo, token);
-		}
-
-		public PolicyResult Retry<TErrorContext>(Action action, TErrorContext param, RetryCountInfo retryCountInfo, CancellationToken token = default)
-		{
-			var retryErrorContextCreator = GetRetryErrorContextCreator<TErrorContext>().Apply(param);
-			return RetryInternal(action, retryCountInfo, null, retryErrorContextCreator, token);
+			return RetryWithErrorContext(action.Apply(param), param, retryCountInfo, token);
 		}
 
 		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
@@ -60,24 +49,25 @@ namespace PoliNorError
 			return RetryInternal(func, retryCountInfo, null, token);
 		}
 
+		public PolicyResult RetryWithErrorContext<TErrorContext>(Action action, TErrorContext param, int retryCount, CancellationToken token = default)
+		{
+			return RetryWithErrorContext(action, param, RetryCountInfo.Limited(retryCount), token);
+		}
+
+		public PolicyResult RetryWithErrorContext<TErrorContext>(Action action, TErrorContext param, RetryCountInfo retryCountInfo, CancellationToken token = default)
+		{
+			var retryErrorContextCreator = GetRetryErrorContextCreator<TErrorContext>().Apply(param);
+			return RetryInternal(action, retryCountInfo, null, retryErrorContextCreator, token);
+		}
+
 		public PolicyResult RetryInfiniteWithErrorContext<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
 		{
-			return Retry(action, param, RetryCountInfo.Infinite(), token);
+			return RetryWithErrorContext(action, param, RetryCountInfo.Infinite(), token);
 		}
 
 		public PolicyResult RetryInfinite<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
 		{
 			return Retry(action, param, RetryCountInfo.Infinite(), token);
-		}
-
-		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
-		{
-			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
-		}
-
-		public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
-		{
-			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
 		}
 
 		internal PolicyResult RetryInternal(Action action, RetryCountInfo retryCountInfo, RetryDelay retryDelay, Func<int, RetryErrorContext> retryErrorContextCreator, CancellationToken token)
@@ -188,6 +178,16 @@ namespace PoliNorError
 			}
 			while (!result.IsFailed);
 			return result;
+		}
+
+		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
+		}
+
+		public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryInternalAsync(func, retryCountInfo, null, configureAwait, token);
 		}
 
 		internal async Task<PolicyResult> RetryInternalAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
