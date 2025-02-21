@@ -807,7 +807,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_RetryWithErrorContextAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly()
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryWithErrorContextAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
 		{
 			int m = 0;
 			int retryCount = 0;
@@ -821,7 +823,17 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor()
 							.WithErrorContextProcessorOf<int>(action);
 
-			var result = await processor.RetryWithErrorContextAsync(async(_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+			PolicyResult result = null;
+
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryWithErrorContextAsync(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+			}
+			else
+			{
+				result = await processor.RetryWithErrorContextAsync(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
 			Assert.That(m, Is.EqualTo(10));
 			Assert.That(retryCount, Is.EqualTo(1));
 
