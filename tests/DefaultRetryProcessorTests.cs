@@ -840,5 +840,44 @@ namespace PoliNorError.Tests
 			Assert.That(result.Errors.Count, Is.EqualTo(3));
 			Assert.That(result.IsFailed, Is.True);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryAsync_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int retryCount = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await processor.RetryAsync(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; }, 5, 2);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(retryCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsFailed, Is.False);
+			}
+		}
 	}
 }
