@@ -226,5 +226,27 @@ namespace PoliNorError.Tests
 			Assert.That(res.IsError, Is.True);
 			Assert.That(i, Is.EqualTo(1));
 		}
+
+		[Test]
+		public void Should_AddCatchBlock_With_NonEmptyCatchBlockFilter_Made_Of_Func_And_IBulkErrorProcessor_Configured_FiltersAndProcessesError()
+		{
+			int i = 0;
+			void act(Exception _)
+			{
+				i++;
+			}
+
+			var tryCatchBuilder =
+				TryCatchBuilder
+					.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
+					.AddCatchBlock((ef) => ef.IncludeError<InvalidOperationException>(), (b) => b.WithErrorProcessorOf(act));
+
+			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));
+
+			var res = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(res.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
+		}
 	}
 }

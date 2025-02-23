@@ -164,6 +164,21 @@ namespace PoliNorError.TryCatch
 			return AddCatchBlock(handler);
 		}
 
+		/// <summary>
+		/// Adds a <see cref="CatchBlockFilteredHandler"/> handler consisting of <see cref="NonEmptyCatchBlockFilter"/> and <see cref="IBulkErrorProcessor"/> to builder.
+		/// </summary>
+		/// <param name="filterFactory">Factory to create the <see cref="NonEmptyCatchBlockFilter"/>.</param>
+		/// <param name="configure">Action to configure the <see cref="IBulkErrorProcessor"/>.</param>
+		/// <returns><see cref="TryCatchBuilder"/></returns>
+		public TryCatchBuilder AddCatchBlock(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory, Action<IBulkErrorProcessor> configure)
+		{
+			var cb =  new EmptyCatchBlockFilter();
+			var filter = filterFactory(cb);
+			var bp = new BulkErrorProcessor();
+			configure(bp);
+			return AddCatchBlock(filter, bp);
+		}
+
 		public ITryCatch Build() => new TryCatch(_catchBlockHandlers, _hasCatchBlockForAll);
 	}
 }
