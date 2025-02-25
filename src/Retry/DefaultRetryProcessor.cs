@@ -180,6 +180,11 @@ namespace PoliNorError
 			return result;
 		}
 
+		public Task<PolicyResult> RetryInfiniteWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryWithErrorContextAsync(func, param, RetryCountInfo.Infinite(), configureAwait, token);
+		}
+
 		public Task<PolicyResult> RetryWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, int retryCount, bool configureAwait = false, CancellationToken token = default)
 		{
 			return RetryWithErrorContextAsync(func, param, RetryCountInfo.Limited(retryCount), configureAwait, token);
