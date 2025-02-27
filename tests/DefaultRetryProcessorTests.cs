@@ -933,5 +933,41 @@ namespace PoliNorError.Tests
 			Assert.That(attemptsCount, Is.EqualTo(3));
 			Assert.That(result.IsFailed, Is.False);
 		}
+
+		[Test]
+		public async Task Should_RetryInfiniteAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly()
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int attemptsCount = 0;
+
+			async Task actToHandle(int _, CancellationToken __)
+			{
+				await Task.Delay(TimeSpan.FromTicks(1));
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+			}
+
+			var result = await processor.RetryInfiniteAsync(actToHandle, 5);
+
+			Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+			Assert.That(failedAttemptCount, Is.EqualTo(2));
+			Assert.That(attemptsCount, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.False);
+		}
 	}
 }
