@@ -935,7 +935,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_RetryInfiniteAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly()
+		[TestCase(false)]
+		[TestCase(true)]
+		public async Task Should_RetryInfiniteAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
 		{
 			int failedAttemptCount = 0;
 			int numOfFailedAttemptsMultipliedByParam = 0;
@@ -962,7 +964,15 @@ namespace PoliNorError.Tests
 				attemptsCount++;
 			}
 
-			var result = await processor.RetryInfiniteAsync(actToHandle, 5);
+			PolicyResult result = null;
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryInfiniteAsync(actToHandle, 5);
+			}
+			else
+			{
+				result = await processor.RetryInfiniteAsync(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
 
 			Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
 			Assert.That(failedAttemptCount, Is.EqualTo(2));
