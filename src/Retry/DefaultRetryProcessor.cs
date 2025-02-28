@@ -46,7 +46,7 @@ namespace PoliNorError
 
 		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
-			return RetryInternal(func, retryCountInfo, null, token);
+			return RetryInternal(func, retryCountInfo, null, _retryErrorContextCreator, token);
 		}
 
 		public PolicyResult RetryWithErrorContext<TErrorContext>(Action action, TErrorContext param, int retryCount, CancellationToken token = default)
@@ -58,6 +58,17 @@ namespace PoliNorError
 		{
 			var retryErrorContextCreator = GetRetryErrorContextCreator<TErrorContext>().Apply(param);
 			return RetryInternal(action, retryCountInfo, null, retryErrorContextCreator, token);
+		}
+
+		public PolicyResult<T> RetryWithErrorContext<TErrorContext, T>(Func<T> func, TErrorContext param, int retryCount, CancellationToken token = default)
+		{
+			return RetryWithErrorContext(func, param, RetryCountInfo.Limited(retryCount), token);
+		}
+
+		public PolicyResult<T> RetryWithErrorContext<TErrorContext, T>(Func<T> func, TErrorContext param, RetryCountInfo retryCountInfo, CancellationToken token = default)
+		{
+			var retryErrorContextCreator = GetRetryErrorContextCreator<TErrorContext>().Apply(param);
+			return RetryInternal(func, retryCountInfo, null, retryErrorContextCreator, token);
 		}
 
 		public PolicyResult RetryInfiniteWithErrorContext<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
@@ -122,7 +133,7 @@ namespace PoliNorError
 			return result;
 		}
 
-		internal PolicyResult<T> RetryInternal<T>(Func<T> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
+		internal PolicyResult<T> RetryInternal<T>(Func<T> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, Func<int, RetryErrorContext> retryErrorContextCreator, CancellationToken token)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -144,7 +155,7 @@ namespace PoliNorError
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
 
-			var retryContext = _retryErrorContextCreator(retryCountInfo.StartTryCount);
+			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
 				try

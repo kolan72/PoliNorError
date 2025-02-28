@@ -33,7 +33,7 @@ namespace PoliNorError
 
 		public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token = default)
 		{
-			return RetryInternal(func, retryCountInfo, retryDelay, token);
+			return RetryInternal(func, retryCountInfo, retryDelay, _retryErrorContextCreator, token);
 		}
 
 		public PolicyResult RetryInfinite(Action action, RetryDelay retryDelay, CancellationToken token = default)
