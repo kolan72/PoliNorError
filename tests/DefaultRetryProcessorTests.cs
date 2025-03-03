@@ -1028,9 +1028,10 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true)]
-		[TestCase(false)]
-		public void Should_Retry_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		[TestCase(true, false)]
+		[TestCase(true, true)]
+		[TestCase(false, false)]
+		public void Should_Retry_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
 		{
 			int m = 0;
 			int retryCount = 0;
@@ -1048,7 +1049,15 @@ namespace PoliNorError.Tests
 			PolicyResult<int> result = null;
 			if (throwEx)
 			{
-				result = processor.Retry<int, int>((_) => throw new InvalidOperationException(), 5, 2);
+				if (!withRetryDelay)
+				{
+					result = processor.Retry<int, int>((_) => throw new InvalidOperationException(), 5, 2);
+				}
+				else
+				{
+					result = processor.Retry<int, int>((_) => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
 				Assert.That(m, Is.EqualTo(10));
 				Assert.That(retryCount, Is.EqualTo(1));
 				Assert.That(result.IsFailed, Is.True);

@@ -46,7 +46,7 @@ namespace PoliNorError
 
 		public PolicyResult<T> Retry<TParam, T>(Func<TParam, T> func, TParam param, int retryCount, CancellationToken token = default)
 		{
-			return RetryWithErrorContext(func.Apply(param), param, RetryCountInfo.Limited(retryCount), token);
+			return Retry(func, param, RetryCountInfo.Limited(retryCount), token);
 		}
 
 		public PolicyResult<T> Retry<TParam, T>(Func<TParam, T> func, TParam param, RetryCountInfo retryCountInfo, CancellationToken token = default)
