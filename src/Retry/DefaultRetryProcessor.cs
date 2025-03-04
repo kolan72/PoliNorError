@@ -86,6 +86,11 @@ namespace PoliNorError
 			return RetryWithErrorContext(action, param, RetryCountInfo.Infinite(), token);
 		}
 
+		public PolicyResult<T> RetryInfiniteWithErrorContext<TErrorContext, T>(Func<T> action, TErrorContext param, CancellationToken token = default)
+		{
+			return RetryWithErrorContext(action, param, RetryCountInfo.Infinite(), token);
+		}
+
 		public PolicyResult RetryInfinite<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
 		{
 			return Retry(action, param, RetryCountInfo.Infinite(), token);
