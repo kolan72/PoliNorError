@@ -1075,7 +1075,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_RetryInfiniteWithErrorContext_For_Func_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly()
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryInfiniteWithErrorContext_For_Func_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
 		{
 			int m = 0;
 			int retryCount = 0;
@@ -1100,7 +1102,15 @@ namespace PoliNorError.Tests
 				return i;
 			}
 
-			var result = processor.RetryInfiniteWithErrorContext(funcToHandle, 5);
+			PolicyResult<int> result = null;
+			if (!withRetryDelay)
+			{
+				result = processor.RetryInfiniteWithErrorContext(funcToHandle, 5);
+			}
+			else
+			{
+				result = processor.RetryInfiniteWithErrorContext(funcToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
 
 			Assert.That(m, Is.EqualTo(10));
 			Assert.That(result.Errors.Count, Is.EqualTo(2));
