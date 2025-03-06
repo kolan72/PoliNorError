@@ -1117,5 +1117,57 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsFailed, Is.False);
 			Assert.That(result.Result, Is.EqualTo(2));
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryInfinite_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			int attemptsCount = 0;
+			int actToHandle(int k)
+			{
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+				return k;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = processor.RetryInfinite(actToHandle, 5);
+
+				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+				Assert.That(failedAttemptCount, Is.EqualTo(2));
+				Assert.That(attemptsCount, Is.EqualTo(3));
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.RetryInfinite((v) => { addable += v; return addable; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(0));
+				Assert.That(failedAttemptCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+			}
+			Assert.That(result.IsFailed, Is.False);
+		}
 	}
 }
