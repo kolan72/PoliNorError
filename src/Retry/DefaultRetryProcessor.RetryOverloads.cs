@@ -56,6 +56,11 @@ namespace PoliNorError
 			return Retry(action, param, RetryCountInfo.Infinite(), retryDelay, token);
 		}
 
+		public PolicyResult<T> RetryInfinite<TParam, T>(Func<TParam, T> func, TParam param, RetryDelay retryDelay, CancellationToken token = default)
+		{
+			return Retry(func, param, RetryCountInfo.Infinite(), retryDelay, token);
+		}
+
 		public PolicyResult<T> RetryInfinite<T>(Func<T> func, RetryDelay retryDelay, CancellationToken token = default)
 		{
 			return Retry(func, RetryCountInfo.Infinite(), retryDelay, token);
