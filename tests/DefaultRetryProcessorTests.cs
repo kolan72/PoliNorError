@@ -31,7 +31,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			void save() { cancelTokenSource.Cancel(); throw new Exception(); }
 			var processor = new DefaultRetryProcessor();
-			var polRetryResult =  processor.Retry(save, 6, cancelTokenSource.Token);
+			var polRetryResult = processor.Retry(save, 6, cancelTokenSource.Token);
 			ClassicAssert.IsTrue(polRetryResult.IsFailed);
 			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
 			cancelTokenSource.Dispose();
@@ -63,7 +63,7 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor();
 			var tryResCount = processor.Retry(save, 2, cancelTokenSource.Token);
 
-			ClassicAssert.AreEqual(retryCount+1, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(retryCount + 1, tryResCount.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -353,7 +353,7 @@ namespace PoliNorError.Tests
 		{
 			int asyncM = 0;
 			int syncM = 0;
-			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaverOf(async(_, __) => { await Task.Delay(1) ; asyncM++; }, (_) => syncM++);
+			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaverOf(async (_, __) => { await Task.Delay(1); asyncM++; }, (_) => syncM++);
 			int i = 0;
 			PolicyResult res = null;
 			if (notSync)
@@ -506,7 +506,7 @@ namespace PoliNorError.Tests
 		public void Should_Retry_Null_Delegate_Work()
 		{
 			var proc = RetryProcessor.CreateDefault();
-			var retryResult = proc.Retry(null,1);
+			var retryResult = proc.Retry(null, 1);
 			ClassicAssert.IsTrue(retryResult.IsFailed);
 			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			ClassicAssert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
@@ -1211,6 +1211,46 @@ namespace PoliNorError.Tests
 
 			Assert.That(result.Errors.Count, Is.EqualTo(3));
 			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryAsyncT_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx)
+		{
+			int m = 0;
+			int retryCount = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = await processor.RetryAsync<int, int>(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; return addable; }, 5, 2);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(retryCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.Result, Is.EqualTo(6));
+				Assert.That(result.IsFailed, Is.False);
+			}
 		}
 	}
 }

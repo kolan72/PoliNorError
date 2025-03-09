@@ -243,14 +243,24 @@ namespace PoliNorError
 			return RetryAsync(func, param, RetryCountInfo.Limited(retryCount), configureAwait, token);
 		}
 
-		public async Task<PolicyResult> RetryAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
+		public Task<PolicyResult> RetryAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
-			return await RetryWithErrorContextAsync(func.Apply(param), param, retryCountInfo, configureAwait, token).ConfigureAwait(configureAwait);
+			return RetryWithErrorContextAsync(func.Apply(param), param, retryCountInfo, configureAwait, token);
 		}
 
 		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
 			return RetryInternalAsync(func, retryCountInfo, null, _retryErrorContextCreator, configureAwait, token);
+		}
+
+		public Task<PolicyResult<T>> RetryAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, int retryCount, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryAsync(func, param, RetryCountInfo.Limited(retryCount), configureAwait, token);
+		}
+
+		public Task<PolicyResult<T>> RetryAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
+		{
+			return RetryWithErrorContextAsync(func.Apply(param), param, retryCountInfo, configureAwait, token);
 		}
 
 		public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
