@@ -79,10 +79,6 @@ You can also create a [`PolicyCollection`](#policycollection) (appeared in _vers
 The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
 
 ## Usage
-
-![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
-
-Below are some examples of how policies and policy processors are used.
 For retries using default retry policy processor:
 ```csharp
 var result = RetryProcessor
@@ -119,6 +115,10 @@ var result = new FallbackPolicy()
                              .WithFallbackFunc<Email>(() => UserManager.GetGuestEmail())
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
+
+Usage diagram:
+![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
+
 
 ### PolicyResult
 Handling begins when an exception occurs during the execution of the delegate. At first, exception will be stored in the `Errors` property (for retry-related classes, this is by default and can be customized).  
