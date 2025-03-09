@@ -116,7 +116,8 @@ var result = new FallbackPolicy()
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
 
-Usage diagram:
+Usage diagram:  
+
 ![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
 
 
