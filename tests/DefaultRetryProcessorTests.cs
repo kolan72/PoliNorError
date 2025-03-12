@@ -1262,7 +1262,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_RetryInfiniteWithErrorContextAsyncT_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly()
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryInfiniteWithErrorContextAsyncT_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
 		{
 			int failedAttemptCount = 0;
 			int numOfFailedAttemptsMultipliedByParam = 0;
@@ -1291,7 +1293,14 @@ namespace PoliNorError.Tests
 			}
 
 			PolicyResult<int> result;
-			result = await processor.RetryInfiniteWithErrorContextAsync(actToHandle, 5);
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryInfiniteWithErrorContextAsync(actToHandle, 5);
+			}
+			else
+			{
+				result = await processor.RetryInfiniteWithErrorContextAsync(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
 
 			Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
 			Assert.That(failedAttemptCount, Is.EqualTo(2));
