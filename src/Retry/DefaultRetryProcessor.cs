@@ -414,7 +414,7 @@ namespace PoliNorError
 						&& result.ChangeByHandleCatchBlockResult(handler
 																.Handle(ex, retryContext))
 						&& !result.IsFailed
-						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay, retryContext, token), ex)
+						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), token), ex)
 						&& !result.IsFailed;
 		}
 
@@ -430,14 +430,13 @@ namespace PoliNorError
 						&& result.ChangeByHandleCatchBlockResult(await handler
 																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
 						&& !result.IsFailed
-						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay, retryContext, configureAwait, token).ConfigureAwait(configureAwait), ex)
+						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), configureAwait, token).ConfigureAwait(configureAwait), ex)
 						&& !result.IsFailed;
 		}
 
-		private BasicResult DelayIfNeed(RetryDelay retryDelay, RetryErrorContext retryContext, CancellationToken token)
+		private BasicResult DelayIfNeed(TimeSpan? delay, CancellationToken token)
 		{
 			BasicResult res = null;
-			var delay = retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount);
 			if (delay > TimeSpan.Zero)
 			{
 				res = DelayProvider.BackoffSafely(delay.Value, token);
@@ -445,10 +444,9 @@ namespace PoliNorError
 			return res;
 		}
 
-		private async Task<BasicResult> DelayIfNeedAsync(RetryDelay retryDelay, RetryErrorContext retryContext, bool configureAwait, CancellationToken token)
+		private async Task<BasicResult> DelayIfNeedAsync(TimeSpan? delay, bool configureAwait, CancellationToken token)
 		{
 			BasicResult res = null;
-			var delay = retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount);
 			if (delay > TimeSpan.Zero)
 			{
 				res = await DelayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
