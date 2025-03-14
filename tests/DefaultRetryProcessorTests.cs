@@ -1347,5 +1347,36 @@ namespace PoliNorError.Tests
 			Assert.That(result.Result, Is.EqualTo(attemptsCount));
 			Assert.That(result.IsFailed, Is.False);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_With_Token_Param_Process_Correctly(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+						.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 1);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Retry(() => throw new InvalidOperationException(), 1);
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.IsFailed, Is.True);
+		}
 	}
 }

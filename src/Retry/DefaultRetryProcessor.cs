@@ -396,6 +396,11 @@ namespace PoliNorError
 			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(actionProcessor, cancellationType);
 		}
 
+		public DefaultRetryProcessor WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
+		{
+			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(actionProcessor);
+		}
+
 		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
 
 		private bool HandleError(Exception ex,
