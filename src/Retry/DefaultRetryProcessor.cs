@@ -401,6 +401,11 @@ namespace PoliNorError
 			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(actionProcessor);
 		}
 
+		public DefaultRetryProcessor WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			return this.WithErrorContextProcessor<DefaultRetryProcessor, TErrorContext>(errorProcessor);
+		}
+
 		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
 
 		private bool HandleError(Exception ex,
