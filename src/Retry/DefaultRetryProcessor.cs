@@ -401,6 +401,16 @@ namespace PoliNorError
 			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(actionProcessor);
 		}
 
+		public DefaultRetryProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
+		{
+			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(funcProcessor);
+		}
+
+		public DefaultRetryProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
+		{
+			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(funcProcessor, cancellationType);
+		}
+
 		public DefaultRetryProcessor WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor)
 		{
 			return this.WithErrorContextProcessorOf<DefaultRetryProcessor, TErrorContext>(funcProcessor);
