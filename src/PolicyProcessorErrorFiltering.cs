@@ -118,12 +118,12 @@ namespace PoliNorError
 
 		internal static void AddIncludedInnerErrorFilter<TInnerException>(this IPolicyProcessor policyProcessor, Func<TInnerException, bool> func = null) where TInnerException : Exception
 		{
-			policyProcessor.ErrorFilter.AddIncludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
+			policyProcessor.ErrorFilter.AddIncludedInnerErrorFilter(func);
 		}
 
 		internal static void AddExcludedInnerErrorFilter<TInnerException>(this IPolicyProcessor policyProcessor, Func<TInnerException, bool> func = null) where TInnerException : Exception
 		{
-			policyProcessor.ErrorFilter.AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
+			policyProcessor.ErrorFilter.AddExcludedInnerErrorFilter(func);
 		}
 
 		internal static void AddIncludedError(this IPolicyProcessor policyProcessor, ErrorSetItem errorSetItem)
