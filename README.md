@@ -9,6 +9,7 @@ Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 
 ---
 - [Key Features](#key-features)
+- [Key Concepts](#key-concepts)
 - [Usage](#usage)
 - [PolicyResult](#policyresult)
 - [Error processors](#error-processors)
@@ -43,7 +44,7 @@ Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 - High Test Coverage.
 - Targets .NET Standard 2.0+
 
-## Usage
+## Key Concepts
 The term *handling delegate* refers to the process of handling errors that occur when a delegate is executed. 
 The types of delegates that can be handled include:
 - `Action`
@@ -55,7 +56,7 @@ The types of delegates that can be handled include:
 - `Func<TParam, CancellationToken, Task>` <sup>*</sup>
 - `Func<TParam, CancellationToken, Task<T>>` <sup>*</sup>
 
-<sup>*</sup> For `SimplePolicy` only since _version_ 2.20.0.
+<sup>*</sup> Supported in `SimplePolicy` since _version_ 2.20.0 and in `FallbackPolicy` since _version_ 2.21.0.
 
 Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface. Policy processors implicitly determine *policy inner rules* (further for simplicity referred to as *policy rules*) - built-in behavioral features that determine whether or not a policy can handle exception. For example, the policy rule for the Retry is that it can handle exceptions only until the number of permitted retries does not exceed.  
 
@@ -66,11 +67,18 @@ But before error processing can start, [error filters](#error-filters) need to b
 So, the process of handling a delegate consists of checking error filters, running error processors and applying policy rules.  
 
 A policy is a wrapper for the policy processor that adapts it to the `IPolicyBase` interface with `Handle` and `HandleAsync` methods for handling aforementioned delegates.  
+
+The results of handling are stored in the [PolicyResult](#policyresult) class.  
+
 The policy can have [`PolicyResult` handlers](#policyresult-handlers) that handle the `PolicyResult` after the policy processor has finished.  
 
-![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
+A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection). In this case, each delegate will be handled according to its policy.  
 
-Below are some examples of how policies and policy processors are used.
+You can also create a [`PolicyCollection`](#policycollection) (appeared in _version_ 2.0.0-rc2) for handling single delegate.  
+
+The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
+
+## Usage
 For retries using default retry policy processor:
 ```csharp
 var result = RetryProcessor
@@ -107,13 +115,11 @@ var result = new FallbackPolicy()
                              .WithFallbackFunc<Email>(() => UserManager.GetGuestEmail())
                              .Handle(() => UserManager.GetUserEmail(userId));
 ```
-The results of handling are stored in the [PolicyResult](#policyresult) class.  
 
-A policy can be combined with a delegate in the [`PolicyDelegate`](#policydelegate) class. The `PolicyDelegate` object, in turn, can be added to the [`PolicyDelegateCollection`](#policydelegatecollection). In this case, each delegate will be handled according to its policy.  
+Usage diagram:  
 
-You can also create a [`PolicyCollection`](#policycollection) (appeared in _version_ 2.0.0-rc2) for handling single delegate.  
+![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
 
-The classes `PolicyResult`, `PolicyDelegate`, `PolicyDelegateCollection` and some other handling-related classes have corresponding generic versions.
 
 ### PolicyResult
 Handling begins when an exception occurs during the execution of the delegate. At first, exception will be stored in the `Errors` property (for retry-related classes, this is by default and can be customized).  
