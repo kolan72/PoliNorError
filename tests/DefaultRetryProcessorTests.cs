@@ -31,7 +31,7 @@ namespace PoliNorError.Tests
 			var cancelTokenSource = new CancellationTokenSource();
 			void save() { cancelTokenSource.Cancel(); throw new Exception(); }
 			var processor = new DefaultRetryProcessor();
-			var polRetryResult =  processor.Retry(save, 6, cancelTokenSource.Token);
+			var polRetryResult = processor.Retry(save, 6, cancelTokenSource.Token);
 			ClassicAssert.IsTrue(polRetryResult.IsFailed);
 			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
 			cancelTokenSource.Dispose();
@@ -63,7 +63,7 @@ namespace PoliNorError.Tests
 			var processor = new DefaultRetryProcessor();
 			var tryResCount = processor.Retry(save, 2, cancelTokenSource.Token);
 
-			ClassicAssert.AreEqual(retryCount+1, tryResCount.Errors.Count());
+			ClassicAssert.AreEqual(retryCount + 1, tryResCount.Errors.Count());
 			cancelTokenSource.Dispose();
 		}
 
@@ -353,7 +353,7 @@ namespace PoliNorError.Tests
 		{
 			int asyncM = 0;
 			int syncM = 0;
-			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaverOf(async(_, __) => { await Task.Delay(1) ; asyncM++; }, (_) => syncM++);
+			var processor = RetryProcessor.CreateDefault().UseCustomErrorSaverOf(async (_, __) => { await Task.Delay(1); asyncM++; }, (_) => syncM++);
 			int i = 0;
 			PolicyResult res = null;
 			if (notSync)
@@ -506,7 +506,7 @@ namespace PoliNorError.Tests
 		public void Should_Retry_Null_Delegate_Work()
 		{
 			var proc = RetryProcessor.CreateDefault();
-			var retryResult = proc.Retry(null,1);
+			var retryResult = proc.Retry(null, 1);
 			ClassicAssert.IsTrue(retryResult.IsFailed);
 			ClassicAssert.AreEqual(PolicyResultFailedReason.DelegateIsNull, retryResult.FailedReason);
 			ClassicAssert.AreEqual(typeof(NoDelegateException), retryResult.Errors.FirstOrDefault()?.GetType());
@@ -600,6 +600,868 @@ namespace PoliNorError.Tests
 				rc.IncrementCountAtomic();
 			}
 			Assert.That(rc.IsZeroRetry, Is.False);
+		}
+
+		[Test]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withRetryDelay, bool withCancellationType)
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			DefaultRetryProcessor processor;
+
+			if (!withCancellationType)
+			{
+				processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				if (!withRetryDelay)
+				{
+					result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 2);
+				}
+				else
+				{
+					result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+			}
+			else
+			{
+				result = processor.Retry(() => throw new InvalidOperationException(), 2);
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.Errors.Count, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryInfiniteWithErrorContext_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int i = 0;
+			void actToHandle()
+			{
+				if (i < 2)
+				{
+					i++;
+					throw new Exception("Test");
+				}
+			}
+
+			PolicyResult result;
+
+			if (!withRetryDelay)
+			{
+				result = processor.RetryInfiniteWithErrorContext(actToHandle, 5);
+			}
+			else
+			{
+				result = processor.RetryInfiniteWithErrorContext(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+			Assert.That(m, Is.EqualTo(10));
+			Assert.That(result.Errors.Count, Is.EqualTo(2));
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		public void Should_Retry_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				if (!withRetryDelay)
+				{
+					result = processor.Retry((_) => throw new InvalidOperationException(), 5, 2);
+				}
+				else
+				{
+					result = processor.Retry((_) => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.Retry((v) => { addable += v; }, 5, 2);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(retryCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsFailed, Is.False);
+			}
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		public void Should_RetryInfinite_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			int attemptsCount = 0;
+			int kRes = 0;
+			void actToHandle(int k)
+			{
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+				kRes = k;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				if (!withRetryDelay)
+				{
+					result = processor.RetryInfinite(actToHandle, 5);
+				}
+				else
+				{
+					result = processor.RetryInfinite(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+				Assert.That(failedAttemptCount, Is.EqualTo(2));
+				Assert.That(attemptsCount, Is.EqualTo(3));
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.RetryInfinite((v) => { addable += v; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(0));
+				Assert.That(failedAttemptCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+			}
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryWithErrorContextAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryWithErrorContextAsync(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+			}
+			else
+			{
+				result = await processor.RetryWithErrorContextAsync(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			Assert.That(m, Is.EqualTo(10));
+			Assert.That(retryCount, Is.EqualTo(1));
+
+			Assert.That(result.Errors.Count, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		public async Task Should_RetryAsync_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				if (!withRetryDelay)
+				{
+					result = await processor.RetryAsync(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+				}
+				else
+				{
+					result = await processor.RetryAsync(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; }, 5, 2);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(retryCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsFailed, Is.False);
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryInfiniteWithErrorContextAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int attemptsCount = 0;
+
+			async Task actToHandle(CancellationToken _)
+			{
+				await Task.Delay(TimeSpan.FromTicks(1));
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+			}
+
+			PolicyResult result;
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryInfiniteWithErrorContextAsync(actToHandle, 5);
+			}
+			else
+			{
+				result = await processor.RetryInfiniteWithErrorContextAsync(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+			Assert.That(failedAttemptCount, Is.EqualTo(2));
+			Assert.That(attemptsCount, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public async Task Should_RetryInfiniteAsync_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int attemptsCount = 0;
+
+			async Task actToHandle(int _, CancellationToken __)
+			{
+				await Task.Delay(TimeSpan.FromTicks(1));
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+			}
+
+			PolicyResult result = null;
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryInfiniteAsync(actToHandle, 5);
+			}
+			else
+			{
+				result = await processor.RetryInfiniteAsync(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+			Assert.That(failedAttemptCount, Is.EqualTo(2));
+			Assert.That(attemptsCount, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		[TestCase(true, true)]
+		public void Should_RetryWithErrorContext_With_TParam_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool shouldWork, bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+			const int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+
+			if (shouldWork)
+			{
+				if (!withRetryDelay)
+				{
+					result = processor.RetryWithErrorContext<int, int>(() => throw new InvalidOperationException(), 5, 2);
+				}
+				else
+				{
+					result = processor.RetryWithErrorContext<int, int>(() => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(result.Errors.Count, Is.EqualTo(3));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+				result = processor.RetryWithErrorContext(() => addable, 5, 2);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.Errors.Count, Is.EqualTo(0));
+				Assert.That(result.Result, Is.EqualTo(1));
+				Assert.That(result.IsFailed, Is.False);
+			}
+		}
+
+		[Test]
+		[TestCase(true, false)]
+		[TestCase(true, true)]
+		[TestCase(false, false)]
+		public void Should_Retry_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				if (!withRetryDelay)
+				{
+					result = processor.Retry<int, int>((_) => throw new InvalidOperationException(), 5, 2);
+				}
+				else
+				{
+					result = processor.Retry<int, int>((_) => throw new InvalidOperationException(), 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.Retry((v) => { addable += v; return addable; }, 5, 2);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(retryCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsFailed, Is.False);
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryInfiniteWithErrorContext_For_Func_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int i = 0;
+			int funcToHandle()
+			{
+				if (i < 2)
+				{
+					i++;
+					throw new Exception("Test");
+				}
+				return i;
+			}
+
+			PolicyResult<int> result = null;
+			if (!withRetryDelay)
+			{
+				result = processor.RetryInfiniteWithErrorContext(funcToHandle, 5);
+			}
+			else
+			{
+				result = processor.RetryInfiniteWithErrorContext(funcToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			Assert.That(m, Is.EqualTo(10));
+			Assert.That(result.Errors.Count, Is.EqualTo(2));
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(2));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_RetryInfinite_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			int attemptsCount = 0;
+			int actToHandle(int k)
+			{
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+				return k;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				if (!withRetryDelay)
+				{
+					result = processor.RetryInfinite(actToHandle, 5);
+				}
+				else
+				{
+					result = processor.RetryInfinite(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+				Assert.That(failedAttemptCount, Is.EqualTo(2));
+				Assert.That(attemptsCount, Is.EqualTo(3));
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = processor.RetryInfinite((v) => { addable += v; return addable; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(0));
+				Assert.That(failedAttemptCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+			}
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryWithErrorContextAsync_For_Func_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryWithErrorContextAsync<int, int>(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+			}
+			else
+			{
+				result = await processor.RetryWithErrorContextAsync<int, int>(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			Assert.That(m, Is.EqualTo(10));
+			Assert.That(retryCount, Is.EqualTo(1));
+
+			Assert.That(result.Errors.Count, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_RetryAsyncT_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool withRetryDelay)
+		{
+			int m = 0;
+			int retryCount = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+			}
+
+			var processor = new DefaultRetryProcessor(true)
+							.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				if (!withRetryDelay)
+				{
+					result = await processor.RetryAsync<int, int>(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2);
+				}
+				else
+				{
+					result = await processor.RetryAsync<int, int>(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, 2, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				Assert.That(m, Is.EqualTo(10));
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; return addable; }, 5, 2);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(retryCount, Is.EqualTo(0));
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.Result, Is.EqualTo(6));
+				Assert.That(result.IsFailed, Is.False);
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryInfiniteWithErrorContextAsyncT_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int attemptsCount = 0;
+
+			async Task<int> actToHandle(CancellationToken _)
+			{
+				await Task.Delay(TimeSpan.FromTicks(1));
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+				return attemptsCount;
+			}
+
+			PolicyResult<int> result;
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryInfiniteWithErrorContextAsync(actToHandle, 5);
+			}
+			else
+			{
+				result = await processor.RetryInfiniteWithErrorContextAsync(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+			Assert.That(failedAttemptCount, Is.EqualTo(2));
+			Assert.That(attemptsCount, Is.EqualTo(3));
+			Assert.That(result.Result, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_RetryInfiniteAsyncT_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_Process_Correctly(bool withRetryDelay)
+		{
+			int failedAttemptCount = 0;
+			int numOfFailedAttemptsMultipliedByParam = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(action);
+
+			int attemptsCount = 0;
+
+			async Task<int> actToHandle(int _, CancellationToken __)
+			{
+				await Task.Delay(TimeSpan.FromTicks(1));
+				if (attemptsCount < 2)
+				{
+					attemptsCount++;
+					throw new Exception("Test");
+				}
+				attemptsCount++;
+				return attemptsCount;
+			}
+
+			PolicyResult<int> result = null;
+			if (!withRetryDelay)
+			{
+				result = await processor.RetryInfiniteAsync(actToHandle, 5);
+			}
+			else
+			{
+				result = await processor.RetryInfiniteAsync(actToHandle, 5, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(failedAttemptCount * 5));
+			Assert.That(failedAttemptCount, Is.EqualTo(2));
+			Assert.That(attemptsCount, Is.EqualTo(3));
+			Assert.That(result.Result, Is.EqualTo(attemptsCount));
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_Action_With_Token_Param_Process_Correctly(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+						.WithErrorContextProcessorOf<int>(action);
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 1);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Retry(() => throw new InvalidOperationException(), 1);
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_AsyncFunc_With_Token_Param_Process_Correctly(bool shouldWork)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				await Task.Delay(1);
+				m = pi.Param;
+			}
+
+			var processor = new DefaultRetryProcessor()
+						.WithErrorContextProcessorOf<int>(fn);
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 1);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Retry(() => throw new InvalidOperationException(), 1);
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Retry_For_Action_With_Generic_Param_WithErrorProcessorOf_AsyncFunc_Process_Correctly(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				await Task.Delay(1);
+				m = pi.Param;
+			}
+
+			DefaultRetryProcessor processor;
+
+			if (!withCancellationType)
+			{
+				processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(fn);
+			}
+			else
+			{
+				processor = new DefaultRetryProcessor()
+							.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable);
+			}
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.RetryWithErrorContext(() => throw new InvalidOperationException(), 5, 1);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Retry(() => throw new InvalidOperationException(), 1);
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.IsFailed, Is.True);
 		}
 	}
 }

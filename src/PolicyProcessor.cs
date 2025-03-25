@@ -85,9 +85,29 @@ namespace PoliNorError
 				_includedErrorFilters.Add(handledErrorFilter);
 			}
 
+			internal void AddIncludedErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
+			{
+				AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+			}
+
+			internal void AddIncludedInnerErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
+			{
+				AddIncludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
+			}
+
 			internal void AddExcludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
 			{
 				_excludedErrorFilters.Add(handledErrorFilter);
+			}
+
+			internal void AddExcludedErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
+			{
+				AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
+			}
+
+			internal void AddExcludedInnerErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
+			{
+				AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
 			}
 
 			internal Func<Exception, bool> GetCanHandle()

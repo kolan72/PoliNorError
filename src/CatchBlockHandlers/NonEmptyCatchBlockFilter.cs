@@ -8,7 +8,7 @@ namespace PoliNorError
 	/// </summary>
 	public sealed class NonEmptyCatchBlockFilter : CatchBlockFilter
 	{
-		private NonEmptyCatchBlockFilter(){}
+		internal NonEmptyCatchBlockFilter() { }
 
 		public static NonEmptyCatchBlockFilter CreateByIncluding(IErrorSet errorSet)
 		{
