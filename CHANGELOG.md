@@ -1,3 +1,39 @@
+## 2.22.0
+
+- Introduced overloads of these methods, with and without the `RetryDelay` parameter:  
+  - `DefaultRetryProcessor.RetryWithErrorContextAsync<TErrorContext>(Action, TErrorContext, ..., ..., CancellationToken)`  
+  - `DefaultRetryProcessor.Retry<TParam>(Action<TParam>, TParam, RetryCountInfo, RetryDelay, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryInfiniteWithErrorContext<TErrorContext>(Action, TErrorContext, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryInfinite<TParam>(Action<TParam>, TParam, ..., CancellationToken)`  
+  - `DefaultRetryProcessor.RetryWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task>, TErrorContext param, ..., ..., configureAwait, token)`  
+  - `DefaultRetryProcessor.RetryAsync<TParam>(Func<TParam, CancellationToken, Task>, TParam, ..., ..., bool, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryInfiniteWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task>, TErrorContext, ..., bool, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryInfiniteAsync<TParam>(Func<TParam, CancellationToken, Task>, TParam, bool, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryWithErrorContext<TErrorContext, T>(Func<T> func, TErrorContext param, …, CancellationToken)`  
+  - `DefaultRetryProcessor.Retry<TParam, T>(Func<TParam, T>, TParam, ..., CancellationToken)`  
+  - `DefaultRetryProcessor.RetryInfiniteWithErrorContext<TErrorContext, T>(Func<T>, TErrorContext, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryInfinite<TParam, T>(Func<TParam, T>, TParam, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryWithErrorContextAsync<TErrorContext, T>(Func<CancellationToken, Task<T>>, TErrorContext, ..., bool, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>, TParam, ..., bool, CancellationToken)`  
+  - `DefaultRetryProcessor.RetryInfiniteWithErrorContextAsync<TErrorContext, T>(Func<CancellationToken, Task<T>>, TErrorContext, ..., bool, CancellationToken)`
+  - `DefaultRetryProcessor.RetryInfiniteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>>, TParam, ..., bool, CancellationToken)`  
+- Introduced the `DefaultRetryProcessor.WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken>)` method.  
+- Introduced the `DefaultRetryProcessor.WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext>)` method.  
+- Introduced the `DefaultRetryProcessor.WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task>)` method.  
+- Introduced the `DefaultRetryProcessor.WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task>)` method overloads.  
+- Refactor `DelayIfNeed` and `DelayIfNeedAsync` methods in `DefaultRetryProcessor`.  
+- Introduced the `TryCatchBuilder.AddCatchBlock(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter>, Action<IBulkErrorProcessor)` method.
+- Introduced the `RetryProcessingErrorInfo<TParam>` class along with related internal classes.  
+- Applied DRY refactoring to `DefaultRetryProcessor` – added a lazily initialized private `DelayProvider` property.  
+- Applied DRY refactoring to `ExceptionFilter`-dependent classes by adding the `AddIncludedErrorFilter<TException>` and `AddExcludedErrorFilter<TException>` methods.
+- Applied DRY refactoring to `ExceptionFilter`- dependent classes by adding the `AddIncludedInnerErrorFilter<TException>` and `AddExcludedInnerErrorFilter<TException>` methods.  
+- Bump Castle.Core from 5.1.1 to 5.2.1.  
+- Bump System.Runtime.CompilerServices.Unsafe and System.Threading.Tasks.Extensions.  
+- Bump System.Buffers from 4.6.0 to 4.6.1  
+- Update the 'Key Concepts' chapter in the README.
+- Added a 'Key Concepts' section to the README.
+
+
 ## 2.21.0
 
 - Introduced the `FallbackPolicyBase.Handle<TErrorContext>(Action, TErrorContext, CancellationToken)` and `FallbackPolicyBase.Handle<TParam>(Action<TParam>, TParam, CancellationToken)` methods.
