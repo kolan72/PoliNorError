@@ -2,7 +2,7 @@
 
 - Introduced overloads of these methods, with and without the `RetryDelay` parameter:  
   - `DefaultRetryProcessor.RetryWithErrorContextAsync<TErrorContext>(Action, TErrorContext, ..., ..., CancellationToken)`  
-  - `DefaultRetryProcessor.Retry<TParam>(Action<TParam>, TParam, RetryCountInfo, RetryDelay, CancellationToken)`  
+  - `DefaultRetryProcessor.Retry<TParam>(Action<TParam>, TParam, RetryCountInfo, ..., CancellationToken)`  
   - `DefaultRetryProcessor.RetryInfiniteWithErrorContext<TErrorContext>(Action, TErrorContext, CancellationToken)`  
   - `DefaultRetryProcessor.RetryInfinite<TParam>(Action<TParam>, TParam, ..., CancellationToken)`  
   - `DefaultRetryProcessor.RetryWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task>, TErrorContext param, ..., ..., configureAwait, token)`  
