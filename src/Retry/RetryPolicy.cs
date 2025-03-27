@@ -286,10 +286,21 @@ namespace PoliNorError
 			return this;
 		}
 
+		public RetryPolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor _);
+			return this.WithErrorContextProcessor<RetryPolicy, TErrorContext>(errorProcessor);
+		}
+
 		internal IRetryProcessor RetryProcessor { get; }
 
 		public RetryCountInfo RetryInfo { get; }
 
 		internal RetryDelay Delay { get; }
+
+		private void ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor proc)
+		{
+			ThrowHelper.ThrowIfNotImplemented(RetryProcessor, out proc);
+		}
 	}
 }

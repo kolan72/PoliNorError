@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using System.Diagnostics;
 using NSubstitute;
 using NUnit.Framework.Legacy;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace PoliNorError.Tests
 {
@@ -941,6 +943,30 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryPolicy_WithErrorContextProcessor_Throws_Only_For_Not_DefaultRetryProcessor(bool throwEx)
+		{
+			RetryPolicy retryPolicyTest;
+			if (throwEx)
+			{
+				retryPolicyTest = new RetryPolicy(new TestRetryProcessor(), 1);
+			}
+			else
+			{
+				retryPolicyTest = new RetryPolicy(1);
+			}
+			if (throwEx)
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+			else
+			{
+				Assert.DoesNotThrow(() => retryPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
@@ -976,5 +1002,19 @@ namespace PoliNorError.Tests
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3871:Exception types should be \"public\"", Justification = "<Pending>")]
 		private class SimplePolicyException : Exception{}
+
+		public class TestRetryProcessor : IRetryProcessor
+		{
+			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new InvalidOperationException();
+
+			public void AddErrorProcessor(IErrorProcessor newErrorProcessor) => throw new InvalidOperationException();
+			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new InvalidOperationException();
+			public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default) => throw new InvalidOperationException();
+			public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default) => throw new InvalidOperationException();
+			public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default) => throw new InvalidOperationException();
+			public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default) => throw new InvalidOperationException();
+			public IRetryProcessor UseCustomErrorSaver(IErrorProcessor saveErrorProcessor) => throw new InvalidOperationException();
+			IEnumerator IEnumerable.GetEnumerator() => throw new InvalidOperationException();
+		}
 	}
 }
