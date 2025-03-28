@@ -967,6 +967,56 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true, null, null)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		public void Should_WithErrorContextProcessor_Throws_Only_For_Not_DefaultRetryProcessor(bool throwEx, bool? wrap, bool? withRetryDelay)
+		{
+			RetryPolicy retryPolicy;
+			if (throwEx)
+			{
+				retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+				Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+			else
+			{
+				int m = 0;
+				int retryCount = 0;
+
+				void action(Exception _, ProcessingErrorInfo<int> pi)
+				{
+					m += pi.Param;
+					retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				}
+
+				if (withRetryDelay == false)
+				{
+					retryPolicy = new RetryPolicy(2);
+				}
+				else
+				{
+					retryPolicy = new RetryPolicy(2, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				retryPolicy.WithErrorContextProcessorOf<int>(action);
+
+				if (wrap == true)
+				{
+					retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+				}
+
+				var result = retryPolicy
+							.Handle(() => throw new InvalidOperationException(), 5);
+
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(m, Is.EqualTo(10));
+			}
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;

@@ -93,6 +93,34 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public PolicyResult Handle<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
+		{
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
+			if (Act == null && Wrapper != null)
+			{
+				return new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
+
+			PolicyResult retryResult;
+			if (Delay is null)
+			{
+				retryResult = ((DefaultRetryProcessor)RetryProcessor).RetryWithErrorContext(Act, param, RetryInfo, token);
+			}
+			else
+			{
+				retryResult = ((DefaultRetryProcessor)RetryProcessor).RetryWithErrorContext(Act, param, RetryInfo, Delay, token);
+			}
+
+			retryResult = retryResult
+							  .SetWrappedPolicyResults(Wrapper)
+							  .SetPolicyName(PolicyName);
+
+			HandlePolicyResult(retryResult, token);
+			return retryResult;
+		}
+
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
@@ -284,6 +312,12 @@ namespace PoliNorError
 		{
 			RetryProcessor.UseCustomErrorSaver(saveErrorProcessor);
 			return this;
+		}
+
+		public RetryPolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor _);
+			return this.WithErrorContextProcessorOf<RetryPolicy, TErrorContext>(actionProcessor);
 		}
 
 		public RetryPolicy WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
