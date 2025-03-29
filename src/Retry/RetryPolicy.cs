@@ -106,11 +106,11 @@ namespace PoliNorError
 			PolicyResult retryResult;
 			if (Delay is null)
 			{
-				retryResult = ((DefaultRetryProcessor)RetryProcessor).RetryWithErrorContext(Act, param, RetryInfo, token);
+				retryResult = processor.RetryWithErrorContext(Act, param, RetryInfo, token);
 			}
 			else
 			{
-				retryResult = ((DefaultRetryProcessor)RetryProcessor).RetryWithErrorContext(Act, param, RetryInfo, Delay, token);
+				retryResult = processor.RetryWithErrorContext(Act, param, RetryInfo, Delay, token);
 			}
 
 			retryResult = retryResult
@@ -119,6 +119,34 @@ namespace PoliNorError
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
+		}
+
+		public PolicyResult Handle<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
+		{
+			if (HasPolicyWrapperFactory)
+			{
+				return Handle(action.Apply(param), token);
+			}
+			else
+			{
+				ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
+
+				PolicyResult retryResult;
+				if (Delay is null)
+				{
+					retryResult = processor.Retry(action, param, RetryInfo, token);
+				}
+				else
+				{
+					retryResult = processor.Retry(action, param, RetryInfo, Delay, token);
+				}
+
+				retryResult = retryResult
+								  .SetPolicyName(PolicyName);
+
+				HandlePolicyResult(retryResult, token);
+				return retryResult;
+			}
 		}
 
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)

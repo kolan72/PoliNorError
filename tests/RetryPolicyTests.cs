@@ -1017,6 +1017,58 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, null, null)]
+		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool? useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			RetryPolicy retryPolicy;
+
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap == true)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = retryPolicy.Handle((_) => throw new InvalidOperationException(), 5);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.IsFailed, Is.True);
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = retryPolicy.Handle((v) => { addable += v; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
