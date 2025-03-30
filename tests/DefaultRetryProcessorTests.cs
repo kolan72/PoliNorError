@@ -878,9 +878,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; }, 5, 2);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(m, Is.EqualTo(0));
 				Assert.That(retryCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
@@ -1064,9 +1062,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = processor.Retry((v) => { addable += v; return addable; }, 5, 2);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(m, Is.EqualTo(0));
 				Assert.That(retryCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
@@ -1168,9 +1164,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = processor.RetryInfinite((v) => { addable += v; return addable; }, 5);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(0));
 				Assert.That(failedAttemptCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
@@ -1250,9 +1244,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; return addable; }, 5, 2);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(m, Is.EqualTo(0));
 				Assert.That(retryCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));

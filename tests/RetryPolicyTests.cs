@@ -968,6 +968,29 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WithErrorContextProcessorOf_Action_Throws_For_Not_DefaultRetryProcessor(bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var retryPolicyTest = new RetryPolicy(new TestRetryProcessor(), 1);
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicyTest.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicyTest.WithErrorContextProcessorOf<int>(action));
+			}
+		}
+
+		[Test]
 		[TestCase(true, null, null)]
 		[TestCase(false, true, true)]
 		[TestCase(false, false, true)]
