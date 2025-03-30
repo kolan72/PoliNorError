@@ -1050,10 +1050,12 @@ namespace PoliNorError.Tests
 		{
 			int m = 0;
 			int addable = 1;
+			int attempts = 0;
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
+				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
 			}
 
 			RetryPolicy retryPolicy;
@@ -1081,6 +1083,7 @@ namespace PoliNorError.Tests
 				//With wrapping, we fallback to no-param handling
 				Assert.That(m, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(5));
 				Assert.That(result.IsFailed, Is.True);
+				Assert.That(attempts, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(1));
 			}
 			else
 			{
