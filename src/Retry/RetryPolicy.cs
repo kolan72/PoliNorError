@@ -174,6 +174,33 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public PolicyResult<T> Handle<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
+		{
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
+			if (Fn == null && Wrapper != null)
+			{
+				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
+
+			PolicyResult<T> retryResult;
+			if (Delay is null)
+			{
+				retryResult = processor.RetryWithErrorContext(Fn, param, RetryInfo, token);
+			}
+			else
+			{
+				retryResult = processor.RetryWithErrorContext(Fn, param, RetryInfo, Delay, token);
+			}
+
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
+
+			HandlePolicyResult(retryResult, token);
+			return retryResult;
+		}
+
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
