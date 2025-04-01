@@ -1136,6 +1136,7 @@ namespace PoliNorError.Tests
 				result = retryPolicy.Handle<int, int>(() => throw new InvalidOperationException(), 5);
 				Assert.That(m, Is.EqualTo(5));
 				Assert.That(result.IsFailed, Is.True);
+				Assert.That(attempts, Is.EqualTo(1));
 			}
 			else
 			{
@@ -1144,6 +1145,60 @@ namespace PoliNorError.Tests
 				Assert.That(result.NoError, Is.True);
 				Assert.That(result.Result, Is.EqualTo(1));
 				Assert.That(result.IsSuccess, Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public void Should_Handle_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int attempts = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+			}
+
+			RetryPolicy policyToTest;
+			if (withRetryDelay == false)
+			{
+				policyToTest = new RetryPolicy(1);
+			}
+			else
+			{
+				policyToTest = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			policyToTest.WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap)
+			{
+				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = policyToTest.Handle<int, int>((_) => throw new InvalidOperationException(), 5);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(attempts, useWrap ? Is.EqualTo(0) : Is.EqualTo(1));
+				Assert.That(result.IsSuccess, Is.False);
+			}
+			else
+			{
+				result = policyToTest.Handle((v) => { addable += v; return addable; }, 5);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.Result, Is.EqualTo(6));
 			}
 		}
 
