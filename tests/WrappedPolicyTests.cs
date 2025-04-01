@@ -564,6 +564,7 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(10, i);
 			ClassicAssert.IsFalse(polResult.IsFailed);
 			ClassicAssert.AreEqual(3, polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count());
+			Assert.That(polResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.OfType<TimeoutException>().Count(), Is.EqualTo(1));
 			ClassicAssert.AreEqual(10, polResult.Result);
 		}
 
@@ -758,6 +759,27 @@ namespace PoliNorError.Tests
 			{
 				Assert.Throws<InvalidOperationException>(() => pw.ThrowIf(pr));
 			}
+		}
+
+		[Test]
+		public void Should_Retry_Then_Fallback_Returns_Valid_Result()
+		{
+			var zero = 0;
+			var errorProcessorFlag = false;
+			var fallbackResult = new RetryPolicy(3)
+									.ExcludeError<DivideByZeroException>()
+									.WrapUp(new FallbackPolicy())
+									.OuterPolicy
+									.WithFallbackFunc(() => int.MaxValue)
+									.IncludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => errorProcessorFlag = true)
+									.Handle(() => 5 / zero);
+
+			Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
+			Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
+			Assert.That(fallbackResult.Errors.FirstOrDefault().GetType(), Is.EqualTo(typeof(DivideByZeroException)));
+			Assert.That(fallbackResult.WrappedPolicyResults.Count(), Is.EqualTo(1));
+			Assert.That(errorProcessorFlag, Is.True);
 		}
 
 		private class PolicyWrapperTest : PolicyWrapperBase
