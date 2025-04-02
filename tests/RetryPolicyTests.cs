@@ -991,6 +991,26 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_DefaultRetryProcessor(bool withCancellationType)
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __)
+			{
+				await Task.Delay(1);
+			}
+			var retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(fn));
+			}
+		}
+
+		[Test]
 		[TestCase(true, null, null)]
 		[TestCase(false, true, true)]
 		[TestCase(false, false, true)]
