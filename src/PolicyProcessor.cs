@@ -77,8 +77,8 @@ namespace PoliNorError
 
 		public class ExceptionFilter
 		{
-			private readonly List<Expression<Func<Exception, bool>>> _includedErrorFilters = new List<Expression<Func<Exception, bool>>>();
-			private readonly List<Expression<Func<Exception, bool>>> _excludedErrorFilters = new List<Expression<Func<Exception, bool>>>();
+			internal readonly List<Expression<Func<Exception, bool>>> _includedErrorFilters = new List<Expression<Func<Exception, bool>>>();
+			internal readonly List<Expression<Func<Exception, bool>>> _excludedErrorFilters = new List<Expression<Func<Exception, bool>>>();
 
 			internal void AddIncludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
 			{
@@ -108,6 +108,18 @@ namespace PoliNorError
 			internal void AddExcludedInnerErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
 			{
 				AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
+			}
+
+			internal void AppendFilter(ExceptionFilter exceptionFilter)
+			{
+				foreach (var filter in exceptionFilter.IncludedErrorFilters)
+				{
+					_includedErrorFilters.Add(filter);
+				}
+				foreach (var filter in exceptionFilter.ExcludedErrorFilters)
+				{
+					_excludedErrorFilters.Add(filter);
+				}
 			}
 
 			internal Func<Exception, bool> GetCanHandle()

@@ -37,6 +37,81 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AppendFilter_When_OriginalFilterIsEmpty(bool excludeFilterWork)
+		{
+			const string excParamName = "Test";
+			const string excParamNameToExclude = "Test2";
+
+			Exception errorToHandle;
+			if (!excludeFilterWork)
+			{
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+				errorToHandle = new ArgumentNullException(excParamNameToExclude, "");
+			}
+			else
+			{
+				errorToHandle = new ArgumentNullException(excParamName, "");
+			}
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+
+			var errorFiltter = new PolicyProcessor.ExceptionFilter();
+			var appendedFilter = GetFilterFromNonEmptyCatchBlockFilter(excParamName);
+
+			errorFiltter.AppendFilter(appendedFilter);
+
+			Assert.That(errorFiltter.ExcludedErrorFilters.Count, Is.EqualTo(1));
+			Assert.That(errorFiltter.IncludedErrorFilters.Count, Is.EqualTo(1));
+
+			Assert.That(errorFiltter.GetCanHandle()(errorToHandle), Is.EqualTo(!excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_AppendFilter_When_OriginalFilterIsNotEmpty(bool excludeFilterWork, bool checkOriginExceptFiler)
+		{
+			const string excParamName = "Test";
+			const string excParamNameToExclude = "Test2";
+
+			Exception errorToHandle;
+			if (!excludeFilterWork)
+			{
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+				errorToHandle = checkOriginExceptFiler ? new ArgumentException("", excParamNameToExclude) : new ArgumentNullException(excParamNameToExclude, "");
+			}
+			else
+			{
+				errorToHandle = checkOriginExceptFiler ? new ArgumentException("", excParamName) : new ArgumentNullException(excParamName, "");
+			}
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+
+			var errorFiltter = new PolicyProcessor.ExceptionFilter();
+			errorFiltter.AddIncludedErrorFilter<ArgumentException>();
+			errorFiltter.AddExcludedErrorFilter<ArgumentException>((ex) => ex.ParamName == excParamName);
+
+			var appendedFilter = GetFilterFromNonEmptyCatchBlockFilter(excParamName);
+
+			errorFiltter.AppendFilter(appendedFilter);
+
+			Assert.That(errorFiltter.ExcludedErrorFilters.Count, Is.EqualTo(2));
+			Assert.That(errorFiltter.IncludedErrorFilters.Count, Is.EqualTo(2));
+
+			Assert.That(errorFiltter.GetCanHandle()(errorToHandle), Is.EqualTo(!excludeFilterWork));
+		}
+
+		private static PolicyProcessor.ExceptionFilter GetFilterFromNonEmptyCatchBlockFilter(string excParamName)
+		{
+			return NonEmptyCatchBlockFilter
+								.CreateByIncluding<ArgumentNullException>()
+								.ExcludeError<ArgumentNullException>((ex) => ex.ParamName == excParamName)
+								.ErrorFilter;
+		}
+
+		[Test]
 		[TestCase(false)]
 		[TestCase(true)]
 		public void Should_ErrorFilter_Created_By_FromIncludedError_Add_ErrorFilter_Expressions_Correctly(bool generic)
