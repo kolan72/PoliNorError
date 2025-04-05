@@ -993,6 +993,39 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
+		public void Should_Ignore_ActionBased_ErrorContextProcessor_In_Parameterless_Handle_Methods(bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+			}
+
+			var retryPolicy = new RetryPolicy(2);
+			if (withCancellationType)
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+
+			var result = retryPolicy
+							.Handle(() => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			var result2 = retryPolicy
+							.Handle<int>(() => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result2.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
 		public void Should_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_DefaultRetryProcessor(bool withCancellationType)
 		{
 			async Task fn(Exception _, ProcessingErrorInfo<int> __)
