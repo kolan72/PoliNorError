@@ -1312,6 +1312,60 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public async Task Should_HandleAsync_With_TParam_For_AsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int addable = 1;
+
+			int attempts = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+			}
+
+			RetryPolicy retryPolicy;
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await retryPolicy.HandleAsync(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(attempts, useWrap ? Is.EqualTo(0) : Is.EqualTo(1));
+			}
+			else
+			{
+				result = await retryPolicy.HandleAsync(async (v, _) => { await Task.Delay(1); addable += v; }, 5, false, default);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsSuccess, Is.True);
+			}
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
