@@ -563,13 +563,13 @@ namespace PoliNorError.Tests
 			{
 				if (crossSync)
 				{
-					resultCount = polCollection.HandleDelegate(async (_) => { await Task.Delay(1); throw new Exception("Test1");}).Count();
+					resultCount = polCollection.HandleDelegate(async (_) => { await Task.Delay(1); throw new Exception("Test1"); }).Count();
 					resultCountIfNoError = polCollection.HandleDelegate(async (_) => await Task.Delay(1)).Count();
 				}
 				else
 				{
 					resultCount = polCollection.HandleDelegate(() => throw new Exception("Test1")).Count();
-					resultCountIfNoError = polCollection.HandleDelegate(() => {}).Count();
+					resultCountIfNoError = polCollection.HandleDelegate(() => { }).Count();
 				}
 			}
 			ClassicAssert.AreEqual(2, resultCount);
@@ -605,7 +605,7 @@ namespace PoliNorError.Tests
 				{
 					resultCount = (await polCollection.HandleDelegateAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test1"); })).Count();
 
-					var resIfNoError = await polCollection.HandleDelegateAsync(async (_) =>  {await Task.Delay(1); return 1;});
+					var resIfNoError = await polCollection.HandleDelegateAsync(async (_) => { await Task.Delay(1); return 1; });
 					resultCountIfNoError = resIfNoError.Count();
 					ClassicAssert.AreEqual(1, resIfNoError.Result);
 				}
@@ -615,11 +615,11 @@ namespace PoliNorError.Tests
 				if (crossSync)
 				{
 					resultCount = (await polCollection.HandleDelegateAsync(() => throw new Exception("Test1"))).Count();
-					 resultCountIfNoError = (await polCollection.HandleDelegateAsync(() => {})).Count();
+					resultCountIfNoError = (await polCollection.HandleDelegateAsync(() => { })).Count();
 				}
 				else
 				{
-					resultCount = (await polCollection.HandleDelegateAsync(async (_) => { await Task.Delay(1); throw new Exception("Test1");})).Count();
+					resultCount = (await polCollection.HandleDelegateAsync(async (_) => { await Task.Delay(1); throw new Exception("Test1"); })).Count();
 					resultCountIfNoError = (await polCollection.HandleDelegateAsync(async (_) => await Task.Delay(1))).Count();
 				}
 			}
@@ -975,7 +975,7 @@ namespace PoliNorError.Tests
 			var polCollection = PolicyCollection.Create()
 								.WithFallback(FallbackFuncsProvider
 												.Create(async (_) => await Task.Delay(1), (_) => { }, true)
-												.AddOrReplaceAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1;})
+												.AddOrReplaceAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1; })
 												.AddOrReplaceFallbackFunc((_) => 1)
 												);
 			var lastPolicy = ((FallbackPolicyBase)polCollection.LastOrDefault());
@@ -995,11 +995,11 @@ namespace PoliNorError.Tests
 			void act() => throw new InvalidOperationException();
 
 			var polCollection = PolicyCollection.Create();
-			var result  = polCollection
+			var result = polCollection
 				.WithSimple()
-				.AddPolicyResultHandlerForLast(async (_) => { await Task.Delay(TimeSpan.FromTicks(2)); firstHandlerFlag = true;})
+				.AddPolicyResultHandlerForLast(async (_) => { await Task.Delay(TimeSpan.FromTicks(2)); firstHandlerFlag = true; })
 				.WithSimple()
-				.AddPolicyResultHandlerForLast(async (_) => { await Task.Delay(TimeSpan.FromTicks(4)); secondHandlerFlag = true;})
+				.AddPolicyResultHandlerForLast(async (_) => { await Task.Delay(TimeSpan.FromTicks(4)); secondHandlerFlag = true; })
 				.WithSimple()
 				.AddPolicyResultHandlerForAll(pr => { if (!pr.NoError) pr.SetFailed(); })
 				.HandleDelegate(act);
@@ -1008,6 +1008,56 @@ namespace PoliNorError.Tests
 			Assert.That(secondHandlerFlag, Is.True);
 			Assert.That(result.IsFailed, Is.True);
 			Assert.That(result.PolicyDelegateResults.Count, Is.EqualTo(3));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Add_ActionBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy)
+		{
+			int handlersCounter = 0;
+			bool firstHandlerFlag = false;
+			bool secondHandlerFlag = false;
+
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var result = polCollection
+				.AddPolicyResultHandlerForAll((_) => {
+					if (handlersCounter == 0)
+					{
+						firstHandlerFlag = true;
+					}
+					else
+					{
+						secondHandlerFlag = true;
+ 					}
+					handlersCounter++; }, excludeLastPolicy)
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(firstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(secondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
 		}
 
 		private class FuncsAndResultsProviderBase
