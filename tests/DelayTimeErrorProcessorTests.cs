@@ -104,6 +104,17 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(PolicyAlias.Retry, delayProcessor.PolicyKind);
 		}
 
+		[Test]
+		public void Should_Wait_Start_From_ZeroRetry()
+		{
+			var delayProvider = new FakeDelayProvider();
+			var delayProcessor = new DelayErrorProcessor((_,__) => TimeSpan.FromTicks(1), delayProvider);
+			var policy = new RetryPolicy(1)
+						.WithWait(delayProcessor);
+			policy.Handle(() => throw new InvalidOperationException());
+			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+		}
+
 		public class YourDelayErrorProcessor : DelayErrorProcessor
 		{
 			public YourDelayErrorProcessor(TimeSpan timeSpan): base(timeSpan){}
