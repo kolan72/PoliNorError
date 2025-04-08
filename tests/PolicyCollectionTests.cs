@@ -1011,16 +1011,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(true, false)]
-		[TestCase(false, true)]
-		[TestCase(false, false)]
-		public void Should_Add_ActionBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy)
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		public void Should_Add_ActionBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy, bool? withCancellationType)
 		{
-			int handlersCounter = 0;
-			bool firstHandlerFlag = false;
-			bool secondHandlerFlag = false;
-
 			void act() => throw new InvalidOperationException();
 
 			var polCollection = PolicyCollection
@@ -1032,32 +1032,58 @@ namespace PoliNorError.Tests
 				polCollection.WithRetry(1);
 			}
 
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			if (withCancellationType == false)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithPRParam, excludeLastPolicy);
+			}
+			else if (withCancellationType == true)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithPRParam, CancellationType.Precancelable, excludeLastPolicy);
+			}
+
 			var result = polCollection
-				.AddPolicyResultHandlerForAll((_) => {
-					if (handlersCounter == 0)
-					{
-						firstHandlerFlag = true;
-					}
-					else
-					{
-						secondHandlerFlag = true;
- 					}
-					handlersCounter++; }, excludeLastPolicy)
 				.HandleDelegate(act);
 
 			if (excludeLastPolicy)
 			{
-				Assert.That(handlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
 			}
 			else
 			{
-				Assert.That(handlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
 			}
 			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
 			Assert.That(result.IsFailed, Is.True);
 
-			Assert.That(firstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
-			Assert.That(secondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		private class PolicyResultHandlerProvider
+		{
+			public Action<PolicyResult> ActWithPRParam => (_) => Core();
+
+			public bool FirstHandlerFlag { get; private set; }
+			public bool SecondHandlerFlag { get; private set; }
+
+			public int HandlersCounter { get; private set; }
+
+			private Action Core => () =>
+			{
+				if (HandlersCounter == 0)
+				{
+					FirstHandlerFlag = true;
+				}
+				else
+				{
+					SecondHandlerFlag = true;
+				}
+				HandlersCounter++;
+			};
 		}
 
 		private class FuncsAndResultsProviderBase

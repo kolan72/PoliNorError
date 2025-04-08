@@ -43,7 +43,7 @@ namespace PoliNorError
 		/// <summary>
 		/// Adds an action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
 		/// </summary>
-		/// <param name="act">Action-based policy result handler</param>
+		/// <param name="act">Action-based policy result handler.</param>
 		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, bool excludeLastPolicy = false)
@@ -66,9 +66,30 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType)
+		/// <summary>
+		/// Adds an action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act, convertType);
+			if (!excludeLastPolicy)
+			{
+				this.SetResultHandler(act, convertType);
+			}
+			else
+			{
+				if (_policies.Count == 1)
+				{
+					return this;
+				}
+				else
+				{
+					_policies.SkipLast().SetResultHandler(act, convertType);
+				}
+			}
 			return this;
 		}
 
