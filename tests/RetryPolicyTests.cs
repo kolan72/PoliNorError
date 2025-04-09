@@ -1366,6 +1366,64 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public async Task Should_HandleAsync_With_TParam_For_Generic_AsyncFunc_WithErrorContextProcessor_Be_Correct(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int attempts = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+			}
+
+			RetryPolicy retryPolicy;
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+			if (useWrap)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+
+			if (throwEx)
+			{
+				result = await retryPolicy
+						.HandleAsync<int, int>(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+
+				Assert.That(result.IsSuccess, Is.False);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(attempts, Is.EqualTo(1));
+			}
+			else
+			{
+				result = await retryPolicy
+					.HandleAsync(async (_) => { await Task.Delay(1); return 1; }, 5, false, default);
+
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.NoError, Is.True);
+				Assert.That(attempts, Is.EqualTo(0));
+				Assert.That(result.Result, Is.EqualTo(1));
+			}
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;

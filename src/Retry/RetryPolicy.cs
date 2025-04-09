@@ -346,6 +346,38 @@ namespace PoliNorError
 			return retryResult;
 		}
 
+		public Task<PolicyResult<T>> HandleAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, CancellationToken token)
+		{
+			return HandleAsync(func, param, false, token);
+		}
+
+		public async Task<PolicyResult<T>> HandleAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, bool configureAwait, CancellationToken token)
+		{
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
+			if (Fn == null && Wrapper != null)
+			{
+				return new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(this);
+			}
+
+			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
+
+			PolicyResult<T> retryResult;
+
+			if (Delay is null)
+			{
+				retryResult = await processor.RetryWithErrorContextAsync(Fn, param, RetryInfo, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			else
+			{
+				retryResult = await processor.RetryWithErrorContextAsync(Fn, param, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
+									.SetPolicyName(PolicyName);
+
+			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
+			return retryResult;
+		}
+
 		public RetryPolicy ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.ExcludeError<RetryPolicy, TException>(func);
 
 		public RetryPolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<RetryPolicy>(expression);
