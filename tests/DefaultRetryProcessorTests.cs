@@ -7,6 +7,8 @@ using System.Diagnostics;
 using static PoliNorError.Tests.DelayTimeErrorProcessorTests;
 using NUnit.Framework.Legacy;
 using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
+using PoliNorError.Extensions.PolicyErrorFiltering;
+using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
 {
@@ -1454,6 +1456,35 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			IRetryProcessor retryProcessor;
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				retryProcessor = new DefaultRetryProcessor().AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				retryProcessor = new DefaultRetryProcessor().AddErrorFilter(appendedFilterSelector);
+			}
+
+			Assert.That(retryProcessor.ErrorFilter.ExcludedErrorFilters.Count, Is.EqualTo(1));
+			Assert.That(retryProcessor.ErrorFilter.IncludedErrorFilters.Count, Is.EqualTo(1));
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(retryProcessor.Retry(() => throw errorToHandle, 1).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 	}
 }

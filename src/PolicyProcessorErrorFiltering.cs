@@ -66,6 +66,18 @@ namespace PoliNorError
 			return policyProcessor;
 		}
 
+		internal static void AddNonEmptyCatchBlockFilter<T>(this T policyProcessor, Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory) where T : IPolicyProcessor
+		{
+			var cb = new EmptyCatchBlockFilter();
+			var filter = filterFactory(cb);
+			policyProcessor.AddNonEmptyCatchBlockFilter(filter);
+		}
+
+		internal static void AddNonEmptyCatchBlockFilter<T>(this T policyProcessor, NonEmptyCatchBlockFilter filter) where T : IPolicyProcessor
+		{
+			policyProcessor.ErrorFilter.AppendFilter(filter.ErrorFilter);
+		}
+
 		internal static void AddIncludedErrorFilter(this IPolicyProcessor policyProcessor, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
 			policyProcessor.ErrorFilter.AddIncludedErrorFilter(handledErrorFilter);
