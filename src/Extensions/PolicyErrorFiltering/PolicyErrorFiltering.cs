@@ -64,17 +64,5 @@ namespace PoliNorError.Extensions.PolicyErrorFiltering
 			errorPolicy.PolicyProcessor.AddExcludedInnerErrorFilter(func);
 			return errorPolicy;
 		}
-
-		public static T AddErrorFilter<T>(this T policyProcessor, Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory) where T : IPolicyProcessor
-		{
-			policyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
-			return policyProcessor;
-		}
-
-		public static T AddErrorFilter<T>(this T policyProcessor, NonEmptyCatchBlockFilter filter) where T : IPolicyProcessor
-		{
-			policyProcessor.AddNonEmptyCatchBlockFilter(filter);
-			return policyProcessor;
-		}
 	}
 }
