@@ -64,7 +64,7 @@ namespace PoliNorError.Tests
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
 
-			var errorFilter = errProvider.GetFilterFromIncludeAndExclude();
+			var errorFilter = errProvider.GetExceptionFilterFromIncludeAndExclude();
 
 			var appendedFilter = errProvider.GetFilterFromNonEmptyCatchBlockFilter();
 
@@ -131,12 +131,16 @@ namespace PoliNorError.Tests
 								.ExcludeError<ArgumentNullException>((ex) => ex.ParamName == excParamName);
 			}
 
-			public PolicyProcessor.ExceptionFilter GetFilterFromIncludeAndExclude()
+			public PolicyProcessor.ExceptionFilter GetExceptionFilterFromIncludeAndExclude()
 			{
-				var errorFilter = new PolicyProcessor.ExceptionFilter();
-				errorFilter.AddIncludedErrorFilter<ArgumentException>();
-				errorFilter.AddExcludedErrorFilter<ArgumentException>((ex) => ex.ParamName == excParamName);
-				return errorFilter;
+				return GetCatchBlockFilterFromIncludeAndExclude().ErrorFilter;
+			}
+
+			public NonEmptyCatchBlockFilter GetCatchBlockFilterFromIncludeAndExclude()
+			{
+				return NonEmptyCatchBlockFilter
+					.CreateByIncluding<ArgumentException>()
+					.ExcludeError<ArgumentException>((ex) => ex.ParamName == excParamName);
 			}
 
 			public Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> GetNonEmptyCatchBlockFilterSelector()
