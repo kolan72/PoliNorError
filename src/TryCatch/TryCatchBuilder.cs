@@ -170,6 +170,9 @@ namespace PoliNorError.TryCatch
 		/// <param name="filterFactory">Factory to create the <see cref="NonEmptyCatchBlockFilter"/>.</param>
 		/// <param name="configure">Action to configure the <see cref="IBulkErrorProcessor"/>.</param>
 		/// <returns><see cref="TryCatchBuilder"/></returns>
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method may throw an InvalidCastException when used with classes other than BulkErrorProcessor.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public TryCatchBuilder AddCatchBlock(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory, Action<IBulkErrorProcessor> configure)
 		{
 			var cb =  new EmptyCatchBlockFilter();
@@ -177,6 +180,19 @@ namespace PoliNorError.TryCatch
 			var bp = new BulkErrorProcessor();
 			configure(bp);
 			return AddCatchBlock(filter, bp);
+		}
+
+		/// <summary>
+		/// Adds a <see cref="CatchBlockFilteredHandler"/> handler consisting of <see cref="NonEmptyCatchBlockFilter"/> and <see cref="IBulkErrorProcessor"/> to builder.
+		/// </summary>
+		/// <param name="filterFactory">Factory to create the <see cref="NonEmptyCatchBlockFilter"/>.</param>
+		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
+		/// <returns><see cref="TryCatchBuilder"/></returns>
+		public TryCatchBuilder AddCatchBlock(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory, IBulkErrorProcessor bulkErrorProcessor)
+		{
+			var cb = new EmptyCatchBlockFilter();
+			var filter = filterFactory(cb);
+			return AddCatchBlock(filter, bulkErrorProcessor);
 		}
 
 		public ITryCatch Build() => new TryCatch(_catchBlockHandlers, _hasCatchBlockForAll);
