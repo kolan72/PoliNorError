@@ -115,6 +115,52 @@ namespace PoliNorError.Tests
 			Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Apply_Exception_Dependent_Delay(bool firstExceptionDelay)
+		{
+			bool? firstDelayFlag = null;
+			bool? secondDelayFlag = null;
+
+			Exception errorToHandle;
+			if (firstExceptionDelay)
+			{
+				errorToHandle = new InvalidCastException();
+			}
+			else
+			{
+				errorToHandle = new InvalidOperationException();
+			}
+
+			TimeSpan func(int _, Exception ex)
+			{
+				switch (ex)
+				{
+					case InvalidCastException _:
+						firstDelayFlag = true;
+						break;
+					case InvalidOperationException _:
+						secondDelayFlag = true;
+						break;
+				}
+				return TimeSpan.FromTicks(1);
+			}
+
+			var sp = new SimplePolicy().WithErrorProcessor(new DelayErrorProcessor(func));
+			sp.Handle(() => throw errorToHandle);
+			if (firstExceptionDelay)
+			{
+				Assert.That(firstDelayFlag, Is.True);
+				Assert.That(secondDelayFlag, Is.Null);
+			}
+			else
+			{
+				Assert.That(secondDelayFlag, Is.True);
+				Assert.That(firstDelayFlag, Is.Null);
+			}
+		}
+
 		public class YourDelayErrorProcessor : DelayErrorProcessor
 		{
 			public YourDelayErrorProcessor(TimeSpan timeSpan): base(timeSpan){}
