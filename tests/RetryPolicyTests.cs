@@ -1026,6 +1026,40 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
+		public async Task Should_Ignore_FuncBased_ErrorContextProcessor_In_Parameterless_HandleAsync_Methods(bool withCancellationType)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				await Task.Delay(1);
+				m += pi.Param;
+			}
+
+			var retryPolicy = new RetryPolicy(2);
+			if (!withCancellationType)
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(fn);
+			}
+			else
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable);
+			}
+
+			var result = await retryPolicy
+							.HandleAsync((_) => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			var result2 = await retryPolicy
+							.HandleAsync<int>((_) => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result2.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
 		public void Should_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_DefaultRetryProcessor(bool withCancellationType)
 		{
 			async Task fn(Exception _, ProcessingErrorInfo<int> __)
@@ -1476,6 +1510,18 @@ namespace PoliNorError.Tests
 				Assert.That(result.IsSuccess, Is.True);
 				Assert.That(result.Result, Is.EqualTo(6));
 			}
+		}
+
+		[Test]
+		public void Should_WithErrorProcessorOf_AsyncFunc_With_Token_Throws_For_Not_DefaultRetryProcessor()
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				await Task.Delay(1);
+			}
+			var retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+
+			Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(fn));
 		}
 
 		private class TestAsyncClass
