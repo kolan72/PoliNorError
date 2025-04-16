@@ -1,6 +1,6 @@
 ﻿namespace PoliNorError
 {
-	public class RetryProcessingErrorInfo<TParam> : ProcessingErrorInfo<TParam>
+	public class RetryProcessingErrorInfo<TParam> : ProcessingErrorInfo<TParam>, IRetryExecutionInfo
 	{
 		internal RetryProcessingErrorInfo(RetryProcessingErrorContext<TParam> currentContext) : base(PolicyAlias.Retry, currentContext)
 		{
