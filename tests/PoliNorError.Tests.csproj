@@ -112,6 +112,7 @@
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="PolicyResultExtensionsTests.cs" />
+    <Compile Include="ProcessingErrorInfoTests.cs" />
     <Compile Include="RetryDelay.Tests\RetryDelayChecker.cs" />
     <Compile Include="RetryDelay.Tests\RetryDelayJitteredTests.cs" />
     <Compile Include="RetryDelay.Tests\RetryDelayRepeater.cs" />

@@ -618,7 +618,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			DefaultRetryProcessor processor;
@@ -670,7 +670,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -714,7 +714,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -760,7 +760,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -818,7 +818,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -855,7 +855,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -897,7 +897,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -943,7 +943,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -992,7 +992,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -1039,7 +1039,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -1082,7 +1082,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -1128,7 +1128,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1184,7 +1184,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -1221,7 +1221,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -1264,7 +1264,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1312,7 +1312,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 

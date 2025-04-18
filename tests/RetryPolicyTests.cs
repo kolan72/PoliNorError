@@ -1099,7 +1099,7 @@ namespace PoliNorError.Tests
 				void action(Exception _, ProcessingErrorInfo<int> pi)
 				{
 					m += pi.Param;
-					retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+					retryCount = pi.GetRetryCount();
 				}
 
 				if (withRetryDelay == false)
@@ -1142,7 +1142,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				attempts = pi.GetRetryCount() + 1;
 			}
 
 			RetryPolicy retryPolicy;
@@ -1197,7 +1197,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				attempts = pi.GetRetryCount() + 1;
 			}
 
 			RetryPolicy retryPolicy;
@@ -1251,7 +1251,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				attempts = pi.GetRetryCount() + 1;
 			}
 
 			RetryPolicy policyToTest;
@@ -1304,7 +1304,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				attempts = pi.GetRetryCount() + 1;
 			}
 
 			RetryPolicy retryPolicy;
@@ -1363,7 +1363,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				attempts = pi.GetRetryCount() + 1;
 			}
 
 			RetryPolicy retryPolicy;
@@ -1415,7 +1415,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				attempts = pi.GetRetryCount() + 1;
 			}
 
 			RetryPolicy retryPolicy;
@@ -1474,7 +1474,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				attempts = pi.GetRetryCount() + 1;
 			}
 
 			RetryPolicy policyToTest;
@@ -1522,6 +1522,50 @@ namespace PoliNorError.Tests
 			var retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
 
 			Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(fn));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Handle_RetryCount_In_ErrorProcessor_And_ErrorProcessorWithContext(bool withRetryDelay)
+		{
+			RetryPolicy retryPolicy;
+			int retryCount = 0;
+			int retryCountWithContext = 0;
+
+			int m = 0;
+
+			void actionWithContext(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCountWithContext = pi.GetRetryCount();
+			}
+
+			void action(Exception _, ProcessingErrorInfo pi)
+			{
+				retryCount = pi.GetRetryCount();
+			}
+
+			if (!withRetryDelay)
+			{
+				retryPolicy = new RetryPolicy(2);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(2, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy
+				.WithErrorContextProcessorOf<int>(actionWithContext)
+				.WithErrorProcessorOf(action);
+
+			var result = retryPolicy
+						.Handle(() => throw new InvalidOperationException(), 5);
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(retryCount, Is.EqualTo(1));
+			Assert.That(retryCountWithContext, Is.EqualTo(1));
+			Assert.That(m, Is.EqualTo(10));
 		}
 
 		private class TestAsyncClass
