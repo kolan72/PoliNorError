@@ -1078,6 +1078,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_WithErrorProcessorOf_Action_With_Token_Throws_For_Not_DefaultRetryProcessor()
+		{
+			void action(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				// Method intentionally left empty.
+			}
+
+			var retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+			Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(action));
+		}
+
+		[Test]
 		[TestCase(true, null, null)]
 		[TestCase(false, true, true)]
 		[TestCase(false, false, true)]

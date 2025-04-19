@@ -539,6 +539,12 @@ namespace PoliNorError
 			return this.WithErrorContextProcessorOf<RetryPolicy, TErrorContext>(actionProcessor, cancellationType);
 		}
 
+		public RetryPolicy WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor)
+		{
+			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor _);
+			return this.WithErrorContextProcessorOf<RetryPolicy, TErrorContext>(actionProcessor);
+		}
+
 		public RetryPolicy WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
 		{
 			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor _);
