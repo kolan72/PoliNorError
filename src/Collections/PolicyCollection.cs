@@ -93,9 +93,29 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act)
+		/// <summary>
+		/// Adds an action with a token-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action with a token-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act);
+			if (!excludeLastPolicy)
+			{
+				this.SetResultHandler(act);
+			}
+			else
+			{
+				if (_policies.Count == 1)
+				{
+					return this;
+				}
+				else
+				{
+					_policies.SkipLast().SetResultHandler(act);
+				}
+			}
 			return this;
 		}
 

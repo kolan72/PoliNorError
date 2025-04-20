@@ -1063,9 +1063,52 @@ namespace PoliNorError.Tests
 			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
 		}
 
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Add_ActionWithTokenBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy)
+		{
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithPRAndTokenParams, excludeLastPolicy);
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
 		private class PolicyResultHandlerProvider
 		{
 			public Action<PolicyResult> ActWithPRParam => (_) => Core();
+
+			public Action<PolicyResult, CancellationToken> ActWithPRAndTokenParams => (_, __) => Core();
 
 			public bool FirstHandlerFlag { get; private set; }
 			public bool SecondHandlerFlag { get; private set; }
