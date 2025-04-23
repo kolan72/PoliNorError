@@ -92,10 +92,16 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act)
+		/// <summary>
+		/// Adds a generic action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -109,10 +115,17 @@ namespace PoliNorError
 			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType)
+		/// <summary>
+		/// Adds a generic action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act, convertType);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act, convertType), excludeLastPolicy);
 		}
 
 		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func)

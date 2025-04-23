@@ -1064,6 +1064,59 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		public void Should_Add_ActionBased_GenericPolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy, bool? withCancellationType)
+		{
+			int act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			if (withCancellationType == false)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithGenericPRParam, excludeLastPolicy);
+			}
+			else if (withCancellationType == true)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithGenericPRParam, CancellationType.Precancelable, excludeLastPolicy);
+			}
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
 		[TestCase(true, true)]
 		[TestCase(true, false)]
 		[TestCase(false, true)]
@@ -1148,6 +1201,8 @@ namespace PoliNorError.Tests
 		private class PolicyResultHandlerProvider
 		{
 			public Action<PolicyResult> ActWithPRParam => (_) => Core();
+
+			public Action<PolicyResult<int>> ActWithGenericPRParam => (_) => Core();
 
 			public Action<PolicyResult<int>, CancellationToken> ActWithGenericPRAndTokenParams => (_, __) => Core();
 
