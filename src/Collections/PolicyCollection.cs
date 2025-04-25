@@ -128,16 +128,29 @@ namespace PoliNorError
 			return SetHandler((col) => col.SetResultHandler(act, convertType), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func)
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func, convertType);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func, convertType), excludeLastPolicy);
 		}
 
 		/// <summary>
