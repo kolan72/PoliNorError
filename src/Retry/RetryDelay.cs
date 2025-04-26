@@ -7,8 +7,20 @@ namespace PoliNorError
 	/// </summary>
 	public class RetryDelay
 	{
+		/// <summary>
+		/// Gets or sets the delay value provider.
+		/// Replaces <see cref="InnerDelay"/> and <see cref="InnerDelayValueProvider"/>, which are now obsolete.
+		/// </summary>
+		protected Func<int, TimeSpan> DelayValueProvider { get; set; }
+
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This property is obsolete.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected RetryDelay InnerDelay { get; set; }
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This property is obsolete. Use DelayValueProvider property instead.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected Func<int, TimeSpan> InnerDelayValueProvider { get; set; }
 
 		protected RetryDelay()
@@ -24,31 +36,13 @@ namespace PoliNorError
 		/// <param name="useJitter">Whether jitter is used.</param>
 		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan maxDelay, bool useJitter = false)
 		{
-			InitInnerDelay(delayType, baseDelay, maxDelay, useJitter);
+			DelayValueProvider = GetRetryDelayProvider(delayType, baseDelay, maxDelay, useJitter);
 		}
 
 		///<inheritdoc cref = "RetryDelay(RetryDelayType, TimeSpan, TimeSpan, Boolean)"/>
 		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, bool useJitter = false)
 		{
-			InitInnerDelay(delayType, baseDelay, null, useJitter);
-		}
-
-		private void InitInnerDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan? maxDelay, bool useJitter)
-		{
-			switch (delayType)
-			{
-				case RetryDelayType.Constant:
-					InnerDelay = new ConstantRetryDelay(baseDelay, maxDelay, useJitter);
-					break;
-				case RetryDelayType.Linear:
-					InnerDelay = new LinearRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
-					break;
-				case RetryDelayType.Exponential:
-					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay,  useJitter: useJitter);
-					break;
-				default:
-					throw new NotImplementedException();
-			}
+			DelayValueProvider = GetRetryDelayProvider(delayType, baseDelay, null, useJitter);
 		}
 
 		/// <summary>
@@ -58,7 +52,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public virtual TimeSpan GetDelay(int attempt)
 		{
-			return InnerDelay.InnerDelayValueProvider(attempt);
+			return DelayValueProvider(attempt);
 		}
 
 		protected static double ApplyJitter(double delayInMs)
@@ -66,6 +60,27 @@ namespace PoliNorError
 			var offset = (delayInMs * RetryDelayConstants.JitterFactor) / 2;
 			var randomDelay = (delayInMs * RetryDelayConstants.JitterFactor * StaticRandom.RandDouble()) - offset;
 			return delayInMs + randomDelay;
+		}
+
+		private Func<int, TimeSpan> GetRetryDelayProvider(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan? maxDelay, bool useJitter)
+		{
+#pragma warning disable CS0618 // Type or member is obsolete
+			switch (delayType)
+			{
+				case RetryDelayType.Constant:
+					InnerDelay = new ConstantRetryDelay(baseDelay, maxDelay, useJitter);
+					break;
+				case RetryDelayType.Linear:
+					InnerDelay = new LinearRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
+					break;
+				case RetryDelayType.Exponential:
+					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			return InnerDelay.DelayValueProvider;
+#pragma warning restore CS0618 // Type or member is obsolete
 		}
 	}
 
