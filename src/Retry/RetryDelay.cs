@@ -46,6 +46,28 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Initializes a new instance of <see cref="RetryDelay"/>.
+		/// </summary>
+		/// <param name="options"><see cref="RetryDelayOptions"/></param>
+		public RetryDelay(RetryDelayOptions options)
+		{
+			switch (options)
+			{
+				case ConstantRetryDelayOptions c:
+					DelayValueProvider = (new ConstantRetryDelay(c)).DelayValueProvider;
+					break;
+				case LinearRetryDelayOptions l:
+					DelayValueProvider = (new LinearRetryDelay(l)).DelayValueProvider;
+					break;
+				case ExponentialRetryDelayOptions e:
+					DelayValueProvider = (new ExponentialRetryDelay(e)).DelayValueProvider;
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+		}
+
+		/// <summary>
 		/// Gets the delay value from the current attempt.
 		/// </summary>
 		/// <param name="attempt">The current attempt.</param>
