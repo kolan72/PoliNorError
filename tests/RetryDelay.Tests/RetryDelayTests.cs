@@ -170,5 +170,22 @@ namespace PoliNorError.Tests
 			var res = rd.GetDelay(2);
 			Assert.That(res.TotalMilliseconds, Is.EqualTo(equalTo));
 		}
+
+		[Test]
+		public void Should_Set_RetryDelay_When_Initialized_Through_DelayProvider()
+		{
+			TimeSpan delayValueProvider(int _) => TimeSpan.FromSeconds(1);
+
+			var rd = new RetryDelay(delayValueProvider);
+			Assert.That(rd.GetDelay(0), Is.EqualTo(TimeSpan.FromSeconds(1)));
+		}
+
+		[Test]
+		public void Should_Throw_When_DelayValueProviderIsNull()
+		{
+			Func<int, TimeSpan> nullProvider = null;
+
+			Assert.Throws<ArgumentNullException>(() => new RetryDelay(nullProvider));
+		}
 	}
 }
