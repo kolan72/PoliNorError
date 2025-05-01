@@ -464,14 +464,7 @@ namespace PoliNorError
 
 		private PolicyCollection SetHandler(Action<IEnumerable<IPolicyBase>> collectionAct, bool excludeLastPolicy)
 		{
-			if (!excludeLastPolicy)
-			{
-				collectionAct(_policies);
-			}
-			else if (_policies.Count > 1)
-			{
-				collectionAct(_policies.SkipLast());
-			}
+			_policies.ActionForAll(collectionAct, excludeLastPolicy);
 			return this;
 		}
 	}

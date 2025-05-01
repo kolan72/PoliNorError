@@ -93,10 +93,7 @@ namespace PoliNorError
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(act);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
 		}
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act, CancellationType convertType)
@@ -106,18 +103,12 @@ namespace PoliNorError
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult, CancellationToken> act)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(act);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
 		}
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(func);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
 		}
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func, CancellationType convertType)
@@ -127,18 +118,12 @@ namespace PoliNorError
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, CancellationToken, Task> func)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(func);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(act);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act, CancellationType convertType)
@@ -148,18 +133,12 @@ namespace PoliNorError
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>, CancellationToken> act)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(act);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(func);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func, CancellationType convertType)
@@ -169,10 +148,7 @@ namespace PoliNorError
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			foreach (var policy in policies)
-			{
-				(policy as Policy)?.AddPolicyResultHandlerInner(func);
-			}
+			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
 		}
 
 		internal static Policy LastPolicy(this IEnumerable<IPolicyBase> policies)
