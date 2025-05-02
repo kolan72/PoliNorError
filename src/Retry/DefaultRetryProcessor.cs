@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed partial class DefaultRetryProcessor : PolicyProcessor, IRetryProcessor
+	public sealed partial class DefaultRetryProcessor : PolicyProcessor, IRetryProcessor, ICanAddErrorFilter<DefaultRetryProcessor>
 	{
 		private IErrorProcessor _saveErrorProcessor;
 		private readonly bool _failedIfSaveErrorThrows;
@@ -533,5 +533,19 @@ namespace PoliNorError
 
 		private static Func<TErrorContext, int, RetryErrorContext<TErrorContext>> GetRetryErrorContextCreator<TErrorContext>()
 					=> (context, tryCount) => new RetryErrorContext<TErrorContext>(context, tryCount);
+
+		///<inheritdoc cref = "ICanAddErrorFilter{DefaultRetryProcessor}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public DefaultRetryProcessor AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			this.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{DefaultRetryProcessor}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public DefaultRetryProcessor AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			this.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
+		}
 	}
 }
