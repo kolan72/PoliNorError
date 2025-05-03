@@ -9,6 +9,7 @@ using NSubstitute;
 using NUnit.Framework.Legacy;
 using System.Collections.Generic;
 using System.Collections;
+using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
 {
@@ -1578,6 +1579,64 @@ namespace PoliNorError.Tests
 			Assert.That(retryCount, Is.EqualTo(1));
 			Assert.That(retryCountWithContext, Is.EqualTo(1));
 			Assert.That(m, Is.EqualTo(10));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			RetryPolicy retryPolicy;
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilterSelector);
+			}
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			var retryPolicy = new RetryPolicy(1)
+									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				retryPolicy.AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				retryPolicy.AddErrorFilter(appendedFilterSelector);
+			}
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
+
+			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 
 		private class TestAsyncClass

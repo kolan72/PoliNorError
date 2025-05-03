@@ -6,7 +6,7 @@ using PoliNorError.Extensions.PolicyErrorFiltering;
 
 namespace PoliNorError
 {
-	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>, IWithInnerErrorFilter<RetryPolicy>
+	public sealed partial class RetryPolicy : Policy, IRetryPolicy, IWithErrorFilter<RetryPolicy>, IWithInnerErrorFilter<RetryPolicy>, ICanAddErrorFilter<RetryPolicy>
 	{
 		public RetryPolicy(int retryCount, bool failedIfSaveErrorThrows = false, RetryDelay retryDelay = null) : this(retryCount, null, failedIfSaveErrorThrows, retryDelay) { }
 
@@ -578,6 +578,20 @@ namespace PoliNorError
 		private void ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor proc)
 		{
 			ThrowHelper.ThrowIfNotImplemented(RetryProcessor, out proc);
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{RetryPolicy}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public RetryPolicy AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{RetryPolicy}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public RetryPolicy AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
 		}
 	}
 }
