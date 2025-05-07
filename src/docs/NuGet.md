@@ -11,7 +11,7 @@ var result =
 	.WithErrorProcessorOf((Exception ex, ProcessingErrorInfo pi) =>
 		logger.LogError(ex, 
 		"Policy processed exception on {Attempt} attempt:", 
-		((RetryProcessingErrorInfo)pi).RetryCount + 1))
+		pi.GetRetryCount() + 1))
 
 	.AddPolicyResultHandler((PolicyResult pr) =>
 		logger.LogWarning(
@@ -32,4 +32,20 @@ var simplePolicyResult = new SimplePolicy()
 	//the previous line of code
 	//logs an error with {Param} set to zero.
 	.Handle((i) => 5 / i, random);
+
+
+var retryPolicyResult = await new RetryPolicy(5)
+
+	.WithErrorContextProcessorOf<string>((ex, pi) =>
+	 logger.LogError(ex,
+			"Failed to connect to {Uri} on attempt {Attempt}.",
+			pi.Param,
+			pi.GetRetryCount() + 1))
+
+	//In case of an exception,
+	//the previous line logs an error
+	//with {Uri} set to "users"
+	//and {Attempt} set to the current attempt
+	.HandleAsync(async (uri, ct)
+		=> await _httpClient.GetAsync(uri, ct), "users", token);
 ```
