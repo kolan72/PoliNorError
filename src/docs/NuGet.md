@@ -37,7 +37,7 @@ var simplePolicyResult = new SimplePolicy()
 var retryPolicyResult = await new RetryPolicy(5)
 
 	.WithErrorContextProcessorOf<string>((ex, pi) =>
-	 logger.LogError(ex,
+	 	logger.LogError(ex,
 			"Failed to connect to {Uri} on attempt {Attempt}.",
 			pi.Param,
 			pi.GetRetryCount() + 1))
