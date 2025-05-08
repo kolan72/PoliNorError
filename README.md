@@ -386,7 +386,8 @@ To retry infinitely, until it succeeds, use the`InfiniteRetries` method:
 These methods create the `DelayErrorProcessor` object behind the scenes.  
 The `WithWait` method also has overload that accept the `DelayErrorProcessor` argument. This method allows you to customize the delay behavior by inheriting from the  `DelayErrorProcessor` class.  
 
-Since _version_ 2.19.0, there is an error processor independent way to set the delay between retries - by using the `RetryDelay` class or its subclasses.  
+Since _version_ 2.19.0, there is an error processor independent way to set the delay between retries - by using the `RetryDelay` class or its subclasses. 
+Note that the delay initiated by the `RetryDelay` object occurs after all error processors have run.  
 Simply create a `RetryPolicy` using one of the constructors with the `RetryDelay` parameter, or call one of the `DefaultRetryProcessor.Retry(Async)` method overloads that accepts one.  
 There are three ways to create a `RetryDelay`, represented by the `RetryDelayType` parameter:  
 
