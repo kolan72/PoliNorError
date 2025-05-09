@@ -61,52 +61,22 @@ namespace PoliNorError
 
 		protected PolicyResult<T> HandlePolicyResult<T>(PolicyResult<T> policyRetryResult, CancellationToken token)
 		{
-			return policyRetryResult.HandleResultForceSync(_policyResultHandlerCollection.GenericHandlers, token);
+			return _policyResultHandlerCollection.Handle(policyRetryResult, token);
 		}
 
 		protected PolicyResult HandlePolicyResult(PolicyResult policyRetryResult, CancellationToken token)
 		{
-			return policyRetryResult.HandleResultForceSync(_policyResultHandlerCollection.Handlers, token);
+			return _policyResultHandlerCollection.Handle(policyRetryResult, token);
 		}
 
-		protected async Task HandlePolicyResultAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		protected async Task<PolicyResult> HandlePolicyResultAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
-			switch (_policyResultHandlerCollection.Handlers.MapToSyncType())
-			{
-				case HandlerRunnerSyncType.Sync:
-					policyRetryResult.HandleResultSync(_policyResultHandlerCollection.Handlers, token);
-					break;
-				case HandlerRunnerSyncType.Misc:
-					await policyRetryResult.HandleResultMisc(_policyResultHandlerCollection.Handlers, configureAwait, token).ConfigureAwait(configureAwait);
-					break;
-				case HandlerRunnerSyncType.Async:
-					await policyRetryResult.HandleResultAsync(_policyResultHandlerCollection.Handlers, configureAwait, token).ConfigureAwait(configureAwait);
-					break;
-				case HandlerRunnerSyncType.None:
-					break;
-				default:
-					throw new NotImplementedException();
-			}
+			return await _policyResultHandlerCollection.HandleAsync(policyRetryResult, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		protected async Task HandlePolicyResultAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		protected async Task<PolicyResult<T>> HandlePolicyResultAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
-			switch (_policyResultHandlerCollection.GenericHandlers.MapToSyncType())
-			{
-				case HandlerRunnerSyncType.Sync:
-					policyRetryResult.HandleResultSync(_policyResultHandlerCollection.GenericHandlers, token);
-					break;
-				case HandlerRunnerSyncType.Misc:
-					await policyRetryResult.HandleResultMisc(_policyResultHandlerCollection.GenericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
-					break;
-				case HandlerRunnerSyncType.Async:
-					await policyRetryResult.HandleResultAsync(_policyResultHandlerCollection.GenericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
-					break;
-				case HandlerRunnerSyncType.None:
-					break;
-				default:
-					throw new NotImplementedException();
-			}
+			return await _policyResultHandlerCollection.HandleAsync(policyRetryResult, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		internal void SetWrap(IPolicyBase policyToWrap)
