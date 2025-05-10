@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Policy;
 
 namespace PoliNorError
 {
@@ -57,6 +58,50 @@ namespace PoliNorError
 		{
 			var handler = SyncHandlerRunnerT.Create(act);
 			AddGenericHandler(handler);
+		}
+
+		internal PolicyResult<T> Handle<T>(PolicyResult<T> policyRetryResult, CancellationToken token)
+		{
+			return policyRetryResult.HandleResultForceSync(GenericHandlers, token);
+		}
+
+		internal PolicyResult Handle(PolicyResult policyRetryResult, CancellationToken token)
+		{
+			return policyRetryResult.HandleResultForceSync(Handlers, token);
+		}
+
+		internal async Task<PolicyResult> HandleAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		{
+			switch (Handlers.MapToSyncType())
+			{
+				case HandlerRunnerSyncType.Sync:
+					return policyRetryResult.HandleResultSync(Handlers, token);
+				case HandlerRunnerSyncType.Misc:
+					return await policyRetryResult.HandleResultMisc(Handlers, configureAwait, token).ConfigureAwait(configureAwait);
+				case HandlerRunnerSyncType.Async:
+					return await policyRetryResult.HandleResultAsync(Handlers, configureAwait, token).ConfigureAwait(configureAwait);
+				case HandlerRunnerSyncType.None:
+					return policyRetryResult;
+				default:
+					throw new NotImplementedException();
+			}
+		}
+
+		internal async Task<PolicyResult<T>> HandleAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		{
+			switch (GenericHandlers.MapToSyncType())
+			{
+				case HandlerRunnerSyncType.Sync:
+					return policyRetryResult.HandleResultSync(GenericHandlers, token);
+				case HandlerRunnerSyncType.Misc:
+					return await policyRetryResult.HandleResultMisc(GenericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
+				case HandlerRunnerSyncType.Async:
+					return await policyRetryResult.HandleResultAsync(GenericHandlers, configureAwait, token).ConfigureAwait(configureAwait);
+				case HandlerRunnerSyncType.None:
+					return policyRetryResult;
+				default:
+					throw new NotImplementedException();
+			}
 		}
 
 		private void AddGenericHandler(IHandlerRunnerT handlerRunnerT)

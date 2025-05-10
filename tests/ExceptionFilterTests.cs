@@ -37,6 +37,121 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AppendFilter_When_OriginalFilterIsEmpty(bool excludeFilterWork)
+		{
+			var errProvider =  new AppendFilterExceptionProvider(excludeFilterWork);
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			var errorFiltter = new PolicyProcessor.ExceptionFilter();
+			var appendedFilter = errProvider.GetFilterFromNonEmptyCatchBlockFilter();
+
+			errorFiltter.AppendFilter(appendedFilter);
+
+			Assert.That(errorFiltter.ExcludedErrorFilters.Count, Is.EqualTo(1));
+			Assert.That(errorFiltter.IncludedErrorFilters.Count, Is.EqualTo(1));
+
+			Assert.That(errorFiltter.GetCanHandle()(errorToHandle), Is.EqualTo(!excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_AppendFilter_When_OriginalFilterIsNotEmpty(bool excludeFilterWork, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			var errorFilter = errProvider.GetExceptionFilterFromIncludeAndExclude();
+
+			var appendedFilter = errProvider.GetFilterFromNonEmptyCatchBlockFilter();
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
+
+			errorFilter.AppendFilter(appendedFilter);
+
+			Assert.That(errorFilter.ExcludedErrorFilters.Count, Is.EqualTo(2));
+			Assert.That(errorFilter.IncludedErrorFilters.Count, Is.EqualTo(2));
+
+			Assert.That(errorFilter.GetCanHandle()(errorToHandle), Is.EqualTo(!excludeFilterWork));
+		}
+
+		public class AppendFilterExceptionProvider
+		{
+			private const string excParamName = "Test";
+			private const string excParamNameToExclude = "Test2";
+
+			private readonly bool _excludeFilterWork;
+
+			public AppendFilterExceptionProvider(bool excludeFilterWork)
+			{
+				_excludeFilterWork = excludeFilterWork;
+			}
+
+			public Exception GetErrorWhenOriginalFilterIsEmpty()
+			{
+				if (!_excludeFilterWork)
+				{
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+					return new ArgumentNullException(excParamNameToExclude, "");
+				}
+				else
+				{
+					return new ArgumentNullException(excParamName, "");
+				}
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+			}
+
+			public Exception GetErrorWhenOriginalFilterIsNotEmpty(bool checkOriginExceptFiler)
+			{
+				if (!_excludeFilterWork)
+				{
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+					return checkOriginExceptFiler ? new ArgumentException("", excParamNameToExclude) : new ArgumentNullException(excParamNameToExclude, "");
+				}
+				else
+				{
+					return checkOriginExceptFiler ? new ArgumentException("", excParamName) : new ArgumentNullException(excParamName, "");
+				}
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+			}
+
+			public PolicyProcessor.ExceptionFilter GetFilterFromNonEmptyCatchBlockFilter()
+			{
+				return GetNonEmptyCatchBlockFilter()
+									.ErrorFilter;
+			}
+
+			public NonEmptyCatchBlockFilter GetNonEmptyCatchBlockFilter()
+			{
+				return NonEmptyCatchBlockFilter
+								.CreateByIncluding<ArgumentNullException>()
+								.ExcludeError<ArgumentNullException>((ex) => ex.ParamName == excParamName);
+			}
+
+			public PolicyProcessor.ExceptionFilter GetExceptionFilterFromIncludeAndExclude()
+			{
+				return GetCatchBlockFilterFromIncludeAndExclude().ErrorFilter;
+			}
+
+			public NonEmptyCatchBlockFilter GetCatchBlockFilterFromIncludeAndExclude()
+			{
+				return NonEmptyCatchBlockFilter
+					.CreateByIncluding<ArgumentException>()
+					.ExcludeError<ArgumentException>((ex) => ex.ParamName == excParamName);
+			}
+
+			public Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> GetNonEmptyCatchBlockFilterSelector()
+			{
+				return (e) =>
+							e.IncludeError<ArgumentNullException>()
+							.ExcludeError<ArgumentNullException>((ex) => ex.ParamName == excParamName);
+			}
+		}
+
+		[Test]
 		[TestCase(false)]
 		[TestCase(true)]
 		public void Should_ErrorFilter_Created_By_FromIncludedError_Add_ErrorFilter_Expressions_Correctly(bool generic)

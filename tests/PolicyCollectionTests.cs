@@ -563,13 +563,13 @@ namespace PoliNorError.Tests
 			{
 				if (crossSync)
 				{
-					resultCount = polCollection.HandleDelegate(async (_) => { await Task.Delay(1); throw new Exception("Test1");}).Count();
+					resultCount = polCollection.HandleDelegate(async (_) => { await Task.Delay(1); throw new Exception("Test1"); }).Count();
 					resultCountIfNoError = polCollection.HandleDelegate(async (_) => await Task.Delay(1)).Count();
 				}
 				else
 				{
 					resultCount = polCollection.HandleDelegate(() => throw new Exception("Test1")).Count();
-					resultCountIfNoError = polCollection.HandleDelegate(() => {}).Count();
+					resultCountIfNoError = polCollection.HandleDelegate(() => { }).Count();
 				}
 			}
 			ClassicAssert.AreEqual(2, resultCount);
@@ -605,7 +605,7 @@ namespace PoliNorError.Tests
 				{
 					resultCount = (await polCollection.HandleDelegateAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("Test1"); })).Count();
 
-					var resIfNoError = await polCollection.HandleDelegateAsync(async (_) =>  {await Task.Delay(1); return 1;});
+					var resIfNoError = await polCollection.HandleDelegateAsync(async (_) => { await Task.Delay(1); return 1; });
 					resultCountIfNoError = resIfNoError.Count();
 					ClassicAssert.AreEqual(1, resIfNoError.Result);
 				}
@@ -615,11 +615,11 @@ namespace PoliNorError.Tests
 				if (crossSync)
 				{
 					resultCount = (await polCollection.HandleDelegateAsync(() => throw new Exception("Test1"))).Count();
-					 resultCountIfNoError = (await polCollection.HandleDelegateAsync(() => {})).Count();
+					resultCountIfNoError = (await polCollection.HandleDelegateAsync(() => { })).Count();
 				}
 				else
 				{
-					resultCount = (await polCollection.HandleDelegateAsync(async (_) => { await Task.Delay(1); throw new Exception("Test1");})).Count();
+					resultCount = (await polCollection.HandleDelegateAsync(async (_) => { await Task.Delay(1); throw new Exception("Test1"); })).Count();
 					resultCountIfNoError = (await polCollection.HandleDelegateAsync(async (_) => await Task.Delay(1))).Count();
 				}
 			}
@@ -975,7 +975,7 @@ namespace PoliNorError.Tests
 			var polCollection = PolicyCollection.Create()
 								.WithFallback(FallbackFuncsProvider
 												.Create(async (_) => await Task.Delay(1), (_) => { }, true)
-												.AddOrReplaceAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1;})
+												.AddOrReplaceAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 1; })
 												.AddOrReplaceFallbackFunc((_) => 1)
 												);
 			var lastPolicy = ((FallbackPolicyBase)polCollection.LastOrDefault());
@@ -984,6 +984,443 @@ namespace PoliNorError.Tests
 			Assert.That(lastPolicy.HasAsyncFallbackFunc<int>(), Is.True);
 			Assert.That(lastPolicy.HasFallbackFunc<int>(), Is.True);
 			Assert.That(lastPolicy.OnlyGenericFallbackForGenericDelegate, Is.True);
+		}
+
+		[Test]
+		public void Should_Imitate_RetryPolicy_Using_Collection_Of_SimplePolicies()
+		{
+			bool firstHandlerFlag = false;
+			bool secondHandlerFlag = false;
+
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection.Create();
+			var result = polCollection
+				.WithSimple()
+				.AddPolicyResultHandlerForLast(async (_) => { await Task.Delay(TimeSpan.FromTicks(2)); firstHandlerFlag = true; })
+				.WithSimple()
+				.AddPolicyResultHandlerForLast(async (_) => { await Task.Delay(TimeSpan.FromTicks(4)); secondHandlerFlag = true; })
+				.WithSimple()
+				.AddPolicyResultHandlerForAll(pr => { if (!pr.NoError) pr.SetFailed(); })
+				.HandleDelegate(act);
+
+			Assert.That(firstHandlerFlag, Is.True);
+			Assert.That(secondHandlerFlag, Is.True);
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.PolicyDelegateResults.Count, Is.EqualTo(3));
+		}
+
+		[Test]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		public void Should_Add_ActionBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy, bool? withCancellationType)
+		{
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			if (withCancellationType == false)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithPRParam, excludeLastPolicy);
+			}
+			else if (withCancellationType == true)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithPRParam, CancellationType.Precancelable, excludeLastPolicy);
+			}
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		public void Should_Add_ActionBased_GenericPolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy, bool? withCancellationType)
+		{
+			int act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			if (withCancellationType == false)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithGenericPRParam, excludeLastPolicy);
+			}
+			else if (withCancellationType == true)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithGenericPRParam, CancellationType.Precancelable, excludeLastPolicy);
+			}
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		public void Should_Add_FuncBased_GenericPolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy, bool? withCancellationType)
+		{
+			int act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			if (withCancellationType == false)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.FuncWithGenericPRParam, excludeLastPolicy);
+			}
+			else if (withCancellationType == true)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.FuncWithGenericPRParam, CancellationType.Precancelable, excludeLastPolicy);
+			}
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Add_ActionWithTokenBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy)
+		{
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithPRAndTokenParams, excludeLastPolicy);
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Add_ActionWithTokenBased_GenericPolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy)
+		{
+			int act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.ActWithGenericPRAndTokenParams, excludeLastPolicy);
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Add_FuncWithTokenBased_GenericPolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy)
+		{
+			int act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.FuncWithGenericPRAndTokenParams, excludeLastPolicy);
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Add_FuncWithTokenBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy)
+		{
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.FuncWithPRAndTokenParams, excludeLastPolicy);
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		[Test]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		public void Should_Add_FuncBased_PolicyResultHandler_For_All_Policies(bool excludeLastPolicy, bool onePolicy, bool? withCancellationType)
+		{
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection
+								.Create()
+								.WithRetry(1);
+
+			if (!onePolicy)
+			{
+				polCollection.WithRetry(1);
+			}
+
+			var handlerProvider = new PolicyResultHandlerProvider();
+
+			if (withCancellationType == false)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.FuncWithPRParam, excludeLastPolicy);
+			}
+			else if (withCancellationType == true)
+			{
+				polCollection
+				.AddPolicyResultHandlerForAll(handlerProvider.FuncWithPRParam, CancellationType.Precancelable, excludeLastPolicy);
+			}
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			if (excludeLastPolicy)
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 0 : 1));
+			}
+			else
+			{
+				Assert.That(handlerProvider.HandlersCounter, Is.EqualTo(onePolicy ? 1 : 2));
+			}
+			Assert.That(result.PolicyDelegatesUnused.Count(), Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			Assert.That(handlerProvider.FirstHandlerFlag, Is.EqualTo(!onePolicy || !excludeLastPolicy));
+			Assert.That(handlerProvider.SecondHandlerFlag, Is.EqualTo(!onePolicy && !excludeLastPolicy));
+		}
+
+		private class PolicyResultHandlerProvider
+		{
+			public Action<PolicyResult> ActWithPRParam => (_) => Core();
+
+			public Action<PolicyResult<int>> ActWithGenericPRParam => (_) => Core();
+
+			public Action<PolicyResult<int>, CancellationToken> ActWithGenericPRAndTokenParams => (_, __) => Core();
+
+			public Action<PolicyResult, CancellationToken> ActWithPRAndTokenParams => (_, __) => Core();
+
+			public Func<PolicyResult<int>, CancellationToken, Task> FuncWithGenericPRAndTokenParams => async (_, __) => { await Task.Delay(TimeSpan.FromTicks(1)); Core(); };
+
+			public Func<PolicyResult, CancellationToken, Task> FuncWithPRAndTokenParams => async (_, __) => { await Task.Delay(TimeSpan.FromTicks(1)); Core(); };
+
+			public Func<PolicyResult, Task> FuncWithPRParam => async (_) => { await Task.Delay(TimeSpan.FromTicks(1)); Core(); };
+
+			public Func<PolicyResult<int>, Task> FuncWithGenericPRParam => async (_) => { await Task.Delay(TimeSpan.FromTicks(1)); Core(); };
+
+			public bool FirstHandlerFlag { get; private set; }
+			public bool SecondHandlerFlag { get; private set; }
+
+			public int HandlersCounter { get; private set; }
+
+			private Action Core => () =>
+			{
+				if (HandlersCounter == 0)
+				{
+					FirstHandlerFlag = true;
+				}
+				else
+				{
+					SecondHandlerFlag = true;
+				}
+				HandlersCounter++;
+			};
 		}
 
 		private class FuncsAndResultsProviderBase

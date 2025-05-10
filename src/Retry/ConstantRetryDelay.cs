@@ -17,9 +17,9 @@ namespace PoliNorError
 		/// <param name="retryDelayOptions"><see cref="ConstantRetryDelayOptions"/></param>
 		public ConstantRetryDelay(ConstantRetryDelayOptions retryDelayOptions)
 		{
+#pragma warning disable CS0618 // Type or member is obsolete
 			InnerDelay = this;
 			_options = retryDelayOptions;
-
 			if (_options.UseJitter)
 			{
 				if (_options.MaxDelay < _options.BaseDelay)
@@ -32,6 +32,8 @@ namespace PoliNorError
 			{
 				InnerDelayValueProvider = GetDelayValue;
 			}
+			DelayValueProvider = InnerDelayValueProvider;
+#pragma warning restore CS0618 // Type or member is obsolete
 		}
 
 		/// <summary>

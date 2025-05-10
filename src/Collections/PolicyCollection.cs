@@ -40,76 +40,145 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act)
+		/// <summary>
+		/// Adds an action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType)
+		/// <summary>
+		/// Adds an action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act, convertType);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act, convertType), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act)
+		/// <summary>
+		/// Adds an action with a token-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action with a token-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func)
+		/// <summary>
+		///  Adds an asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func)
+		/// <summary>
+		/// Adds an asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType)
+		/// <summary>
+		///  Adds an asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func, convertType);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func, convertType), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act)
+		/// <summary>
+		/// Adds a generic action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>, CancellationToken> act)
+		/// <summary>
+		/// Adds an action with a token-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action with a token-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>, CancellationToken> act, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType)
+		/// <summary>
+		/// Adds a generic action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(act, convertType);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(act, convertType), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func)
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func, convertType);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func, convertType), excludeLastPolicy);
 		}
 
-		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func with a token-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, CancellationToken, Task> func, bool excludeLastPolicy = false)
 		{
-			this.SetResultHandler(func);
-			return this;
+			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
 		}
 
 		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult> act)
@@ -408,5 +477,11 @@ namespace PoliNorError
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<IPolicyBase> GetEnumerator() => _policies.GetEnumerator();
+
+		private PolicyCollection SetHandler(Action<IEnumerable<IPolicyBase>> collectionAct, bool excludeLastPolicy)
+		{
+			_policies.ActionForAll(collectionAct, excludeLastPolicy);
+			return this;
+		}
 	}
 }

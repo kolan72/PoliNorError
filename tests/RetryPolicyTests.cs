@@ -7,6 +7,9 @@ using System.Linq.Expressions;
 using System.Diagnostics;
 using NSubstitute;
 using NUnit.Framework.Legacy;
+using System.Collections.Generic;
+using System.Collections;
+using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
 {
@@ -941,6 +944,701 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_RetryPolicy_WithErrorContextProcessor_Throws_Only_For_Not_DefaultRetryProcessor(bool throwEx)
+		{
+			RetryPolicy retryPolicyTest;
+			if (throwEx)
+			{
+				retryPolicyTest = new RetryPolicy(new TestRetryProcessor(), 1);
+			}
+			else
+			{
+				retryPolicyTest = new RetryPolicy(1);
+			}
+			if (throwEx)
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+			else
+			{
+				Assert.DoesNotThrow(() => retryPolicyTest.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WithErrorContextProcessorOf_Action_Throws_For_Not_DefaultRetryProcessor(bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			var retryPolicyTest = new RetryPolicy(new TestRetryProcessor(), 1);
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicyTest.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicyTest.WithErrorContextProcessorOf<int>(action));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Ignore_ActionBased_ErrorContextProcessor_In_Parameterless_Handle_Methods(bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+			}
+
+			var retryPolicy = new RetryPolicy(2);
+			if (withCancellationType)
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+
+			var result = retryPolicy
+							.Handle(() => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			var result2 = retryPolicy
+							.Handle<int>(() => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result2.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Ignore_FuncBased_ErrorContextProcessor_In_Parameterless_HandleAsync_Methods(bool withCancellationType)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				await Task.Delay(1);
+				m += pi.Param;
+			}
+
+			var retryPolicy = new RetryPolicy(2);
+			if (!withCancellationType)
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(fn);
+			}
+			else
+			{
+				retryPolicy.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable);
+			}
+
+			var result = await retryPolicy
+							.HandleAsync((_) => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result.IsFailed, Is.True);
+
+			var result2 = await retryPolicy
+							.HandleAsync<int>((_) => throw new InvalidOperationException());
+			Assert.That(m, Is.Zero);
+			Assert.That(result2.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WithErrorProcessorOf_AsyncFunc_Throws_For_Not_DefaultRetryProcessor(bool withCancellationType)
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __)
+			{
+				await Task.Delay(1);
+			}
+			var retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+			if (withCancellationType)
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable));
+			}
+			else
+			{
+				Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(fn));
+			}
+		}
+
+		[Test]
+		public void Should_WithErrorProcessorOf_Action_With_Token_Throws_For_Not_DefaultRetryProcessor()
+		{
+			void action(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				// Method intentionally left empty.
+			}
+
+			var retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+			Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(action));
+		}
+
+		[Test]
+		[TestCase(true, null, null)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		public void Should_WithErrorContextProcessor_Throws_Only_For_Not_DefaultRetryProcessor(bool throwEx, bool? wrap, bool? withRetryDelay)
+		{
+			RetryPolicy retryPolicy;
+			if (throwEx)
+			{
+				retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+				Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessor(new DefaultErrorProcessor<int>((_, __) => { })));
+			}
+			else
+			{
+				int m = 0;
+				int retryCount = 0;
+
+				void action(Exception _, ProcessingErrorInfo<int> pi)
+				{
+					m += pi.Param;
+					retryCount = pi.GetRetryCount();
+				}
+
+				if (withRetryDelay == false)
+				{
+					retryPolicy = new RetryPolicy(2);
+				}
+				else
+				{
+					retryPolicy = new RetryPolicy(2, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+				}
+
+				retryPolicy.WithErrorContextProcessorOf<int>(action);
+
+				if (wrap == true)
+				{
+					retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+				}
+
+				var result = retryPolicy
+							.Handle(() => throw new InvalidOperationException(), 5);
+
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(retryCount, Is.EqualTo(1));
+				Assert.That(m, Is.EqualTo(10));
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, null, null)]
+		public void Should_Handle_With_TParam_For_Action_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool? useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int addable = 1;
+			int attempts = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = pi.GetRetryCount() + 1;
+			}
+
+			RetryPolicy retryPolicy;
+
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap == true)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = retryPolicy.Handle((_) => throw new InvalidOperationException(), 5);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(attempts, useWrap == true ? Is.EqualTo(0) : Is.EqualTo(1));
+			}
+			else
+			{
+#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
+				result = retryPolicy.Handle((v) => { addable += v; }, 5);
+#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public void Should_Handle_With_TParam_For_Func_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool wrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int attempts = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = pi.GetRetryCount() + 1;
+			}
+
+			RetryPolicy retryPolicy;
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+
+			if (wrap)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = retryPolicy.Handle<int, int>(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(attempts, Is.EqualTo(1));
+			}
+			else
+			{
+				result = retryPolicy.Handle(() => 1, 5);
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.NoError, Is.True);
+				Assert.That(result.Result, Is.EqualTo(1));
+				Assert.That(result.IsSuccess, Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public void Should_Handle_With_TParam_For_Func_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int attempts = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = pi.GetRetryCount() + 1;
+			}
+
+			RetryPolicy policyToTest;
+			if (withRetryDelay == false)
+			{
+				policyToTest = new RetryPolicy(1);
+			}
+			else
+			{
+				policyToTest = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			policyToTest.WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap)
+			{
+				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = policyToTest.Handle<int, int>((_) => throw new InvalidOperationException(), 5);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(attempts, useWrap ? Is.EqualTo(0) : Is.EqualTo(1));
+				Assert.That(result.IsSuccess, Is.False);
+			}
+			else
+			{
+				result = policyToTest.Handle((v) => { addable += v; return addable; }, 5);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.Result, Is.EqualTo(6));
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public async Task Should_HandleAsync_With_TParam_For_NonGeneric_AsyncFunc_WithErrorContextProcessor_Be_Correct(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int attempts = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = pi.GetRetryCount() + 1;
+			}
+
+			RetryPolicy retryPolicy;
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+			if (useWrap)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+
+			if (throwEx)
+			{
+				result = await retryPolicy
+						.HandleAsync(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+
+				Assert.That(result.IsSuccess, Is.False);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(attempts, Is.EqualTo(1));
+			}
+			else
+			{
+				result = await retryPolicy
+					.HandleAsync(async (_) => await Task.Delay(1), 5, false, default);
+
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.NoError, Is.True);
+				Assert.That(attempts, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public async Task Should_HandleAsync_With_TParam_For_AsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int addable = 1;
+
+			int attempts = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = pi.GetRetryCount() + 1;
+			}
+
+			RetryPolicy retryPolicy;
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult result = null;
+			if (throwEx)
+			{
+				result = await retryPolicy.HandleAsync(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(attempts, useWrap ? Is.EqualTo(0) : Is.EqualTo(1));
+			}
+			else
+			{
+				result = await retryPolicy.HandleAsync(async (v, _) => { await Task.Delay(1); addable += v; }, 5, false, default);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsSuccess, Is.True);
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public async Task Should_HandleAsync_With_TParam_For_Generic_AsyncFunc_WithErrorContextProcessor_Be_Correct(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int attempts = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = pi.GetRetryCount() + 1;
+			}
+
+			RetryPolicy retryPolicy;
+			if (withRetryDelay == false)
+			{
+				retryPolicy = new RetryPolicy(1);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy.WithErrorContextProcessorOf<int>(action);
+			if (useWrap)
+			{
+				retryPolicy = retryPolicy.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+
+			if (throwEx)
+			{
+				result = await retryPolicy
+						.HandleAsync<int, int>(async (_) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+
+				Assert.That(result.IsSuccess, Is.False);
+				Assert.That(m, Is.EqualTo(5));
+				Assert.That(attempts, Is.EqualTo(1));
+			}
+			else
+			{
+				result = await retryPolicy
+					.HandleAsync(async (_) => { await Task.Delay(1); return 1; }, 5, false, default);
+
+				Assert.That(m, Is.EqualTo(0));
+				Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.NoError, Is.True);
+				Assert.That(attempts, Is.EqualTo(0));
+				Assert.That(result.Result, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, null)]
+		[TestCase(false, true, null)]
+		public async Task Should_HandleAsync_With_TParam_For_GenericAsyncFunc_With_TParam_WithErrorProcessorOf_Action_Process_Correctly(bool throwEx, bool useWrap, bool? withRetryDelay)
+		{
+			int m = 0;
+			int attempts = 0;
+			int addable = 1;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+				attempts = pi.GetRetryCount() + 1;
+			}
+
+			RetryPolicy policyToTest;
+			if (withRetryDelay == false)
+			{
+				policyToTest = new RetryPolicy(1);
+			}
+			else
+			{
+				policyToTest = new RetryPolicy(1, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			policyToTest.WithErrorContextProcessorOf<int>(action);
+
+			if (useWrap)
+			{
+				policyToTest = policyToTest.WrapPolicy(new RetryPolicy(1));
+			}
+
+			PolicyResult<int> result = null;
+			if (throwEx)
+			{
+				result = await policyToTest.HandleAsync<int, int>(async (_, __) => { await Task.Delay(1); throw new InvalidOperationException(); }, 5, false, default);
+				//With wrapping, we fallback to no-param handling
+				Assert.That(m, useWrap ? Is.EqualTo(0) : Is.EqualTo(5));
+				Assert.That(attempts, useWrap ? Is.EqualTo(0) : Is.EqualTo(1));
+				Assert.That(result.IsSuccess, Is.False);
+			}
+			else
+			{
+				result = await policyToTest.HandleAsync(async (v, _) => { await Task.Delay(1); addable += v; return addable; }, 5, false, default);
+				Assert.That(addable, Is.EqualTo(6));
+				Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.Result, Is.EqualTo(6));
+			}
+		}
+
+		[Test]
+		public void Should_WithErrorProcessorOf_AsyncFunc_With_Token_Throws_For_Not_DefaultRetryProcessor()
+		{
+			async Task fn(Exception _, ProcessingErrorInfo<int> __, CancellationToken ___)
+			{
+				await Task.Delay(1);
+			}
+			var retryPolicy = new RetryPolicy(new TestRetryProcessor(), 1);
+
+			Assert.Throws<NotImplementedException>(() => retryPolicy.WithErrorContextProcessorOf<int>(fn));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Handle_RetryCount_In_ErrorProcessor_And_ErrorProcessorWithContext(bool withRetryDelay)
+		{
+			RetryPolicy retryPolicy;
+			int retryCount = 0;
+			int retryCountWithContext = 0;
+
+			int m = 0;
+
+			void actionWithContext(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m += pi.Param;
+				retryCountWithContext = pi.GetRetryCount();
+			}
+
+			void action(Exception _, ProcessingErrorInfo pi)
+			{
+				retryCount = pi.GetRetryCount();
+			}
+
+			if (!withRetryDelay)
+			{
+				retryPolicy = new RetryPolicy(2);
+			}
+			else
+			{
+				retryPolicy = new RetryPolicy(2, false, new ConstantRetryDelay(TimeSpan.FromTicks(1)));
+			}
+
+			retryPolicy
+				.WithErrorContextProcessorOf<int>(actionWithContext)
+				.WithErrorProcessorOf(action);
+
+			var result = retryPolicy
+						.Handle(() => throw new InvalidOperationException(), 5);
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(retryCount, Is.EqualTo(1));
+			Assert.That(retryCountWithContext, Is.EqualTo(1));
+			Assert.That(m, Is.EqualTo(10));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			RetryPolicy retryPolicy;
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilterSelector);
+			}
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			var retryPolicy = new RetryPolicy(1)
+									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				retryPolicy.AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				retryPolicy.AddErrorFilter(appendedFilterSelector);
+			}
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
+
+			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
@@ -976,5 +1674,19 @@ namespace PoliNorError.Tests
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3871:Exception types should be \"public\"", Justification = "<Pending>")]
 		private class SimplePolicyException : Exception{}
+
+		public class TestRetryProcessor : IRetryProcessor
+		{
+			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new InvalidOperationException();
+
+			public void AddErrorProcessor(IErrorProcessor newErrorProcessor) => throw new InvalidOperationException();
+			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new InvalidOperationException();
+			public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default) => throw new InvalidOperationException();
+			public PolicyResult<T> Retry<T>(Func<T> func, RetryCountInfo retryCountInfo, CancellationToken token = default) => throw new InvalidOperationException();
+			public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default) => throw new InvalidOperationException();
+			public Task<PolicyResult<T>> RetryAsync<T>(Func<CancellationToken, Task<T>> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default) => throw new InvalidOperationException();
+			public IRetryProcessor UseCustomErrorSaver(IErrorProcessor saveErrorProcessor) => throw new InvalidOperationException();
+			IEnumerator IEnumerable.GetEnumerator() => throw new InvalidOperationException();
+		}
 	}
 }

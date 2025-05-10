@@ -371,5 +371,51 @@ namespace PoliNorError.Tests
 			Assert.That(errorProcessorWorksFlag, Is.True);
 			Assert.That(errorProcessorThatShoulNotWorkFlag, Is.False);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Apply_Delay_When_Configured_WithDelayBetweenRetries(bool firstExceptionDelay)
+		{
+			int firstErrorRetryCount = 0;
+			int secondErrorRetryCount = 0;
+
+			Exception errorToHandle;
+			if (firstExceptionDelay)
+			{
+				errorToHandle = new InvalidCastException();
+			}
+			else
+			{
+				errorToHandle = new InvalidOperationException();
+			}
+
+			TimeSpan func(int retryCount, Exception ex)
+			{
+				switch (ex)
+				{
+					case InvalidCastException _:
+						firstErrorRetryCount = retryCount;
+						break;
+					case InvalidOperationException _:
+						secondErrorRetryCount = retryCount;
+						break;
+				}
+				return TimeSpan.FromTicks(1);
+			}
+			var bp = new BulkErrorProcessor().WithDelayBetweenRetries(func);
+			var pr = new DefaultRetryProcessor(bp);
+			pr.Retry(() => throw errorToHandle, 2);
+			if (firstExceptionDelay)
+			{
+				Assert.That(firstErrorRetryCount, Is.EqualTo(1));
+				Assert.That(secondErrorRetryCount, Is.EqualTo(0));
+			}
+			else
+			{
+				Assert.That(secondErrorRetryCount, Is.EqualTo(1));
+				Assert.That(firstErrorRetryCount, Is.EqualTo(0));
+			}
+		}
 	}
 }

@@ -11,6 +11,26 @@ namespace PoliNorError
 			return !source.Any();
 		}
 
+		public static void ActionForAll<T>(this IEnumerable<T> source, Action<T> action)
+		{
+			foreach (var element in source)
+			{
+				action(element);
+			}
+		}
+
+		public static void ActionForAll<T>(this IList<T> source, Action<IEnumerable<T>> collectionAct, bool excludeLastPolicy)
+		{
+			if (!excludeLastPolicy)
+			{
+				collectionAct(source);
+			}
+			else if (source.Count > 1)
+			{
+				collectionAct(source.SkipLast());
+			}
+		}
+
 		public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source)
 		{
 			using (var e = source.GetEnumerator())

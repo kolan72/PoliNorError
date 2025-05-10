@@ -33,4 +33,12 @@ namespace PoliNorError
 
 		public bool HasContext { get; protected set; }
 	}
+
+	public static class ProcessingErrorInfoExtensions
+	{
+		public static int GetRetryCount(this ProcessingErrorInfo processingErrorInfo)
+		{
+			return (processingErrorInfo as IRetryExecutionInfo)?.RetryCount ?? 0;
+		}
+	}
 }

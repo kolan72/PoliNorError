@@ -143,5 +143,49 @@ namespace PoliNorError.Tests
 			Assert.That(res[1].TotalSeconds, Is.EqualTo(8));
 			Assert.That(res[2].TotalSeconds, Is.EqualTo(12));
 		}
+
+		[Test]
+		[TestCase(RetryDelayType.Constant, 2)]
+		[TestCase(RetryDelayType.Linear, 6)]
+		[TestCase(RetryDelayType.Exponential, 8)]
+		public void Should_Set_RetryDelay_When_Initialized_Through_Constructor_With_Options(RetryDelayType retryDelayType, int equalTo)
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(2);
+			RetryDelay rd;
+			switch (retryDelayType)
+			{
+				case RetryDelayType.Constant:
+					rd = new RetryDelay(new ConstantRetryDelayOptions() { BaseDelay = baseDelay });
+					break;
+				case RetryDelayType.Linear:
+					rd = new RetryDelay(new LinearRetryDelayOptions() { BaseDelay = baseDelay });
+					break;
+				case RetryDelayType.Exponential:
+					rd = new RetryDelay(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay });
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+
+			var res = rd.GetDelay(2);
+			Assert.That(res.TotalMilliseconds, Is.EqualTo(equalTo));
+		}
+
+		[Test]
+		public void Should_Set_RetryDelay_When_Initialized_Through_DelayProvider()
+		{
+			TimeSpan delayValueProvider(int _) => TimeSpan.FromSeconds(1);
+
+			var rd = new RetryDelay(delayValueProvider);
+			Assert.That(rd.GetDelay(0), Is.EqualTo(TimeSpan.FromSeconds(1)));
+		}
+
+		[Test]
+		public void Should_Throw_When_DelayValueProviderIsNull()
+		{
+			Func<int, TimeSpan> nullProvider = null;
+
+			Assert.Throws<ArgumentNullException>(() => new RetryDelay(nullProvider));
+		}
 	}
 }

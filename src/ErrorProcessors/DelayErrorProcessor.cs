@@ -7,13 +7,7 @@ namespace PoliNorError
 	public class DelayErrorProcessor : IErrorProcessor
 	{
 		private readonly Func<int, Exception, TimeSpan> _sleepProvider;
-		private readonly DelayProvider _delayProvider;
-
-		public DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider)
-		{
-			_sleepProvider = sleepProvider;
-			_delayProvider = new DelayProvider();
-		}
+		private readonly IDelayProvider _delayProvider;
 
 		public DelayErrorProcessor(TimeSpan timeSpan) : this((_, __) => timeSpan){}
 
@@ -22,19 +16,28 @@ namespace PoliNorError
 		public DelayErrorProcessor(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg) : this((retryAttempt, exc) => delayOnRetryFunc.Apply(delayFuncArg)(retryAttempt, exc))
 		{}
 
+		public DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider) : this(sleepProvider, null)
+		{}
+
+		internal DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider, IDelayProvider delayProvider)
+		{
+			_sleepProvider = sleepProvider;
+			_delayProvider = delayProvider ?? new DelayProvider();
+		}
+
 		public virtual Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
-			_delayProvider.Backoff(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error), cancellationToken);
+			_delayProvider.Backoff(GetCurDelay(GetRetry(catchBlockProcessErrorInfo), error), cancellationToken);
 			return error;
 		}
 
 		public virtual async Task<Exception> ProcessAsync(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
-			await _delayProvider.BackoffAsync(GetCurDelay(GetRetryAttempt(catchBlockProcessErrorInfo), error), configAwait, cancellationToken).ConfigureAwait(configAwait);
+			await _delayProvider.BackoffAsync(GetCurDelay(GetRetry(catchBlockProcessErrorInfo), error), configAwait, cancellationToken).ConfigureAwait(configAwait);
 			return error;
 		}
 
-		private static int GetRetryAttempt(ProcessingErrorInfo catchBlockProcessErrorInfo)
+		private static int GetRetry(ProcessingErrorInfo catchBlockProcessErrorInfo)
 		{
 			switch (catchBlockProcessErrorInfo)
 			{
@@ -52,9 +55,9 @@ namespace PoliNorError
 			}
 		}
 
-		private TimeSpan GetCurDelay(int retryAttempt, Exception ex)
+		private TimeSpan GetCurDelay(int retry, Exception ex)
 		{
-			return _sleepProvider(retryAttempt, ex);
+			return _sleepProvider(retry, ex);
 		}
 	}
 }

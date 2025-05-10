@@ -7,8 +7,20 @@ namespace PoliNorError
 	/// </summary>
 	public class RetryDelay
 	{
+		/// <summary>
+		/// Gets or sets the delay value provider.
+		/// Replaces <see cref="InnerDelay"/> and <see cref="InnerDelayValueProvider"/>, which are now obsolete.
+		/// </summary>
+		protected Func<int, TimeSpan> DelayValueProvider { get; set; }
+
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This property is obsolete.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected RetryDelay InnerDelay { get; set; }
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This property is obsolete. Use DelayValueProvider property instead.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected Func<int, TimeSpan> InnerDelayValueProvider { get; set; }
 
 		protected RetryDelay()
@@ -24,17 +36,68 @@ namespace PoliNorError
 		/// <param name="useJitter">Whether jitter is used.</param>
 		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan maxDelay, bool useJitter = false)
 		{
-			InitInnerDelay(delayType, baseDelay, maxDelay, useJitter);
+			DelayValueProvider = GetRetryDelayProvider(delayType, baseDelay, maxDelay, useJitter);
 		}
 
 		///<inheritdoc cref = "RetryDelay(RetryDelayType, TimeSpan, TimeSpan, Boolean)"/>
 		public RetryDelay(RetryDelayType delayType, TimeSpan baseDelay, bool useJitter = false)
 		{
-			InitInnerDelay(delayType, baseDelay, null, useJitter);
+			DelayValueProvider = GetRetryDelayProvider(delayType, baseDelay, null, useJitter);
 		}
 
-		private void InitInnerDelay(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan? maxDelay, bool useJitter)
+		/// <summary>
+		/// Initializes a new instance of <see cref="RetryDelay"/>.
+		/// </summary>
+		/// <param name="options"><see cref="RetryDelayOptions"/></param>
+		public RetryDelay(RetryDelayOptions options)
 		{
+			switch (options)
+			{
+				case ConstantRetryDelayOptions c:
+					DelayValueProvider = (new ConstantRetryDelay(c)).DelayValueProvider;
+					break;
+				case LinearRetryDelayOptions l:
+					DelayValueProvider = (new LinearRetryDelay(l)).DelayValueProvider;
+					break;
+				case ExponentialRetryDelayOptions e:
+					DelayValueProvider = (new ExponentialRetryDelay(e)).DelayValueProvider;
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="RetryDelay"/> class with a custom delay provider function.
+		/// </summary>
+		/// <param name="delayValueProvider">A function that calculates the delay duration for a given retry number.</param>
+		public RetryDelay(Func<int, TimeSpan> delayValueProvider)
+		{
+			DelayValueProvider = delayValueProvider ?? throw new ArgumentNullException(nameof(delayValueProvider));
+		}
+
+		public static implicit operator RetryDelay(Func<int, TimeSpan> delayValueProvider) => new RetryDelay(delayValueProvider);
+
+		/// <summary>
+		/// Gets the delay value from the current retry.
+		/// </summary>
+		/// <param name="attempt">The current retry.</param>
+		/// <returns></returns>
+		public virtual TimeSpan GetDelay(int attempt)
+		{
+			return DelayValueProvider(attempt);
+		}
+
+		protected static double ApplyJitter(double delayInMs)
+		{
+			var offset = (delayInMs * RetryDelayConstants.JitterFactor) / 2;
+			var randomDelay = (delayInMs * RetryDelayConstants.JitterFactor * StaticRandom.RandDouble()) - offset;
+			return delayInMs + randomDelay;
+		}
+
+		private Func<int, TimeSpan> GetRetryDelayProvider(RetryDelayType delayType, TimeSpan baseDelay, TimeSpan? maxDelay, bool useJitter)
+		{
+#pragma warning disable CS0618 // Type or member is obsolete
 			switch (delayType)
 			{
 				case RetryDelayType.Constant:
@@ -44,28 +107,13 @@ namespace PoliNorError
 					InnerDelay = new LinearRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
 					break;
 				case RetryDelayType.Exponential:
-					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay,  useJitter: useJitter);
+					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
 					break;
 				default:
 					throw new NotImplementedException();
 			}
-		}
-
-		/// <summary>
-		/// Gets the delay value from the current attempt.
-		/// </summary>
-		/// <param name="attempt">The current attempt.</param>
-		/// <returns></returns>
-		public virtual TimeSpan GetDelay(int attempt)
-		{
-			return InnerDelay.InnerDelayValueProvider(attempt);
-		}
-
-		protected static double ApplyJitter(double delayInMs)
-		{
-			var offset = (delayInMs * RetryDelayConstants.JitterFactor) / 2;
-			var randomDelay = (delayInMs * RetryDelayConstants.JitterFactor * StaticRandom.RandDouble()) - offset;
-			return delayInMs + randomDelay;
+			return InnerDelay.DelayValueProvider;
+#pragma warning restore CS0618 // Type or member is obsolete
 		}
 	}
 

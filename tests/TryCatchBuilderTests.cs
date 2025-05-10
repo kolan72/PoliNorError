@@ -228,6 +228,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This test is obsolete.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public void Should_AddCatchBlock_With_NonEmptyCatchBlockFilter_Made_Of_Func_And_IBulkErrorProcessor_Configured_FiltersAndProcessesError()
 		{
 			int i = 0;
@@ -240,6 +243,31 @@ namespace PoliNorError.Tests
 				TryCatchBuilder
 					.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
 					.AddCatchBlock((ef) => ef.IncludeError<InvalidOperationException>(), (b) => b.WithErrorProcessorOf(act));
+
+			var tryCatch = tryCatchBuilder.Build();
+			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));
+
+			var res = tryCatch.Execute(() => throw new InvalidOperationException());
+			Assert.That(res.IsError, Is.True);
+			Assert.That(i, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_AddCatchBlock_With_NonEmptyCatchBlockFilter_Made_Of_Func_And_IBulkErrorProcessor_FiltersAndProcessesError()
+		{
+			int i = 0;
+			void act(Exception _)
+			{
+				i++;
+			}
+
+			var bp = new BulkErrorProcessor()
+					.WithErrorProcessorOf(act);
+
+			var tryCatchBuilder =
+				TryCatchBuilder
+					.CreateFrom(CatchBlockHandlerFactory.FilterExceptionsBy(NonEmptyCatchBlockFilter.CreateByIncluding<ArgumentException>()))
+					.AddCatchBlock((ef) => ef.IncludeError<InvalidOperationException>(), bp);
 
 			var tryCatch = tryCatchBuilder.Build();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(2));

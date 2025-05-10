@@ -1,6 +1,6 @@
 ﻿namespace PoliNorError
 {
-	public class RetryProcessingErrorInfo : ProcessingErrorInfo
+	public class RetryProcessingErrorInfo : ProcessingErrorInfo, IRetryExecutionInfo
 	{
 		internal RetryProcessingErrorInfo(int retryAttempt) : base(new RetryProcessingErrorContext(retryAttempt))
 		{

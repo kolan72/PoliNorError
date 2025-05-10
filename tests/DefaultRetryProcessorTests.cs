@@ -7,6 +7,7 @@ using System.Diagnostics;
 using static PoliNorError.Tests.DelayTimeErrorProcessorTests;
 using NUnit.Framework.Legacy;
 using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
+using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
 {
@@ -617,7 +618,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			DefaultRetryProcessor processor;
@@ -669,7 +670,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -713,7 +714,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -759,7 +760,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -817,7 +818,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -854,7 +855,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -878,9 +879,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; }, 5, 2);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(m, Is.EqualTo(0));
 				Assert.That(retryCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
@@ -898,7 +897,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -944,7 +943,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -993,7 +992,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -1040,7 +1039,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -1064,9 +1063,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = processor.Retry((v) => { addable += v; return addable; }, 5, 2);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(m, Is.EqualTo(0));
 				Assert.That(retryCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
@@ -1085,7 +1082,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -1131,7 +1128,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1168,9 +1165,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = processor.RetryInfinite((v) => { addable += v; return addable; }, 5);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(numOfFailedAttemptsMultipliedByParam, Is.EqualTo(0));
 				Assert.That(failedAttemptCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
@@ -1189,7 +1184,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor()
@@ -1226,7 +1221,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m += pi.Param;
-				retryCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount;
+				retryCount = pi.GetRetryCount();
 			}
 
 			var processor = new DefaultRetryProcessor(true)
@@ -1250,9 +1245,7 @@ namespace PoliNorError.Tests
 			}
 			else
 			{
-#pragma warning disable RCS1021 // Convert lambda expression body to expression-body.
 				result = await processor.RetryAsync(async (v, __) => { await Task.Delay(1); addable += v; return addable; }, 5, 2);
-#pragma warning restore RCS1021 // Convert lambda expression body to expression-body.
 				Assert.That(m, Is.EqualTo(0));
 				Assert.That(retryCount, Is.EqualTo(0));
 				Assert.That(addable, Is.EqualTo(6));
@@ -1271,7 +1264,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1319,7 +1312,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = ((RetryProcessingErrorInfo<int>)pi).RetryCount + 1;
+				failedAttemptCount = pi.GetRetryCount() + 1;
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1462,6 +1455,70 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			IRetryProcessor retryProcessor;
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				retryProcessor = new DefaultRetryProcessor().AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				retryProcessor = new DefaultRetryProcessor().AddErrorFilter(appendedFilterSelector);
+			}
+
+			Assert.That(retryProcessor.ErrorFilter.ExcludedErrorFilters.Count, Is.EqualTo(1));
+			Assert.That(retryProcessor.ErrorFilter.IncludedErrorFilters.Count, Is.EqualTo(1));
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(retryProcessor.Retry(() => throw errorToHandle, 1).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			var retryProcessor = new DefaultRetryProcessor()
+									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				retryProcessor.AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				retryProcessor.AddErrorFilter(appendedFilterSelector);
+			}
+
+			Assert.That(retryProcessor.ErrorFilter.ExcludedErrorFilters.Count, Is.EqualTo(2));
+			Assert.That(retryProcessor.ErrorFilter.IncludedErrorFilters.Count, Is.EqualTo(2));
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
+
+			Assert.That(retryProcessor.Retry(() => throw errorToHandle, 1).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 	}
 }
