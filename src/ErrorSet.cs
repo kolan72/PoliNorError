@@ -93,7 +93,7 @@ namespace PoliNorError
 
 			public override bool Equals(object obj) => obj is ErrorSetItem item && Equals(item);
 
-			public bool Equals(ErrorSetItem other) => ErrorType == other.ErrorType && ErrorKind == other.ErrorKind;
+			public bool Equals(ErrorSetItem other) => ErrorType == other?.ErrorType && ErrorKind == other?.ErrorKind;
 
 			public override int GetHashCode() => (ErrorKind, ErrorType).GetHashCode();
 

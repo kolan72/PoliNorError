@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Linq;
+using static PoliNorError.ErrorSet;
 
 namespace PoliNorError.Tests
 {
@@ -21,12 +22,19 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Shpuld_WithError_Add_Error_Type()
+		public void Should_WithError_Add_Error_Type()
 		{
 			var errorSet = ErrorSet.FromError<ArgumentException>();
 			errorSet.WithError<ArgumentNullException>();
 			Assert.That(errorSet.Items.Count(), Is.EqualTo(2));
 			Assert.That(errorSet.Items.Skip(1).FirstOrDefault().ErrorType, Is.EqualTo(typeof(ArgumentNullException)));
+		}
+
+		[Test]
+		public void Should_ErrorSetItem_Be_Equatable_With_Null()
+		{
+			var esi = new ErrorSetItem(typeof(InvalidOperationException), ErrorSetItem.ItemType.Error);
+			Assert.That(esi.Equals(null), Is.False);
 		}
 	}
 }
