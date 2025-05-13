@@ -111,6 +111,7 @@
     <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
+    <Compile Include="ICanAddErrorFilterTests.cs" />
     <Compile Include="PolicyResultExtensionsTests.cs" />
     <Compile Include="ProcessingErrorInfoTests.cs" />
     <Compile Include="RetryDelay.Tests\RetryDelayChecker.cs" />
