@@ -11,7 +11,7 @@ namespace PoliNorError.Tests
 		[TestCase(true, false)]
 		[TestCase(false, true)]
 		[TestCase(false, false)]
-		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		public void Should_DefaultRetryProcessor_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
 
@@ -44,7 +44,7 @@ namespace PoliNorError.Tests
 		[TestCase(true, false, false)]
 		[TestCase(false, true, false)]
 		[TestCase(false, false, false)]
-		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		public void Should_DefaultRetryProcessor_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
 
@@ -68,6 +68,70 @@ namespace PoliNorError.Tests
 			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
 
 			Assert.That(retryProcessor.Retry(() => throw errorToHandle, 1).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_SimplePolicyProcessor_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			ISimplePolicyProcessor simpleProcessor;
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				simpleProcessor = new SimplePolicyProcessor().AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				simpleProcessor = new SimplePolicyProcessor().AddErrorFilter(appendedFilterSelector);
+			}
+
+			Assert.That(simpleProcessor.ErrorFilter.ExcludedErrorFilters.Count, Is.EqualTo(1));
+			Assert.That(simpleProcessor.ErrorFilter.IncludedErrorFilters.Count, Is.EqualTo(1));
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(simpleProcessor.Execute(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		public void Should_SimplePolicyProcessor_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			var simpleProcessor = new SimplePolicyProcessor()
+									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				simpleProcessor.AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				simpleProcessor.AddErrorFilter(appendedFilterSelector);
+			}
+
+			Assert.That(simpleProcessor.ErrorFilter.ExcludedErrorFilters.Count, Is.EqualTo(2));
+			Assert.That(simpleProcessor.ErrorFilter.IncludedErrorFilters.Count, Is.EqualTo(2));
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
+
+			Assert.That(simpleProcessor.Execute(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 	}
 }
