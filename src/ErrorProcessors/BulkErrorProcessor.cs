@@ -128,6 +128,9 @@ namespace PoliNorError
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This enum is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public enum BulkProcessStatus
 		{
 			None = 0,
