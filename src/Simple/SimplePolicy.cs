@@ -9,7 +9,7 @@ namespace PoliNorError
 	/// <summary>
 	/// A simple policy that can handle delegates.
 	/// </summary>
-	public sealed partial class SimplePolicy : Policy, IPolicyBase, IWithErrorFilter<SimplePolicy>, IWithInnerErrorFilter<SimplePolicy>
+	public sealed partial class SimplePolicy : Policy, IPolicyBase, IWithErrorFilter<SimplePolicy>, IWithInnerErrorFilter<SimplePolicy>, ICanAddErrorFilter<SimplePolicy>
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 
@@ -409,6 +409,20 @@ namespace PoliNorError
 		private void ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor proc)
 		{
 			ThrowHelper.ThrowIfNotImplemented(_simpleProcessor, out proc);
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicy}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public SimplePolicy AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicy}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public SimplePolicy AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
 		}
 	}
 }

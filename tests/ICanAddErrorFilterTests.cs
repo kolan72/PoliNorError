@@ -76,6 +76,10 @@ namespace PoliNorError.Tests
 		[TestCase(PolicyAlias.Retry, true, false)]
 		[TestCase(PolicyAlias.Retry, false, true)]
 		[TestCase(PolicyAlias.Retry, false, false)]
+		[TestCase(PolicyAlias.Simple, true, true)]
+		[TestCase(PolicyAlias.Simple, true, false)]
+		[TestCase(PolicyAlias.Simple, false, true)]
+		[TestCase(PolicyAlias.Simple, false, false)]
 		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(PolicyAlias policyAlias, bool excludeFilterWork, bool useSelector)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
@@ -89,6 +93,9 @@ namespace PoliNorError.Tests
 					case PolicyAlias.Retry:
 						retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilter);
 						break;
+					case PolicyAlias.Simple:
+						retryPolicy = new SimplePolicy().AddErrorFilter(appendedFilter);
+						break;
 					default:
 						throw new NotImplementedException();
 				}
@@ -100,6 +107,9 @@ namespace PoliNorError.Tests
 				{
 					case PolicyAlias.Retry:
 						retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilterSelector);
+						break;
+					case PolicyAlias.Simple:
+						retryPolicy = new SimplePolicy().AddErrorFilter(appendedFilterSelector);
 						break;
 					default:
 						throw new NotImplementedException();
@@ -120,6 +130,14 @@ namespace PoliNorError.Tests
 		[TestCase(PolicyAlias.Retry, true, false, false)]
 		[TestCase(PolicyAlias.Retry, false, true, false)]
 		[TestCase(PolicyAlias.Retry, false, false, false)]
+		[TestCase(PolicyAlias.Simple, true, true, true)]
+		[TestCase(PolicyAlias.Simple, true, false, true)]
+		[TestCase(PolicyAlias.Simple, false, true, true)]
+		[TestCase(PolicyAlias.Simple, false, false, true)]
+		[TestCase(PolicyAlias.Simple, true, true, false)]
+		[TestCase(PolicyAlias.Simple, true, false, false)]
+		[TestCase(PolicyAlias.Simple, false, true, false)]
+		[TestCase(PolicyAlias.Simple, false, false, false)]
 		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(PolicyAlias policyAlias, bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
@@ -129,6 +147,10 @@ namespace PoliNorError.Tests
 			{
 				case PolicyAlias.Retry:
 					retryPolicy = new RetryPolicy(1)
+									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+					break;
+				case PolicyAlias.Simple:
+					retryPolicy = new SimplePolicy()
 									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
 					break;
 				default:
@@ -143,6 +165,9 @@ namespace PoliNorError.Tests
 					case PolicyAlias.Retry:
 						((RetryPolicy)retryPolicy).AddErrorFilter(appendedFilter);
 						break;
+					case PolicyAlias.Simple:
+						((SimplePolicy)retryPolicy).AddErrorFilter(appendedFilter);
+						break;
 					default:
 						throw new NotImplementedException();
 				}
@@ -155,13 +180,15 @@ namespace PoliNorError.Tests
 					case PolicyAlias.Retry:
 						((RetryPolicy)retryPolicy).AddErrorFilter(appendedFilterSelector);
 						break;
+					case PolicyAlias.Simple:
+						((SimplePolicy)retryPolicy).AddErrorFilter(appendedFilterSelector);
+						break;
 					default:
 						throw new NotImplementedException();
 				}
 			}
 
 			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
-
 			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 
