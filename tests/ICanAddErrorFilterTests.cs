@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 using System.Linq;
 using static PoliNorError.Tests.ExceptionFilterTests;
 
@@ -68,6 +69,100 @@ namespace PoliNorError.Tests
 			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
 
 			Assert.That(retryProcessor.Retry(() => throw errorToHandle, 1).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(PolicyAlias.Retry, true, true)]
+		[TestCase(PolicyAlias.Retry, true, false)]
+		[TestCase(PolicyAlias.Retry, false, true)]
+		[TestCase(PolicyAlias.Retry, false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(PolicyAlias policyAlias, bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			IPolicyBase retryPolicy;
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				switch (policyAlias)
+				{
+					case PolicyAlias.Retry:
+						retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilter);
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				switch (policyAlias)
+				{
+					case PolicyAlias.Retry:
+						retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilterSelector);
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(PolicyAlias.Retry, true, true, true)]
+		[TestCase(PolicyAlias.Retry, true, false, true)]
+		[TestCase(PolicyAlias.Retry, false, true, true)]
+		[TestCase(PolicyAlias.Retry, false, false, true)]
+		[TestCase(PolicyAlias.Retry, true, true, false)]
+		[TestCase(PolicyAlias.Retry, true, false, false)]
+		[TestCase(PolicyAlias.Retry, false, true, false)]
+		[TestCase(PolicyAlias.Retry, false, false, false)]
+		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(PolicyAlias policyAlias, bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			IPolicyBase retryPolicy;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Retry:
+					retryPolicy = new RetryPolicy(1)
+									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				switch(policyAlias)
+				{
+					case PolicyAlias.Retry:
+						((RetryPolicy)retryPolicy).AddErrorFilter(appendedFilter);
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				switch (policyAlias)
+				{
+					case PolicyAlias.Retry:
+						((RetryPolicy)retryPolicy).AddErrorFilter(appendedFilterSelector);
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
+
+			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 
 		[Test]
