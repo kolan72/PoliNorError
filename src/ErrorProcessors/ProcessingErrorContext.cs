@@ -4,6 +4,8 @@ namespace PoliNorError
 {
 	public class ProcessingErrorContext
 	{
+		internal ProcessingErrorContext(): this(PolicyAlias.NotSet) { }
+
 		public ProcessingErrorContext(PolicyAlias policyKind) => PolicyKind = policyKind;
 
 #pragma warning disable S1133 // Deprecated code should be removed

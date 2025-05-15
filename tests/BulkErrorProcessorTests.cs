@@ -61,7 +61,41 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Process_Return_Status_ProcessorException_When_ProcessorWithError2()
+		public void Should_Process_When_ProcessingErrorContext_Param_Is_Null()
+		{
+			bool processorFlag = false;
+			PolicyAlias? policyAlias = null;
+			var handlingError = new InvalidOperationException();
+			var bulkProcessor = new BulkErrorProcessor().WithErrorProcessorOf((Exception _, ProcessingErrorInfo pi) =>
+			{
+			  policyAlias = pi.PolicyKind;
+			  processorFlag = true;
+			});
+			var res = bulkProcessor.Process(handlingError, null, CancellationToken.None);
+			Assert.That(res.HandlingError, Is.EqualTo(handlingError));
+			Assert.That(policyAlias, Is.EqualTo(PolicyAlias.NotSet));
+			Assert.That(processorFlag, Is.True);
+		}
+
+		[Test]
+		public async Task Should_ProcessAsync_When_ProcessingErrorContext_Param_Is_Null()
+		{
+			bool processorFlag = false;
+			PolicyAlias? policyAlias = null;
+			var handlingError = new InvalidOperationException();
+			var bulkProcessor = new BulkErrorProcessor().WithErrorProcessorOf((Exception _, ProcessingErrorInfo pi) =>
+			{
+				policyAlias = pi.PolicyKind;
+				processorFlag = true;
+			});
+			var res = await bulkProcessor.ProcessAsync(handlingError, null, CancellationToken.None);
+			Assert.That(res.HandlingError, Is.EqualTo(handlingError));
+			Assert.That(policyAlias, Is.EqualTo(PolicyAlias.NotSet));
+			Assert.That(processorFlag, Is.True);
+		}
+
+		[Test]
+		public void Should_Process_Return_Status_ProcessorException_When_ProcessorWithError()
 		{
 			var bulkProcessor = new BulkErrorProcessor();
 

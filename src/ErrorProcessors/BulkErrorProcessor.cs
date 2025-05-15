@@ -33,7 +33,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo();
+			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
@@ -83,7 +83,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo();
+			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
