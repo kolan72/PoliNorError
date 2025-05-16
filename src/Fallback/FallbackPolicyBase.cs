@@ -6,7 +6,7 @@ using PoliNorError.Extensions.PolicyErrorFiltering;
 
 namespace PoliNorError
 {
-	public abstract partial class FallbackPolicyBase : Policy, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>, IWithInnerErrorFilter<FallbackPolicyBase>
+	public abstract partial class FallbackPolicyBase : Policy, IFallbackPolicy, IWithErrorFilter<FallbackPolicyBase>, IWithInnerErrorFilter<FallbackPolicyBase>, ICanAddErrorFilter<FallbackPolicyBase>
 	{
 		internal IFallbackProcessor _fallbackProcessor;
 
@@ -450,6 +450,20 @@ namespace PoliNorError
 		protected void ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor proc)
 		{
 			ThrowHelper.ThrowIfNotImplemented(_fallbackProcessor, out proc);
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{FallbackPolicyBase}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public FallbackPolicyBase AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{FallbackPolicyBase}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public FallbackPolicyBase AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
 		}
 	}
 }

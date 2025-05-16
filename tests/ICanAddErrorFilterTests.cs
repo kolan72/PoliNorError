@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
@@ -69,6 +70,54 @@ namespace PoliNorError.Tests
 			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
 
 			Assert.That(retryProcessor.Retry(() => throw errorToHandle, 1).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false)]
+		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			IPolicyBase fb = null;
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				switch (policyAlias)
+				{
+					case (FallbackTypeForTests.BaseClass):
+					{
+						fb = new FallbackPolicy()
+								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+								.WithFallbackAction((_) => { })
+								.AddErrorFilter(appendedFilter);
+						break;
+					}
+					default:
+						throw new NotImplementedException();
+				}
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				switch (policyAlias)
+				{
+					case (FallbackTypeForTests.BaseClass):
+					{
+						fb = new FallbackPolicy()
+								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+								.WithFallbackAction((_) => { })
+								.AddErrorFilter(appendedFilterSelector);
+						break;
+					}
+				}
+			}
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(fb.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 
 		[Test]
