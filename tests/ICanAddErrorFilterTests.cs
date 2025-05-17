@@ -81,19 +81,27 @@ namespace PoliNorError.Tests
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
 
-			IPolicyBase fb = null;
-
+			FallbackPolicyBase fb = null;
+			switch (policyAlias)
+			{
+				case FallbackTypeForTests.BaseClass:
+					{
+						fb = new FallbackPolicy()
+								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+								.WithFallbackAction((_) => { });
+						break;
+					}
+				default:
+					throw new NotImplementedException();
+			}
 			if (!useSelector)
 			{
 				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
 				switch (policyAlias)
 				{
-					case (FallbackTypeForTests.BaseClass):
+					case FallbackTypeForTests.BaseClass:
 					{
-						fb = new FallbackPolicy()
-								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
-								.WithFallbackAction((_) => { })
-								.AddErrorFilter(appendedFilter);
+						fb = fb.AddErrorFilter(appendedFilter);
 						break;
 					}
 					default:
@@ -105,12 +113,9 @@ namespace PoliNorError.Tests
 				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
 				switch (policyAlias)
 				{
-					case (FallbackTypeForTests.BaseClass):
+					case FallbackTypeForTests.BaseClass:
 					{
-						fb = new FallbackPolicy()
-								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
-								.WithFallbackAction((_) => { })
-								.AddErrorFilter(appendedFilterSelector);
+						fb = fb.AddErrorFilter(appendedFilterSelector);
 						break;
 					}
 				}
@@ -167,6 +172,61 @@ namespace PoliNorError.Tests
 
 			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
 
+			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false, true)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, true, false, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, true, false)]
+		[TestCase(FallbackTypeForTests.BaseClass, false, false, false)]
+		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			FallbackPolicyBase retryPolicy;
+			switch (policyAlias)
+			{
+				case FallbackTypeForTests.BaseClass:
+					retryPolicy = new FallbackPolicy()
+								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+								.WithFallbackAction((_) => { })
+								.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				switch (policyAlias)
+				{
+					case FallbackTypeForTests.BaseClass:
+						retryPolicy.AddErrorFilter(appendedFilter);
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				switch (policyAlias)
+				{
+					case FallbackTypeForTests.BaseClass:
+						retryPolicy.AddErrorFilter(appendedFilterSelector);
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
 			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 
