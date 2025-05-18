@@ -77,6 +77,10 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.BaseClass, true, false)]
 		[TestCase(FallbackTypeForTests.BaseClass, false, true)]
 		[TestCase(FallbackTypeForTests.BaseClass, false, false)]
+		[TestCase(FallbackTypeForTests.Creator, true, true)]
+		[TestCase(FallbackTypeForTests.Creator, true, false)]
+		[TestCase(FallbackTypeForTests.Creator, false, true)]
+		[TestCase(FallbackTypeForTests.Creator, false, false)]
 		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
@@ -85,12 +89,14 @@ namespace PoliNorError.Tests
 			switch (policyAlias)
 			{
 				case FallbackTypeForTests.BaseClass:
-					{
-						fb = new FallbackPolicy()
-								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
-								.WithFallbackAction((_) => { });
-						break;
-					}
+					fb = new FallbackPolicy()
+							.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+							.WithFallbackAction((_) => { });
+					break;
+				case FallbackTypeForTests.Creator:
+					fb = new FallbackPolicy();
+					break;
+
 				default:
 					throw new NotImplementedException();
 			}
@@ -100,10 +106,11 @@ namespace PoliNorError.Tests
 				switch (policyAlias)
 				{
 					case FallbackTypeForTests.BaseClass:
-					{
 						fb = fb.AddErrorFilter(appendedFilter);
 						break;
-					}
+					case FallbackTypeForTests.Creator:
+						fb = ((FallbackPolicy)fb).AddErrorFilter(appendedFilter);
+						break;
 					default:
 						throw new NotImplementedException();
 				}
@@ -114,10 +121,11 @@ namespace PoliNorError.Tests
 				switch (policyAlias)
 				{
 					case FallbackTypeForTests.BaseClass:
-					{
 						fb = fb.AddErrorFilter(appendedFilterSelector);
 						break;
-					}
+					case FallbackTypeForTests.Creator:
+						fb = ((FallbackPolicy)fb).AddErrorFilter(appendedFilterSelector);
+						break;
 				}
 			}
 			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
@@ -184,17 +192,29 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.BaseClass, true, false, false)]
 		[TestCase(FallbackTypeForTests.BaseClass, false, true, false)]
 		[TestCase(FallbackTypeForTests.BaseClass, false, false, false)]
+		[TestCase(FallbackTypeForTests.Creator, true, true, true)]
+		[TestCase(FallbackTypeForTests.Creator, true, false, true)]
+		[TestCase(FallbackTypeForTests.Creator, false, true, true)]
+		[TestCase(FallbackTypeForTests.Creator, false, false, true)]
+		[TestCase(FallbackTypeForTests.Creator, true, true, false)]
+		[TestCase(FallbackTypeForTests.Creator, true, false, false)]
+		[TestCase(FallbackTypeForTests.Creator, false, true, false)]
+		[TestCase(FallbackTypeForTests.Creator, false, false, false)]
 		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
 
-			FallbackPolicyBase retryPolicy;
+			FallbackPolicyBase fb;
 			switch (policyAlias)
 			{
 				case FallbackTypeForTests.BaseClass:
-					retryPolicy = new FallbackPolicy()
+					fb = new FallbackPolicy()
 								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
 								.WithFallbackAction((_) => { })
+								.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+					break;
+				case FallbackTypeForTests.Creator:
+					fb = new FallbackPolicy()
 								.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
 					break;
 				default:
@@ -207,7 +227,10 @@ namespace PoliNorError.Tests
 				switch (policyAlias)
 				{
 					case FallbackTypeForTests.BaseClass:
-						retryPolicy.AddErrorFilter(appendedFilter);
+						fb.AddErrorFilter(appendedFilter);
+						break;
+					case FallbackTypeForTests.Creator:
+						((FallbackPolicy)fb).AddErrorFilter(appendedFilter);
 						break;
 					default:
 						throw new NotImplementedException();
@@ -219,7 +242,10 @@ namespace PoliNorError.Tests
 				switch (policyAlias)
 				{
 					case FallbackTypeForTests.BaseClass:
-						retryPolicy.AddErrorFilter(appendedFilterSelector);
+						fb.AddErrorFilter(appendedFilterSelector);
+						break;
+					case FallbackTypeForTests.Creator:
+						((FallbackPolicy)fb).AddErrorFilter(appendedFilterSelector);
 						break;
 					default:
 						throw new NotImplementedException();
@@ -227,7 +253,7 @@ namespace PoliNorError.Tests
 			}
 
 			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
-			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+			Assert.That(fb.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 
 		[Test]
