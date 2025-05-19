@@ -2378,6 +2378,19 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_Initialize_DerivedFallbackPolicyBase_With_FallbackFuncsProvider()
+		{
+			var tfb = new TestFallbackPolicy();
+			var result = tfb.Handle(() => throw new InvalidOperationException());
+			Assert.That(result.IsPolicySuccess, Is.True);
+		}
+
+		public class TestFallbackPolicy : FallbackPolicyBase
+		{
+			public TestFallbackPolicy() : base(FallbackFuncsProvider.Create()) { }
+		}
+
 		public class TestFallbackPolicyProcessor : IFallbackProcessor
 		{
 			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();

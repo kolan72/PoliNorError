@@ -18,7 +18,7 @@ namespace PoliNorError
 		protected FallbackPolicyBase(IFallbackProcessor processor, bool onlyGenericFallbackForGenericDelegate) : this(processor, new FallbackFuncsProvider(onlyGenericFallbackForGenericDelegate))
 		{}
 
-		protected FallbackPolicyBase(FallbackFuncsProvider fallbackFuncsProvider) : this(null, fallbackFuncsProvider)
+		protected FallbackPolicyBase(FallbackFuncsProvider fallbackFuncsProvider) : this(new DefaultFallbackProcessor(), fallbackFuncsProvider)
 		{}
 
 		private protected FallbackPolicyBase(IFallbackProcessor processor, FallbackFuncsProvider fallbackFuncsProvider) : base(processor)
