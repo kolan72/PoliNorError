@@ -102,6 +102,15 @@ namespace PoliNorError
 			return this;
 		}
 
+		/// <summary>
+		/// Creates a <see cref="FallbackPolicy"/>.
+		/// </summary>
+		/// <returns></returns>
+		public FallbackPolicy ToFallbackPolicy()
+		{
+			return new FallbackPolicy(this);
+		}
+
 		protected void SetFallbackAction(Action action, CancellationType convertType = CancellationType.Precancelable)
 		{
 			SetFallbackAction(convertType == CancellationType.Precancelable ? action.ToPrecancelableAction(true) : action.ToCancelableAction());
