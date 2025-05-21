@@ -81,6 +81,10 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator, true, false)]
 		[TestCase(FallbackTypeForTests.Creator, false, true)]
 		[TestCase(FallbackTypeForTests.Creator, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false)]
 		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
@@ -96,7 +100,10 @@ namespace PoliNorError.Tests
 				case FallbackTypeForTests.Creator:
 					fb = new FallbackPolicy();
 					break;
-
+				case FallbackTypeForTests.WithAsyncFunc:
+					fb = new FallbackPolicy()
+							.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
+					break;
 				default:
 					throw new NotImplementedException();
 			}
@@ -110,6 +117,9 @@ namespace PoliNorError.Tests
 						break;
 					case FallbackTypeForTests.Creator:
 						fb = ((FallbackPolicy)fb).AddErrorFilter(appendedFilter);
+						break;
+					case FallbackTypeForTests.WithAsyncFunc:
+						fb = ((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilter);
 						break;
 					default:
 						throw new NotImplementedException();
@@ -125,6 +135,9 @@ namespace PoliNorError.Tests
 						break;
 					case FallbackTypeForTests.Creator:
 						fb = ((FallbackPolicy)fb).AddErrorFilter(appendedFilterSelector);
+						break;
+					case FallbackTypeForTests.WithAsyncFunc:
+						fb = ((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilterSelector);
 						break;
 				}
 			}
@@ -200,6 +213,14 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator, true, false, false)]
 		[TestCase(FallbackTypeForTests.Creator, false, true, false)]
 		[TestCase(FallbackTypeForTests.Creator, false, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false, true)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true, false)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false, false)]
 		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
@@ -217,6 +238,12 @@ namespace PoliNorError.Tests
 					fb = new FallbackPolicy()
 								.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
 					break;
+
+				case FallbackTypeForTests.WithAsyncFunc:
+					fb = new FallbackPolicy()
+								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
+								.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+					break;
 				default:
 					throw new NotImplementedException();
 			}
@@ -232,6 +259,9 @@ namespace PoliNorError.Tests
 					case FallbackTypeForTests.Creator:
 						((FallbackPolicy)fb).AddErrorFilter(appendedFilter);
 						break;
+					case FallbackTypeForTests.WithAsyncFunc:
+						((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilter);
+						break;
 					default:
 						throw new NotImplementedException();
 				}
@@ -246,6 +276,9 @@ namespace PoliNorError.Tests
 						break;
 					case FallbackTypeForTests.Creator:
 						((FallbackPolicy)fb).AddErrorFilter(appendedFilterSelector);
+						break;
+					case FallbackTypeForTests.WithAsyncFunc:
+						((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilterSelector);
 						break;
 					default:
 						throw new NotImplementedException();
