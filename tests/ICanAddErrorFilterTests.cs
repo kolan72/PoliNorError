@@ -423,5 +423,69 @@ namespace PoliNorError.Tests
 
 			Assert.That(simpleProcessor.Execute(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_DefaultFallbackProcessor_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			IFallbackProcessor fallbackProcessor;
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				fallbackProcessor = new DefaultFallbackProcessor().AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				fallbackProcessor = new DefaultFallbackProcessor().AddErrorFilter(appendedFilterSelector);
+			}
+
+			Assert.That(fallbackProcessor.ErrorFilter.ExcludedErrorFilters.Count, Is.EqualTo(1));
+			Assert.That(fallbackProcessor.ErrorFilter.IncludedErrorFilters.Count, Is.EqualTo(1));
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
+
+			Assert.That(fallbackProcessor.Fallback(() => throw errorToHandle, (_) => { }).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, true, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, true, false)]
+		[TestCase(false, false, false)]
+		public void Should_DefaultFallbackProcessor_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		{
+			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+
+			var fallbackProcessor = new DefaultFallbackProcessor()
+									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+
+			if (!useSelector)
+			{
+				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
+				fallbackProcessor.AddErrorFilter(appendedFilter);
+			}
+			else
+			{
+				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
+				fallbackProcessor.AddErrorFilter(appendedFilterSelector);
+			}
+
+			Assert.That(fallbackProcessor.ErrorFilter.ExcludedErrorFilters.Count, Is.EqualTo(2));
+			Assert.That(fallbackProcessor.ErrorFilter.IncludedErrorFilters.Count, Is.EqualTo(2));
+
+			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
+
+			Assert.That(fallbackProcessor.Fallback(() => throw errorToHandle, (_) => { }).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+		}
 	}
 }
