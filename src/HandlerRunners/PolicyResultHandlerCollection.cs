@@ -6,7 +6,43 @@ using static PoliNorError.Policy;
 
 namespace PoliNorError
 {
-	internal class PolicyResultHandlerCollection
+	internal interface IPolicyResultHandlerCollection
+	{
+		void AddHandler(Action<PolicyResult, CancellationToken> act);
+		void AddHandler(Func<PolicyResult, CancellationToken, Task> func);
+		void AddHandler<T>(Action<PolicyResult<T>, CancellationToken> act);
+		void AddHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func);
+
+		PolicyResult Handle(PolicyResult policyRetryResult, CancellationToken token = default);
+		PolicyResult<T> Handle<T>(PolicyResult<T> policyRetryResult, CancellationToken token = default);
+		Task<PolicyResult> HandleAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default);
+		Task<PolicyResult<T>> HandleAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default);
+	}
+
+	internal static class IPolicyResultHandlerCollectionExtensions
+	{
+		public static void AddHandler(this IPolicyResultHandlerCollection handlerCollection, Func<PolicyResult, Task> func)
+		{
+			handlerCollection.AddHandler((pr, _) => func(pr));
+		}
+
+		public static void AddHandler<T>(this IPolicyResultHandlerCollection handlerCollection, Func<PolicyResult<T>, Task> func)
+		{
+			handlerCollection.AddHandler<T>((pr, _) => func(pr));
+		}
+
+		public static void AddHandler(this IPolicyResultHandlerCollection handlerCollection, Action<PolicyResult> act)
+		{
+			handlerCollection.AddHandler((pr, _) => act(pr));
+		}
+
+		public static void AddHandler<T>(this IPolicyResultHandlerCollection handlerCollection, Action<PolicyResult<T>> act)
+		{
+			handlerCollection.AddHandler<T>((pr, _) => act(pr));
+		}
+	}
+
+	internal class PolicyResultHandlerCollection : IPolicyResultHandlerCollection
 	{
 		private int _curNum;
 
@@ -16,61 +52,41 @@ namespace PoliNorError
 			GenericHandlers = new List<IHandlerRunnerT>();
 		}
 
-		internal void AddHandler(Func<PolicyResult, Task> func)
-		{
-			AddHandler((pr, _) => func(pr));
-		}
-
-		internal void AddHandler(Func<PolicyResult, CancellationToken, Task> func)
+		public void AddHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
 			var handler = new ASyncHandlerRunner(func);
 			AddHandler(handler);
 		}
 
-		internal void AddHandler<T>(Func<PolicyResult<T>, Task> func)
-		{
-			AddHandler<T>((pr, _) => func(pr));
-		}
-
-		internal void AddHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		public void AddHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
 			var handler = ASyncHandlerRunnerT.Create(func);
 			AddGenericHandler(handler);
 		}
 
-		internal void AddHandler(Action<PolicyResult> act)
-		{
-			AddHandler((pr, _) => act(pr));
-		}
-
-		internal void AddHandler(Action<PolicyResult, CancellationToken> act)
+		public void AddHandler(Action<PolicyResult, CancellationToken> act)
 		{
 			var handler = new SyncHandlerRunner(act);
 			AddHandler(handler);
 		}
 
-		internal void AddHandler<T>(Action<PolicyResult<T>> act)
-		{
-			AddHandler<T>((pr, _) => act(pr));
-		}
-
-		internal void AddHandler<T>(Action<PolicyResult<T>, CancellationToken> act)
+		public void AddHandler<T>(Action<PolicyResult<T>, CancellationToken> act)
 		{
 			var handler = SyncHandlerRunnerT.Create(act);
 			AddGenericHandler(handler);
 		}
 
-		internal PolicyResult<T> Handle<T>(PolicyResult<T> policyRetryResult, CancellationToken token)
+		public PolicyResult<T> Handle<T>(PolicyResult<T> policyRetryResult, CancellationToken token = default)
 		{
 			return policyRetryResult.HandleResultForceSync(GenericHandlers, token);
 		}
 
-		internal PolicyResult Handle(PolicyResult policyRetryResult, CancellationToken token)
+		public PolicyResult Handle(PolicyResult policyRetryResult, CancellationToken token = default)
 		{
 			return policyRetryResult.HandleResultForceSync(Handlers, token);
 		}
 
-		internal async Task<PolicyResult> HandleAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		public async Task<PolicyResult> HandleAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
 			switch (Handlers.MapToSyncType())
 			{
@@ -87,7 +103,7 @@ namespace PoliNorError
 			}
 		}
 
-		internal async Task<PolicyResult<T>> HandleAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		public async Task<PolicyResult<T>> HandleAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
 			switch (GenericHandlers.MapToSyncType())
 			{
