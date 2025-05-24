@@ -85,6 +85,10 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false)]
 		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true)]
 		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false)]
 		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
@@ -104,6 +108,10 @@ namespace PoliNorError.Tests
 					fb = new FallbackPolicy()
 							.WithAsyncFallbackFunc(async (_) => await Task.Delay(1));
 					break;
+				case FallbackTypeForTests.WithAction:
+					fb = new FallbackPolicy()
+							.WithFallbackAction((_) => { });
+					break;
 				default:
 					throw new NotImplementedException();
 			}
@@ -120,6 +128,9 @@ namespace PoliNorError.Tests
 						break;
 					case FallbackTypeForTests.WithAsyncFunc:
 						fb = ((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilter);
+						break;
+					case FallbackTypeForTests.WithAction:
+						fb = ((FallbackPolicyWithAction)fb).AddErrorFilter(appendedFilter);
 						break;
 					default:
 						throw new NotImplementedException();
@@ -138,6 +149,9 @@ namespace PoliNorError.Tests
 						break;
 					case FallbackTypeForTests.WithAsyncFunc:
 						fb = ((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilterSelector);
+						break;
+					case FallbackTypeForTests.WithAction:
+						fb = ((FallbackPolicyWithAction)fb).AddErrorFilter(appendedFilterSelector);
 						break;
 				}
 			}
@@ -221,6 +235,14 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.WithAsyncFunc, true, false, false)]
 		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, true, false)]
 		[TestCase(FallbackTypeForTests.WithAsyncFunc, false, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true, true)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false, true)]
+		[TestCase(FallbackTypeForTests.WithAction, true, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, true, false, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, true, false)]
+		[TestCase(FallbackTypeForTests.WithAction, false, false, false)]
 		public void Should_FallbackPolicy_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(FallbackTypeForTests policyAlias, bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
 		{
 			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
@@ -244,6 +266,11 @@ namespace PoliNorError.Tests
 								.WithAsyncFallbackFunc(async (_) => await Task.Delay(1))
 								.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
 					break;
+				case FallbackTypeForTests.WithAction:
+					fb = new FallbackPolicy()
+								.WithFallbackAction((_) => { })
+								.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
+					break;
 				default:
 					throw new NotImplementedException();
 			}
@@ -262,6 +289,9 @@ namespace PoliNorError.Tests
 					case FallbackTypeForTests.WithAsyncFunc:
 						((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilter);
 						break;
+					case FallbackTypeForTests.WithAction:
+						((FallbackPolicyWithAction)fb).AddErrorFilter(appendedFilter);
+						break;
 					default:
 						throw new NotImplementedException();
 				}
@@ -279,6 +309,9 @@ namespace PoliNorError.Tests
 						break;
 					case FallbackTypeForTests.WithAsyncFunc:
 						((FallbackPolicyWithAsyncFunc)fb).AddErrorFilter(appendedFilterSelector);
+						break;
+					case FallbackTypeForTests.WithAction:
+						((FallbackPolicyWithAction)fb).AddErrorFilter(appendedFilterSelector);
 						break;
 					default:
 						throw new NotImplementedException();
