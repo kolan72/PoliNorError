@@ -11,18 +11,12 @@ namespace PoliNorError
 	{
 		public static void AddIncludedErrorFilterForAll<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
 		{
-			foreach (var pol in policies)
-			{
-				pol.PolicyProcessor.AddIncludedErrorFilter(func);
-			}
+			policies.ActionForAll((p) => p.PolicyProcessor.AddIncludedErrorFilter(func));
 		}
 
 		public static void AddIncludedErrorFilterForAll(this IEnumerable<IPolicyBase> policies, Expression<Func<Exception, bool>> handledErrorFilter)
 		{
-			foreach (var pol in policies)
-			{
-				pol.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter);
-			}
+			policies.ActionForAll((p) => p.PolicyProcessor.AddIncludedErrorFilter(handledErrorFilter));
 		}
 
 		public static void AddExcludedErrorFilterForAll<TException>(this IEnumerable<IPolicyBase> policies, Func<TException, bool> func = null) where TException : Exception
