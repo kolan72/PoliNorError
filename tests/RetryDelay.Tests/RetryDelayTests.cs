@@ -187,5 +187,72 @@ namespace PoliNorError.Tests
 
 			Assert.Throws<ArgumentNullException>(() => new RetryDelay(nullProvider));
 		}
+
+		[Test]
+		public void Should_Return_Exact_Delay_When_Within_Bounds()
+		{
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2) },
+				MaxDelay = TimeSpan.FromSeconds(10)
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(0), Is.EqualTo(TimeSpan.FromSeconds(1)));
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(TimeSpan.FromSeconds(2)));
+		}
+
+		[Test]
+		public void Should_Return_Last_Delay_When_Attempt_Exceeds_Index()
+		{
+			var maxTime = TimeSpan.FromSeconds(3);
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = new[] { TimeSpan.FromSeconds(1), maxTime},
+				MaxDelay = TimeSpan.FromSeconds(10)
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(2), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(3), Is.EqualTo(maxTime));
+		}
+
+		[Test]
+		public void Should_Use_BaseDelay_If_Times_Is_Empty()
+		{
+			var baseTime = TimeSpan.FromSeconds(2);
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = Array.Empty<TimeSpan>(),
+				BaseDelay = baseTime,
+				MaxDelay = TimeSpan.FromSeconds(5)
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(0), Is.EqualTo(baseTime));
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(baseTime));
+		}
+
+		[Test]
+		public void Should_Clamp_Delay_To_MaxDelay()
+		{
+			var maxTime = TimeSpan.FromSeconds(10);
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = new[] { TimeSpan.FromSeconds(12) },
+				MaxDelay = maxTime
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(2), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(3), Is.EqualTo(maxTime));
+		}
 	}
 }
