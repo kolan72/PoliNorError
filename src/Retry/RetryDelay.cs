@@ -62,6 +62,9 @@ namespace PoliNorError
 				case ExponentialRetryDelayOptions e:
 					DelayValueProvider = (new ExponentialRetryDelay(e)).DelayValueProvider;
 					break;
+				case TimeSeriesRetryDelayOptions ts:
+					DelayValueProvider = (new TimeSeriesRetryDelay(ts)).DelayValueProvider;
+					break;
 				default:
 					throw new NotImplementedException();
 			}
@@ -108,6 +111,9 @@ namespace PoliNorError
 					break;
 				case RetryDelayType.Exponential:
 					InnerDelay = new ExponentialRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
+					break;
+				case RetryDelayType.TimeSeries:
+					InnerDelay = new TimeSeriesRetryDelay(baseDelay, maxDelay: maxDelay, useJitter: useJitter);
 					break;
 				default:
 					throw new NotImplementedException();
