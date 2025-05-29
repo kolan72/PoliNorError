@@ -10,7 +10,7 @@ namespace PoliNorError
         /// <summary>
         /// Gets or sets the sequence of time intervals to use between attempts.
         /// </summary>
-        public TimeSpan[] Times { get; set; }
+        public TimeSpan[] Times { get; set; } = Array.Empty<TimeSpan>();
 
         /// <inheritdoc/>
         public override RetryDelayType DelayType => RetryDelayType.TimeSeries;
