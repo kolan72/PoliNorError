@@ -11,6 +11,8 @@ namespace PoliNorError.Tests
 		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
+		[TestCase(RetryDelayType.TimeSeries, true)]
+		[TestCase(RetryDelayType.TimeSeries, false)]
 		public void Should_RetryDelay_Returns_Jittered_Timespan(RetryDelayType retryDelayType, bool useBaseClass)
 		{
 			var repeater = new RetryDelayRepeater(GetJitteredRetryDelayByRetryDelayType());
@@ -32,6 +34,15 @@ namespace PoliNorError.Tests
 						else
 						{
 							return LinearRetryDelay.Create(TimeSpan.FromSeconds(2), null, true);
+						}
+					case RetryDelayType.TimeSeries:
+						if (useBaseClass)
+						{
+							return new RetryDelay(RetryDelayType.TimeSeries, TimeSpan.FromSeconds(4), true);
+						}
+						else
+						{
+							return TimeSeriesRetryDelay.Create(new List<TimeSpan>() {TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(6)}, null, true);
 						}
 					default:
 						throw new NotImplementedException();
@@ -70,6 +81,8 @@ namespace PoliNorError.Tests
 		[TestCase(RetryDelayType.Constant, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
+		[TestCase(RetryDelayType.TimeSeries, true)]
+		[TestCase(RetryDelayType.TimeSeries, false)]
 		public void Should_RetryDelayJittered_Returns_MaxTimeSpan_When_Calculated_One_Exceed_MaxTimeSpan(RetryDelayType retryDelayType, bool useBaseClass)
 		{
 			var rd = GetRetryDelayByRetryDelayType();
@@ -93,6 +106,15 @@ namespace PoliNorError.Tests
 							return new RetryDelay(RetryDelayType.Linear, TimeSpan.MaxValue, true);
 						else
 							return LinearRetryDelay.Create(TimeSpan.MaxValue, useJitter: true);
+					case RetryDelayType.TimeSeries:
+						if (useBaseClass)
+						{
+							return new RetryDelay(RetryDelayType.TimeSeries, TimeSpan.MaxValue, true);
+						}
+						else
+						{
+							return TimeSeriesRetryDelay.Create(new List<TimeSpan>() { TimeSpan.MaxValue, TimeSpan.MaxValue, TimeSpan.MaxValue}, null, true);
+						}
 					default:
 						throw new NotImplementedException();
 				}
@@ -124,6 +146,8 @@ namespace PoliNorError.Tests
 		[TestCase(RetryDelayType.Exponential, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
+		[TestCase(RetryDelayType.TimeSeries, true)]
+		[TestCase(RetryDelayType.TimeSeries, false)]
 		public void Should_RetryDelayJittered_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
 		{
 			var rd = GetRetryDelayByRetryDelayType();
@@ -147,6 +171,11 @@ namespace PoliNorError.Tests
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
 						else
 							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), useJitter: true);
+					case RetryDelayType.TimeSeries:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.TimeSeries, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), true);
+						else
+							return TimeSeriesRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1), useJitter: true);
 					default:
 						throw new NotImplementedException();
 				}
