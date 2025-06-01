@@ -407,6 +407,49 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_AddErrorContextProcessor_Using_Action(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			SimplePolicyProcessor processor;
+			BulkErrorProcessor bp;
+
+			if (!withCancellationType)
+			{
+				bp = new BulkErrorProcessor().WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				bp = new BulkErrorProcessor().WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+			processor = new SimplePolicyProcessor(bp);
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_Apply_Delay_When_Configured_WithDelayBetweenRetries(bool firstExceptionDelay)
