@@ -452,6 +452,38 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
+		public void Should_AddErrorContextProcessor_Using_Action_With_Token(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(new BulkErrorProcessor()
+				.WithErrorContextProcessorOf<int>(action));
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
 		public void Should_Apply_Delay_When_Configured_WithDelayBetweenRetries(bool firstExceptionDelay)
 		{
 			int firstErrorRetryCount = 0;
