@@ -21,6 +21,16 @@ namespace PoliNorError
 			return policyProcessor.WithErrorContextProcessorOf(actionProcessor, _addErrorProcessorAction);
 		}
 
+		public static BulkErrorProcessor WithErrorContextProcessorOf<TErrorContext>(this BulkErrorProcessor policyProcessor, Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor)
+		{
+			return policyProcessor.WithErrorContextProcessorOf(funcProcessor, _addErrorProcessorAction);
+		}
+
+		public static BulkErrorProcessor WithErrorContextProcessorOf<TErrorContext>(this BulkErrorProcessor policyProcessor, Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType)
+		{
+			return policyProcessor.WithErrorContextProcessorOf(funcProcessor, cancellationType, _addErrorProcessorAction);
+		}
+
 		public static BulkErrorProcessor WithErrorContextProcessorOf<TErrorContext>(this BulkErrorProcessor policyProcessor, Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor)
 		{
 			return policyProcessor.WithErrorContextProcessorOf(funcProcessor, _addErrorProcessorAction);
