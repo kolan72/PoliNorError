@@ -35,5 +35,10 @@ namespace PoliNorError
 		{
 			return policyProcessor.WithErrorContextProcessorOf(funcProcessor, _addErrorProcessorAction);
 		}
+
+		public static BulkErrorProcessor WithErrorContextProcessor<TErrorContext>(this BulkErrorProcessor policyProcessor, DefaultErrorProcessor<TErrorContext> errorProcessor)
+		{
+			return policyProcessor.WithErrorContextProcessor(errorProcessor, _addErrorProcessorAction);
+		}
 	}
 }

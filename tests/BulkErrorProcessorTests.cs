@@ -606,5 +606,39 @@ namespace PoliNorError.Tests
 				Assert.That(firstErrorRetryCount, Is.EqualTo(0));
 			}
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddErrorContextProcessor_Using_DefaultErrorProcessor(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var ep = new DefaultErrorProcessor<int>(action);
+
+			var processor = new SimplePolicyProcessor(new BulkErrorProcessor()
+				.WithErrorContextProcessor(ep));
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
 	}
 }
