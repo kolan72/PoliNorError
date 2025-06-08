@@ -109,6 +109,7 @@
     <Compile Include="ErrorProcessorTests.cs" />
     <Compile Include="ErrorSetTests.cs" />
     <Compile Include="ErrorWithInnerExcThrowingFuncs.cs" />
+    <Compile Include="ExceptionExtensionsTests.cs" />
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="ICanAddErrorFilterTests.cs" />
