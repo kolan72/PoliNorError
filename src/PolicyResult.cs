@@ -128,6 +128,11 @@ namespace PoliNorError
 		/// </summary>
 		public int FailedHandlerIndex { get; internal set; } = -1;
 
+		/// <summary>
+		/// Gets the exception thrown during policy execution when cancellation occurred.
+		/// </summary>
+		public OperationCanceledException PolicyCanceledError { get; internal set; }
+
 		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
 		{
 			IsFailed = true;
@@ -173,6 +178,13 @@ namespace PoliNorError
 		{
 			SetCanceled();
 			SetFailedInner();
+		}
+
+		internal void SetFailedAndCanceled(OperationCanceledException exception)
+		{
+			SetCanceled();
+			SetFailedInner();
+			PolicyCanceledError = exception;
 		}
 
 		internal void SetFailedAndFilterUnsatisfied()
