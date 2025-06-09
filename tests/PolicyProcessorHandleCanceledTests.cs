@@ -92,27 +92,31 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Retry_Break_And_BeFailedCanceled_WhenCanceledAndNativeException()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			Action save = CanceledGetAwaiterAct(cancelTokenSource);
-			var processor = new DefaultRetryProcessor();
-			var polRetryResult = processor.Retry(save, 1, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polRetryResult.IsFailed);
-			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
-			ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
-			cancelTokenSource.Dispose();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Action save = CanceledGetAwaiterAct(cancelTokenSource);
+				var processor = new DefaultRetryProcessor();
+				var polRetryResult = processor.Retry(save, 1, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polRetryResult.IsFailed);
+				ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
+				Assert.That(polRetryResult.PolicyCanceledError, Is.Not.Null);
+			}
 		}
 
 		[Test]
 		public void Should_Retry_Break_And_BeFailedCanceled_WhenCanceledAndAggregateException()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			Action save = CancelWaiterAct(cancelTokenSource);
-			var processor = new DefaultRetryProcessor();
-			var polRetryResult = processor.Retry(save, 1, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polRetryResult.IsFailed);
-			ClassicAssert.IsTrue(polRetryResult.IsCanceled);
-			ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
-			cancelTokenSource.Dispose();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Action save = CancelWaiterAct(cancelTokenSource);
+				var processor = new DefaultRetryProcessor();
+				var polRetryResult = processor.Retry(save, 1, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polRetryResult.IsFailed);
+				ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
+				Assert.That(polRetryResult.PolicyCanceledError, Is.Not.Null);
+			}
 		}
 
 		[Test]
