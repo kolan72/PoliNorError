@@ -217,16 +217,18 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_RetryAsyncT_Break_And_BeFailedCanceled_WhenCanceledAndNativeException()
+		public async Task Should_RetryAsyncT_Break_And_BeFailedCanceled_WhenCanceledAndNativeException2()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			Func<CancellationToken, Task<int>> save = CanceledTaskFuncT(cancelTokenSource);
-			var processor = new DefaultRetryProcessor();
-			var polResult = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polResult.IsFailed);
-			ClassicAssert.IsTrue(polResult.IsCanceled);
-			ClassicAssert.AreEqual(0, polResult.Errors.Count());
-			cancelTokenSource.Dispose();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Func<CancellationToken, Task<int>> save = CanceledTaskFuncT(cancelTokenSource);
+				var processor = new DefaultRetryProcessor();
+				var polResult = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polResult.Errors.Count());
+				Assert.That(polResult.PolicyCanceledError, Is.Not.Null);
+			}
 		}
 
 		private Func<CancellationTokenSource, Func<int>> CanceledGetAwaiterFunc => (cts) => () => {
