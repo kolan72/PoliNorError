@@ -1011,6 +1011,30 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Imitate_RetryPolicy_Using_Collection_Of_SimplePolicies_WithErrorProcessors()
+		{
+			bool firstHandlerFlag = false;
+			bool secondHandlerFlag = false;
+
+			void act() => throw new InvalidOperationException();
+
+			var polCollection = PolicyCollection.Create();
+			var result = polCollection
+				.WithSimple()
+				.WithErrorProcessorOf(async (_) => { await Task.Delay(TimeSpan.FromTicks(2)); firstHandlerFlag = true; })
+				.WithSimple()
+				.WithErrorProcessorOf(async (_) => { await Task.Delay(TimeSpan.FromTicks(4)); secondHandlerFlag = true; })
+				.WithSimple()
+				.AddPolicyResultHandlerForAll(pr => { if (!pr.NoError) pr.SetFailed(); })
+				.HandleDelegate(act);
+
+			Assert.That(firstHandlerFlag, Is.True);
+			Assert.That(secondHandlerFlag, Is.True);
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.PolicyDelegateResults.Count, Is.EqualTo(3));
+		}
+
+		[Test]
 		[TestCase(true, true, false)]
 		[TestCase(true, false, false)]
 		[TestCase(false, true, false)]
