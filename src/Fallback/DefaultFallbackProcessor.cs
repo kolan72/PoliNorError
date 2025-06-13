@@ -159,7 +159,7 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (Exception ex)
 			{
