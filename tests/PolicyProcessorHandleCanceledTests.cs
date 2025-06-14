@@ -152,27 +152,31 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_FallbackT_Break_And_BeFailedCanceled_WhenCanceledAndNativeException()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			Func<int> save = CanceledGetAwaiterFunc(cancelTokenSource);
-			var processor = new DefaultFallbackProcessor();
-			var polResult = processor.Fallback(save, (_) => 1, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polResult.IsFailed);
-			ClassicAssert.IsTrue(polResult.IsCanceled);
-			ClassicAssert.AreEqual(0, polResult.Errors.Count());
-			cancelTokenSource.Dispose();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Func<int> save = CanceledGetAwaiterFunc(cancelTokenSource);
+				var processor = new DefaultFallbackProcessor();
+				var polResult = processor.Fallback(save, (_) => 1, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polResult.Errors.Count());
+				Assert.That(polResult.PolicyCanceledError, Is.Not.Null);
+			}
 		}
 
 		[Test]
 		public void Should_FallbackT_Break_And_BeFailedCanceled_WhenCanceledAndAggregateException()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			Func<int> save = CancelWaiterFunc(cancelTokenSource);
-			var processor = new DefaultFallbackProcessor();
-			var polResult = processor.Fallback(save, (_) => 1, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polResult.IsFailed);
-			ClassicAssert.IsTrue(polResult.IsCanceled);
-			ClassicAssert.AreEqual(0, polResult.Errors.Count());
-			cancelTokenSource.Dispose();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Func<int> save = CancelWaiterFunc(cancelTokenSource);
+				var processor = new DefaultFallbackProcessor();
+				var polResult = processor.Fallback(save, (_) => 1, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polResult.Errors.Count());
+				Assert.That(polResult.PolicyCanceledError, Is.Not.Null);
+			}
 		}
 
 		[Test]

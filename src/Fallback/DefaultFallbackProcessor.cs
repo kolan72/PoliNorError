@@ -104,11 +104,11 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (AggregateException ae) when (ae.HasCanceledException(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
 			catch (Exception ex)
 			{
