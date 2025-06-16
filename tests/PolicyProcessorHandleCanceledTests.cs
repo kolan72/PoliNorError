@@ -201,14 +201,16 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_FallbackAsyncT_Break_And_BeFailedCanceled_WhenCanceledAndNativeException()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			Func<CancellationToken, Task<int>> save = CanceledTaskFuncT(cancelTokenSource);
-			var processor = new DefaultFallbackProcessor();
-			var polResult = await processor.FallbackAsync(save, async (_) => { await Task.Delay(1); return 1; }, cancelTokenSource.Token);
-			ClassicAssert.IsTrue(polResult.IsFailed);
-			ClassicAssert.IsTrue(polResult.IsCanceled);
-			ClassicAssert.AreEqual(0, polResult.Errors.Count());
-			cancelTokenSource.Dispose();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Func<CancellationToken, Task<int>> save = CanceledTaskFuncT(cancelTokenSource);
+				var processor = new DefaultFallbackProcessor();
+				var polResult = await processor.FallbackAsync(save, async (_) => { await Task.Delay(1); return 1; }, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polResult.Errors.Count());
+				Assert.That(polResult.PolicyCanceledError, Is.Not.Null);
+			}
 		}
 
 		[Test]
