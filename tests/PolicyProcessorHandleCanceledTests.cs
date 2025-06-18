@@ -258,6 +258,36 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_Execute_Break_And_BeFailedCanceled_WhenCanceledAndAggregateException()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Action save = CancelWaiterAct(cancelTokenSource);
+				var processor = new SimplePolicyProcessor();
+				var polResult = processor.Execute(save, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polResult.Errors.Count());
+				Assert.That(polResult.PolicyCanceledError, Is.Not.Null);
+			}
+		}
+
+		[Test]
+		public void Should_Execute_Break_And_BeFailedCanceled_WhenCanceledAndNativeException()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Action save = CanceledGetAwaiterAct(cancelTokenSource);
+				var processor = new SimplePolicyProcessor();
+				var polRetryResult = processor.Execute(save, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polRetryResult.IsFailed);
+				ClassicAssert.IsTrue(polRetryResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polRetryResult.Errors.Count());
+				Assert.That(polRetryResult.PolicyCanceledError, Is.Not.Null);
+			}
+		}
+
 		private Func<CancellationTokenSource, Func<int>> CanceledGetAwaiterFunc => (cts) => () => {
 			cts.Cancel();
 			return Task.Run(() => 1, cts.Token).GetAwaiter().GetResult();
