@@ -50,6 +50,38 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_InvokeWithRetry_WithRetryErrorSaverParam_Work()
+		{
+			Action action = () => throw new Exception();
+			const int retryCount = 1;
+			var db = new DB();
+			var result = action.InvokeWithRetry(retryCount, errorSaver: RetryErrorSaverParam.From(db.SaveErrorAsync));
+			Assert.That(result.Errors.Count, Is.EqualTo(0));
+			Assert.That(db.ErrorsCount, Is.EqualTo(2));
+			Assert.That(db.LastError, Is.Not.Null);
+		}
+
+		private class DB
+		{
+			private int errorsCount;
+
+			public async Task SaveErrorAsync(Exception exception)
+			{
+				await Task.Delay(TimeSpan.FromTicks(1));
+				Saved = true;
+				LastError = exception;
+				Interlocked.Increment(ref errorsCount);
+			}
+			public bool Saved { get; private set; }
+			public int ErrorsCount
+			{
+				get { return errorsCount; }
+				private set { errorsCount = value; }
+			}
+			public Exception LastError { get; private set; }
+		}
+
+		[Test]
 		public void Should_InvokeWithWaitAndRetry_Work()
 		{
 			int i = 0;
