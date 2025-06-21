@@ -402,7 +402,7 @@ Since _version_ 2.19.5, the `ConstantRetryDelayOptions`, `LinearRetryDelayOption
 
 You can also create `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay` classes using the `Create` static methods.
 
-Using `RetryDelay` is a more accurate alternative to the above approach with `DelayErrorProcessor`. Note that unlike `DelayErrorProcessor`, the `RetryDelay` parameter allows you to configure only one delay for a retry policy or processor.  
+`RetryDelay` offers a more precise way to manage retry delays, whereas `DelayErrorProcessor` allows for exception-specific delays. Note that, unlike `DelayErrorProcessor`, which can define different delays per attempt, `RetryDelay` configures a single delay per attempt for the entire `RetryPolicy`.  
 
 Since _version_ 2.19.8 you can use the `RetryDelay` class or its subclasses [to call Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner).  
 
