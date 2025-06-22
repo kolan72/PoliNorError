@@ -214,7 +214,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_RetryAsync_Break_And_BeFailedCanceled_WhenCanceledAndNativeException2()
+		public async Task Should_RetryAsync_Break_And_BeFailedCanceled_WhenCanceledAndNativeException()
 		{
 			using (var cancelTokenSource = new CancellationTokenSource())
 			{
@@ -311,6 +311,21 @@ namespace PoliNorError.Tests
 				Func<int> save = CancelWaiterFunc(cancelTokenSource);
 				var processor = new SimplePolicyProcessor();
 				var polResult = processor.Execute(save, cancelTokenSource.Token);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+				ClassicAssert.IsTrue(polResult.IsCanceled);
+				ClassicAssert.AreEqual(0, polResult.Errors.Count());
+				Assert.That(polResult.PolicyCanceledError, Is.Not.Null);
+			}
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsyncT_Break_And_BeFailedCanceled_WhenCanceledAndNativeException()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Func<CancellationToken, Task<int>> save = CanceledTaskFuncT(cancelTokenSource);
+				var processor = new SimplePolicyProcessor();
+				var polResult = await processor.ExecuteAsync(save, token: cancelTokenSource.Token);
 				ClassicAssert.IsTrue(polResult.IsFailed);
 				ClassicAssert.IsTrue(polResult.IsCanceled);
 				ClassicAssert.AreEqual(0, polResult.Errors.Count());
