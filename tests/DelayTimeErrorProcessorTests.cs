@@ -161,6 +161,36 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(1)]
+		[TestCase(2)]
+		public void Should_UseRetryDelayForSleepDuration_In_Process_WhenInitializedWithRetryDelay(int numOfRetry)
+		{
+			const int baseMsTime = 2;
+			var innerDelay = LinearRetryDelay.Create(TimeSpan.FromMilliseconds(baseMsTime));
+			var retryDelay = new LinearRetryDelayThatStoreTime(innerDelay);
+			var processor = new DelayErrorProcessor(retryDelay);
+
+			processor.Process(new Exception(), new RetryProcessingErrorInfo(numOfRetry));
+
+			Assert.That(retryDelay.Delay, Is.EqualTo(innerDelay.GetDelay(numOfRetry)));
+		}
+
+		[Test]
+		[TestCase(1)]
+		[TestCase(2)]
+		public async Task Should_UseRetryDelayForSleepDuration_In_ProcessAsync_WhenInitializedWithRetryDelay(int numOfRetry)
+		{
+			const int baseMsTime = 2;
+			var innerDelay = LinearRetryDelay.Create(TimeSpan.FromMilliseconds(baseMsTime));
+			var retryDelay = new LinearRetryDelayThatStoreTime(innerDelay);
+			var processor = new DelayErrorProcessor(retryDelay);
+
+ 			await processor.ProcessAsync(new Exception(), new RetryProcessingErrorInfo(numOfRetry));
+
+			Assert.That(retryDelay.Delay, Is.EqualTo(innerDelay.GetDelay(numOfRetry)));
+		}
+
 		public class YourDelayErrorProcessor : DelayErrorProcessor
 		{
 			public YourDelayErrorProcessor(TimeSpan timeSpan): base(timeSpan){}

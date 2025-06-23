@@ -39,6 +39,24 @@ namespace PoliNorError.Tests
 		}
 	}
 
+	internal class LinearRetryDelayThatStoreTime : RetryDelay
+	{
+		private readonly LinearRetryDelay _innerDelay;
+
+		public LinearRetryDelayThatStoreTime(LinearRetryDelay innerDelay)
+		{
+			_innerDelay = innerDelay;
+		}
+
+		public override TimeSpan GetDelay(int attempt)
+		{
+			Delay = _innerDelay.GetDelay(attempt);
+			return Delay;
+		}
+
+		public TimeSpan Delay { get; private set; }
+	}
+
 	internal class DelayProviderThatAlreadyCanceled : IDelayProvider
 	{
 		private readonly CancellationTokenSource _cts;

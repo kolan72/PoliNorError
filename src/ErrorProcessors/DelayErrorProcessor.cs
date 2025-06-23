@@ -13,7 +13,11 @@ namespace PoliNorError
 
 		public DelayErrorProcessor(Func<int, TimeSpan> delayOnRetryFunc) : this((retryAttempt, _) => delayOnRetryFunc(retryAttempt)){}
 
-		public DelayErrorProcessor(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg) : this((retryAttempt, exc) => delayOnRetryFunc.Apply(delayFuncArg)(retryAttempt, exc))
+		public DelayErrorProcessor(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg) :
+			this((retryAttempt, exc) => delayOnRetryFunc.Apply(delayFuncArg)(retryAttempt, exc))
+		{}
+
+		public DelayErrorProcessor(RetryDelay retryDelay) : this((retryAttempt, __) => retryDelay.GetDelay(retryAttempt))
 		{}
 
 		public DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider) : this(sleepProvider, null)
