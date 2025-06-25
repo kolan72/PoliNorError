@@ -760,7 +760,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = pi.GetRetryCount() + 1;
+				failedAttemptCount = pi.GetCurrentAttempt();
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -897,7 +897,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = pi.GetRetryCount() + 1;
+				failedAttemptCount = pi.GetCurrentAttempt();
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -943,7 +943,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = pi.GetRetryCount() + 1;
+				failedAttemptCount = pi.GetCurrentAttempt();
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1128,7 +1128,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = pi.GetRetryCount() + 1;
+				failedAttemptCount = pi.GetCurrentAttempt();
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1264,7 +1264,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = pi.GetRetryCount() + 1;
+				failedAttemptCount = pi.GetCurrentAttempt();
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
@@ -1312,7 +1312,7 @@ namespace PoliNorError.Tests
 
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
-				failedAttemptCount = pi.GetRetryCount() + 1;
+				failedAttemptCount = pi.GetCurrentAttempt();
 				numOfFailedAttemptsMultipliedByParam = failedAttemptCount * pi.Param;
 			}
 
