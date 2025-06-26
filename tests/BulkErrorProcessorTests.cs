@@ -608,6 +608,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_CreateDelayProcessor_When_ConfiguredWithTimeSpanDelay()
+		{
+			var bp = new BulkErrorProcessor().WithDelayBetweenRetries(TimeSpan.FromTicks(1));
+			Assert.That(bp.Count, Is.EqualTo(1));
+			Assert.That(bp.ElementAt(0), Is.TypeOf<DelayErrorProcessor>());
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_AddErrorContextProcessor_Using_DefaultErrorProcessor(bool shouldWork)
