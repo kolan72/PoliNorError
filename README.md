@@ -56,7 +56,7 @@ The types of delegates that can be handled include:
 - `Func<TParam, CancellationToken, Task>` <sup>*</sup>
 - `Func<TParam, CancellationToken, Task<T>>` <sup>*</sup>
 
-<sup>*</sup> Supported in `SimplePolicy` since _version_ 2.20.0 and in `FallbackPolicy` since _version_ 2.21.0.
+<sup>*</sup> Support was introduced in _version_ 2.20.0 for `SimplePolicy`, 2.21.0 for `FallbackPolicy`, and 2.23.0 for `RetryPolicy` — along with their respective processors.  
 
 Handling delegate is performed through the use of policy processors, which are classes that implement policy-specific interfaces inherited from the `IPolicyProcessor` interface. Policy processors implicitly determine *policy inner rules* (further for simplicity referred to as *policy rules*) - built-in behavioral features that determine whether or not a policy can handle exception. For example, the policy rule for the Retry is that it can handle exceptions only until the number of permitted retries does not exceed.  
 
