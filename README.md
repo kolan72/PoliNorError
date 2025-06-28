@@ -27,6 +27,7 @@ Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 - [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)
 - [Usage recommendations](#usage-recommendations)
 - [Nuances of using the library](#nuances-of-using-the-library)
+- [Tips and Tricks](#tips-and-tricks)
 ---
 
 ## Key Features
@@ -120,6 +121,7 @@ Usage diagram:
 
 ![Set up for handle delegate](/src/docs/diagrams/set-up-for-handle-delegate.png)
 
+For advanced usage, see the [Tips and Tricks](#tips-and-tricks) chapter.
 
 ### PolicyResult
 Handling begins when an exception occurs during the execution of the delegate. At first, exception will be stored in the `Errors` property (for retry-related classes, this is by default and can be customized).  
@@ -1149,3 +1151,93 @@ To check if a delegate was handled successfully use these `PolicyResult` success
 -   `IsPolicySuccess`- at least one exception occurred (`NoError` = `false`), the policy came into play and handled the delegate successfully. For example, you can use it in a `PolicyResult` handler to write some policy-specific information into a log.
 
 ![PolicyResult success indicators](/src/docs/diagrams/policyresult-success-props.png)
+
+## Tips and Tricks
+
+### General Usage
+
+**Start Simple: Processor vs. Full Policy**
+
+For quick, one-off error handling without complex logic, a policy processor is often sufficient and more direct.
+- **Use a Processor** for simple cases.
+- **Use a Policy** for advanced scenarios like adding `PolicyResult` handlers, wrapping other policies, or including it in a `PolicyCollection`.
+
+**Use `PolicyResult.IsFailed` carefully**: Failure may result from filters, cancellation, or handler settings - not just exceptions.
+
+**Inspect** `PolicyResult.FailedReason` for diagnostics.
+
+**Exceptions inside catch blocks** are caught too - check `CatchBlockErrors`, especially in fallback/retry logic.
+
+**Create a Resilience Strategy**
+- **Retry followed by a fallback** is common: retry a few times, then if still failing, fallback to safe defaults. You can do that via `PolicyCollection` or by wrapping one policy in another with `WrapPolicy` / `WrapUp`.
+- Another pattern is **sequential handling** with the `PolicyDelegateCollection`: if the first `PolicyDelegate` fails, move on to a next.
+
+### RetryPolicy
+
+- **Retries start at zero.** Keep this in mind when mapping retry count to attempts - first attempt = retry 0.
+- **Want infinite retries?** Use `RetryPolicy.InfiniteRetries()` but be cautious with scenarios that could loop indefinitely.
+
+**Use `UseCustomErrorSaverOf`** to offload error storage (e.g., to a database).
+
+**Use retry delays**
+- **For custom, exception - dependant logic**, use the `WithWait` overload that accepts a function.
+- **For a cleaner and more predictable approach**, use the built-in `RetryDelay` classes, which also support jitter to prevent synchronized retries from multiple clients.
+
+### FallbackPolicy
+
+- **Fallbacks can fail.** If the fallback delegate throws, handling fails critically.
+- **Set** `onlyGenericFallbackForGenericDelegate: true` to enforce type-safe fallbacks and avoid unexpected defaults.
+
+### SimplePolicy
+
+- **Set `rethrowIfErrorFilterUnsatisfied: true` in `SimplePolicy`** to rethrow unhandled exceptions and manually catch them for custom logic.
+- **Prefer `PolicyResult.NoError`** over `IsSuccess` with generic delegates to safely retrieve the `Result`.
+
+### Error Processors
+
+- **Consider Parameterized Delegates**: For more flexible error processing, use delegates that accept parameters (`Action<TParam>`, `Func<TParam, T>`, etc.) and `WithErrorContextProcessorOf<TErrorContext>`.
+- **Handle inner exceptions.** Use `WithInnerErrorProcessorOf<T>` or filter by `IncludeInnerError<T>`, especially when dealing with nested exceptions.
+
+### Exception Filtering 
+
+- **Use** `IncludeErrorSet` and `ExcludeErrorSet` for multi-type or nested exception filtering.
+- **Combine** exception types with `ErrorSet`.
+- **Filter** inner exceptions with `IncludeInnerError<T>`, `ExcludeInnerError<T>`.
+
+### Policy Composition
+
+- **Use** `PolicyDelegateCollection` to try delegates until one succeeds or cancellation occurs.
+- **Apply** `AddPolicyResultHandlerForAll` for centralized logging or cleanup in collections.
+- **Convert** `PolicyCollection` to `PolicyDelegateCollection` for different delegates.
+- **Use** `WrapPolicy` or `WrapUp` to create nested policy chains.
+- **To avoid** unintended side effects when applying policies, use resilience methods such as `WithRetry`, `WithFallback` or `WithSimple`.
+
+### Wrapping
+
+- **Building Policy Chains:** Utilize `WrapPolicy` or `WrapUp` to create nested policy chains. The `WrapUp` method, in particular, provides a fluent, bottom-up approach to constructing these chains.
+
+### Handling `PolicyResult`
+
+- **Chain with `SetFailed()` in result handlers** to pass control to the next delegate in the collection intentionally.
+- **Add Result Handlers for Logging**: Use `AddPolicyResultHandler` to log or react to results.
+
+### Testing and Debugging
+
+- **Use** `RetryPolicy`'s `Action<RetryCountInfoOptions>` constructor to simulate retry attempts.
+- **Use** policy names: Assign names to policies for easier debugging (e.g., `.WithPolicyName("MyPolicy")`).
+
+### Performance and Design
+
+- **Create reusable** `BulkErrorProcessor` instances for shared logic across policies.
+- **Use** `RetryDelay` subclasses for predictable retry intervals.
+- **Save memory on high retry count**s with `UseCustomErrorSaverOf`.
+- **Enable** `UseJitter` in `RetryDelayOptions` to prevent retry storms.
+* **Save memory on high retry counts** by customizing error saving via `UseCustomErrorSaverOf`.
+- **Enable** `failedIfSaveErrorThrow: true` to fail fast on `OutOfMemoryException`.
+- **Minimize heavy operations** in error processors.
+
+### Version-Specific Tips
+
+- **2.19.0+**: Use `RetryDelay` for better delay control.
+- **2.17.0+**: Use `ErrorSet` for complex filtering.
+- **2.16.21+**: Use `TryCatch` for replacing manual try-catch logic.
