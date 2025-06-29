@@ -1209,7 +1209,6 @@ For quick, one-off error handling without complex logic, a policy processor is o
 - **Use** `PolicyDelegateCollection` to try delegates until one succeeds or cancellation occurs.
 - **Apply** `AddPolicyResultHandlerForAll` for centralized logging or cleanup in collections.
 - **Convert** `PolicyCollection` to `PolicyDelegateCollection` for different delegates.
-- **Use** `WrapPolicy` or `WrapUp` to create nested policy chains.
 - **To avoid** unintended side effects when applying policies, use resilience methods such as `WithRetry`, `WithFallback` or `WithSimple`.
 
 ### Wrapping
@@ -1219,6 +1218,7 @@ For quick, one-off error handling without complex logic, a policy processor is o
 ### Handling `PolicyResult`
 
 - **Chain with `SetFailed()` in result handlers** to pass control to the next delegate in the collection intentionally.
+- **Add handlers** that set `IsFailed` (via `SetFailed()` method) before handlers checking `IsFailed`.
 - **Add Result Handlers for Logging**: Use `AddPolicyResultHandler` to log or react to results.
 
 ### Testing and Debugging
