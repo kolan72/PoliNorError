@@ -1581,6 +1581,30 @@ namespace PoliNorError.Tests
 			Assert.That(m, Is.EqualTo(10));
 		}
 
+		[Test]
+		public void Should_ThenFallback_Returns_Valid_Result()
+		{
+#pragma warning disable RCS1118 // Mark local variable as const.
+			var zero = 0;
+#pragma warning restore RCS1118 // Mark local variable as const.
+
+			const string fallBackLogMsg = "Fallback to int.MaxValue";
+			string errorProcessorMsg = null;
+			var fallbackResult = new RetryPolicy(3)
+									.ExcludeError<DivideByZeroException>()
+									.ThenFallback()
+									.WithFallbackFunc(() => int.MaxValue)
+									.IncludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => errorProcessorMsg = fallBackLogMsg)
+									.Handle(() => 5 / zero);
+
+			Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
+			Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
+			Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
+			Assert.That(fallbackResult.WrappedPolicyResults.Count(), Is.EqualTo(1));
+			Assert.That(errorProcessorMsg, Is.EqualTo(fallBackLogMsg));
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
