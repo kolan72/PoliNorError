@@ -595,7 +595,7 @@ namespace PoliNorError
 		}
 
 		/// <summary>
-		/// Represents the retry-then-fallback pattern.
+		/// Represents the retry-then-fallback pattern. Wraps this policy with a <see cref="FallbackPolicy"/> and returns the resulting fallback policy.
 		/// </summary>
 		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
 		public FallbackPolicy ThenFallback(bool onlyGenericFallbackForGenericDelegate = false)
