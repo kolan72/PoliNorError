@@ -1011,6 +1011,26 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Imitate_RetryPolicy_WithConstantRetryDelay_Using_Collection_Of_SimplePolicies()
+		{
+			void act() => throw new InvalidOperationException();
+			var counter = 0;
+
+			var polCollection = PolicyCollection.Create();
+			var result = polCollection
+				.WithSimple()
+				.WithSimple()
+				.WithSimple()
+				.AddPolicyResultHandlerForAll(pr => { if (!pr.NoError) pr.SetFailed(); })
+				.AddPolicyResultHandlerForAll(_ =>  { Task.Delay(TimeSpan.FromTicks(1)).GetAwaiter().GetResult(); counter++; }, true)
+				.HandleDelegate(act);
+
+			Assert.That(counter, Is.EqualTo(2));
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.PolicyDelegateResults.Count, Is.EqualTo(3));
+		}
+
+		[Test]
 		public void Should_Imitate_RetryPolicy_Using_Collection_Of_SimplePolicies_WithErrorProcessors()
 		{
 			bool firstHandlerFlag = false;
