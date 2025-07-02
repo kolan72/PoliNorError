@@ -1055,6 +1055,29 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Imitate_RetryPolicy_WithConstantDelay_Using_Repeated_SimplePolicy()
+		{
+			void act() => throw new InvalidOperationException();
+			var retries = 0;
+
+			var sp = new SimplePolicy()
+				.SetPolicyResultFailedIf((pr) => !pr.NoError)
+				.AddPolicyResultHandler(async (_) => { await Task.Delay(TimeSpan.FromTicks(1)); retries++; });
+
+			var polCollection = PolicyCollection
+								.Create(sp, 2)
+								.WithSimple()
+								.SetPolicyResultFailedIf((pr) => !pr.NoError);
+
+			var result = polCollection
+				.HandleDelegate(act);
+
+			Assert.That(retries, Is.EqualTo(2));
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.PolicyDelegateResults.Count, Is.EqualTo(3));
+		}
+
+		[Test]
 		[TestCase(true, true, false)]
 		[TestCase(true, false, false)]
 		[TestCase(false, true, false)]
