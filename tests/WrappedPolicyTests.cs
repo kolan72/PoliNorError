@@ -2,6 +2,8 @@
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -791,6 +793,101 @@ namespace PoliNorError.Tests
 			public void ThrowIf(PolicyResult pr) => ThrowIfFailed(pr);
 
 			public void ThrowIf<T>(PolicyResult<T> pr) => ThrowIfFailed(pr);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Return_Correct_PolicyResult_When_OperationCanceledException_In_Wrapped_Policy_For_HandleAsync(bool withCanceledException)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var policy = new RetryPolicy(1);
+				policy.WrapPolicy(new SimplePolicy(new AlwaysFailedAndCanceledSimplePolicyProcessor(withCanceledException)));
+
+				var pr = await policy.HandleAsync(async (_) => await Task.Delay(1), cts.Token);
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (withCanceledException)
+				{
+					Assert.That(pr.WrappedPolicyResults.FirstOrDefault().Result.PolicyCanceledError, Is.Not.Null);
+				}
+				else
+				{
+					Assert.That(pr.Errors.FirstOrDefault(), Is.TypeOf<OperationFailedAndCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Return_Correct_PolicyResult_When_OperationCanceledException_In_Wrapped_Policy_For_Handle(bool withCanceledException)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var policy = new RetryPolicy(1);
+				policy.WrapPolicy(new SimplePolicy(new AlwaysFailedAndCanceledSimplePolicyProcessor(withCanceledException)));
+
+				var pr = policy.Handle((_) => { }, cts.Token);
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (withCanceledException)
+				{
+					Assert.That(pr.WrappedPolicyResults.FirstOrDefault().Result.PolicyCanceledError, Is.Not.Null);
+				}
+				else
+				{
+					Assert.That(pr.Errors.FirstOrDefault(), Is.TypeOf<OperationFailedAndCanceledException>());
+				}
+			}
+		}
+
+		private class AlwaysFailedAndCanceledSimplePolicyProcessor : ISimplePolicyProcessor
+		{
+			private readonly bool _setCanceledExcepton;
+			public AlwaysFailedAndCanceledSimplePolicyProcessor(bool setCanceledExcepton = true)
+			{
+				_setCanceledExcepton = setCanceledExcepton;
+			}
+
+			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();
+
+			public void AddErrorProcessor(IErrorProcessor newErrorProcessor) => throw new NotImplementedException();
+
+			public PolicyResult Execute(Action action, CancellationToken token = default)
+			{
+				var pr = new PolicyResult(true);
+				if (_setCanceledExcepton)
+				{
+					pr.SetFailedAndCanceled(new OperationCanceledException());
+				}
+				else
+				{
+					pr.SetFailedAndCanceled();
+				}
+				return pr;
+			}
+
+			public PolicyResult<T> Execute<T>(Func<T> func, CancellationToken token = default) => throw new NotImplementedException();
+
+			public Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
+			{
+				var pr = new PolicyResult(true);
+				if (_setCanceledExcepton)
+				{
+					pr.SetFailedAndCanceled(new OperationCanceledException());
+				}
+				else
+				{
+					pr.SetFailedAndCanceled();
+				}
+				return Task.FromResult(pr);
+			}
+
+			public Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
+			IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace PoliNorError
 {
@@ -18,7 +19,7 @@ namespace PoliNorError
 			if (res?.IsFailed == true)
 			{
 				if (IsNaturalFailed(res))
-					throw res.UnprocessedError;
+					throw res.UnprocessedError ?? res.PolicyCanceledError ?? GetCanceledOrApplicationException(res);
 				else
 					throw new PolicyResultHandlerFailedException(res);
 			}
@@ -38,6 +39,11 @@ namespace PoliNorError
 		private static bool IsNaturalFailed(PolicyResult res)
 		{
 			return res.FailedReason != PolicyResultFailedReason.PolicyResultHandlerFailed;
+		}
+
+		private static Exception GetCanceledOrApplicationException(PolicyResult pr)
+		{
+			return pr.IsCanceled ? new OperationFailedAndCanceledException() : (Exception)new ApplicationException();
 		}
 	}
 }
