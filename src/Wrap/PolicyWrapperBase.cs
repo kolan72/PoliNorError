@@ -30,7 +30,7 @@ namespace PoliNorError
 			if (res?.IsFailed == true)
 			{
 				if (IsNaturalFailed(res))
-					throw res.UnprocessedError;
+					throw res.UnprocessedError ?? res.PolicyCanceledError ?? GetCanceledOrApplicationException(res);
 				else
 					throw new PolicyResultHandlerFailedException<T>(res);
 			}
