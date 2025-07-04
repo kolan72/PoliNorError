@@ -1155,7 +1155,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetCurrentAttempt();
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1210,7 +1210,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetCurrentAttempt();
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1264,7 +1264,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetCurrentAttempt();
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy policyToTest;
@@ -1317,7 +1317,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetCurrentAttempt();
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1376,7 +1376,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetCurrentAttempt();
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1428,7 +1428,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetCurrentAttempt();
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1487,7 +1487,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetCurrentAttempt();
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy policyToTest;

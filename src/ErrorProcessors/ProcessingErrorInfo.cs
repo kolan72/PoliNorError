@@ -41,6 +41,6 @@ namespace PoliNorError
 			return (processingErrorInfo as IRetryExecutionInfo)?.RetryCount ?? 0;
 		}
 
-		public static int GetCurrentAttempt(this ProcessingErrorInfo processingErrorInfo) => processingErrorInfo.GetRetryCount() + 1;
+		public static int GetAttemptCount(this ProcessingErrorInfo processingErrorInfo) => processingErrorInfo.GetRetryCount() + 1;
 	}
 }
