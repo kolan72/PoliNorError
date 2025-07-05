@@ -1582,7 +1582,9 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_ThenFallback_Returns_Valid_Result()
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ThenFallback_Returns_Valid_Result(bool thenFallback)
 		{
 #pragma warning disable RCS1118 // Mark local variable as const.
 			var zero = 0;
@@ -1590,19 +1592,57 @@ namespace PoliNorError.Tests
 
 			const string fallBackLogMsg = "Fallback to int.MaxValue";
 			string errorProcessorMsg = null;
-			var fallbackResult = new RetryPolicy(3)
+			var policy = new RetryPolicy(3)
+									.ExcludeError<DivideByZeroException>()
+									.ThenFallback()
+									.WithFallbackFunc(() => int.MaxValue)
+									.IncludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => errorProcessorMsg = fallBackLogMsg);
+
+			if (thenFallback)
+			{
+				var fallbackResult = policy
+									.Handle(() => 5 / zero);
+
+				Assert.That(fallbackResult.IsSuccess, Is.True);
+				Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
+				Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
+				Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
+				Assert.That(fallbackResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(1));
+				Assert.That(errorProcessorMsg, Is.EqualTo(fallBackLogMsg));
+			}
+			else
+			{
+				var result = policy
+									.Handle<int>(() =>throw new InvalidOperationException());
+
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				Assert.That(result.Result, Is.EqualTo(default(int)));
+				Assert.That(result.Errors.Count(), Is.EqualTo(1));
+				Assert.That(result.UnprocessedError.GetType(), Is.EqualTo(typeof(InvalidOperationException)));
+				Assert.That(result.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(4));
+			}
+		}
+
+		[Test]
+		public void Should_ThenFallback_Returns_Valid_Result_When_NoError()
+		{
+			const string fallBackLogMsg = "Fallback to int.MaxValue";
+			string errorProcessorMsg = null;
+			var result = new RetryPolicy(3)
 									.ExcludeError<DivideByZeroException>()
 									.ThenFallback()
 									.WithFallbackFunc(() => int.MaxValue)
 									.IncludeError<DivideByZeroException>()
 									.WithErrorProcessorOf((_) => errorProcessorMsg = fallBackLogMsg)
-									.Handle(() => 5 / zero);
-
-			Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
-			Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
-			Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
-			Assert.That(fallbackResult.WrappedPolicyResults.Count(), Is.EqualTo(1));
-			Assert.That(errorProcessorMsg, Is.EqualTo(fallBackLogMsg));
+									.Handle(() => 5 / 1);
+			Assert.That(result.NoError, Is.True);
+			Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			Assert.That(result.Result, Is.EqualTo(5));
+			Assert.That(result.Errors.Count(), Is.EqualTo(0));
+			Assert.That(result.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(0));
+			Assert.That(errorProcessorMsg, Is.Null);
 		}
 
 		private class TestAsyncClass
