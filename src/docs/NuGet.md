@@ -28,7 +28,7 @@ var simplePolicyResult = new SimplePolicy()
 		"Delegate call with parameter value {Param} failed with an exception.", 
 		pi.Param))
 		
-	//If the random value variable is zero,
+	//If the random value is zero,
 	//the previous line of code
 	//logs an error with {Param} set to zero.
 	.Handle((i) => 5 / i, random);
@@ -40,7 +40,7 @@ var retryPolicyResult = await new RetryPolicy(5)
 	 	logger.LogError(ex,
 			"Failed to connect to {Uri} on attempt {Attempt}.",
 			pi.Param,
-			pi.GetRetryCount() + 1))
+			pi.GetAttemptCount()))
 
 	//In case of an exception,
 	//the previous line logs an error
@@ -48,4 +48,32 @@ var retryPolicyResult = await new RetryPolicy(5)
 	//and {Attempt} set to the current attempt
 	.HandleAsync(async (uri, ct)
 		=> await _httpClient.GetAsync(uri, ct), "users", token);
+
+
+//Implementation of the Retry-Then-Fallback pattern:
+
+// Create a retry policy that will attempt the operation up to 3 times.
+var fallbackResult = new RetryPolicy(3)
+
+	// Exclude DivideByZeroException from being retried.
+	.ExcludeError<DivideByZeroException>()
+
+	// Switch to a fallback policy that wraps up the current retry policy.
+	.ThenFallback()
+
+	// Configure the fallback policy using a function that returns int.MaxValue.
+	.WithFallbackFunc(() => int.MaxValue)
+
+	 // The fallback policy exclusively handles DivideByZeroException.
+    .IncludeError<DivideByZeroException>()
+
+    // Log an error message when fallback is triggered
+    .WithErrorProcessorOf(_ => logger.LogError("Fallback to int.MaxValue"))
+
+	// If the random value is zero,
+	// the fallback is triggered,
+	// "Fallback to int.MaxValue" is logged,
+	// and fallbackResult.Result is set to int.MaxValue.
+    .Handle(() => 5 / random);
+
 ```
