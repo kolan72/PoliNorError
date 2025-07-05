@@ -64,16 +64,16 @@ var fallbackResult = new RetryPolicy(3)
 	// Configure the fallback policy using a function that returns int.MaxValue.
 	.WithFallbackFunc(() => int.MaxValue)
 
-	 // The fallback policy exclusively handles DivideByZeroException.
-    .IncludeError<DivideByZeroException>()
+	// The fallback policy exclusively handles DivideByZeroException.
+	.IncludeError<DivideByZeroException>()
 
-    // Log an error message when fallback is triggered
-    .WithErrorProcessorOf(_ => logger.LogError("Fallback to int.MaxValue"))
+	// Log an error message when fallback is triggered
+	.WithErrorProcessorOf(_ => logger.LogError("Fallback to int.MaxValue"))
 
 	// If the random value is zero,
 	// the fallback is triggered,
 	// "Fallback to int.MaxValue" is logged,
 	// and fallbackResult.Result is set to int.MaxValue.
-    .Handle(() => 5 / random);
+	.Handle(() => 5 / random);
 
 ```
