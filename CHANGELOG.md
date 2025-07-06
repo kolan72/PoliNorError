@@ -1,3 +1,43 @@
+## 2.23.0
+
+- Introduced the `RetryPolicy.Handle<TErrorContext>(Action, TErrorContext, CancellationToken)` method.
+- Introduced the `RetryPolicy.Handle<TParam>(Action<TParam>, TParam, CancellationToken)` method.
+- Introduced the `RetryPolicy.Handle<TErrorContext, T>(Func<T>, TErrorContext, CancellationToken)` method.
+- Introduced the `RetryPolicy.Handle<TParam, T>(Func<TParam, T>, TParam, CancellationToken)` method.
+- Introduced the `RetryPolicy.HandleAsync<TErrorContext>(Func<CancellationToken, Task>, TErrorContext, ... ,CancellationToken)` method overloads.
+- Introduced the `RetryPolicy.HandleAsync<TParam>(Func<TParam, CancellationToken, Task>, TParam, ... ,CancellationToken)` method overloads.
+- Introduced the `RetryPolicy.HandleAsync<TErrorContext, T>(Func<CancellationToken, Task<T>>, TErrorContext, ...,CancellationToken)` method overloads.
+- Introduced the `RetryPolicy.HandleAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>>, TParam, ... ,CancellationToken)` method overloads.
+- Introduced the `IRetryExecutionInfo` interface, which is implemented by `RetryProcessingErrorInfo` and `RetryProcessingErrorInfo<TParam>`.
+- Introduced the `GetRetryCount()` extensions method for `ProcessingErrorInfo`.
+- Introduced the `RetryPolicy.WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext>)` method.
+- Introduced the `RetryPolicy.WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>>)` method and its overloads.
+- Introduced the `RetryPolicy.WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken>)` method.
+- Introduced the `RetryPolicy.WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task>)` and its overloads.
+- Introduced the `RetryPolicy.WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task>)` method.
+- Added an optional bool excludeLastPolicy parameter (default: `false`) to the `PolicyCollection.AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task>, ...)` method.
+- Added an optional bool excludeLastPolicy parameter (default: `false`) to the `PolicyCollection.AddPolicyResultHandlerForAll(Func<PolicyResult, Task>, CancellationType, ...)` overloads.
+- Added an optional bool excludeLastPolicy parameter (default: `false`) to the `PolicyCollection.AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task>, CancellationType, ...)` overloads.
+- Added an optional bool excludeLastPolicy parameter (default: `false`) to the `PolicyCollection.AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>>, CancellationType, ...)` overloads.
+- Added an optional bool excludeLastPolicy parameter (default: `false`) to the `PolicyCollection.AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, CancellationToken, Task>, ...)` method.
+- Added an optional bool excludeLastPolicy parameter (default: `false`) to the `PolicyCollection.AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>, CancellationToken>, ...)` method.
+- Added an optional bool excludeLastPolicy parameter (default: `false`) to the `PolicyCollection.AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken>, ...)` method.
+- Add an internal `DelayErrorProcessor` constructor overload that accepts an `IDelayProvider`.
+- Introduced the `RetryDelay(Func<int, TimeSpan> delayValueProvider)` constructor.
+- Introduced the `RetryDelay(RetryDelayOptions)` constructor.
+- Added the protected `RetryDelay.DelayValueProvider` property and deprecated the `InnerDelay` and `InnerDelayValueProvider` properties.
+- Added the `ICanAddErrorFilter<T>` interface and implemented it in `RetryPolicy` and `DefaultRetryProcessor`.
+- Introduced the `IBulkErrorProcessor.WithDelayBetweenRetries(Func<int,Exception, TimeSpan>)` extension method.
+- Introduced the `TryCatchBuilder.AddCatchBlock(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter>, IBulkErrorProcessor)` method and deprecated the `TryCatchBuilder.AddCatchBlock(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter>, Action<IBulkErrorProcessor>)` method.
+- Added the `ExceptionFilter.AppendFilter(ExceptionFilter)` method.
+- DRY refactoring to add a policy result handler to `PolicyCollection`.
+- Refactor `Policy.HandlePolicyResult(Async)` methods.
+- Update `System.Memory` to version 4.0.5.0 in 'PoliNorError.Tests'. 
+- Bump `System.Runtime.CompilerServices.Unsafe` and `System.Threading.Tasks.Extensions` in 'PoliNorError.Tests'. 
+- Update 'RetryPolicy' README Chapter.
+- Update NuGet package README.
+
+
 ## 2.22.0
 
 - Introduced overloads of these methods, with and without the `RetryDelay` parameter:  
