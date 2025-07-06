@@ -333,6 +333,52 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task  Should_Workaround_For_LinkedTokenSource_Work(bool linked)
+		{
+			var rp = new RetryPolicy(3).ExcludeError<OperationCanceledException>();
+			if (linked)
+			{
+				using (var cancelTokenSource = new CancellationTokenSource())
+				{
+					var result = await rp.HandleAsync(async (ct) => await ActionThatThrowOperationCanceledExceptionOnLinkedSource(ct), cancelTokenSource.Token);
+
+					Assert.That(result.IsCanceled, Is.False);
+					Assert.That(result.UnprocessedError, Is.TypeOf<OperationCanceledException>());
+					Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+					Assert.That(result.Errors.Count, Is.EqualTo(1));
+				}
+			}
+			else
+			{
+				using (var cancelTokenSource = new CancellationTokenSource())
+				{
+					var result = await rp.HandleAsync(async (ct) => { cancelTokenSource.Cancel(); await ActionThatThrowOperationCanceledException(ct); }, cancelTokenSource.Token);
+
+					Assert.That(result.IsCanceled, Is.True);
+				}
+			}
+		}
+
+		private async Task ActionThatThrowOperationCanceledException(CancellationToken token)
+		{
+			await Task.Delay(TimeSpan.FromTicks(1));
+			token.ThrowIfCancellationRequested();
+		}
+
+		private async Task ActionThatThrowOperationCanceledExceptionOnLinkedSource(CancellationToken token)
+		{
+			await Task.Delay(TimeSpan.FromTicks(1));
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token))
+			{
+				var innerToken = cancelTokenSource.Token;
+				cancelTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+			}
+		}
+
 		private Func<CancellationTokenSource, Func<int>> CanceledGetAwaiterFunc => (cts) => () => {
 			cts.Cancel();
 			return Task.Run(() => 1, cts.Token).GetAwaiter().GetResult();
