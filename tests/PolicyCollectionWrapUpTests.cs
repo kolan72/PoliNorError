@@ -83,6 +83,23 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task ShouldUseCustomErrorSaver_WhenWrappedPolicyCollectionFails_WithCollectionError_Setting()
+		{
+			var invoked = false;
+			var retryPolicyWithCustomErrorSaver = new RetryPolicy(2).UseCustomErrorSaverOf((_) => invoked = true);
+			var result = await PolicyCollection
+								.Create()
+								.WithRetry(3)
+								.WithPolicy(retryPolicyWithCustomErrorSaver)
+								.WrapUp(new SimplePolicy(), ThrowOnWrappedCollectionFailed.CollectionError)
+								.OuterPolicy
+								.HandleAsync(async (_) => { await Task.Delay(1); throw new IndexOutOfRangeException("Test"); });
+
+			Assert.That(((PolicyDelegateCollectionException)result.Errors.FirstOrDefault()).InnerExceptions.Count(), Is.EqualTo(4));
+			Assert.That(invoked, Is.True);
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public async Task Should_PolicyCollection_WrapUp_For_AsyncFunc_Has_Correct_PolicyResult_When_NoException(bool empty)

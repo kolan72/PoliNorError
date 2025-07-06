@@ -8,18 +8,12 @@ namespace PoliNorError
 	{
 		internal static void AddIncludedErrorSet(this ExceptionFilter errorFilter, IErrorSet errorSet)
 		{
-			foreach (var item in errorSet.Items)
-			{
-				errorFilter.AddIncludedError(item);
-			}
+			errorSet.Items.ActionForAll((item) => errorFilter.AddIncludedError(item));
 		}
 
 		internal static void AddExcludedErrorSet(this ExceptionFilter errorFilter, IErrorSet errorSet)
 		{
-			foreach (var item in errorSet.Items)
-			{
-				errorFilter.AddExcludedError(item);
-			}
+			errorSet.Items.ActionForAll((item) => errorFilter.AddExcludedError(item));
 		}
 
 		internal static void AddIncludedError(this ExceptionFilter errorFilter, ErrorSetItem errorSetItem)

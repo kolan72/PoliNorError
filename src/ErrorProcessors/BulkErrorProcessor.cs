@@ -33,7 +33,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo();
+			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
@@ -83,7 +83,7 @@ namespace PoliNorError
 				return new BulkProcessResult(handlingError, errorProcessorExceptions);
 			}
 
-			var catchBlockProcessErrorInfo = errorContext.ToProcessingErrorInfo();
+			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
 			foreach (var errorProcessor in _errorProcessors)
@@ -128,6 +128,9 @@ namespace PoliNorError
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This enum is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public enum BulkProcessStatus
 		{
 			None = 0,

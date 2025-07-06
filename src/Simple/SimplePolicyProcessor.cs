@@ -7,7 +7,7 @@ namespace PoliNorError
 	/// <summary>
 	/// A SimplePolicy processor that can handle delegates.
 	/// </summary>
-	public sealed class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor
+	public sealed class SimplePolicyProcessor : PolicyProcessor, ISimplePolicyProcessor, ICanAddErrorFilter<SimplePolicyProcessor>
 	{
 		private readonly EmptyErrorContext _emptyErrorContext;
 
@@ -81,11 +81,11 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (AggregateException ae) when (ae.HasCanceledException(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
 			catch (Exception ex)
 			{
@@ -149,11 +149,11 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (AggregateException ae) when (ae.HasCanceledException(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
 			catch (Exception ex)
 			{
@@ -216,7 +216,7 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (Exception ex)
 			{
@@ -280,7 +280,7 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (Exception ex)
 			{
@@ -357,6 +357,20 @@ namespace PoliNorError
 		{
 			result.AddError(ex);
 			result.SetFailedWithCatchBlockError(filterException, ex, CatchBlockExceptionSource.ErrorFilter);
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicyProcessor}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public SimplePolicyProcessor AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			this.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicyProcessor}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public SimplePolicyProcessor AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			this.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
 		}
 	}
 }

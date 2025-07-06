@@ -61,7 +61,41 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Process_Return_Status_ProcessorException_When_ProcessorWithError2()
+		public void Should_Process_When_ProcessingErrorContext_Param_Is_Null()
+		{
+			bool processorFlag = false;
+			PolicyAlias? policyAlias = null;
+			var handlingError = new InvalidOperationException();
+			var bulkProcessor = new BulkErrorProcessor().WithErrorProcessorOf((Exception _, ProcessingErrorInfo pi) =>
+			{
+			  policyAlias = pi.PolicyKind;
+			  processorFlag = true;
+			});
+			var res = bulkProcessor.Process(handlingError, null, CancellationToken.None);
+			Assert.That(res.HandlingError, Is.EqualTo(handlingError));
+			Assert.That(policyAlias, Is.EqualTo(PolicyAlias.NotSet));
+			Assert.That(processorFlag, Is.True);
+		}
+
+		[Test]
+		public async Task Should_ProcessAsync_When_ProcessingErrorContext_Param_Is_Null()
+		{
+			bool processorFlag = false;
+			PolicyAlias? policyAlias = null;
+			var handlingError = new InvalidOperationException();
+			var bulkProcessor = new BulkErrorProcessor().WithErrorProcessorOf((Exception _, ProcessingErrorInfo pi) =>
+			{
+				policyAlias = pi.PolicyKind;
+				processorFlag = true;
+			});
+			var res = await bulkProcessor.ProcessAsync(handlingError, null, CancellationToken.None);
+			Assert.That(res.HandlingError, Is.EqualTo(handlingError));
+			Assert.That(policyAlias, Is.EqualTo(PolicyAlias.NotSet));
+			Assert.That(processorFlag, Is.True);
+		}
+
+		[Test]
+		public void Should_Process_Return_Status_ProcessorException_When_ProcessorWithError()
 		{
 			var bulkProcessor = new BulkErrorProcessor();
 
@@ -373,6 +407,161 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_AddErrorContextProcessor_Using_Action(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				m = pi.Param;
+			}
+
+			SimplePolicyProcessor processor;
+			BulkErrorProcessor bp;
+
+			if (!withCancellationType)
+			{
+				bp = new BulkErrorProcessor().WithErrorContextProcessorOf<int>(action);
+			}
+			else
+			{
+				bp = new BulkErrorProcessor().WithErrorContextProcessorOf<int>(action, CancellationType.Precancelable);
+			}
+			processor = new SimplePolicyProcessor(bp);
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddErrorContextProcessor_Using_Action_With_Token(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(new BulkErrorProcessor()
+				.WithErrorContextProcessorOf<int>(action));
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_AddErrorContextProcessor_Using_AsyncFunc(bool shouldWork, bool withCancellationType)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi)
+			{
+				await Task.Delay(1);
+				m = pi.Param;
+			}
+
+			SimplePolicyProcessor processor;
+			BulkErrorProcessor bp;
+
+			if (!withCancellationType)
+			{
+				bp = new BulkErrorProcessor().WithErrorContextProcessorOf<int>(fn);
+			}
+			else
+			{
+				bp = new BulkErrorProcessor().WithErrorContextProcessorOf<int>(fn, CancellationType.Precancelable);
+			}
+
+			processor = new SimplePolicyProcessor(bp);
+
+			PolicyResult result = null;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddErrorContextProcessor_Using_AsyncFunc_With_Token(bool shouldWork)
+		{
+			int m = 0;
+
+			async Task fn(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				await Task.Delay(1);
+				m = pi.Param;
+			}
+
+			var processor = new SimplePolicyProcessor(
+				new BulkErrorProcessor()
+				.WithErrorContextProcessorOf<int>(fn));
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_Apply_Delay_When_Configured_WithDelayBetweenRetries(bool firstExceptionDelay)
@@ -416,6 +605,48 @@ namespace PoliNorError.Tests
 				Assert.That(secondErrorRetryCount, Is.EqualTo(1));
 				Assert.That(firstErrorRetryCount, Is.EqualTo(0));
 			}
+		}
+
+		[Test]
+		public void Should_CreateDelayProcessor_When_ConfiguredWithTimeSpanDelay()
+		{
+			var bp = new BulkErrorProcessor().WithDelayBetweenRetries(TimeSpan.FromTicks(1));
+			Assert.That(bp.Count, Is.EqualTo(1));
+			Assert.That(bp.ElementAt(0), Is.TypeOf<DelayErrorProcessor>());
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_AddErrorContextProcessor_Using_DefaultErrorProcessor(bool shouldWork)
+		{
+			int m = 0;
+
+			void action(Exception _, ProcessingErrorInfo<int> pi, CancellationToken __)
+			{
+				m = pi.Param;
+			}
+
+			var ep = new DefaultErrorProcessor<int>(action);
+
+			var processor = new SimplePolicyProcessor(new BulkErrorProcessor()
+				.WithErrorContextProcessor(ep));
+
+			PolicyResult result;
+
+			if (shouldWork)
+			{
+				result = processor.Execute(() => throw new InvalidOperationException(), 5);
+				Assert.That(m, Is.EqualTo(5));
+			}
+			else
+			{
+				result = processor.Execute(() => throw new InvalidOperationException());
+				Assert.That(m, Is.EqualTo(0));
+			}
+
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
 		}
 	}
 }

@@ -67,10 +67,29 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_TimeSeriesRetryDelay_Create_Returns_Correct_TimeSpan()
+		{
+			var secs = new List<int>() { 1, 15, 20, 34 };
+			var times = secs.Select(s => TimeSpan.FromSeconds(s));
+
+			var rd = TimeSeriesRetryDelay.Create(times);
+			var rdch = new RetryDelayChecker(rd);
+
+			var res = rdch.Attempt(0, 1, 2, 3);
+
+			for (int i = 0; i < secs.Count; i++)
+			{
+				Assert.That(res[i].TotalSeconds, Is.EqualTo(secs[i]));
+			}
+		}
+
 		[TestCase(RetryDelayType.Exponential, true)]
 		[TestCase(RetryDelayType.Exponential, false)]
 		[TestCase(RetryDelayType.Linear, true)]
 		[TestCase(RetryDelayType.Linear, false)]
+		[TestCase(RetryDelayType.TimeSeries, true)]
+		[TestCase(RetryDelayType.TimeSeries, false)]
 		public void Should_RetryDelay_NotExceed_MaxDelay(RetryDelayType retryDelayType, bool useBaseClass)
 		{
 			var rd = GetRetryDelayByRetryDelayType();
@@ -94,6 +113,11 @@ namespace PoliNorError.Tests
 							return new RetryDelay(RetryDelayType.Exponential, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
 						else
 							return ExponentialRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
+					case RetryDelayType.TimeSeries:
+						if (useBaseClass)
+							return new RetryDelay(RetryDelayType.TimeSeries, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
+						else
+							return TimeSeriesRetryDelay.Create(TimeSpan.FromSeconds(2), maxDelay: TimeSpan.FromSeconds(1));
 					default:
 						throw new NotImplementedException();
 				}
@@ -148,6 +172,7 @@ namespace PoliNorError.Tests
 		[TestCase(RetryDelayType.Constant, 2)]
 		[TestCase(RetryDelayType.Linear, 6)]
 		[TestCase(RetryDelayType.Exponential, 8)]
+		[TestCase(RetryDelayType.TimeSeries, 2)]
 		public void Should_Set_RetryDelay_When_Initialized_Through_Constructor_With_Options(RetryDelayType retryDelayType, int equalTo)
 		{
 			var baseDelay = TimeSpan.FromMilliseconds(2);
@@ -162,6 +187,9 @@ namespace PoliNorError.Tests
 					break;
 				case RetryDelayType.Exponential:
 					rd = new RetryDelay(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay });
+					break;
+				case RetryDelayType.TimeSeries:
+					rd = new RetryDelay(new TimeSeriesRetryDelayOptions() { BaseDelay = baseDelay });
 					break;
 				default:
 					throw new NotImplementedException();
@@ -186,6 +214,81 @@ namespace PoliNorError.Tests
 			Func<int, TimeSpan> nullProvider = null;
 
 			Assert.Throws<ArgumentNullException>(() => new RetryDelay(nullProvider));
+		}
+
+		[Test]
+		public void Should_Return_Exact_Delay_When_Within_Bounds()
+		{
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2) },
+				MaxDelay = TimeSpan.FromSeconds(10)
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(0), Is.EqualTo(TimeSpan.FromSeconds(1)));
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(TimeSpan.FromSeconds(2)));
+		}
+
+		[Test]
+		public void Should_Return_Last_Delay_When_Attempt_Exceeds_Index()
+		{
+			var maxTime = TimeSpan.FromSeconds(3);
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = new[] { TimeSpan.FromSeconds(1), maxTime},
+				MaxDelay = TimeSpan.FromSeconds(10)
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(2), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(3), Is.EqualTo(maxTime));
+		}
+
+		[Test]
+		public void Should_Use_BaseDelay_If_Times_Is_Empty()
+		{
+			var baseTime = TimeSpan.FromSeconds(2);
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = Array.Empty<TimeSpan>(),
+				BaseDelay = baseTime,
+				MaxDelay = TimeSpan.FromSeconds(5)
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(0), Is.EqualTo(baseTime));
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(baseTime));
+		}
+
+		[Test]
+		public void Should_Throw_ArgumentNullException_When_Create_With_Null_Times()
+		{
+			IEnumerable<TimeSpan> nullTimes = null;
+			Assert.That(() => TimeSeriesRetryDelay.Create(nullTimes),
+				Throws.ArgumentNullException.With.Property("ParamName").EqualTo("times"));
+		}
+
+		[Test]
+		public void Should_Clamp_Delay_To_MaxDelay()
+		{
+			var maxTime = TimeSpan.FromSeconds(10);
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				Times = new[] { TimeSpan.FromSeconds(12) },
+				MaxDelay = maxTime
+			};
+
+			var retryDelay = new TimeSeriesRetryDelay(options);
+
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(2), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(3), Is.EqualTo(maxTime));
 		}
 	}
 }

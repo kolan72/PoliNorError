@@ -9,7 +9,7 @@ namespace PoliNorError
 	/// <summary>
 	///  This class is primarily for internal use by PoliNorError
 	/// </summary>
-	public sealed partial class FallbackPolicyWithAsyncFunc : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAsyncFunc>, IWithInnerErrorFilter<FallbackPolicyWithAsyncFunc>
+	public sealed partial class FallbackPolicyWithAsyncFunc : FallbackPolicyBase, IWithErrorFilter<FallbackPolicyWithAsyncFunc>, IWithInnerErrorFilter<FallbackPolicyWithAsyncFunc>, ICanAddErrorFilter<FallbackPolicyWithAsyncFunc>
 	{
 		internal FallbackPolicyWithAsyncFunc(IFallbackProcessor processor, FallbackFuncsProvider fallbackFuncsProvider) : base(processor ?? new DefaultFallbackProcessor(), fallbackFuncsProvider) {}
 
@@ -175,6 +175,20 @@ namespace PoliNorError
 		{
 			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
 			return this.WithErrorContextProcessor<FallbackPolicyWithAsyncFunc, TErrorContext>(errorProcessor);
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{FallbackPolicyWithAsyncFunc}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public new FallbackPolicyWithAsyncFunc AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{FallbackPolicyWithAsyncFunc}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public new FallbackPolicyWithAsyncFunc AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
 		}
 	}
 }

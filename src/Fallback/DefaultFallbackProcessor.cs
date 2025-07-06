@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public sealed class DefaultFallbackProcessor : PolicyProcessor, IFallbackProcessor
+	public sealed class DefaultFallbackProcessor : PolicyProcessor, IFallbackProcessor, ICanAddErrorFilter<DefaultFallbackProcessor>
 	{
 		private readonly EmptyErrorContext _emptyErrorContext;
 		public DefaultFallbackProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : base(bulkErrorProcessor)
@@ -48,11 +48,11 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (AggregateException ae) when (ae.HasCanceledException(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
 			catch (Exception ex)
 			{
@@ -104,11 +104,11 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (AggregateException ae) when (ae.HasCanceledException(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
 			catch (Exception ex)
 			{
@@ -159,7 +159,7 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (Exception ex)
 			{
@@ -211,7 +211,7 @@ namespace PoliNorError
 			}
 			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
-				result.SetFailedAndCanceled();
+				result.SetFailedAndCanceled(oe);
 			}
 			catch (Exception ex)
 			{
@@ -259,6 +259,20 @@ namespace PoliNorError
 		public DefaultFallbackProcessor WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext> errorProcessor)
 		{
 			return this.WithErrorContextProcessor<DefaultFallbackProcessor, TErrorContext>(errorProcessor);
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{DefaultFallbackProcessor}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public DefaultFallbackProcessor AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			this.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{DefaultFallbackProcessor}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public DefaultFallbackProcessor AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			this.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
 		}
 	}
 }

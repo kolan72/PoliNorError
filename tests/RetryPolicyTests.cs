@@ -1155,7 +1155,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetRetryCount() + 1;
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1210,7 +1210,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetRetryCount() + 1;
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1264,7 +1264,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetRetryCount() + 1;
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy policyToTest;
@@ -1317,7 +1317,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetRetryCount() + 1;
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1376,7 +1376,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetRetryCount() + 1;
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1428,7 +1428,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetRetryCount() + 1;
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy retryPolicy;
@@ -1487,7 +1487,7 @@ namespace PoliNorError.Tests
 			void action(Exception _, ProcessingErrorInfo<int> pi)
 			{
 				m = pi.Param;
-				attempts = pi.GetRetryCount() + 1;
+				attempts = pi.GetAttemptCount();
 			}
 
 			RetryPolicy policyToTest;
@@ -1582,61 +1582,67 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(true, false)]
-		[TestCase(false, true)]
-		[TestCase(false, false)]
-		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndNoFiltersExist(bool excludeFilterWork, bool useSelector)
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ThenFallback_Returns_Valid_Result(bool thenFallback)
 		{
-			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
+#pragma warning disable RCS1118 // Mark local variable as const.
+			var zero = 0;
+#pragma warning restore RCS1118 // Mark local variable as const.
 
-			RetryPolicy retryPolicy;
-			if (!useSelector)
+			const string fallBackLogMsg = "Fallback to int.MaxValue";
+			string errorProcessorMsg = null;
+			var policy = new RetryPolicy(3)
+									.ExcludeError<DivideByZeroException>()
+									.ThenFallback()
+									.WithFallbackFunc(() => int.MaxValue)
+									.IncludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => errorProcessorMsg = fallBackLogMsg);
+
+			if (thenFallback)
 			{
-				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
-				retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilter);
+				var fallbackResult = policy
+									.Handle(() => 5 / zero);
+
+				Assert.That(fallbackResult.IsSuccess, Is.True);
+				Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
+				Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
+				Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
+				Assert.That(fallbackResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(1));
+				Assert.That(errorProcessorMsg, Is.EqualTo(fallBackLogMsg));
 			}
 			else
 			{
-				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
-				retryPolicy = new RetryPolicy(1).AddErrorFilter(appendedFilterSelector);
+				var result = policy
+									.Handle<int>(() =>throw new InvalidOperationException());
+
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+				Assert.That(result.Result, Is.EqualTo(default(int)));
+				Assert.That(result.Errors.Count(), Is.EqualTo(1));
+				Assert.That(result.UnprocessedError.GetType(), Is.EqualTo(typeof(InvalidOperationException)));
+				Assert.That(result.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(4));
 			}
-
-			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsEmpty();
-
-			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
 
 		[Test]
-		[TestCase(true, true, true)]
-		[TestCase(true, false, true)]
-		[TestCase(false, true, true)]
-		[TestCase(false, false, true)]
-		[TestCase(true, true, false)]
-		[TestCase(true, false, false)]
-		[TestCase(false, true, false)]
-		[TestCase(false, false, false)]
-		public void Should_FilterErrors_WhenErrorFilterIsAdded_AndFiltersExist(bool excludeFilterWork, bool useSelector, bool checkOriginExceptFiler)
+		public void Should_ThenFallback_Returns_Valid_Result_When_NoError()
 		{
-			var errProvider = new AppendFilterExceptionProvider(excludeFilterWork);
-
-			var retryPolicy = new RetryPolicy(1)
-									.AddErrorFilter(errProvider.GetCatchBlockFilterFromIncludeAndExclude());
-
-			if (!useSelector)
-			{
-				var appendedFilter = errProvider.GetNonEmptyCatchBlockFilter();
-				retryPolicy.AddErrorFilter(appendedFilter);
-			}
-			else
-			{
-				var appendedFilterSelector = errProvider.GetNonEmptyCatchBlockFilterSelector();
-				retryPolicy.AddErrorFilter(appendedFilterSelector);
-			}
-
-			var errorToHandle = errProvider.GetErrorWhenOriginalFilterIsNotEmpty(checkOriginExceptFiler);
-
-			Assert.That(retryPolicy.Handle(() => throw errorToHandle).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
+			const string fallBackLogMsg = "Fallback to int.MaxValue";
+			string errorProcessorMsg = null;
+			var result = new RetryPolicy(3)
+									.ExcludeError<DivideByZeroException>()
+									.ThenFallback()
+									.WithFallbackFunc(() => int.MaxValue)
+									.IncludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => errorProcessorMsg = fallBackLogMsg)
+									.Handle(() => 5 / 1);
+			Assert.That(result.NoError, Is.True);
+			Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			Assert.That(result.Result, Is.EqualTo(5));
+			Assert.That(result.Errors.Count(), Is.EqualTo(0));
+			Assert.That(result.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(0));
+			Assert.That(errorProcessorMsg, Is.Null);
 		}
 
 		private class TestAsyncClass

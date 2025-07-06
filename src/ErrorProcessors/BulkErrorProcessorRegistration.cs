@@ -73,5 +73,8 @@ namespace PoliNorError
 
 		public static T WithDelayBetweenRetries<T>(this T policyProcessor, Func<int, Exception, TimeSpan> delayFactory) where T : IBulkErrorProcessor
 						=> policyProcessor.WithErrorProcessor(new DelayErrorProcessor(delayFactory), _addErrorProcessorAction);
+
+		public static T WithDelayBetweenRetries<T>(this T policyProcessor, TimeSpan time) where T : IBulkErrorProcessor
+						=> policyProcessor.WithErrorProcessor(new DelayErrorProcessor(time), _addErrorProcessorAction);
 	}
 }

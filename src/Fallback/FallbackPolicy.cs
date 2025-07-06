@@ -9,7 +9,7 @@ namespace PoliNorError
 	/// <summary>
 	/// A fallback policy that can handle delegates.
 	/// </summary>
-	public sealed partial class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>, IWithInnerErrorFilter<FallbackPolicy>
+	public sealed partial class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>, IWithInnerErrorFilter<FallbackPolicy>, ICanAddErrorFilter<FallbackPolicy>
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FallbackPolicy"/>.
@@ -205,6 +205,20 @@ namespace PoliNorError
 		{
 			ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor _);
 			return this.WithErrorContextProcessor<FallbackPolicy, TErrorContext>(errorProcessor);
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{FallbackPolicy}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
+		public new FallbackPolicy AddErrorFilter(NonEmptyCatchBlockFilter filter)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filter);
+			return this;
+		}
+
+		///<inheritdoc cref = "ICanAddErrorFilter{FallbackPolicy}.AddErrorFilter(Func{IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter})"/>
+		public new FallbackPolicy AddErrorFilter(Func<IEmptyCatchBlockFilter, NonEmptyCatchBlockFilter> filterFactory)
+		{
+			PolicyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
+			return this;
 		}
 	}
 }

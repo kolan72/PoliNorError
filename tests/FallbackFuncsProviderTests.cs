@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -311,6 +312,25 @@ namespace PoliNorError.Tests
 			var funcThatWasSet2 = testProvider.GetAsyncFallbackFunc();
 			Assert.That(funcThatWasSet2, Is.Not.Null);
 			Assert.That(funcThatWasSet2, Is.Not.EqualTo(funcThatWasSet));
+		}
+
+		[Test]
+		public void Should_CreateFallbackPolicy_When_ToFallbackPolicyIsCalled()
+		{
+			const string FNF = "File not found";
+			var fb = FallbackFuncsProvider.Create()
+							.AddOrReplaceFallbackFunc((_) => FNF)
+							.AddOrReplaceFallbackFunc((_) => Array.Empty<string>())
+							.ToFallbackPolicy()
+							.IncludeError<FileNotFoundException>();
+
+			var resAllText = fb.Handle((fn) => File.ReadAllText(fn), "f.txt");
+			Assert.That(resAllText.IsPolicySuccess, Is.True);
+			Assert.That(resAllText.Result, Is.EqualTo(FNF));
+
+			var resAllLines = fb.Handle((fn) => File.ReadAllLines(fn), "f.txt");
+			Assert.That(resAllLines.IsPolicySuccess, Is.True);
+			Assert.That(resAllLines.Result.IsEmpty, Is.True);
 		}
 
 		internal enum TestFallbackFuncType

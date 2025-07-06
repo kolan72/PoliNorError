@@ -8,37 +8,37 @@ namespace PoliNorError
 	{
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor) where T : IPolicyProcessor
 		{
-			return WithErrorContextProcessor(policyProcessor, new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+			return policyProcessor.WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor), _addErrorProcessorAction);
 		}
 
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Action<Exception, ProcessingErrorInfo<TErrorContext>> actionProcessor, CancellationType cancellationType) where T : IPolicyProcessor
 		{
-			return WithErrorContextProcessor(policyProcessor, new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType));
+			return policyProcessor.WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor, cancellationType), _addErrorProcessorAction);
 		}
 
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor) where T : IPolicyProcessor
 		{
-			return WithErrorContextProcessor(policyProcessor, new DefaultErrorProcessor<TErrorContext>(actionProcessor));
+			return policyProcessor.WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor), _addErrorProcessorAction);
 		}
 
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor) where T : IPolicyProcessor
 		{
-			return WithErrorContextProcessor(policyProcessor, new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			return policyProcessor.WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor), _addErrorProcessorAction);
 		}
 
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor, CancellationType cancellationType) where T : IPolicyProcessor
 		{
-			return WithErrorContextProcessor(policyProcessor, new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType));
+			return policyProcessor.WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor, cancellationType), _addErrorProcessorAction);
 		}
 
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task> funcProcessor) where T : IPolicyProcessor
 		{
-			return WithErrorContextProcessor(policyProcessor, new DefaultErrorProcessor<TErrorContext>(funcProcessor));
+			return policyProcessor.WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(funcProcessor), _addErrorProcessorAction);
 		}
 
 		internal static T WithErrorContextProcessor<T, TErrorContext>(this T policyProcessor, DefaultErrorProcessor<TErrorContext> errorProcessor) where T : IPolicyProcessor
 		{
-			return policyProcessor.WithErrorProcessor(errorProcessor);
+			return policyProcessor.WithErrorProcessor(errorProcessor, _addErrorProcessorAction);
 		}
 	}
 }

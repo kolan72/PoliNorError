@@ -11,7 +11,7 @@ namespace PoliNorError
 
 		private PolicyWrapperFactory _policyWrapperFactory;
 
-		private readonly PolicyResultHandlerCollection _policyResultHandlerCollection;
+		private readonly IPolicyResultHandlerCollection _policyResultHandlerCollection;
 
 		protected Policy(IPolicyProcessor policyProcessor)
 		{
