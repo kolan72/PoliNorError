@@ -261,4 +261,42 @@ namespace PoliNorError
 		/// </summary>
 		UnhandledError
 	}
+
+	internal class PolicyResultStatus : IEquatable<PolicyResultStatus>
+	{
+		public static readonly PolicyResultStatus NotExecuted = new PolicyResultStatus(ResultStatus.NotExecuted);
+		public static readonly PolicyResultStatus NoError = new PolicyResultStatus(ResultStatus.NoError);
+		public static readonly PolicyResultStatus PolicySuccess = new PolicyResultStatus(ResultStatus.PolicySuccess);
+		public static readonly PolicyResultStatus Failed = new PolicyResultStatus(ResultStatus.Failed);
+		public static readonly PolicyResultStatus Canceled = new PolicyResultStatus(ResultStatus.Canceled);
+		public static readonly PolicyResultStatus FailedWithCancellation = new PolicyResultStatus(ResultStatus.FailedWithCancellation);
+
+		internal PolicyResultStatus(ResultStatus resultStatus)
+		{
+			Status = (int)resultStatus;
+		}
+
+		internal int Status { get; }
+
+		public bool Equals(PolicyResultStatus other) => Status == other.Status;
+
+		public override bool Equals(object obj) => obj is PolicyResultStatus s && Equals(s);
+		public override int GetHashCode() => Status.GetHashCode();
+
+		public static bool operator ==(PolicyResultStatus left, PolicyResultStatus right) =>
+			Equals(left, right);
+
+		public static bool operator !=(PolicyResultStatus left, PolicyResultStatus right) =>
+			!Equals(left, right);
+	}
+
+	internal enum ResultStatus
+	{
+		NotExecuted = 0,
+		NoError,
+		PolicySuccess,
+		Failed,
+		Canceled,
+		FailedWithCancellation
+	}
 }
