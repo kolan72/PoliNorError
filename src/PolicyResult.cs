@@ -262,35 +262,82 @@ namespace PoliNorError
 		UnhandledError
 	}
 
-	internal class PolicyResultStatus : IEquatable<PolicyResultStatus>
+	internal class PolicyStatus
 	{
-		public static readonly PolicyResultStatus NotExecuted = new PolicyResultStatus(ResultStatus.NotExecuted);
-		public static readonly PolicyResultStatus NoError = new PolicyResultStatus(ResultStatus.NoError);
-		public static readonly PolicyResultStatus PolicySuccess = new PolicyResultStatus(ResultStatus.PolicySuccess);
-		public static readonly PolicyResultStatus Failed = new PolicyResultStatus(ResultStatus.Failed);
-		public static readonly PolicyResultStatus Canceled = new PolicyResultStatus(ResultStatus.Canceled);
-		public static readonly PolicyResultStatus FailedWithCancellation = new PolicyResultStatus(ResultStatus.FailedWithCancellation);
+		public static readonly PolicyStatus NotExecuted = new PolicyStatus(ResultStatusValue.NotExecuted);
+		public static readonly PolicyStatus NoError = new PolicyStatus(ResultStatusValue.NoError);
+		public static readonly PolicyStatus PolicySuccess = new PolicyStatus(ResultStatusValue.PolicySuccess);
+		public static readonly PolicyStatus Failed = new PolicyStatus(ResultStatusValue.Failed);
+		public static readonly PolicyStatus Canceled = new PolicyStatus(ResultStatusValue.Canceled);
+		public static readonly PolicyStatus FailedWithCancellation = new PolicyStatus(ResultStatusValue.FailedWithCancellation);
 
-		internal PolicyResultStatus(ResultStatus resultStatus)
+		internal PolicyStatus(ResultStatusValue resultStatus)
+		{
+			Status = resultStatus;
+		}
+
+		internal ResultStatusValue Status { get; }
+	}
+
+	public class WrappedPolicyStatus
+	{
+		public static readonly WrappedPolicyStatus NotExecuted = new WrappedPolicyStatus(ResultStatusValue.NotExecuted);
+		public static readonly WrappedPolicyStatus NoError = new WrappedPolicyStatus(ResultStatusValue.NoError);
+		public static readonly WrappedPolicyStatus PolicySuccess = new WrappedPolicyStatus(ResultStatusValue.PolicySuccess);
+		public static readonly WrappedPolicyStatus Failed = new WrappedPolicyStatus(ResultStatusValue.Failed);
+		public static readonly WrappedPolicyStatus Canceled = new WrappedPolicyStatus(ResultStatusValue.Canceled);
+		public static readonly WrappedPolicyStatus FailedWithCancellation = new WrappedPolicyStatus(ResultStatusValue.FailedWithCancellation);
+		public static readonly WrappedPolicyStatus None = new WrappedPolicyStatus(ResultStatusValue.NoneWrapped);
+
+		internal WrappedPolicyStatus(ResultStatusValue resultStatus)
+		{
+			Status = resultStatus;
+		}
+
+		internal ResultStatusValue Status { get; }
+	}
+
+	internal class ResultStatusValue : IEquatable<ResultStatusValue>
+	{
+		public static readonly ResultStatusValue NotExecuted = new ResultStatusValue(PolicyResultStatus.NotExecuted);
+		public static readonly ResultStatusValue NoError = new ResultStatusValue(PolicyResultStatus.NoError);
+		public static readonly ResultStatusValue PolicySuccess = new ResultStatusValue(PolicyResultStatus.PolicySuccess);
+		public static readonly ResultStatusValue Failed = new ResultStatusValue(PolicyResultStatus.Failed);
+		public static readonly ResultStatusValue Canceled = new ResultStatusValue(PolicyResultStatus.Canceled);
+		public static readonly ResultStatusValue FailedWithCancellation = new ResultStatusValue(PolicyResultStatus.FailedWithCancellation);
+
+		public static readonly ResultStatusValue NoneWrapped = new ResultStatusValue(WrappedPolicyResultStatusPart.None);
+
+		internal ResultStatusValue(PolicyResultStatus resultStatus)
 		{
 			Status = (int)resultStatus;
 		}
 
+		internal ResultStatusValue(WrappedPolicyResultStatusPart wrappedPolicyStatus)
+		{
+			Status = ((int)wrappedPolicyStatus + 1) * 100;
+		}
+
+		internal ResultStatusValue(int status)
+		{
+			Status = status;
+		}
+
 		internal int Status { get; }
 
-		public bool Equals(PolicyResultStatus other) => Status == other.Status;
+		public bool Equals(ResultStatusValue other) => Status == other.Status;
 
-		public override bool Equals(object obj) => obj is PolicyResultStatus s && Equals(s);
+		public override bool Equals(object obj) => obj is ResultStatusValue s && Equals(s);
 		public override int GetHashCode() => Status.GetHashCode();
 
-		public static bool operator ==(PolicyResultStatus left, PolicyResultStatus right) =>
-			Equals(left, right);
+		public static bool operator ==(ResultStatusValue left, ResultStatusValue right) =>
+			left.Equals(right);
 
-		public static bool operator !=(PolicyResultStatus left, PolicyResultStatus right) =>
-			!Equals(left, right);
+		public static bool operator !=(ResultStatusValue left, ResultStatusValue right) =>
+			!left.Equals(right);
 	}
 
-	internal enum ResultStatus
+	internal enum PolicyResultStatus
 	{
 		NotExecuted = 0,
 		NoError,
@@ -298,5 +345,10 @@ namespace PoliNorError
 		Failed,
 		Canceled,
 		FailedWithCancellation
+	}
+
+	internal enum WrappedPolicyResultStatusPart
+	{
+		None = 0
 	}
 }

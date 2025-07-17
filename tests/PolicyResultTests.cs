@@ -43,5 +43,75 @@ namespace PoliNorError.Tests
             collection.AddRange(new List<Exception>() { new Exception(), new Exception() });
             ClassicAssert.AreEqual(2, collection.Count());
         }
+
+        [Test]
+        public void Should_PolicyStatus_Has_Correct_PolicyResultStatus()
+        {
+            Assert.That(PolicyStatus.NotExecuted.Status.Status, Is.EqualTo(0));
+            Assert.That(PolicyStatus.NoError.Status.Status, Is.EqualTo(1));
+            Assert.That(PolicyStatus.PolicySuccess.Status.Status, Is.EqualTo(2));
+            Assert.That(PolicyStatus.Failed.Status.Status, Is.EqualTo(3));
+            Assert.That(PolicyStatus.Canceled.Status.Status, Is.EqualTo(4));
+            Assert.That(PolicyStatus.FailedWithCancellation.Status.Status, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void Should_WrappedPolicyStatus_Has_Correct_PolicyResultStatus()
+        {
+            Assert.That(WrappedPolicyStatus.NotExecuted.Status.Status, Is.EqualTo(0));
+            Assert.That(WrappedPolicyStatus.NoError.Status.Status, Is.EqualTo(1));
+            Assert.That(WrappedPolicyStatus.PolicySuccess.Status.Status, Is.EqualTo(2));
+            Assert.That(WrappedPolicyStatus.Failed.Status.Status, Is.EqualTo(3));
+            Assert.That(WrappedPolicyStatus.Canceled.Status.Status, Is.EqualTo(4));
+            Assert.That(WrappedPolicyStatus.FailedWithCancellation.Status.Status, Is.EqualTo(5));
+
+            Assert.That(WrappedPolicyStatus.None.Status.Status, Is.EqualTo(100));
+        }
+
+        [Test]
+        public void Should_ResultStatusValue_ConstructCorrectly_FromWrappedPolicyResultStatusPart()
+        {
+            var status = new ResultStatusValue(WrappedPolicyResultStatusPart.None);
+            Assert.That(status.Status, Is.EqualTo(100));
+        }
+
+        [Test]
+        public void Should_ResultStatusValue_ConstructCorrectly_FromPolicyResultStatus()
+        {
+            var status = new ResultStatusValue(PolicyResultStatus.NotExecuted);
+            Assert.That(status.Status, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Should_ResultStatusValue_BeEqual_WhenSameStatusValue()
+        {
+            var status1 = new ResultStatusValue(1);
+            var status2 = new ResultStatusValue(1);
+            Assert.That(status1, Is.EqualTo(status2));
+        }
+
+        [Test]
+        public void Should_ResultStatusValue_NotBeEqual_WhenDifferentStatusValues()
+        {
+            var status1 = new ResultStatusValue(1);
+            var status2 = new ResultStatusValue(2);
+            Assert.That(status1, Is.Not.EqualTo(status2));
+        }
+
+        [Test]
+        public void Should_ResultStatusValue_OperatorEquals_ReturnTrue_ForEqualValues()
+        {
+            var status1 = new ResultStatusValue(3);
+            var status2 = new ResultStatusValue(3);
+            Assert.That(status1 == status2, Is.True);
+        }
+
+        [Test]
+        public void Should_ResultStatusValue_OperatorNotEquals_ReturnTrue_ForDifferentValues()
+        {
+            var status1 = new ResultStatusValue(4);
+            var status2 = new ResultStatusValue(5);
+            Assert.That(status1 != status2, Is.True);
+        }
     }
 }
