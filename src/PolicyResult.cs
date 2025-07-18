@@ -200,6 +200,36 @@ namespace PoliNorError
 
 		internal bool Async { get; }
 
+		internal PolicyStatus Status
+		{
+			get
+			{
+				if (!NoError && !IsFailed && !IsCanceled)
+				{
+					return PolicyStatus.NotExecuted;
+				}
+				else if (IsFailed)
+				{
+					if (IsCanceled)
+						return PolicyStatus.FailedWithCancellation;
+					else
+						return PolicyStatus.Failed;
+				}
+				else if (IsCanceled)
+				{
+					return PolicyStatus.Canceled;
+				}
+				else if (NoError)
+				{
+					return PolicyStatus.NoError;
+				}
+				else
+				{
+					return PolicyStatus.PolicySuccess;
+				}
+			}
+		}
+
 		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
 

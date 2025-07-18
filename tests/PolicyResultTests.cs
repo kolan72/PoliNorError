@@ -113,5 +113,44 @@ namespace PoliNorError.Tests
             var status2 = new ResultStatusValue(5);
             Assert.That(status1 != status2, Is.True);
         }
+
+        [Test]
+        public void Should_Status_ReturnNotExecuted_WhenNoFlagsAreSet()
+        {
+            var policyResult = PolicyResult.ForSync();
+            Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.NotExecuted));
+        }
+
+        [Test]
+        public void Should_Status_ReturnFailed_WhenOnlyIsFailedIsTrue()
+        {
+            var policyResult = PolicyResult.ForSync();
+            policyResult.SetFailed();
+            Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.Failed));
+        }
+
+        [Test]
+        public void Should_Status_ReturnFailedWithCancellation_WhenBothIsFailedAndIsCanceledAreTrue()
+        {
+            var policyResult = PolicyResult.ForSync();
+            policyResult.SetFailedAndCanceled();
+            Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.FailedWithCancellation));
+        }
+
+        [Test]
+        public void Should_Status_ReturnCanceled_WhenOnlyIsCanceledIsTrue()
+        {
+            var policyResult = PolicyResult.ForSync();
+            policyResult.SetCanceled();
+            Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.Canceled));
+        }
+
+        [Test]
+        public void Should_Status_ReturnNoError_WhenOnlyNoErrorIsTrue()
+        {
+            var policyResult = PolicyResult.ForSync();
+            policyResult.SetOk();
+            Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.NoError));
+        }
     }
 }
