@@ -48,7 +48,7 @@ namespace PoliNorError
 				case null:
 					return 0;
 				default:
-					if (catchBlockProcessErrorInfo.HasContext && catchBlockProcessErrorInfo is RetryProcessingErrorInfo info)
+					if (catchBlockProcessErrorInfo.HasContext && (catchBlockProcessErrorInfo is IRetryExecutionInfo info))
 					{
 						return info.RetryCount;
 					}
