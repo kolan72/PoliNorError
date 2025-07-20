@@ -114,7 +114,7 @@ namespace PoliNorError
 				curError = await errorProcessor.ProcessAsync(curError, catchBlockProcessErrorInfo, configAwait, token).ConfigureAwait(configAwait);
 				return (null, curError);
 			}
-			catch (OperationCanceledException oe)
+			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
 			{
 				return (new ErrorProcessorException(oe, errorProcessor, ProcessStatus.Canceled), curError);
 			}

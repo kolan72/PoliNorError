@@ -648,5 +648,18 @@ namespace PoliNorError.Tests
 			Assert.That(result.NoError, Is.False);
 			Assert.That(result.IsSuccess, Is.True);
 		}
+
+		[Test]
+		public async Task Should_Cancel_ProcessAsync_When_ErrorProcessor_Cancels_Using_Same_Token()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				var processor = new BulkErrorProcessor().WithErrorProcessorOf(_actCancel(cancelTokenSource));
+				var result = await processor.ProcessAsync(new Exception(), token: cancelTokenSource.Token);
+				ClassicAssert.IsTrue(result.IsCanceled);
+			}
+		}
+
+		private readonly Func<CancellationTokenSource, Action<Exception, CancellationToken>> _actCancel = (cts) => (_, __) => { cts.Cancel(); cts.Token.ThrowIfCancellationRequested(); };
 	}
 }
