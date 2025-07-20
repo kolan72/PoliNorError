@@ -16,8 +16,8 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy.AddPolicyResultHandlerInner((PolicyResult<int> __, CancellationToken _) => i++)
-					   .AddPolicyResultHandlerInner((PolicyResult<int> __, CancellationToken _) => i++);
+			retryPolicy.AddHandlerForPolicyResult((PolicyResult<int> __, CancellationToken _) => i++)
+					   .AddHandlerForPolicyResult((PolicyResult<int> __, CancellationToken _) => i++);
 
 			retryPolicy.Handle<int>(() => throw new Exception("Handle"));
 			ClassicAssert.AreEqual(2, i);
@@ -27,7 +27,7 @@ namespace PoliNorError.Tests
 		public void Should_PolicyResult_Can_Be_SetFailed_By_SyncPolicyResultHandlerT_Even_If_NoError()
 		{
 			void action(PolicyResult<int> pr, CancellationToken _) { pr.SetFailed(); }
-			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandlerInner<RetryPolicy, int>(action);
+			var retryPolicy = new RetryPolicy(1).AddHandlerForPolicyResult<RetryPolicy, int>(action);
 			var res = retryPolicy.Handle(() =>1);
 			ClassicAssert.IsTrue(res.NoError);
 			ClassicAssert.IsTrue(res.IsFailed);
@@ -41,8 +41,8 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy.AddPolicyResultHandlerInner(async (PolicyResult<int> __, CancellationToken _) => { await Task.Delay(1); i++; })
-					   .AddPolicyResultHandlerInner(async (PolicyResult<int> __) => { await Task.Delay(1); i++; });
+			retryPolicy.AddHandlerForPolicyResult(async (PolicyResult<int> __, CancellationToken _) => { await Task.Delay(1); i++; })
+					   .AddHandlerForPolicyResult(async (PolicyResult<int> __) => { await Task.Delay(1); i++; });
 
 			if (asnc)
 			{
@@ -61,8 +61,8 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy.AddPolicyResultHandlerInner(async (PolicyResult<int> __, CancellationToken _) => { await Task.Delay(1); i++; })
-					   .AddPolicyResultHandlerInner((PolicyResult<int> __) => i++);
+			retryPolicy.AddHandlerForPolicyResult(async (PolicyResult<int> __, CancellationToken _) => { await Task.Delay(1); i++; })
+					   .AddHandlerForPolicyResult((PolicyResult<int> __) => i++);
 
 			await retryPolicy.HandleAsync<int>((_) => throw new Exception("Handle"));
 			ClassicAssert.AreEqual(2, i);
@@ -73,8 +73,8 @@ namespace PoliNorError.Tests
 		{
 			var retryPolicy = new RetryPolicy(1);
 			int i = 0;
-			retryPolicy.AddPolicyResultHandlerInner((PolicyResult<int> __, CancellationToken _) => i++)
-					   .AddPolicyResultHandlerInner((PolicyResult<int> __) => i++);
+			retryPolicy.AddHandlerForPolicyResult((PolicyResult<int> __, CancellationToken _) => i++)
+					   .AddHandlerForPolicyResult((PolicyResult<int> __) => i++);
 
 			await retryPolicy.HandleAsync<int>((_) => throw new Exception("Handle"));
 			ClassicAssert.AreEqual(2, i);
@@ -84,7 +84,7 @@ namespace PoliNorError.Tests
 		public async Task Should_PolicyResult_Can_Be_SetFailed_By_ASyncPolicyResultHandlerT_Even_If_NoError()
 		{
 			async Task func(PolicyResult<int> pr, CancellationToken _) { pr.SetFailed(); await Task.Delay(1); }
-			var retryPolicy = new RetryPolicy(1).AddPolicyResultHandlerInner<RetryPolicy, int>(func);
+			var retryPolicy = new RetryPolicy(1).AddHandlerForPolicyResult<RetryPolicy, int>(func);
 			var res = await retryPolicy.HandleAsync(async (_) => { await Task.Delay(1); return 1; });
 			ClassicAssert.IsTrue(res.NoError);
 			ClassicAssert.IsTrue(res.IsFailed);
@@ -175,16 +175,16 @@ namespace PoliNorError.Tests
 			switch (syncType)
 			{
 				case TestPolicyResultHandlerSyncType.Sync:
-					policy.AddPolicyResultHandlerInner<SimplePolicy, int>(action)
-						  .AddPolicyResultHandlerInner<SimplePolicy, int>(action);
+					policy.AddHandlerForPolicyResult<SimplePolicy, int>(action)
+						  .AddHandlerForPolicyResult<SimplePolicy, int>(action);
 					break;
 				case TestPolicyResultHandlerSyncType.Misc:
-					policy.AddPolicyResultHandlerInner<SimplePolicy, int>(action)
-						  .AddPolicyResultHandlerInner<SimplePolicy, int>(fn);
+					policy.AddHandlerForPolicyResult<SimplePolicy, int>(action)
+						  .AddHandlerForPolicyResult<SimplePolicy, int>(fn);
 					break;
 				case TestPolicyResultHandlerSyncType.Async:
-					policy.AddPolicyResultHandlerInner<SimplePolicy, int>(fn)
-						  .AddPolicyResultHandlerInner<SimplePolicy, int>(fn);
+					policy.AddHandlerForPolicyResult<SimplePolicy, int>(fn)
+						  .AddHandlerForPolicyResult<SimplePolicy, int>(fn);
 					break;
 			}
 			PolicyResult<int> result = null;
@@ -209,7 +209,7 @@ namespace PoliNorError.Tests
 
 			var policy = new SimplePolicy()
 						.AddPolicyResultHandler(action)
-						.AddPolicyResultHandlerInner<SimplePolicy, int>(genericAction);
+						.AddHandlerForPolicyResult<SimplePolicy, int>(genericAction);
 			PolicyResult<int> result = null;
 			if (syncHandling)
 			{

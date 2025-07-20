@@ -288,62 +288,62 @@ namespace PoliNorError
 
 		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult> action, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(action, convertType);
+			return this.AddHandlerForPolicyResult(action, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult, CancellationToken> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(func, convertType);
+			return this.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(action, convertType);
+			return this.AddHandlerForPolicyResult(action, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>, CancellationToken> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(func, convertType);
+			return this.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{SimplePolicy}"/>
