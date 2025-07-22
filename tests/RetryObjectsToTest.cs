@@ -95,4 +95,24 @@ namespace PoliNorError.Tests
 			throw new InvalidOperationException();
 		}
 	}
+
+	internal static class CancelableActions
+	{
+		public static void SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			ActionThatCanceledOnOuterAndThrowOnInner(outerToken, outerTokenSource).Wait();
+		}
+
+		public static async Task ActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			await Task.Delay(TimeSpan.FromTicks(1));
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+			}
+		}
+
+	}
 }

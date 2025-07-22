@@ -314,7 +314,7 @@ namespace PoliNorError
 						result.UnprocessedError = null;
 					break;
 				}
-				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 				{
 					result.SetFailedAndCanceled(oe);
 				}

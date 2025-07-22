@@ -1645,6 +1645,20 @@ namespace PoliNorError.Tests
 			Assert.That(errorProcessorMsg, Is.Null);
 		}
 
+		[Test]
+		public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_HandleAsync_Throws_DueTo_InnerToken()
+		{
+			var rp = new RetryPolicy(3);
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				var result = await rp.HandleAsync(async (ct) => await CancelableActions.ActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource), cancelTokenSource.Token);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.UnprocessedError, Is.Null);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			}
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;
