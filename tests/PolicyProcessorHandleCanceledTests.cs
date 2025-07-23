@@ -343,7 +343,7 @@ namespace PoliNorError.Tests
 			{
 				using (var cancelTokenSource = new CancellationTokenSource())
 				{
-					var result = await rp.HandleAsync(async (ct) => await ActionThatThrowOperationCanceledExceptionOnLinkedSource(ct), cancelTokenSource.Token);
+					var result = await rp.HandleAsync(async (ct) => await ActionThatCanceledOnInnerAndThrowOnInner(ct), cancelTokenSource.Token);
 
 					Assert.That(result.IsCanceled, Is.False);
 					Assert.That(result.UnprocessedError, Is.TypeOf<OperationCanceledException>());
@@ -398,7 +398,7 @@ namespace PoliNorError.Tests
 			token.ThrowIfCancellationRequested();
 		}
 
-		private async Task ActionThatThrowOperationCanceledExceptionOnLinkedSource(CancellationToken token)
+		private async Task ActionThatCanceledOnInnerAndThrowOnInner(CancellationToken token)
 		{
 			await Task.Delay(TimeSpan.FromTicks(1));
 			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token))

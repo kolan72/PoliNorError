@@ -1659,6 +1659,36 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(TestCancellationMode.OperationCanceled)]
+		[TestCase(TestCancellationMode.Aggregate)]
+		public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_Handle_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
+		{
+			var rp = new RetryPolicy(3);
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				PolicyResult result = null;
+				if (cancellationMode == TestCancellationMode.OperationCanceled)
+				{
+					result = rp.Handle(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInner(cancelTokenSource.Token, cancelTokenSource), cancelTokenSource.Token);
+				}
+				else
+				{
+					result = rp.Handle(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(cancelTokenSource.Token, cancelTokenSource), cancelTokenSource.Token);
+				}
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.UnprocessedError, Is.Null);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			}
+		}
+
+		public enum TestCancellationMode
+		{
+			OperationCanceled,
+			Aggregate
+		}
+
 		private class TestAsyncClass
 		{
 			private int _i;

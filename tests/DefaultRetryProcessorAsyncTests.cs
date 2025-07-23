@@ -314,6 +314,5 @@ namespace PoliNorError.Tests
 				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
 			}
 		}
-
 	}
 }

@@ -114,5 +114,14 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		public static void SyncActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+			}
+		}
 	}
 }
