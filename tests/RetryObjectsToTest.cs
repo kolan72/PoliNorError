@@ -114,6 +114,18 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		public static async Task<int> GenericActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			await Task.Delay(TimeSpan.FromTicks(1));
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+				return 1;
+			}
+		}
+
 		public static void SyncActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
 		{
 			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
