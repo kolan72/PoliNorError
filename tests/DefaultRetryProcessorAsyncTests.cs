@@ -300,33 +300,5 @@ namespace PoliNorError.Tests
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
 		}
-
-		[Test]
-		public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_RetryAsync_Throws_DueTo_InnerToken()
-		{
-			var rp = new DefaultRetryProcessor();
-			using (var cancelTokenSource = new CancellationTokenSource())
-			{
-				var result = await rp.RetryAsync(async (ct) => await CancelableActions.ActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource), 3, cancelTokenSource.Token);
-
-				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.UnprocessedError, Is.Null);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-			}
-		}
-
-		[Test]
-		public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_GenericRetryAsync_Throws_DueTo_InnerToken()
-		{
-			var rp = new DefaultRetryProcessor();
-			using (var cancelTokenSource = new CancellationTokenSource())
-			{
-				var result = await rp.RetryAsync(async (ct) => await CancelableActions.GenericActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource), 3, cancelTokenSource.Token);
-
-				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.UnprocessedError, Is.Null);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-			}
-		}
 	}
 }

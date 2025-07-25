@@ -7,7 +7,6 @@ using System.Diagnostics;
 using static PoliNorError.Tests.DelayTimeErrorProcessorTests;
 using NUnit.Framework.Legacy;
 using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
-using static PoliNorError.Tests.RetryPolicyTests;
 
 namespace PoliNorError.Tests
 {
@@ -1457,27 +1456,27 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsFailed, Is.True);
 		}
 
-		[Test]
-		[TestCase(TestCancellationMode.OperationCanceled)]
-		[TestCase(TestCancellationMode.Aggregate)]
-		public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_Retry_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
-		{
-			var rp = new DefaultRetryProcessor();
-			using (var cancelTokenSource = new CancellationTokenSource())
-			{
-				PolicyResult result = null;
-				if (cancellationMode == TestCancellationMode.OperationCanceled)
-				{
-					result = rp.Retry(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInner(cancelTokenSource.Token, cancelTokenSource), 3, cancelTokenSource.Token);
-				}
-				else
-				{
-					result = rp.Retry(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(cancelTokenSource.Token, cancelTokenSource), 3, cancelTokenSource.Token);
-				}
-				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.UnprocessedError, Is.Null);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-			}
-		}
+		//[Test]
+		//[TestCase(TestCancellationMode.OperationCanceled)]
+		//[TestCase(TestCancellationMode.Aggregate)]
+		//public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_Retry_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
+		//{
+		//	var rp = new DefaultRetryProcessor();
+		//	using (var cancelTokenSource = new CancellationTokenSource())
+		//	{
+		//		PolicyResult result = null;
+		//		if (cancellationMode == TestCancellationMode.OperationCanceled)
+		//		{
+		//			result = rp.Retry(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInner(cancelTokenSource.Token, cancelTokenSource), 3, cancelTokenSource.Token);
+		//		}
+		//		else
+		//		{
+		//			result = rp.Retry(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(cancelTokenSource.Token, cancelTokenSource), 3, cancelTokenSource.Token);
+		//		}
+		//		Assert.That(result.IsCanceled, Is.True);
+		//		Assert.That(result.UnprocessedError, Is.Null);
+		//		Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+		//	}
+		//}
 	}
 }

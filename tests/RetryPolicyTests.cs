@@ -9,7 +9,6 @@ using NSubstitute;
 using NUnit.Framework.Legacy;
 using System.Collections.Generic;
 using System.Collections;
-using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
 {
@@ -1643,64 +1642,6 @@ namespace PoliNorError.Tests
 			Assert.That(result.Errors.Count(), Is.EqualTo(0));
 			Assert.That(result.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(0));
 			Assert.That(errorProcessorMsg, Is.Null);
-		}
-
-		[Test]
-		public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_HandleAsync_Throws_DueTo_InnerToken()
-		{
-			var rp = new RetryPolicy(3);
-			using (var cancelTokenSource = new CancellationTokenSource())
-			{
-				var result = await rp.HandleAsync(async (ct) => await CancelableActions.ActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource), cancelTokenSource.Token);
-
-				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.UnprocessedError, Is.Null);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-			}
-		}
-
-		[Test]
-		public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_GenericHandleAsync_Throws_DueTo_InnerToken()
-		{
-			var rp = new RetryPolicy(3);
-			using (var cancelTokenSource = new CancellationTokenSource())
-			{
-				var result = await rp.HandleAsync(async (ct) => await CancelableActions.GenericActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource), cancelTokenSource.Token);
-
-				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.UnprocessedError, Is.Null);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-			}
-		}
-
-		[Test]
-		[TestCase(TestCancellationMode.OperationCanceled)]
-		[TestCase(TestCancellationMode.Aggregate)]
-		public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_Handle_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
-		{
-			var rp = new RetryPolicy(3);
-			using (var cancelTokenSource = new CancellationTokenSource())
-			{
-				PolicyResult result = null;
-				if (cancellationMode == TestCancellationMode.OperationCanceled)
-				{
-					result = rp.Handle(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInner(cancelTokenSource.Token, cancelTokenSource), cancelTokenSource.Token);
-				}
-				else
-				{
-					result = rp.Handle(() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(cancelTokenSource.Token, cancelTokenSource), cancelTokenSource.Token);
-				}
-
-				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.UnprocessedError, Is.Null);
-				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
-			}
-		}
-
-		public enum TestCancellationMode
-		{
-			OperationCanceled,
-			Aggregate
 		}
 
 		private class TestAsyncClass

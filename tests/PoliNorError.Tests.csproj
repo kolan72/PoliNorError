@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BulkErrorProcessorTests.cs" />
+    <Compile Include="CancellationTests.cs" />
     <Compile Include="CatchBlockHandlersTests.cs" />
     <Compile Include="DefaultFallbackProcessorAsyncTests.cs" />
     <Compile Include="DefaultFallbackProcessorTests.cs" />
