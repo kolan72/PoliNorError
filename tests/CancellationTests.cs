@@ -45,7 +45,7 @@ namespace PoliNorError.Tests
 		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Retry, true)]
 		[TestCase(TestCancellationMode.OperationCanceled, PolicyAlias.Retry, false)]
 		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Retry, false)]
-		public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_Retry_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode, PolicyAlias policyAlias, bool isProcessor)
+		public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_Handle_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode, PolicyAlias policyAlias, bool isProcessor)
 		{
 			PolicyResult result = null;
 			using (var cancelTokenSource = new CancellationTokenSource())
@@ -58,6 +58,48 @@ namespace PoliNorError.Tests
 				else
 				{
 					actionToHandle = () => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(cancelTokenSource.Token, cancelTokenSource);
+				}
+				switch (policyAlias)
+				{
+					case PolicyAlias.Retry:
+						if (isProcessor)
+						{
+							var rp = new DefaultRetryProcessor();
+							result = rp.Retry(actionToHandle, 3, cancelTokenSource.Token);
+						}
+						else
+						{
+							var rp = new RetryPolicy(3);
+							result = rp.Handle(actionToHandle, cancelTokenSource.Token);
+						}
+						break;
+					default:
+						throw new NotImplementedException();
+				}
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.UnprocessedError, Is.Null);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+			}
+		}
+
+		[Test]
+		[TestCase(TestCancellationMode.OperationCanceled, PolicyAlias.Retry, true)]
+		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Retry, true)]
+		[TestCase(TestCancellationMode.OperationCanceled, PolicyAlias.Retry, false)]
+		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Retry, false)]
+		public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_GenericHandle_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode, PolicyAlias policyAlias, bool isProcessor)
+		{
+			PolicyResult result = null;
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Func<int> actionToHandle = null;
+				if (cancellationMode == TestCancellationMode.OperationCanceled)
+				{
+					actionToHandle = () => CancelableActions.GenericSyncActionThatCanceledOnOuterAndThrowOnInner(cancelTokenSource.Token, cancelTokenSource);
+				}
+				else
+				{
+					actionToHandle = () => CancelableActions.GenericSyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(cancelTokenSource.Token, cancelTokenSource);
 				}
 				switch (policyAlias)
 				{

@@ -103,6 +103,11 @@ namespace PoliNorError.Tests
 			ActionThatCanceledOnOuterAndThrowOnInner(outerToken, outerTokenSource).Wait();
 		}
 
+		public static int GenericSyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			return GenericActionThatCanceledOnOuterAndThrowOnInner(outerToken, outerTokenSource).Result;
+		}
+
 		public static async Task ActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
 		{
 			await Task.Delay(TimeSpan.FromTicks(1));
@@ -133,6 +138,17 @@ namespace PoliNorError.Tests
 				var innerToken = cancelTokenSource.Token;
 				outerTokenSource.Cancel();
 				innerToken.ThrowIfCancellationRequested();
+			}
+		}
+
+		public static int GenericSyncActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+				return 1;
 			}
 		}
 	}
