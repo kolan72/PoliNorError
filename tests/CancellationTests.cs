@@ -59,6 +59,10 @@ namespace PoliNorError.Tests
 		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Retry, true)]
 		[TestCase(TestCancellationMode.OperationCanceled, PolicyAlias.Retry, false)]
 		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Retry, false)]
+		[TestCase(TestCancellationMode.OperationCanceled, PolicyAlias.Fallback, true)]
+		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Fallback, true)]
+		[TestCase(TestCancellationMode.OperationCanceled, PolicyAlias.Fallback, false)]
+		[TestCase(TestCancellationMode.Aggregate, PolicyAlias.Fallback, false)]
 		public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_Handle_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode, PolicyAlias policyAlias, bool isProcessor)
 		{
 			PolicyResult result = null;
@@ -84,6 +88,18 @@ namespace PoliNorError.Tests
 						else
 						{
 							var rp = new RetryPolicy(3);
+							result = rp.Handle(actionToHandle, cancelTokenSource.Token);
+						}
+						break;
+					case PolicyAlias.Fallback:
+						if (isProcessor)
+						{
+							var rp = new DefaultFallbackProcessor();
+							result = rp.Fallback(actionToHandle, (_) => { }, cancelTokenSource.Token);
+						}
+						else
+						{
+							var rp = new FallbackPolicy().WithFallbackAction((_) => { });
 							result = rp.Handle(actionToHandle, cancelTokenSource.Token);
 						}
 						break;
