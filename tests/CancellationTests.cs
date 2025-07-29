@@ -157,6 +157,8 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(PolicyAlias.Retry, true)]
 		[TestCase(PolicyAlias.Retry, false)]
+		[TestCase(PolicyAlias.Fallback, true)]
+		[TestCase(PolicyAlias.Fallback, false)]
 		public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_GenericHandleAsync_Throws_DueTo_InnerToken(PolicyAlias policyAlias, bool isProcessor)
 		{
 			PolicyResult result = null;
@@ -174,6 +176,18 @@ namespace PoliNorError.Tests
 						else
 						{
 							var rp = new RetryPolicy(3);
+							result = await rp.HandleAsync(funcToHandle, cancelTokenSource.Token);
+						}
+						break;
+					case PolicyAlias.Fallback:
+						if (isProcessor)
+						{
+							var rp = new DefaultFallbackProcessor();
+							result = await rp.FallbackAsync(funcToHandle, (_) => Task.FromResult(1), cancelTokenSource.Token);
+						}
+						else
+						{
+							var rp = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.FromResult(1));
 							result = await rp.HandleAsync(funcToHandle, cancelTokenSource.Token);
 						}
 						break;
