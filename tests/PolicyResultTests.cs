@@ -152,5 +152,13 @@ namespace PoliNorError.Tests
             policyResult.SetOk();
             Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.NoError));
         }
+
+        [Test]
+        public void Should_Status_ReturnPolicySuccess_WhenNoFlagsAreSet_And_Executed()
+        {
+            var policyResult = PolicyResult.ForSync();
+            policyResult.SetExecuted();
+            Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.PolicySuccess));
+        }
     }
 }

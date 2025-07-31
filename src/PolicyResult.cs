@@ -15,6 +15,8 @@ namespace PoliNorError
 
 		private Exception _unprocessedError;
 
+		private bool _executed;
+
 		internal static PolicyResult ForSync() => new PolicyResult();
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);
 		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
@@ -198,13 +200,18 @@ namespace PoliNorError
 			IsCanceled = true;
 		}
 
+		internal void SetExecuted()
+		{
+			_executed = true;
+		}
+
 		internal bool Async { get; }
 
 		internal PolicyStatus Status
 		{
 			get
 			{
-				if (!NoError && !IsFailed && !IsCanceled)
+				if (!_executed && !NoError && !IsFailed && !IsCanceled)
 				{
 					return PolicyStatus.NotExecuted;
 				}
@@ -228,6 +235,11 @@ namespace PoliNorError
 					return PolicyStatus.PolicySuccess;
 				}
 			}
+		}
+
+		internal virtual PolicyResult GetLastWrappedPolicyResult()
+		{
+			return WrappedPolicyResults?.LastOrDefault()?.Result;
 		}
 
 		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
@@ -261,6 +273,11 @@ namespace PoliNorError
 		/// that gives rise to this <see cref="PolicyResult{T}"/> result.
 		/// </summary>
 		public new IEnumerable<PolicyDelegateResult<T>> WrappedPolicyResults { get; internal set; }
+
+		internal override PolicyResult GetLastWrappedPolicyResult()
+		{
+			return WrappedPolicyResults?.LastOrDefault()?.Result;
+		}
 
 		internal override IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
