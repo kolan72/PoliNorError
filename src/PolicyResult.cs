@@ -15,7 +15,7 @@ namespace PoliNorError
 
 		private Exception _unprocessedError;
 
-		private bool _executed;
+		internal bool _executed;
 
 		internal static PolicyResult ForSync() => new PolicyResult();
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);

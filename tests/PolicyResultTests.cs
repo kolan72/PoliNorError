@@ -3,6 +3,7 @@ using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
@@ -159,6 +160,52 @@ namespace PoliNorError.Tests
             var policyResult = PolicyResult.ForSync();
             policyResult.SetExecuted();
             Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.PolicySuccess));
+        }
+
+        [Test]
+        [TestCase(PolicyAlias.Fallback, true)]
+        [TestCase(PolicyAlias.Fallback, false)]
+        public async Task Should_Respect_IsExecuted(PolicyAlias alias, bool isSync)
+        {
+            PolicyResult result = null;
+            switch (alias)
+            {
+                case PolicyAlias.Fallback:
+                    var rp = new DefaultFallbackProcessor();
+                    if (isSync)
+                    {
+                        result = rp.Fallback(() => { }, (_) => { }, default);
+                    }
+                    else
+                    {
+                        result =await rp.FallbackAsync((_) => Task.CompletedTask, (_) => Task.CompletedTask, default);
+                    }
+                    break;
+            }
+            Assert.That(result._executed, Is.True);
+        }
+
+        [Test]
+        [TestCase(PolicyAlias.Fallback, true)]
+        [TestCase(PolicyAlias.Fallback, false)]
+        public async Task Should_Respect_IsExecuted_ForGeneric(PolicyAlias alias, bool isSync)
+        {
+            PolicyResult<int> result = null;
+            switch (alias)
+            {
+                case PolicyAlias.Fallback:
+                    var rp = new DefaultFallbackProcessor();
+                    if (isSync)
+                    {
+                        result = rp.Fallback(() => 1, (_) => 1, default);
+                    }
+                    else
+                    {
+                        result = await rp.FallbackAsync((_) => Task.FromResult(1), (_) => Task.FromResult(1), default);
+                    }
+                    break;
+            }
+            Assert.That(result._executed, Is.True);
         }
     }
 }

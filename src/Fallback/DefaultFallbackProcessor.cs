@@ -41,6 +41,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			try
 			{
 				action();
@@ -95,6 +97,8 @@ namespace PoliNorError
 				result.SetCanceled();
 				return result;
 			}
+
+			result.SetExecuted();
 
 			try
 			{
@@ -152,6 +156,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			try
 			{
 				await func(token).ConfigureAwait(configureAwait);
@@ -202,6 +208,8 @@ namespace PoliNorError
 				result.SetCanceled();
 				return result;
 			}
+
+			result.SetExecuted();
 
 			try
 			{
