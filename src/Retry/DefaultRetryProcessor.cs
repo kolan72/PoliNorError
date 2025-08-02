@@ -186,6 +186,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -243,6 +245,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -296,6 +300,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -343,6 +349,8 @@ namespace PoliNorError
 				result.SetCanceled();
 				return result;
 			}
+
+			result.SetExecuted();
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 

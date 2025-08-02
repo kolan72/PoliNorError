@@ -165,20 +165,33 @@ namespace PoliNorError.Tests
         [Test]
         [TestCase(PolicyAlias.Fallback, true)]
         [TestCase(PolicyAlias.Fallback, false)]
+        [TestCase(PolicyAlias.Retry, true)]
+        [TestCase(PolicyAlias.Retry, false)]
         public async Task Should_Respect_IsExecuted(PolicyAlias alias, bool isSync)
         {
             PolicyResult result = null;
             switch (alias)
             {
                 case PolicyAlias.Fallback:
-                    var rp = new DefaultFallbackProcessor();
+                    var fp = new DefaultFallbackProcessor();
                     if (isSync)
                     {
-                        result = rp.Fallback(() => { }, (_) => { }, default);
+                        result = fp.Fallback(() => { }, (_) => { }, default);
                     }
                     else
                     {
-                        result =await rp.FallbackAsync((_) => Task.CompletedTask, (_) => Task.CompletedTask, default);
+                        result =await fp.FallbackAsync((_) => Task.CompletedTask, (_) => Task.CompletedTask, default);
+                    }
+                    break;
+                case PolicyAlias.Retry:
+                    var rp = new DefaultRetryProcessor();
+                    if (isSync)
+                    {
+                        result = rp.Retry(() => { }, 1);
+                    }
+                    else
+                    {
+                        result = await rp.RetryAsync((_) => Task.CompletedTask, 1);
                     }
                     break;
             }
@@ -188,20 +201,33 @@ namespace PoliNorError.Tests
         [Test]
         [TestCase(PolicyAlias.Fallback, true)]
         [TestCase(PolicyAlias.Fallback, false)]
+        [TestCase(PolicyAlias.Retry, true)]
+        [TestCase(PolicyAlias.Retry, false)]
         public async Task Should_Respect_IsExecuted_ForGeneric(PolicyAlias alias, bool isSync)
         {
             PolicyResult<int> result = null;
             switch (alias)
             {
                 case PolicyAlias.Fallback:
-                    var rp = new DefaultFallbackProcessor();
+                    var fp = new DefaultFallbackProcessor();
                     if (isSync)
                     {
-                        result = rp.Fallback(() => 1, (_) => 1, default);
+                        result = fp.Fallback(() => 1, (_) => 1, default);
                     }
                     else
                     {
-                        result = await rp.FallbackAsync((_) => Task.FromResult(1), (_) => Task.FromResult(1), default);
+                        result = await fp.FallbackAsync((_) => Task.FromResult(1), (_) => Task.FromResult(1), default);
+                    }
+                    break;
+                case PolicyAlias.Retry:
+                    var rp = new DefaultRetryProcessor();
+                    if(isSync)
+                    {
+                        result = rp.Retry(() => 1, 1);
+                    }
+                    else
+                    {
+                        result = await rp.RetryAsync((_) => Task.FromResult(1), 1);
                     }
                     break;
             }
