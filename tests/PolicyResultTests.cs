@@ -167,6 +167,8 @@ namespace PoliNorError.Tests
         [TestCase(PolicyAlias.Fallback, false)]
         [TestCase(PolicyAlias.Retry, true)]
         [TestCase(PolicyAlias.Retry, false)]
+        [TestCase(PolicyAlias.Simple, true)]
+        [TestCase(PolicyAlias.Simple, false)]
         public async Task Should_Respect_IsExecuted(PolicyAlias alias, bool isSync)
         {
             PolicyResult result = null;
@@ -194,6 +196,17 @@ namespace PoliNorError.Tests
                         result = await rp.RetryAsync((_) => Task.CompletedTask, 1);
                     }
                     break;
+                case PolicyAlias.Simple:
+                    var sp = new SimplePolicyProcessor();
+                    if (isSync)
+                    {
+                        result = sp.Execute(() => { });
+                    }
+                    else
+                    {
+                        result = await sp.ExecuteAsync((_) => Task.CompletedTask, 1);
+                    }
+                    break;
             }
             Assert.That(result._executed, Is.True);
         }
@@ -203,6 +216,8 @@ namespace PoliNorError.Tests
         [TestCase(PolicyAlias.Fallback, false)]
         [TestCase(PolicyAlias.Retry, true)]
         [TestCase(PolicyAlias.Retry, false)]
+        [TestCase(PolicyAlias.Simple, true)]
+        [TestCase(PolicyAlias.Simple, false)]
         public async Task Should_Respect_IsExecuted_ForGeneric(PolicyAlias alias, bool isSync)
         {
             PolicyResult<int> result = null;
@@ -228,6 +243,17 @@ namespace PoliNorError.Tests
                     else
                     {
                         result = await rp.RetryAsync((_) => Task.FromResult(1), 1);
+                    }
+                    break;
+                case PolicyAlias.Simple:
+                    var sp = new SimplePolicyProcessor();
+                    if (isSync)
+                    {
+                        result = sp.Execute(() => 1);
+                    }
+                    else
+                    {
+                        result = await sp.ExecuteAsync((_) => Task.FromResult(1));
                     }
                     break;
             }
