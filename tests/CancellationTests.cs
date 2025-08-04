@@ -12,6 +12,8 @@ namespace PoliNorError.Tests
 		[TestCase(PolicyAlias.Fallback, false)]
 		[TestCase(PolicyAlias.Retry, true)]
 		[TestCase(PolicyAlias.Retry, false)]
+		[TestCase(PolicyAlias.Simple, true)]
+		[TestCase(PolicyAlias.Simple, false)]
 		public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_HandleAsync_Throws_DueTo_InnerToken(PolicyAlias policyAlias, bool isProcessor)
 		{
 			PolicyResult result = null;
@@ -42,6 +44,18 @@ namespace PoliNorError.Tests
 						{
 							var rp = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
 							result = await rp.HandleAsync(funcToHandle, cancelTokenSource.Token);
+						}
+						break;
+					case PolicyAlias.Simple:
+						if (isProcessor)
+						{
+							var sp = new SimplePolicyProcessor();
+							result = await sp.ExecuteAsync(funcToHandle, token: cancelTokenSource.Token);
+						}
+						else
+						{
+							var sp = new SimplePolicy();
+							result = await sp.HandleAsync(funcToHandle, cancelTokenSource.Token);
 						}
 						break;
 					default:
