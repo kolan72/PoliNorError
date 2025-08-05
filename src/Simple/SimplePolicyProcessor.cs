@@ -81,11 +81,11 @@ namespace PoliNorError
 				action();
 				result.SetOk();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (AggregateException ae) when (ae.HasCanceledException(token))
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
