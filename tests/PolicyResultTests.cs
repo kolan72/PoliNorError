@@ -259,5 +259,284 @@ namespace PoliNorError.Tests
             }
             Assert.That(result._executed, Is.True);
         }
-    }
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_ReturnNone_WhenNoWrappedResultsExist(bool isGeneric)
+		{
+			if (isGeneric)
+			{
+				var policyResult = PolicyResult<int>.ForSync();
+				policyResult.WrappedPolicyResults = null;
+				policyResult.SetOk();  // Set status to non-NotExecuted
+				Assert.That(policyResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.None));
+			}
+			else
+			{
+				var policyResult = PolicyResult.ForSync();
+				policyResult.WrappedPolicyResults = null;
+				policyResult.SetOk();  // Set status to non-NotExecuted
+				Assert.That(policyResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.None));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_ReturnNone_WhenStatusIsNotNotExecutedAndWrappedPolicyResultsIsEmpty(bool isGeneric)
+		{
+			if (isGeneric)
+			{
+				var policyResult = PolicyResult<int>.ForSync();
+				policyResult.WrappedPolicyResults = new List<PolicyDelegateResult<int>>();
+				policyResult.SetOk(); // Makes Status = NoError
+				Assert.That(policyResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.None));
+			}
+			else
+			{
+				var policyResult = PolicyResult.ForSync();
+				policyResult.WrappedPolicyResults = new List<PolicyDelegateResult>();
+				policyResult.SetOk(); // Makes Status = NoError
+				Assert.That(policyResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.None));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_ReturnLastWrappedPolicyResultStatus_WhenMultipleWrappedPolicyResults(bool isGeneric)
+		{
+			if (isGeneric)
+			{
+				// Arrange
+				var pr = new PolicyResult<int>();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr1 = new PolicyResult<int>();
+				wrappedPr1.SetOk(); // First Wrapped Status = NoError
+
+				var wrappedPr2 = new PolicyResult<int>();
+				wrappedPr2.SetFailed(); // Second Wrapped Status = Failed
+
+				var pdr1 = new PolicyDelegateResult<int>(wrappedPr1, "TestPolicy", null);
+				var pdr2 = new PolicyDelegateResult<int>(wrappedPr2, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult<int>> { pdr1, pdr2 };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
+			}
+			else
+			{
+				// Arrange
+				var pr = new PolicyResult();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr1 = new PolicyResult();
+				wrappedPr1.SetOk(); // First Wrapped Status = NoError
+
+				var wrappedPr2 = new PolicyResult();
+				wrappedPr2.SetFailed(); // Second Wrapped Status = Failed
+
+				var pdr1 = new PolicyDelegateResult(wrappedPr1, "TestPolicy", null);
+				var pdr2 = new PolicyDelegateResult(wrappedPr2, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult> { pdr1, pdr2 };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_Return_NotExecuted_When_Status_Is_NotExecuted(bool isGeneric)
+		{
+			var result = isGeneric ? new PolicyResult<int>() : new PolicyResult();
+			Assert.That(result.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.NotExecuted));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_ReturnNoError_WhenLastWrappedPolicyResultStatusIsNoError(bool isGeneric)
+		{
+			if (isGeneric)
+			{
+				// Arrange
+				var pr = new PolicyResult<int>();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult<int>();
+				wrappedPr.SetOk(); // Wrapped Status = NoError
+
+				var pdr = new PolicyDelegateResult<int>(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult<int>> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.NoError));
+			}
+			else
+			{
+				// Arrange
+				var pr = new PolicyResult();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult();
+				wrappedPr.SetOk(); // Wrapped Status = NoError
+
+				var pdr = new PolicyDelegateResult(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.NoError));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_ReturnCancel_WhenLastWrappedPolicyResultStatusIsCancel(bool isGeneric)
+		{
+			if (isGeneric)
+			{
+				// Arrange
+				var pr = new PolicyResult<int>();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult<int>();
+				wrappedPr.SetCanceled();
+
+				var pdr = new PolicyDelegateResult<int>(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult<int>> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Canceled));
+			}
+			else
+			{
+				// Arrange
+				var pr = new PolicyResult();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult();
+				wrappedPr.SetCanceled();
+
+				var pdr = new PolicyDelegateResult(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Canceled));
+			}
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_ReturnFailed_WhenLastWrappedPolicyResultStatusIsFailed(bool isGeneric)
+		{
+			if (isGeneric)
+			{
+				// Arrange
+				var pr = new PolicyResult<int>();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult<int>();
+				wrappedPr.SetFailed();
+
+				var pdr = new PolicyDelegateResult<int>(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult<int>> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
+			}
+			else
+			{
+				// Arrange
+				var pr = new PolicyResult();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult();
+				wrappedPr.SetFailed();
+
+				var pdr = new PolicyDelegateResult(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
+			}
+		}
+
+        [Test]
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_WrappedStatus_ReturnFailed_WhenLastWrappedPolicyResultStatusIsFailedWithCancellation(bool isGeneric)
+        {
+			if (isGeneric)
+			{
+				// Arrange
+				var pr = new PolicyResult<int>();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult<int>();
+				wrappedPr.SetFailedAndCanceled();
+
+				var pdr = new PolicyDelegateResult<int>(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult<int>> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.FailedWithCancellation));
+			}
+			else
+			{
+				// Arrange
+				var pr = new PolicyResult();
+				pr.SetOk(); // Makes Status != NotExecuted
+
+				var wrappedPr = new PolicyResult();
+				wrappedPr.SetFailedAndCanceled();
+
+				var pdr = new PolicyDelegateResult(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.FailedWithCancellation));
+			}
+		}
+
+        [Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_WrappedStatus_ReturnPolicySuccess_WhenLastWrappedPolicyResultStatusIsPolicySuccess(bool isGeneric)
+		{
+			if (isGeneric)
+			{
+				// Arrange
+				var pr = new PolicyResult<int>();
+				pr.SetOk(); // Makes Status != NotExecuted
+				var wrappedPr = new PolicyResult<int>();
+				wrappedPr.SetExecuted();
+
+				var pdr = new PolicyDelegateResult<int>(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult<int>> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.PolicySuccess));
+			}
+			else
+			{
+				// Arrange
+				var pr = new PolicyResult();
+				pr.SetOk(); // Makes Status != NotExecuted
+				var wrappedPr = new PolicyResult();
+				wrappedPr.SetExecuted();
+
+				var pdr = new PolicyDelegateResult(wrappedPr, "TestPolicy", null);
+				pr.WrappedPolicyResults = new List<PolicyDelegateResult> { pdr };
+
+				// Act & Assert
+				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.PolicySuccess));
+			}
+		}
+	}
 }

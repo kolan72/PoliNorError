@@ -135,6 +135,41 @@ namespace PoliNorError
 		/// </summary>
 		public OperationCanceledException PolicyCanceledError { get; internal set; }
 
+		public WrappedPolicyStatus WrappedStatus
+		{
+			get
+			{
+				if (Status == PolicyStatus.NotExecuted)
+				{
+					return WrappedPolicyStatus.NotExecuted;
+				}
+
+				var lastWrappedResultStatus = GetLastWrappedPolicyResult()?.Status?.Status?.Status;
+				if (lastWrappedResultStatus is null)
+				{
+					return WrappedPolicyStatus.None;
+				}
+
+				switch ((PolicyResultStatus)lastWrappedResultStatus.Value)
+				{
+					case PolicyResultStatus.NoError:
+						return WrappedPolicyStatus.NoError;
+					case PolicyResultStatus.PolicySuccess:
+						return WrappedPolicyStatus.PolicySuccess;
+					case PolicyResultStatus.Canceled:
+						return WrappedPolicyStatus.Canceled;
+					case PolicyResultStatus.Failed:
+						return WrappedPolicyStatus.Failed;
+					case PolicyResultStatus.FailedWithCancellation:
+						return WrappedPolicyStatus.FailedWithCancellation;
+					case PolicyResultStatus.NotExecuted:
+						return WrappedPolicyStatus.NotExecuted;
+					default:
+						return WrappedPolicyStatus.None;
+				}
+			}
+		}
+
 		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
 		{
 			IsFailed = true;

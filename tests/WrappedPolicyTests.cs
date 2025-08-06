@@ -829,6 +829,7 @@ namespace PoliNorError.Tests
 				Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
 				Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
 				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.ErrorFilterUnsatisfied, Is.True);
+				Assert.That(fallbackResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
 				Assert.That(fallbackErrorProcessorFlag, Is.True);
 				Assert.That(simpleErrorProcessorFlag, Is.False);
 			}
@@ -838,6 +839,7 @@ namespace PoliNorError.Tests
 				Assert.That(fallbackResult.NoError, Is.True);
 				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.Errors.FirstOrDefault(), Is.TypeOf<InvalidOperationException>());
 				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.NoError, Is.False);
+				Assert.That(fallbackResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.PolicySuccess));
 				Assert.That(simpleErrorProcessorFlag, Is.True);
 				Assert.That(fallbackErrorProcessorFlag, Is.False);
 			}
