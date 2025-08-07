@@ -135,6 +135,20 @@ namespace PoliNorError
 		/// </summary>
 		public OperationCanceledException PolicyCanceledError { get; internal set; }
 
+		/// <summary>
+		/// Gets the wrapped policy execution status.
+		/// </summary>
+		/// <remarks>
+		/// The status is determined by:
+		/// <list type="number">
+		///   <item><description>Returns <see cref="WrappedPolicyStatus.NotExecuted"/> if wrapping policy was not executed</description></item>
+		///   <item><description>Otherwise checks the (last) wrapped policy result status</description></item>
+		///   <item><description>Returns <see cref="WrappedPolicyStatus.None"/> if no wrapped policy exists</description></item>
+		/// </list>
+		/// </remarks>
+		/// <value>
+		/// The computed <see cref="WrappedPolicyStatus"/>.
+		/// </value>
 		public WrappedPolicyStatus WrappedStatus
 		{
 			get
@@ -361,14 +375,30 @@ namespace PoliNorError
 		internal ResultStatusValue Status { get; }
 	}
 
+	/// <summary>
+	/// Represents possible status values for wrapped policy executions.
+	/// </summary>
 	public class WrappedPolicyStatus
 	{
+		/// <summary>Indicates that the policy was not executed.</summary>
 		public static readonly WrappedPolicyStatus NotExecuted = new WrappedPolicyStatus(ResultStatusValue.NotExecuted);
+
+		/// <summary>Indicates that the execution completed without errors.</summary>
 		public static readonly WrappedPolicyStatus NoError = new WrappedPolicyStatus(ResultStatusValue.NoError);
+
+		/// <summary>Indicates that the policy executed successfully.</summary>
 		public static readonly WrappedPolicyStatus PolicySuccess = new WrappedPolicyStatus(ResultStatusValue.PolicySuccess);
+
+		/// <summary>Indicates that the policy execution failed.</summary>
 		public static readonly WrappedPolicyStatus Failed = new WrappedPolicyStatus(ResultStatusValue.Failed);
+
+		/// <summary>Indicates that the execution was canceled.</summary>
 		public static readonly WrappedPolicyStatus Canceled = new WrappedPolicyStatus(ResultStatusValue.Canceled);
+
+		/// <summary>Indicates that the policy execution failed due to cancellation.</summary>
 		public static readonly WrappedPolicyStatus FailedWithCancellation = new WrappedPolicyStatus(ResultStatusValue.FailedWithCancellation);
+
+		/// <summary>Indicates that no wrapped policy is present.</summary>
 		public static readonly WrappedPolicyStatus None = new WrappedPolicyStatus(ResultStatusValue.NoneWrapped);
 
 		internal WrappedPolicyStatus(ResultStatusValue resultStatus)
