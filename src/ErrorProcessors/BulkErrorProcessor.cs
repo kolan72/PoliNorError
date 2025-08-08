@@ -92,6 +92,11 @@ namespace PoliNorError
 				if (resProcess.Item1 != null)
 				{
 					errorProcessorExceptions.Add(resProcess.Item1);
+					if(resProcess.Item1.ErrorStatus == ProcessStatus.Canceled)
+					{
+						isCanceledBetweenProcessOne = true;
+						break;
+					}
 				}
 				if (token.IsCancellationRequested)
 				{
@@ -114,7 +119,7 @@ namespace PoliNorError
 				curError = await errorProcessor.ProcessAsync(curError, catchBlockProcessErrorInfo, configAwait, token).ConfigureAwait(configAwait);
 				return (null, curError);
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 			{
 				return (new ErrorProcessorException(oe, errorProcessor, ProcessStatus.Canceled), curError);
 			}

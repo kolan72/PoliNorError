@@ -654,12 +654,28 @@ namespace PoliNorError.Tests
 		{
 			using (var cancelTokenSource = new CancellationTokenSource())
 			{
-				var processor = new BulkErrorProcessor().WithErrorProcessorOf(_actCancel(cancelTokenSource));
+				void actionToHandle(Exception ex, CancellationToken ct) => SyncActionThatCanceledOnOuterAndThrowOnInner(ex, ct, cancelTokenSource);
+
+				var processor = new BulkErrorProcessor().WithErrorProcessorOf(actionToHandle);
+
 				var result = await processor.ProcessAsync(new Exception(), token: cancelTokenSource.Token);
-				ClassicAssert.IsTrue(result.IsCanceled);
+				Assert.That(result.ProcessErrors.FirstOrDefault().ErrorStatus, Is.EqualTo(BulkErrorProcessor.ProcessStatus.Canceled));
+				Assert.That(result.IsCanceled, Is.True);
 			}
 		}
 
-		private readonly Func<CancellationTokenSource, Action<Exception, CancellationToken>> _actCancel = (cts) => (_, __) => { cts.Cancel(); cts.Token.ThrowIfCancellationRequested(); };
+#pragma warning disable RCS1163 // Unused parameter.
+#pragma warning disable IDE0060 // Remove unused parameter
+		public static void SyncActionThatCanceledOnOuterAndThrowOnInner(Exception exception, CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore RCS1163 // Unused parameter.
+		{
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+			}
+		}
 	}
 }
