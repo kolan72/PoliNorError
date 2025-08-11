@@ -216,5 +216,89 @@ namespace PoliNorError.Tests
 			var tryCatch = builder.Build();
 			Assert.That(tryCatch.CatchBlockCount, Is.EqualTo(1));
 		}
+
+		[Test]
+		public void Should_SimpleSyncExceptionHandler_AddExceptionToPolicyResultErrors()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var exception = new Exception("Test Exception");
+			var handler = CreateHandler(policyResult, errorFilterFunc: _ => true);
+
+			handler.Handle(exception, EmptyErrorContext.Default);
+
+			Assert.That(policyResult.Errors, Has.Exactly(1).Items);
+			Assert.That(policyResult.Errors.First(), Is.EqualTo(exception));
+		}
+
+		[Test]
+		public void Should_SimpleSyncExceptionHandler_ReturnFalse_WhenPolicyResultIsAlreadyFailed()
+		{
+			var policyResult = PolicyResult.ForSync();
+			policyResult.SetFailed();
+			var handler = CreateHandler(policyResult, errorFilterFunc: _ => true);
+
+			bool result = handler.Handle(new Exception(), EmptyErrorContext.Default);
+
+			Assert.That(result, Is.False);
+		}
+
+		[Test]
+		public void Should_SimpleSyncExceptionHandler_SetFailedAndFilterUnsatisfied_WhenErrorFilterReturnsFalse()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var handler = CreateHandler(policyResult, errorFilterFunc: _ => false);
+
+			bool result = handler.Handle(new Exception(), EmptyErrorContext.Default);
+
+			Assert.That(result, Is.True);
+			Assert.That(policyResult.IsFailed, Is.True);
+			Assert.That(policyResult.ErrorFilterUnsatisfied, Is.True);
+		}
+
+		[Test]
+		public void Should_SimpleSyncExceptionHandler_SetFailedAndCanceled_WhenTokenIsCanceled()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var policyResult = PolicyResult.ForSync();
+				var handler = new SimpleSyncExceptionHandler(
+					policyResult,
+					new BulkErrorProcessor(),
+					_ => true,
+					cts.Token
+				);
+
+				bool result = handler.Handle(new Exception(), EmptyErrorContext.Default);
+
+				Assert.That(result, Is.True);
+				Assert.That(policyResult.IsFailed, Is.True);
+				Assert.That(policyResult.IsCanceled, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_SimpleSyncExceptionHandler_ReturnTrueAndNotSetFailed_WhenProcessingSucceeds()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var handler = CreateHandler(policyResult, errorFilterFunc: _ => true);
+
+			bool result = handler.Handle(new Exception(), EmptyErrorContext.Default);
+
+			Assert.That(result, Is.True);
+			Assert.That(policyResult.IsFailed, Is.False);
+			Assert.That(policyResult.IsCanceled, Is.False);
+			Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);
+		}
+
+		private SimpleSyncExceptionHandler CreateHandler(
+		   PolicyResult policyResult,
+		   Func<Exception, bool> errorFilterFunc)
+			=> new SimpleSyncExceptionHandler(
+				   policyResult,
+				   new BulkErrorProcessor(),
+				   errorFilterFunc,
+				   CancellationToken.None
+	   );
 	}
 }

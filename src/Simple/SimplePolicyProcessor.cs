@@ -76,6 +76,8 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
 			try
 			{
 				action();
@@ -106,9 +108,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, emptyErrorContext));
+				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -145,6 +145,8 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
 			try
 			{
 				var resAction = func();
@@ -176,9 +178,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, emptyErrorContext));
+				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
