@@ -278,12 +278,49 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_SimpleAsyncExceptionHandler_SetFailedAndCanceled_WhenTokenIsCanceled()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var policyResult = PolicyResult.ForSync();
+				var handler = new SimpleAsyncExceptionHandler(
+					policyResult,
+					new BulkErrorProcessor(),
+					_ => true,
+					false,
+					cts.Token
+				);
+
+				bool result = await handler.HandleAsync(new Exception(), EmptyErrorContext.Default);
+
+				Assert.That(result, Is.True);
+				Assert.That(policyResult.IsFailed, Is.True);
+				Assert.That(policyResult.IsCanceled, Is.True);
+			}
+		}
+
+		[Test]
 		public void Should_SimpleSyncExceptionHandler_ReturnTrueAndNotSetFailed_WhenProcessingSucceeds()
 		{
 			var policyResult = PolicyResult.ForSync();
 			var handler = CreateHandler(policyResult, errorFilterFunc: _ => true);
 
 			bool result = handler.Handle(new Exception(), EmptyErrorContext.Default);
+
+			Assert.That(result, Is.True);
+			Assert.That(policyResult.IsFailed, Is.False);
+			Assert.That(policyResult.IsCanceled, Is.False);
+			Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);
+		}
+
+		[Test]
+		public async Task Should_SimpleAsyncExceptionHandler_ReturnTrueAndNotSetFailed_WhenProcessingSucceeds()
+		{
+			var policyResult = PolicyResult.ForNotSync();
+			var handler = CreateAsyncHandler(policyResult, errorFilterFunc: _ => true);
+
+			bool result = await handler.HandleAsync(new Exception(), EmptyErrorContext.Default);
 
 			Assert.That(result, Is.True);
 			Assert.That(policyResult.IsFailed, Is.False);
@@ -298,6 +335,17 @@ namespace PoliNorError.Tests
 				   policyResult,
 				   new BulkErrorProcessor(),
 				   errorFilterFunc,
+				   CancellationToken.None
+	   );
+
+		private SimpleAsyncExceptionHandler CreateAsyncHandler(
+		   PolicyResult policyResult,
+		   Func<Exception, bool> errorFilterFunc)
+			=> new SimpleAsyncExceptionHandler(
+				   policyResult,
+				   new BulkErrorProcessor(),
+				   errorFilterFunc,
+				   false,
 				   CancellationToken.None
 	   );
 	}
