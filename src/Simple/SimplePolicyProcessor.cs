@@ -215,6 +215,8 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
+			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
+
 			try
 			{
 				await func(token).ConfigureAwait(configureAwait);
@@ -241,9 +243,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait));
+				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -280,6 +280,8 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
+			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
+
 			try
 			{
 				var resAction = await func(token).ConfigureAwait(configureAwait);
@@ -307,9 +309,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait));
+				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
