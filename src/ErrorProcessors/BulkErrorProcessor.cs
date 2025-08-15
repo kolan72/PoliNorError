@@ -65,9 +65,13 @@ namespace PoliNorError
 				curError = errorProcessor.Process(curError, catchBlockProcessErrorInfo, token);
 				return (null, curError);
 			}
-			catch (OperationCanceledException oe)
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 			{
 				return (new ErrorProcessorException(oe, errorProcessor, ProcessStatus.Canceled), curError);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				return (new ErrorProcessorException(ae.GetCancellationException(), errorProcessor, ProcessStatus.Canceled), curError);
 			}
 			catch (Exception ex)
 			{

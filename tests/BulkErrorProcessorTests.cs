@@ -664,12 +664,57 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(CancellationTests.TestCancellationMode.OperationCanceled)]
+		[TestCase(CancellationTests.TestCancellationMode.Aggregate)]
+		public void Should_Cancel_Process_When_ErrorProcessor_Cancels_Using_Same_Token(CancellationTests.TestCancellationMode cancellationMode)
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				Action<Exception, CancellationToken> actionToHandle = null;
+				if (cancellationMode == CancellationTests.TestCancellationMode.OperationCanceled)
+				{
+					actionToHandle = (ex, ct) => SyncActionThatCanceledOnOuterAndThrowOnInner(ex, ct, cancelTokenSource);
+				}
+				else
+				{
+					actionToHandle = (ex, ct) => SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(ex, ct, cancelTokenSource);
+				}
+
+				var processor = new BulkErrorProcessor().WithErrorProcessorOf(actionToHandle);
+
+				var result = processor.Process(new Exception(), token: cancelTokenSource.Token);
+				Assert.That(result.ProcessErrors.FirstOrDefault().ErrorStatus, Is.EqualTo(BulkErrorProcessor.ProcessStatus.Canceled));
+				Assert.That(result.IsCanceled, Is.True);
+			}
+		}
+
 #pragma warning disable RCS1163 // Unused parameter.
 #pragma warning disable IDE0060 // Remove unused parameter
 		public static void SyncActionThatCanceledOnOuterAndThrowOnInner(Exception exception, CancellationToken outerToken, CancellationTokenSource outerTokenSource)
 #pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RCS1163 // Unused parameter.
 		{
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+			}
+		}
+
+		public static void SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(Exception exception, CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			ActionThatCanceledOnOuterAndThrowOnInner(exception, outerToken, outerTokenSource).Wait();
+		}
+
+#pragma warning disable RCS1163 // Unused parameter.
+#pragma warning disable IDE0060 // Remove unused parameter
+		public static async Task ActionThatCanceledOnOuterAndThrowOnInner(Exception exception, CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore RCS1163 // Unused parameter.
+		{
+			await Task.Delay(TimeSpan.FromTicks(1));
 			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
 			{
 				var innerToken = cancelTokenSource.Token;
