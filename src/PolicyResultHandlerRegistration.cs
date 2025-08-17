@@ -1,81 +1,9 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
+using PoliNorError.Extensions.PolicyResultHandling;
 namespace PoliNorError
 {
 	internal static class PolicyResultHandlerRegistration
 	{
-		internal static T AddHandlerForPolicyResult<T>(this T errorPolicyBase, Action<PolicyResult> action) where T : Policy
-		{
-			errorPolicyBase.AddSyncHandler(action);
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T>(this T errorPolicyBase, Action<PolicyResult> action, CancellationType convertType) where T : Policy
-		{
-			return errorPolicyBase.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
-		}
-
-		internal static T AddHandlerForPolicyResult<T>(this T errorPolicyBase, Action<PolicyResult, CancellationToken> action) where T : Policy
-		{
-			errorPolicyBase.AddSyncHandler(action);
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T>(this T errorPolicyBase, Func<PolicyResult, Task> func) where T : Policy
-		{
-			errorPolicyBase.AddAsyncHandler(func);
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T>(this T errorPolicyBase, Func<PolicyResult, Task> func, CancellationType convertType) where T : Policy
-		{
-			errorPolicyBase.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T>(this T errorPolicyBase, Func<PolicyResult, CancellationToken, Task> func) where T : Policy
-		{
-			errorPolicyBase.AddAsyncHandler(func);
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, Task> func) where T : Policy
-		{
-			errorPolicyBase.AddAsyncHandler(func);
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, Task> func, CancellationType convertType) where T : Policy
-		{
-			errorPolicyBase.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T, U>(this T errorPolicyBase, Func<PolicyResult<U>, CancellationToken, Task> func) where T : Policy
-		{
-			errorPolicyBase.AddAsyncHandler(func);
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T, U>(this T errorPolicyBase, Action<PolicyResult<U>> action) where T : Policy
-		{
-			errorPolicyBase.AddSyncHandler(action);
-			return errorPolicyBase;
-		}
-
-		internal static T AddHandlerForPolicyResult<T, U>(this T errorPolicyBase, Action<PolicyResult<U>> action, CancellationType convertType) where T : Policy
-		{
-			return errorPolicyBase.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
-		}
-
-		internal static T AddHandlerForPolicyResult<T, U>(this T errorPolicyBase, Action<PolicyResult<U>, CancellationToken> action) where T : Policy
-		{
-			errorPolicyBase.AddSyncHandler(action);
-			return errorPolicyBase;
-		}
-
 		/// <summary>
 		///  Adds a special PolicyResult handler that only sets  <see cref="PolicyResult.IsFailed"/> to true if the executed <paramref name="predicate"/> returns true.
 		/// </summary>
@@ -90,7 +18,7 @@ namespace PoliNorError
 				if (predicate(pr))
 					pr.SetFailed();
 			}
-			return AddHandlerForPolicyResult(errorPolicyBase, handler);
+			return errorPolicyBase.AddHandlerForPolicyResult(handler);
 		}
 
 		/// <summary>
@@ -108,7 +36,7 @@ namespace PoliNorError
 				if (predicate(pr))
 					pr.SetFailed();
 			}
-			return AddHandlerForPolicyResult<T, U>(errorPolicyBase, handler);
+			return errorPolicyBase.AddHandlerForPolicyResult<T, U>(handler);
 		}
 
 		/// <summary>
@@ -135,7 +63,7 @@ namespace PoliNorError
 					onSetPolicyResultFailed(pr);
 				}
 			}
-			return AddHandlerForPolicyResult<T, U>(errorPolicyBase, handler);
+			return errorPolicyBase.AddHandlerForPolicyResult<T, U>(handler);
 		}
 	}
 }

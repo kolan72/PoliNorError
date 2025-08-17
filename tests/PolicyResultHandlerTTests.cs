@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using NUnit.Framework.Legacy;
+using PoliNorError.Extensions.PolicyResultHandling;
 
 namespace PoliNorError.Tests
 {
