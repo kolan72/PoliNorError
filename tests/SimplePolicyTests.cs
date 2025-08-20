@@ -1271,6 +1271,55 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsSuccess, Is.True);
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Then_Fallback_Returns_Valid_Result(bool isZero)
+		{
+			var fallbackErrorProcessorFlag = false;
+			var simpleErrorProcessorFlag = false;
+			var zero = isZero ? 0 : 5;
+
+			Func<int> funcToHandle;
+			if (isZero)
+			{
+				funcToHandle = () => 5 / zero;
+			}
+			else
+			{
+				funcToHandle = () => throw new InvalidOperationException();
+			}
+
+			var fallbackResult = new SimplePolicy()
+									.ExcludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => simpleErrorProcessorFlag = true)
+									.ThenFallback()
+									.WithFallbackFunc(() => int.MaxValue)
+									.IncludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => fallbackErrorProcessorFlag = true)
+									.Handle(funcToHandle);
+			if (isZero)
+			{
+				Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
+				Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
+				Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
+				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.ErrorFilterUnsatisfied, Is.True);
+				Assert.That(fallbackResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
+				Assert.That(simpleErrorProcessorFlag, Is.False);
+				Assert.That(fallbackErrorProcessorFlag, Is.True);			}
+			else
+			{
+				Assert.That(fallbackResult.Result, Is.EqualTo(default(int)));
+				Assert.That(fallbackResult.NoError, Is.True);
+				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.Errors.FirstOrDefault(), Is.TypeOf<InvalidOperationException>());
+				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.NoError, Is.False);
+				Assert.That(fallbackResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.PolicySuccess));
+				Assert.That(simpleErrorProcessorFlag, Is.True);
+				Assert.That(fallbackErrorProcessorFlag, Is.False);
+			}
+			Assert.That(fallbackResult.WrappedPolicyResults.Count(), Is.EqualTo(1));
+		}
+
 		public class TestSimplePolicyProcessor : ISimplePolicyProcessor
 		{
 			public PolicyProcessor.ExceptionFilter ErrorFilter => throw new NotImplementedException();

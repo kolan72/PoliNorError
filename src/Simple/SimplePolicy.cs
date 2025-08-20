@@ -425,5 +425,14 @@ namespace PoliNorError
 			PolicyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
 		}
+
+		/// <summary>
+		/// Wraps this policy with a <see cref="FallbackPolicy"/> and returns the resulting fallback policy.
+		/// </summary>
+		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
+		public FallbackPolicy ThenFallback(bool onlyGenericFallbackForGenericDelegate = false)
+		{
+			return this.WrapUp(new FallbackPolicy(onlyGenericFallbackForGenericDelegate)).OuterPolicy;
+		}
 	}
 }
