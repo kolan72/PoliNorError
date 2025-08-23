@@ -439,9 +439,8 @@ namespace PoliNorError
 							CancellationToken token)
 		{
 			return !result.IsFailed
-						&& result.ChangeByHandleCatchBlockResult(handler
+						&& !result.WasResultSetToFailureByCatchBlock(handler
 																.Handle(ex, retryContext))
-						&& !result.IsFailed
 						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), token), ex)
 						&& !result.IsFailed;
 		}
@@ -455,9 +454,8 @@ namespace PoliNorError
 							CancellationToken token)
 		{
 			return !result.IsFailed
-						&& result.ChangeByHandleCatchBlockResult(await handler
+						&& !result.WasResultSetToFailureByCatchBlock(await handler
 																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
-						&& !result.IsFailed
 						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), configureAwait, token).ConfigureAwait(configureAwait), ex)
 						&& !result.IsFailed;
 		}

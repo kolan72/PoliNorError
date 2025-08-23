@@ -239,7 +239,7 @@ namespace PoliNorError.Tests
 
 			bool result = handler.Handle(new Exception(), EmptyErrorContext.Default);
 
-			Assert.That(result, Is.False);
+			Assert.That(result, Is.True);
 		}
 
 		[Test]
@@ -308,7 +308,7 @@ namespace PoliNorError.Tests
 
 			bool result = handler.Handle(new Exception(), EmptyErrorContext.Default);
 
-			Assert.That(result, Is.True);
+			Assert.That(result, Is.False);
 			Assert.That(policyResult.IsFailed, Is.False);
 			Assert.That(policyResult.IsCanceled, Is.False);
 			Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);
@@ -322,7 +322,7 @@ namespace PoliNorError.Tests
 
 			bool result = await handler.HandleAsync(new Exception(), EmptyErrorContext.Default);
 
-			Assert.That(result, Is.True);
+			Assert.That(result, Is.False);
 			Assert.That(policyResult.IsFailed, Is.False);
 			Assert.That(policyResult.IsCanceled, Is.False);
 			Assert.That(policyResult.ErrorFilterUnsatisfied, Is.False);

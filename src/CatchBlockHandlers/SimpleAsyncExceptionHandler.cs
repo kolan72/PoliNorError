@@ -31,7 +31,7 @@ namespace PoliNorError
 																_token,
 																_errorFilterFunc);
 
-			return _policyResult.ChangeByHandleCatchBlockResult(
+			return _policyResult.WasResultSetToFailureByCatchBlock(
 										await handler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(_configAwait));
 		}
 	}

@@ -26,7 +26,7 @@ namespace PoliNorError
 																_bulkErrorProcessor,
 																_token,
 																_errorFilterFunc);
-			return _policyResult.ChangeByHandleCatchBlockResult(
+			return _policyResult.WasResultSetToFailureByCatchBlock(
 										handler.Handle(ex, emptyErrorContext));
 		}
 	}
