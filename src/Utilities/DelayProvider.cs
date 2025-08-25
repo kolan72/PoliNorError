@@ -40,7 +40,7 @@ namespace PoliNorError
 				await delayProvider.BackoffAsync(delay, configAwait, token).ConfigureAwait(configAwait);
 				return BasicResult.Success();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException) when (token.IsCancellationRequested)
 			{
 				return BasicResult.Canceled();
 			}

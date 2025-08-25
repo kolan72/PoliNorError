@@ -77,8 +77,12 @@ namespace PoliNorError.Tests
 
 		public async Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
-			_cts.Cancel();
-			await Task.Delay(delay, cancellationToken).ConfigureAwait(configAwait);
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				_cts.Cancel();
+				await Task.Delay(delay, innerToken).ConfigureAwait(configAwait);
+			}
 		}
 	}
 
