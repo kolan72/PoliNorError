@@ -60,9 +60,11 @@ namespace PoliNorError.Tests
 	internal class DelayProviderThatAlreadyCanceled : IDelayProvider
 	{
 		private readonly CancellationTokenSource _cts;
-		public DelayProviderThatAlreadyCanceled(CancellationTokenSource cts)
+		private readonly bool _canceledOnLinkedToken;
+		public DelayProviderThatAlreadyCanceled(CancellationTokenSource cts, bool canceledOnLinkedToken = false)
 		{
 			_cts = cts;
+			_canceledOnLinkedToken = canceledOnLinkedToken;
 		}
 
 		public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
@@ -77,11 +79,19 @@ namespace PoliNorError.Tests
 
 		public async Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
-			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+			if (_canceledOnLinkedToken)
 			{
-				var innerToken = cancelTokenSource.Token;
+				using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+				{
+					var innerToken = cancelTokenSource.Token;
+					_cts.Cancel();
+					await Task.Delay(delay, innerToken).ConfigureAwait(configAwait);
+				}
+			}
+			else
+			{
 				_cts.Cancel();
-				await Task.Delay(delay, innerToken).ConfigureAwait(configAwait);
+				await Task.Delay(delay, cancellationToken).ConfigureAwait(configAwait);
 			}
 		}
 	}

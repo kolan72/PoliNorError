@@ -40,12 +40,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_BackoffSafelyAsync_Be_Without_Exception_If_Cancellation_Has_Occured()
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_BackoffSafelyAsync_Be_Without_Exception_If_Cancellation_Has_Occured(bool canceledOnLinkedSource)
 		{
 			using (var cts = new CancellationTokenSource())
 			{
-				var delayProvider = new DelayProviderThatAlreadyCanceled(cts);
-				var br = await delayProvider.BackoffSafelyAsync(TimeSpan.FromMilliseconds(1), false, cts.Token).ConfigureAwait(false);
+				var delayProvider = new DelayProviderThatAlreadyCanceled(cts, canceledOnLinkedSource);
+				var br = await delayProvider.BackoffSafelyAsync(TimeSpan.FromMilliseconds(1), canceledOnLinkedSource, cts.Token).ConfigureAwait(false);
 				Assert.That(br.IsCanceled, Is.True);
 			}
 		}
