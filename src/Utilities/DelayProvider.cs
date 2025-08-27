@@ -19,11 +19,11 @@ namespace PoliNorError
 				delayProvider.Backoff(delay, token);
 				return BasicResult.Success();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException) when (token.IsCancellationRequested)
 			{
 				return BasicResult.Canceled();
 			}
-			catch (AggregateException ae) when (ae.HasCanceledException(token))
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				return BasicResult.Canceled();
 			}

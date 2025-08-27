@@ -5,17 +5,21 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.CancellationTests;
 
 namespace PoliNorError.Tests
 {
 	internal class DelayProviderTests
 	{
 		[Test]
-		public void Should_BackoffSafely_Be_Without_Exception_If_Cancellation_Has_Occured()
+		[TestCase(true, TestCancellationMode.Aggregate)]
+		[TestCase(true, TestCancellationMode.OperationCanceled)]
+		[TestCase(false, null)]
+		public void Should_BackoffSafely_Be_Without_Exception_If_Cancellation_Has_Occured(bool canceledOnLinkedSource, TestCancellationMode? cancellationMode)
 		{
 			using (var cts = new CancellationTokenSource())
 			{
-				var delayProvider = new DelayProviderThatAlreadyCanceled(cts);
+				var delayProvider = new DelayProviderThatAlreadyCanceled(cts, canceledOnLinkedSource, cancellationMode);
 				var br = delayProvider.BackoffSafely(TimeSpan.FromMilliseconds(1), cts.Token);
 				Assert.That(br.IsCanceled, Is.True);
 			}

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.CancellationTests;
 
 namespace PoliNorError.Tests
 {
@@ -61,19 +62,46 @@ namespace PoliNorError.Tests
 	{
 		private readonly CancellationTokenSource _cts;
 		private readonly bool _canceledOnLinkedToken;
-		public DelayProviderThatAlreadyCanceled(CancellationTokenSource cts, bool canceledOnLinkedToken = false)
+		private readonly TestCancellationMode _cancellationMode;
+
+		public DelayProviderThatAlreadyCanceled(CancellationTokenSource cts, bool canceledOnLinkedToken = false, TestCancellationMode? cancellationMode = null)
 		{
 			_cts = cts;
 			_canceledOnLinkedToken = canceledOnLinkedToken;
+			_cancellationMode = cancellationMode ?? TestCancellationMode.OperationCanceled;
 		}
 
 		public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
 		{
-			_cts.Cancel();
-			bool waitResult = cancellationToken.WaitHandle.WaitOne(delay);
-			if (waitResult)
+			if (_canceledOnLinkedToken)
 			{
-				cancellationToken.ThrowIfCancellationRequested();
+				if (_cancellationMode == TestCancellationMode.OperationCanceled)
+				{
+					using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+					{
+						var innerToken = cancelTokenSource.Token;
+						_cts.Cancel();
+						bool waitResult = innerToken.WaitHandle.WaitOne(delay);
+						if (waitResult)
+						{
+							innerToken.ThrowIfCancellationRequested();
+						}
+					}
+				}
+				else
+				{
+					void actionToHandle() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(_cts.Token, _cts);
+					actionToHandle();
+				}
+			}
+			else
+			{
+				_cts.Cancel();
+				bool waitResult = cancellationToken.WaitHandle.WaitOne(delay);
+				if (waitResult)
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+				}
 			}
 		}
 
