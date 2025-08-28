@@ -35,6 +35,35 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_DelayAndCheckIfResultFailed_Return_True_If_BackoffFailed()
+		{
+			var delayProvider = new DelayProviderThatFailed();
+			var pr = PolicyResult.ForSync();
+			var handlingException = new Exception("Test");
+			var IsFailed = delayProvider.DelayAndCheckIfResultFailed(TimeSpan.FromTicks(1), pr, handlingException);
+			Assert.That(IsFailed, Is.True);
+			Assert.That(pr.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, TestCancellationMode.Aggregate)]
+		[TestCase(true, TestCancellationMode.OperationCanceled)]
+		[TestCase(false, null)]
+		public void Should_DelayAndCheckIfResultFailed_Return_True_If_BackoffCanceled(bool canceledOnLinkedSource, TestCancellationMode? cancellationMode)
+		{
+			var pr = PolicyResult.ForSync();
+			var handlingException = new Exception("Test");
+			using (var cts = new CancellationTokenSource())
+			{
+				var delayProvider = new DelayProviderThatAlreadyCanceled(cts, canceledOnLinkedSource, cancellationMode);
+				var IsFailed = delayProvider.DelayAndCheckIfResultFailed(TimeSpan.FromTicks(1), pr, handlingException, cts.Token);
+				Assert.That(IsFailed, Is.True);
+				Assert.That(pr.IsFailed, Is.True);
+				Assert.That(pr.IsCanceled, Is.True);
+			}
+		}
+
+		[Test]
 		public async Task Should_BackoffSafely_Be_Without_Exception_If_BackoffFailedAsync()
 		{
 			var delayProvider = new DelayProviderThatFailed();
