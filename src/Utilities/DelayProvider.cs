@@ -33,24 +33,26 @@ namespace PoliNorError
 			}
 		}
 
-		public static bool DelayAndCheckIfResultFailed(this IDelayProvider delayProvider, TimeSpan delay, PolicyResult policyResult, Exception handlingException, CancellationToken token = default)
+		public static bool DelayAndCheckIfResultFailed(this IDelayProvider delayProvider, TimeSpan? delay, PolicyResult policyResult, Exception handlingException, CancellationToken token = default)
 		{
-			try
+			if (delay > TimeSpan.Zero)
 			{
-				delayProvider.Backoff(delay, token);
-				return false;
-			}
-			catch (OperationCanceledException) when (token.IsCancellationRequested)
-			{
-				policyResult.SetFailedAndCanceled();
-			}
-			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
-			{
-				policyResult.SetFailedAndCanceled();
-			}
-			catch (Exception ex)
-			{
-				policyResult.SetFailedWithCatchBlockError(ex, handlingException, CatchBlockExceptionSource.PolicyRule);
+				try
+				{
+					delayProvider.Backoff(delay.Value, token);
+				}
+				catch (OperationCanceledException) when (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (Exception ex)
+				{
+					policyResult.SetFailedWithCatchBlockError(ex, handlingException, CatchBlockExceptionSource.PolicyRule);
+				}
 			}
 			return policyResult.IsFailed;
 		}

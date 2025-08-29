@@ -73,6 +73,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_DelayAndCheckIfResultFailed_Return_False_If_Delay_Is_Null()
+		{
+			var delayProvider = new DelayProvider();
+			var pr = PolicyResult.ForSync();
+			var handlingException = new Exception("Test");
+			var IsFailed = delayProvider.DelayAndCheckIfResultFailed(null, pr, handlingException);
+			Assert.That(IsFailed, Is.False);
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public async Task Should_BackoffSafelyAsync_Be_Without_Exception_If_Cancellation_Has_Occured(bool canceledOnLinkedSource)
