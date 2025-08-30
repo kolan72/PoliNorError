@@ -64,6 +64,44 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_DelayAndCheckIfResultFailedAsync_Return_True_If_BackoffFailed()
+		{
+			var delayProvider = new DelayProviderThatFailed();
+			var pr = PolicyResult.ForSync();
+			var handlingException = new Exception("Test");
+			var IsFailed = await delayProvider.DelayAndCheckIfResultFailedAsync(TimeSpan.FromTicks(1), pr, handlingException, false);
+			Assert.That(IsFailed, Is.True);
+			Assert.That(pr.IsFailed, Is.True);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_DelayAndCheckIfResultFailedAsync_Return_True_If_BackoffCanceledAsync(bool canceledOnLinkedSource)
+		{
+			var pr = PolicyResult.ForNotSync();
+			var handlingException = new Exception("Test");
+			using (var cts = new CancellationTokenSource())
+			{
+				var delayProvider = new DelayProviderThatAlreadyCanceled(cts, canceledOnLinkedSource);
+				var IsFailed = await delayProvider.DelayAndCheckIfResultFailedAsync(TimeSpan.FromTicks(1), pr, handlingException, false, cts.Token);
+				Assert.That(IsFailed, Is.True);
+				Assert.That(pr.IsFailed, Is.True);
+				Assert.That(pr.IsCanceled, Is.True);
+			}
+		}
+
+		[Test]
+		public async Task Should_DelayAndCheckIfResultFailedAsync_Return_False_If_Delay_Is_Null()
+		{
+			var delayProvider = new DelayProvider();
+			var pr = PolicyResult.ForSync();
+			var handlingException = new Exception("Test");
+			var IsFailed = await delayProvider.DelayAndCheckIfResultFailedAsync(null, pr, handlingException, false);
+			Assert.That(IsFailed, Is.False);
+		}
+
+		[Test]
 		public async Task Should_BackoffSafely_Be_Without_Exception_If_BackoffFailedAsync()
 		{
 			var delayProvider = new DelayProviderThatFailed();

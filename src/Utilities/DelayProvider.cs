@@ -57,6 +57,30 @@ namespace PoliNorError
 			return policyResult.IsFailed;
 		}
 
+		public static async Task<bool> DelayAndCheckIfResultFailedAsync(this IDelayProvider delayProvider, TimeSpan? delay, PolicyResult policyResult, Exception handlingException, bool configureAwait, CancellationToken token = default)
+		{
+			if (delay > TimeSpan.Zero)
+			{
+				try
+				{
+					await delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+				}
+				catch (OperationCanceledException) when (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (Exception ex)
+				{
+					policyResult.SetFailedWithCatchBlockError(ex, handlingException, CatchBlockExceptionSource.PolicyRule);
+				}
+			}
+			return policyResult.IsFailed;
+		}
+
 		public static async Task<BasicResult> BackoffSafelyAsync(this IDelayProvider delayProvider, TimeSpan delay, bool configAwait = false, CancellationToken token = default)
 		{
 			try
