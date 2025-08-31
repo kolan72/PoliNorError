@@ -441,8 +441,7 @@ namespace PoliNorError
 			return !result.IsFailed
 						&& !result.WasResultSetToFailureByCatchBlock(handler
 																.Handle(ex, retryContext))
-						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), token), ex)
-						&& !result.IsFailed;
+						&& !DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, token);
 		}
 
 		private async Task<bool> HandleErrorAsync(Exception ex,
@@ -458,16 +457,6 @@ namespace PoliNorError
 																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
 						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), configureAwait, token).ConfigureAwait(configureAwait), ex)
 						&& !result.IsFailed;
-		}
-
-		private BasicResult DelayIfNeed(TimeSpan? delay, CancellationToken token)
-		{
-			BasicResult res = null;
-			if (delay > TimeSpan.Zero)
-			{
-				res = DelayProvider.BackoffSafely(delay.Value, token);
-			}
-			return res;
 		}
 
 		private async Task<BasicResult> DelayIfNeedAsync(TimeSpan? delay, bool configureAwait, CancellationToken token)
