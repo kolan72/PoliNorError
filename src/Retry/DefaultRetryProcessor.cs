@@ -455,18 +455,7 @@ namespace PoliNorError
 			return !result.IsFailed
 						&& !result.WasResultSetToFailureByCatchBlock(await handler
 																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
-						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), configureAwait, token).ConfigureAwait(configureAwait), ex)
-						&& !result.IsFailed;
-		}
-
-		private async Task<BasicResult> DelayIfNeedAsync(TimeSpan? delay, bool configureAwait, CancellationToken token)
-		{
-			BasicResult res = null;
-			if (delay > TimeSpan.Zero)
-			{
-				res = await DelayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
-			}
-			return res;
+						&& !await DelayProvider.DelayAndCheckIfResultFailedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
