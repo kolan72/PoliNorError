@@ -148,10 +148,22 @@ namespace PoliNorError
 			Success
 		}
 
+		/// <summary>
+		/// Represents the status of an individual processor's execution.
+		/// </summary>
 		public enum ProcessStatus
 		{
+			/// <summary>
+			/// The status is not set.
+			/// </summary>
 			None = 0,
+			/// <summary>
+			/// The processor's operation was canceled.
+			/// </summary>
 			Canceled,
+			/// <summary>
+			/// The processor's operation faulted with an exception.
+			/// </summary>
 			Faulted
 		}
 
@@ -174,9 +186,19 @@ namespace PoliNorError
 			public ProcessStatus ErrorStatus { get; }
 		}
 
+		/// <summary>
+		/// Represents the result of a bulk processing operation.
+		/// </summary>
 		public class BulkProcessResult
 		{
 			private readonly bool _isCanceledBetweenProcessOne;
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="BulkProcessResult"/> class.
+			/// </summary>
+			/// <param name="handlingError">The original exception that was handled.</param>
+			/// <param name="processErrors">A collection of exceptions that occurred within the error processors.</param>
+			/// <param name="isCanceledBetweenProcessOne">A flag indicating if cancellation was requested between processor executions.</param>
 			public BulkProcessResult(Exception handlingError, IEnumerable<ErrorProcessorException> processErrors, bool isCanceledBetweenProcessOne = false)
 			{
 				HandlingError = handlingError;
@@ -184,12 +206,25 @@ namespace PoliNorError
 				_isCanceledBetweenProcessOne = isCanceledBetweenProcessOne;
 			}
 
+			/// <summary>
+			/// Gets the original exception that was handled.
+			/// </summary>
 			public Exception HandlingError { get; }
 
+			/// <summary>
+			/// Gets a collection of exceptions that occurred within the error processors.
+			/// </summary>
 			public IEnumerable<ErrorProcessorException> ProcessErrors { get; }
 
+			/// <summary>
+			/// Gets a value indicating whether the bulk processing operation was canceled.
+			/// </summary>
 			public bool IsCanceled => ProcessErrors.Any(e => e.ErrorStatus == ProcessStatus.Canceled) || _isCanceledBetweenProcessOne;
 
+			/// <summary>
+			/// Converts the processing errors into a collection of <see cref="CatchBlockException"/>.
+			/// </summary>
+			/// <returns>An enumerable of <see cref="CatchBlockException"/>.</returns>
 			public IEnumerable<CatchBlockException> ToCatchBlockExceptions()
 			{
 				return ProcessErrors?.Any() != true
