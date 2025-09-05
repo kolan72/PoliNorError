@@ -3,6 +3,7 @@ using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -686,6 +687,181 @@ namespace PoliNorError.Tests
 				var result = processor.Process(new Exception(), token: cancelTokenSource.Token);
 				Assert.That(result.ProcessErrors.FirstOrDefault().ErrorStatus, Is.EqualTo(BulkErrorProcessor.ProcessStatus.Canceled));
 				Assert.That(result.IsCanceled, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_Process_Handle_Processor_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var testProcessor1 = new TestErrorProcessor();
+
+			var originalException = new InvalidOperationException("Test exception");
+			var processorException = new ArgumentException("Processor exception");
+
+			testProcessor1.SetThrowException(processorException);
+			bulkProcessor.AddProcessor(testProcessor1);
+
+			// Act
+			var result = bulkProcessor.Process(originalException);
+
+			// Assert
+			Assert.That(result.HandlingError, Is.SameAs(originalException));
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(1));
+
+			var errorProcessorException = result.ProcessErrors.First();
+			Assert.That(errorProcessorException.InnerException, Is.SameAs(processorException));
+			Assert.That(errorProcessorException.ErrorProcessor, Is.SameAs(testProcessor1));
+			Assert.That(errorProcessorException.ErrorStatus, Is.EqualTo(BulkErrorProcessor.ProcessStatus.Faulted));
+		}
+
+		[Test]
+		public void Should_Process_Handle_Cancellation_Token_Before_Processing()
+		{
+			// Arrange
+			var originalException = new InvalidOperationException("Test exception");
+
+			var bulkProcessor = new BulkErrorProcessor();
+			var testProcessor1 = new TestErrorProcessor();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+
+				bulkProcessor.AddProcessor(testProcessor1);
+
+				// Act
+				var result = bulkProcessor.Process(originalException, null, cts.Token);
+
+				// Assert
+				Assert.That(result.HandlingError, Is.SameAs(originalException));
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.ProcessErrors.Count(), Is.EqualTo(1));
+
+				var errorProcessorException = result.ProcessErrors.First();
+				Assert.That(errorProcessorException.ErrorStatus, Is.EqualTo(BulkErrorProcessor.ProcessStatus.Canceled));
+				Assert.That(errorProcessorException.ErrorProcessor, Is.SameAs(testProcessor1));
+			}
+		}
+
+		[Test]
+		public async Task Should_ProcessAsync_Handle_Processor_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var testProcessor1 = new TestErrorProcessor();
+
+			var originalException = new InvalidOperationException("Test exception");
+			var processorException = new ArgumentException("Processor exception");
+
+			testProcessor1.SetThrowExceptionNonSync(processorException);
+			bulkProcessor.AddProcessor(testProcessor1);
+
+			// Act
+			var result = await bulkProcessor.ProcessAsync(originalException);
+
+			// Assert
+			Assert.That(result.HandlingError, Is.SameAs(originalException));
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(1));
+
+			var errorProcessorException = result.ProcessErrors.First();
+			Assert.That(errorProcessorException.InnerException, Is.SameAs(processorException));
+			Assert.That(errorProcessorException.ErrorProcessor, Is.SameAs(testProcessor1));
+			Assert.That(errorProcessorException.ErrorStatus, Is.EqualTo(BulkErrorProcessor.ProcessStatus.Faulted));
+		}
+
+		[Test]
+		public async Task Should_ProcessAsync_Handle_Cancellation_Token_Before_Processing()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var testProcessor = new TestErrorProcessor();
+			var originalException = new InvalidOperationException("Test exception");
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+
+				bulkProcessor.AddProcessor(testProcessor);
+
+				// Act
+				var result = await bulkProcessor.ProcessAsync(originalException, null, false, cts.Token);
+
+				// Assert
+				Assert.That(result.HandlingError, Is.SameAs(originalException));
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.ProcessErrors.Count(), Is.EqualTo(1));
+
+				var errorProcessorException = result.ProcessErrors.First();
+				Assert.That(errorProcessorException.ErrorStatus, Is.EqualTo(BulkErrorProcessor.ProcessStatus.Canceled));
+			}
+		}
+
+		[Test]
+		public async Task Should_ProcessAsync_Handle_Null_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var testProcessor1 = new TestErrorProcessor();
+
+			bulkProcessor.AddProcessor(testProcessor1);
+
+			// Act
+			var result = await bulkProcessor.ProcessAsync(null);
+
+			// Assert
+			Assert.That(result.HandlingError, Is.Null);
+			Assert.That(testProcessor1.ProcessedExceptionsAsync, Contains.Item(null));
+		}
+
+		internal class TestErrorProcessor : IErrorProcessor
+		{
+			public List<Exception> ProcessedExceptions { get; } = new List<Exception>();
+			public List<Exception> ProcessedExceptionsAsync { get; } = new List<Exception>();
+			public List<ProcessingErrorInfo> ReceivedContexts { get; } = new List<ProcessingErrorInfo>();
+			public List<ProcessingErrorInfo> ReceivedContextsAsync { get; } = new List<ProcessingErrorInfo>();
+			public List<bool> ConfigAwaitValues { get; } = new List<bool>();
+
+			private Exception _throwException;
+			private Exception _throwExceptionAsync;
+			private CancellationTokenSource _cancelAfterProcessing ;
+			private CancellationTokenSource _cancelAfterProcessingAsync;
+
+			public void SetCancelAfterProcessing(CancellationTokenSource cts) => _cancelAfterProcessing = cts;
+			public void SetCancelAfterProcessingNonSync(CancellationTokenSource cts) => _cancelAfterProcessingAsync = cts;
+
+			public void SetThrowException(Exception exception) => _throwException = exception;
+			public void SetThrowExceptionNonSync(Exception exception) => _throwExceptionAsync = exception;
+
+			public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
+			{
+				ProcessedExceptions.Add(error);
+				if (catchBlockProcessErrorInfo != null)
+					ReceivedContexts.Add(catchBlockProcessErrorInfo);
+
+				if (_throwException != null)
+					throw _throwException;
+
+				// Cancel after processing to simulate cancellation between processors
+				_cancelAfterProcessing?.Cancel();
+
+				return error;
+			}
+
+			public Task<Exception> ProcessAsync(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
+			{
+				ProcessedExceptionsAsync.Add(error);
+				ConfigAwaitValues.Add(configAwait);
+				if (catchBlockProcessErrorInfo != null)
+					ReceivedContextsAsync.Add(catchBlockProcessErrorInfo);
+
+				if (_throwExceptionAsync != null)
+					throw _throwExceptionAsync;
+
+				// Cancel after processing to simulate cancellation between processors
+				_cancelAfterProcessingAsync?.Cancel();
+
+				return Task.FromResult(error);
 			}
 		}
 
