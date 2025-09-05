@@ -167,22 +167,44 @@ namespace PoliNorError
 			Faulted
 		}
 
+		/// <summary>
+		/// Represents an exception that occurs during the execution of an <see cref="IErrorProcessor"/>.
+		/// </summary>
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "<Pending>")]
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "<Pending>")]
 		public class ErrorProcessorException : Exception
 		{
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ErrorProcessorException"/> class.
+			/// </summary>
+			/// <param name="processException">The inner exception thrown by the processor.</param>
+			/// <param name="processor">The processor that threw the exception.</param>
+			/// <param name="processStatus">The status of the processor's execution.</param>
 			public ErrorProcessorException(Exception processException, IErrorProcessor processor, ProcessStatus processStatus) : this("Exception in error processing", processException, processor, processStatus)
 			{
 			}
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ErrorProcessorException"/> class with a custom message.
+			/// </summary>
+			/// <param name="msg">The exception message.</param>
+			/// <param name="processException">The inner exception thrown by the processor.</param>
+			/// <param name="processor">The processor that threw the exception.</param>
+			/// <param name="processStatus">The status of the processor's execution.</param>
 			public ErrorProcessorException(string msg, Exception processException, IErrorProcessor processor, ProcessStatus processStatus) : base(msg, processException)
 			{
 				ErrorProcessor = processor;
 				ErrorStatus = processStatus;
 			}
 
+			/// <summary>
+			/// Gets the processor that threw the exception.
+			/// </summary>
 			public IErrorProcessor ErrorProcessor { get; }
 
+			/// <summary>
+			/// Gets the status of the processor's execution when the exception was thrown.
+			/// </summary>
 			public ProcessStatus ErrorStatus { get; }
 		}
 
