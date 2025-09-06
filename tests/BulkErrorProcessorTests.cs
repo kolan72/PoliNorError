@@ -717,6 +717,55 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Process_Handle_Cancellation_Token_Between_Processors()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var testProcessor1 = new TestErrorProcessor();
+			var testProcessor2 = new TestErrorProcessor();
+
+			var originalException = new InvalidOperationException("Test exception");
+			using (var cts = new CancellationTokenSource())
+			{
+				testProcessor1.SetCancelAfterProcessing(cts);
+				bulkProcessor.AddProcessor(testProcessor1);
+				bulkProcessor.AddProcessor(testProcessor2);
+
+				// Act
+				var result = bulkProcessor.Process(originalException, null, cts.Token);
+				// Assert
+				Assert.That(result.HandlingError, Is.SameAs(originalException));
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(testProcessor1.ProcessedExceptions.Count, Is.EqualTo(1));
+				Assert.That(testProcessor2.ProcessedExceptions.Count, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_ProcessAsync_Handle_Cancellation_Between_Processors()
+		{
+			var bulkProcessor = new BulkErrorProcessor();
+			var testProcessor1 = new TestErrorProcessor();
+			var testProcessor2 = new TestErrorProcessor();
+
+			var originalException = new InvalidOperationException("Test exception");
+			using (var cts = new CancellationTokenSource())
+			{
+				testProcessor1.SetCancelAfterProcessingNonSync(cts);
+				bulkProcessor.AddProcessor(testProcessor1);
+				bulkProcessor.AddProcessor(testProcessor2);
+
+				// Act
+				var result = await bulkProcessor.ProcessAsync(originalException, null, false, cts.Token);
+				// Assert
+				Assert.That(result.HandlingError, Is.SameAs(originalException));
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(testProcessor1.ProcessedExceptionsAsync.Count, Is.EqualTo(1));
+				Assert.That(testProcessor2.ProcessedExceptionsAsync.Count, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
 		public void Should_Process_Handle_Cancellation_Token_Before_Processing()
 		{
 			// Arrange
