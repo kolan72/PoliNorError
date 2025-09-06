@@ -34,8 +34,14 @@ namespace PoliNorError
 			}
 
 			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
+			if (token.IsCancellationRequested)
+			{
+				return new BulkProcessResult(handlingError, errorProcessorExceptions, true);
+			}
+
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
+
 			foreach (var errorProcessor in _errorProcessors)
 			{
 				var resProcess = ProcessOne(errorProcessor, catchBlockProcessErrorInfo, curError, token);
@@ -55,11 +61,6 @@ namespace PoliNorError
 
 		private (ErrorProcessorException, Exception) ProcessOne(IErrorProcessor errorProcessor, ProcessingErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token)
 		{
-			if (token.IsCancellationRequested)
-			{
-				return (new ErrorProcessorException(new OperationCanceledException(token), errorProcessor, ProcessStatus.Canceled), curError);
-			}
-
 			try
 			{
 				curError = errorProcessor.Process(curError, catchBlockProcessErrorInfo, token);
@@ -88,8 +89,14 @@ namespace PoliNorError
 			}
 
 			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
+			if (token.IsCancellationRequested)
+			{
+				return new BulkProcessResult(handlingError, errorProcessorExceptions, true);
+			}
+
 			var curError = handlingError;
 			var isCanceledBetweenProcessOne = false;
+
 			foreach (var errorProcessor in _errorProcessors)
 			{
 				var resProcess = await ProcessOneAsync(errorProcessor, catchBlockProcessErrorInfo, curError, token, configAwait).ConfigureAwait(configAwait);
@@ -114,10 +121,6 @@ namespace PoliNorError
 
 		private  async Task<(ErrorProcessorException, Exception)> ProcessOneAsync(IErrorProcessor errorProcessor, ProcessingErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token, bool configAwait)
 		{
-			if (token.IsCancellationRequested)
-			{
-				return (new ErrorProcessorException(new OperationCanceledException(token), errorProcessor, ProcessStatus.Canceled), curError);
-			}
 			try
 			{
 				curError = await errorProcessor.ProcessAsync(curError, catchBlockProcessErrorInfo, configAwait, token).ConfigureAwait(configAwait);
