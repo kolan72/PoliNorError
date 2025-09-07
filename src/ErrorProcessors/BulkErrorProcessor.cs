@@ -48,7 +48,12 @@ namespace PoliNorError
 				if (resProcess.Item1 != null)
 				{
 					errorProcessorExceptions.Add(resProcess.Item1);
+					if (resProcess.Item1.ErrorStatus == ProcessStatus.Canceled)
+					{
+						break;
+					}
 				}
+
 				if (token.IsCancellationRequested)
 				{
 					isCanceledBetweenProcessOne = true;
@@ -105,7 +110,6 @@ namespace PoliNorError
 					errorProcessorExceptions.Add(resProcess.Item1);
 					if(resProcess.Item1.ErrorStatus == ProcessStatus.Canceled)
 					{
-						isCanceledBetweenProcessOne = true;
 						break;
 					}
 				}
