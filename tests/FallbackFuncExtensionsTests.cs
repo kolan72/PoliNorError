@@ -170,6 +170,17 @@ namespace PoliNorError.Tests
         }
 
         [Test]
+        public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_HandleAsFallbackAsync_Throws_DueTo_InnerToken()
+        {
+            using (var cancelTokenSource = new CancellationTokenSource())
+            {
+                Func<CancellationToken, Task> func = async (ct) => await CancelableActions.ActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
+                var fallbackResult = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+                Assert.That(fallbackResult.IsCanceled, Is.True);
+            }
+        }
+
+        [Test]
         public async Task Should_HandleAsFallbackAsync_ForGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
         {
             var cancelTokenSource = new CancellationTokenSource();
