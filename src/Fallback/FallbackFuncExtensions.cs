@@ -8,7 +8,23 @@ namespace PoliNorError
 	{
 		public static FallbackFuncExecResult HandleAsFallback(this Action<CancellationToken> fallback, CancellationToken token)
 		{
-			return fallback.ToDefaultReturnFunc<int>().HandleAsFallbackInner(token).Item1;
+			try
+			{
+				fallback(token);
+				return FallbackFuncExecResult.Success();
+			}
+			catch (OperationCanceledException tce) when (token.IsCancellationRequested)
+			{
+				return FallbackFuncExecResult.FromCanceledError(tce);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				return FallbackFuncExecResult.FromCanceledError(ae.GetCancellationException());
+			}
+			catch (Exception cex)
+			{
+				return FallbackFuncExecResult.FromError(cex);
+			}
 		}
 
 		public static FallbackFuncExecResult<T> HandleAsFallback<T>(this Func<CancellationToken, T> fallback, CancellationToken token)

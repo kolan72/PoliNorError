@@ -4,6 +4,7 @@ using System;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.CancellationTests;
 
 namespace PoliNorError.Tests
 {
@@ -176,6 +177,27 @@ namespace PoliNorError.Tests
             {
                 Func<CancellationToken, Task> func = async (ct) => await CancelableActions.ActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
                 var fallbackResult = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+                Assert.That(fallbackResult.IsCanceled, Is.True);
+            }
+        }
+
+        [Test]
+        [TestCase(TestCancellationMode.OperationCanceled)]
+        [TestCase(TestCancellationMode.Aggregate)]
+        public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_HandleAsFallback_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
+        {
+            using (var cancelTokenSource = new CancellationTokenSource())
+            {
+                Action<CancellationToken> action = null;
+                if (cancellationMode == TestCancellationMode.OperationCanceled)
+                {
+                    action = (ct) => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
+                }
+                else
+                {
+                    action = (ct) => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(ct, cancelTokenSource);
+                }
+                var fallbackResult = action.HandleAsFallback(cancelTokenSource.Token);
                 Assert.That(fallbackResult.IsCanceled, Is.True);
             }
         }
