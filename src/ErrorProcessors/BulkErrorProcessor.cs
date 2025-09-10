@@ -7,10 +7,16 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Implements a processor that handles a collection of error processors in sequence.
+	/// </summary>
 	public class BulkErrorProcessor : IBulkErrorProcessor
 	{
 		private readonly List<IErrorProcessor> _errorProcessors = new List<IErrorProcessor>();
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BulkErrorProcessor"/> class.
+		/// </summary>
 		public BulkErrorProcessor() {}
 
 #pragma warning disable S1133 // Deprecated code should be removed
@@ -20,11 +26,13 @@ namespace PoliNorError
 		public BulkErrorProcessor(PolicyAlias policyAlias){}
 #pragma warning restore RCS1163 // Unused parameter.
 
+		/// <inheritdoc/>
 		public void AddProcessor(IErrorProcessor errorProcessor)
 		{
 			_errorProcessors.Add(errorProcessor);
 		}
 
+		/// <inheritdoc/>
 		public BulkProcessResult Process(Exception handlingError, ProcessingErrorContext errorContext = null, CancellationToken token = default)
 		{
 			List<ErrorProcessorException> errorProcessorExceptions = new List<ErrorProcessorException>();
@@ -85,6 +93,7 @@ namespace PoliNorError
 			}
 		}
 
+		/// <inheritdoc/>
 		public async Task<BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default)
 		{
 			var errorProcessorExceptions = new FlexSyncEnumerable<ErrorProcessorException>(!configAwait);
@@ -140,8 +149,10 @@ namespace PoliNorError
 			}
 		}
 
+		/// <inheritdoc/>
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _errorProcessors.GetEnumerator();
 
+		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 #pragma warning disable S1133 // Deprecated code should be removed
