@@ -57,13 +57,19 @@ namespace PoliNorError
 
 		public static async Task<FallbackFuncExecResult<T>> HandleAsFallbackAsync<T>(this Func<CancellationToken, Task<T>> fallback, bool configAwait, CancellationToken token)
 		{
-			var resTuple = await fallback.HandleAsFallbackInnerAsync(configAwait, token).ConfigureAwait(configAwait);
-			var res = FallbackFuncExecResult<T>.FromFuncExecWithTokenResult(resTuple.Item1);
-			if (resTuple.Item1.IsSuccess)
+			try
 			{
-				res.SetResult(resTuple.Item2);
+				var res = await fallback(token).ConfigureAwait(configAwait);
+				return FallbackFuncExecResult<T>.Success(res);
 			}
-			return res;
+			catch (OperationCanceledException tce) when (token.IsCancellationRequested)
+			{
+				return FallbackFuncExecResult<T>.FromCanceledError(tce);
+			}
+			catch (Exception cex)
+			{
+				return FallbackFuncExecResult<T>.FromError(cex);
+			}
 		}
 
 		internal static (FallbackFuncExecResult, T) HandleAsFallbackInner<T>(this Func<CancellationToken, T> fallback, CancellationToken token)
