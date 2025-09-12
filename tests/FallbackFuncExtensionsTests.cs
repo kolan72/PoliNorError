@@ -214,6 +214,27 @@ namespace PoliNorError.Tests
         }
 
         [Test]
+        [TestCase(TestCancellationMode.OperationCanceled)]
+        [TestCase(TestCancellationMode.Aggregate)]
+        public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_GenericHandleAsFallback_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
+        {
+            using (var cancelTokenSource = new CancellationTokenSource())
+            {
+                Func<CancellationToken, int> action = null;
+                if (cancellationMode == TestCancellationMode.OperationCanceled)
+                {
+                    action = (ct) => CancelableActions.GenericSyncActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
+                }
+                else
+                {
+                    action = (ct) => CancelableActions.GenericSyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(ct, cancelTokenSource);
+                }
+                var fallbackResult = action.HandleAsFallback(cancelTokenSource.Token);
+                Assert.That(fallbackResult.IsCanceled, Is.True);
+            }
+        }
+
+        [Test]
         public async Task Should_HandleAsFallbackAsync_ForGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
         {
             var cancelTokenSource = new CancellationTokenSource();

@@ -29,13 +29,23 @@ namespace PoliNorError
 
 		public static FallbackFuncExecResult<T> HandleAsFallback<T>(this Func<CancellationToken, T> fallback, CancellationToken token)
 		{
-			var resTuple = fallback.HandleAsFallbackInner(token);
-			var res = FallbackFuncExecResult<T>.FromFuncExecWithTokenResult(resTuple.Item1);
-			if (resTuple.Item1.IsSuccess)
+			try
 			{
-				res.SetResult(resTuple.Item2);
+				var res = fallback(token);
+				return FallbackFuncExecResult<T>.Success(res);
 			}
-			return res;
+			catch (OperationCanceledException tce) when (token.IsCancellationRequested)
+			{
+				return FallbackFuncExecResult<T>.FromCanceledError(tce);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				return FallbackFuncExecResult<T>.FromCanceledError(ae.GetCancellationException());
+			}
+			catch (Exception cex)
+			{
+				return FallbackFuncExecResult<T>.FromError(cex);
+			}
 		}
 
 		public static async Task<FallbackFuncExecResult> HandleAsFallbackAsync(this Func<CancellationToken, Task> fallback, bool configAwait, CancellationToken token)
@@ -72,6 +82,9 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static (FallbackFuncExecResult, T) HandleAsFallbackInner<T>(this Func<CancellationToken, T> fallback, CancellationToken token)
 		{
 			try
@@ -93,6 +106,9 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static async Task<(FallbackFuncExecResult, T)> HandleAsFallbackInnerAsync<T>(this Func<CancellationToken, Task<T>> fallback, bool configAwait, CancellationToken token)
 		{
 			try
