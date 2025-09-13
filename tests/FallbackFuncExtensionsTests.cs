@@ -288,7 +288,8 @@ namespace PoliNorError.Tests
         {
             Func<CancellationToken, Task<int>> func = async (_) => { await Task.Delay(1); return 1; };
             var funcRes = await func.HandleAsFallbackAsync(false, default);
-            ClassicAssert.IsTrue(funcRes.IsSuccess);
+            Assert.That(funcRes.IsSuccess, Is.True);
+            Assert.That(funcRes.Result, Is.EqualTo(1));
         }
     }
 }
