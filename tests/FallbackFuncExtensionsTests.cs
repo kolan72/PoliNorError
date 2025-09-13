@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -232,6 +233,17 @@ namespace PoliNorError.Tests
                 var fallbackResult = action.HandleAsFallback(cancelTokenSource.Token);
                 Assert.That(fallbackResult.IsCanceled, Is.True);
             }
+        }
+
+        [Test]
+        public void Should_PolicyResult_Contain_CatchBlockException_When_Exception_In_Fallback_Func()
+        {
+            var fallbackExc = new Exception("Test");
+            var result = FallbackFuncExecResult.FromError(fallbackExc);
+            var policyResult = PolicyResult.ForSync();
+            result.ChangePolicyResult(policyResult, fallbackExc);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.CatchBlockErrors.FirstOrDefault()?.InnerException, Is.EqualTo(fallbackExc));
         }
 
         [Test]
