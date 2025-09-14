@@ -25,9 +25,14 @@ namespace PoliNorError
 		private static void SetFailedByFallbackFuncExecResult(PolicyResult policyResult, FallbackFuncExecResult funcExecResult, Exception ex)
 		{
 			if (funcExecResult.IsCanceled)
+			{
 				policyResult.SetFailedAndCanceled();
+				policyResult.AddCatchBlockError(new CatchBlockException(funcExecResult.CanceledError, ex, CatchBlockExceptionSource.PolicyRule));
+			}
 			else
+			{
 				policyResult.SetFailedWithCatchBlockError(funcExecResult.Error, ex, CatchBlockExceptionSource.PolicyRule);
+			}
 		}
 	}
 }
