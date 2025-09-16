@@ -269,6 +269,17 @@ namespace PoliNorError.Tests
         }
 
         [Test]
+        public void Should_Generic_PolicyResult_Contain_CatchBlockException_When_Cancellation_In_Generic_Fallback_Func()
+        {
+            var fallbackExc = new OperationCanceledException("Test");
+            var result = FallbackFuncExecResult<int>.FromCanceledError(fallbackExc);
+            var policyResult = PolicyResult<int>.ForSync();
+            result.ChangePolicyResult(policyResult, fallbackExc);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.CatchBlockErrors.FirstOrDefault()?.InnerException, Is.EqualTo(fallbackExc));
+        }
+
+        [Test]
         public async Task Should_HandleAsFallbackAsync_ForGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
         {
             var cancelTokenSource = new CancellationTokenSource();
