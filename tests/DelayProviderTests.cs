@@ -11,6 +11,9 @@ namespace PoliNorError.Tests
 {
 	internal class DelayProviderTests
 	{
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This test is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		[Test]
 		[TestCase(true, TestCancellationMode.Aggregate)]
 		[TestCase(true, TestCancellationMode.OperationCanceled)]
@@ -25,6 +28,9 @@ namespace PoliNorError.Tests
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This test is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		[Test]
 		public void Should_BackoffSafely_Be_Without_Exception_If_BackoffFailed()
 		{
@@ -102,15 +108,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_BackoffSafely_Be_Without_Exception_If_BackoffFailedAsync()
-		{
-			var delayProvider = new DelayProviderThatFailed();
-			var br = await delayProvider.BackoffSafelyAsync(TimeSpan.FromMilliseconds(1));
-			Assert.That(br.IsFailed, Is.True);
-			Assert.That(br.Error, Is.Not.Null);
-		}
-
-		[Test]
 		public void Should_DelayAndCheckIfResultFailed_Return_False_If_Delay_Is_Null()
 		{
 			var delayProvider = new DelayProvider();
@@ -120,6 +117,9 @@ namespace PoliNorError.Tests
 			Assert.That(IsFailed, Is.False);
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This test is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
@@ -131,6 +131,18 @@ namespace PoliNorError.Tests
 				var br = await delayProvider.BackoffSafelyAsync(TimeSpan.FromMilliseconds(1), canceledOnLinkedSource, cts.Token).ConfigureAwait(false);
 				Assert.That(br.IsCanceled, Is.True);
 			}
+		}
+
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This test is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
+		[Test]
+		public async Task Should_BackoffSafely_Be_Without_Exception_If_BackoffFailedAsync()
+		{
+			var delayProvider = new DelayProviderThatFailed();
+			var br = await delayProvider.BackoffSafelyAsync(TimeSpan.FromMilliseconds(1));
+			Assert.That(br.IsFailed, Is.True);
+			Assert.That(br.Error, Is.Not.Null);
 		}
 	}
 }
