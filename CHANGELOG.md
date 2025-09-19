@@ -1,3 +1,42 @@
+## 2.24.0
+
+- Introduced the `RetryPolicy.ThenFallback` method that implements the retry-then-fallback pattern.
+- Introduced the PolicyResult.PolicyCanceledError property, which stores the `OperationCanceledException` when cancellation occurs.
+- Fix issue #150.
+- Introduced `TimeSeriesRetryDelay` class 
+- Introduced the `TimeSeriesRetryDelayOptions` class and added `TimeSeries` to the `RetryDelayType` enum.
+- Made `DefaultFallbackProcessor` implement the `ICanAddErrorFilter<DefaultFallbackProcessor>` interface.
+- Made `FallbackPolicyBase` implement the `ICanAddErrorFilter<FallbackPolicyBase>` interface.
+- Made `FallbackPolicy` implement the `ICanAddErrorFilter<FallbackPolicy>` interface.
+- Made `FallbackPolicyWithAsyncFunc` implement the `ICanAddErrorFilter<FallbackPolicyWithAsyncFunc>` interface.
+- Made `FallbackPolicyWithAction` implement the `ICanAddErrorFilter<FallbackPolicyWithAction>` interface.
+- Made `SimplePolicyProcessor` implement the `ICanAddErrorFilter<SimplePolicyProcessor>` interface.
+- Made `SimplePolicy` implement the `ICanAddErrorFilter<SimplePolicy>` interface.
+- Introduced the `FallbackFuncsProvider.ToFallbackPolicy` method.
+- Prevent `NullReferenceException` when a `FallbackPolicyBase`- derived class is initialized by `FallbackFuncsProvider`.
+- Introduced the `BulkErrorProcessor.WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken, Task>)` method.
+- Introduced the `BulkErrorProcessor.WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken>)` method.	
+- Introduced the `BulkErrorProcessor.WithErrorContextProcessorOf<TErrorContext>(Action<Exception, ProcessingErrorInfo<TErrorContext>>)` extension method and its overloads.
+- Introduced the `BulkErrorProcessor.WithErrorContextProcessorOf<TErrorContext>(Func<Exception, ProcessingErrorInfo<TErrorContext>, Task>)` extension method and its overloads.
+- Introduced the `BulkErrorProcessor.WithErrorContextProcessor<TErrorContext>(DefaultErrorProcessor<TErrorContext)` method.
+- Introduced the `GetAttemptCount()` extensions method for `ProcessingErrorInfo`.
+- Introduced a `DelayErrorProcessor` constructor that accepts a `RetryDelay` parameter.
+- Add an internal extension method `GetCancellationException()` for `AggregateException`.
+- Refactor `AddIncludedErrorFilterForAll<TException>` extension methods for `IEnumerable<IPolicyBase>`.
+- Refactor `AddExcludedErrorFilterForAll<TException>` extension methods for `IEnumerable<IPolicyBase>`.
+- Handle null comparison safely in `ErrorSetItem`
+- Introduced the `IBulkErrorProcessor.WithDelayBetweenRetries(TimeSpan)` extension method.
+- Prevent `NullReferenceException` when `ProcessingErrorContext` parameter is `null` in `BulkErrorProcessor.Process(Async)` methods.
+- Refactor internal extension method `ExceptionFilter.AddIncludedErrorSet`.
+- Refactor internal extension method `ExceptionFilter.AddExcludedErrorSet`.
+- Refactor how the error context processor is added to the policy processor in the `ErrorProcessorRegistration` class.
+- Added internal `IPolicyResultHandlerCollection` interface.
+- Deprecate the `BulkProcessStatus` enum.
+- Edit 'RetryPolicy' README chapter.
+- Edit 'Key Concepts' README Chapter.
+- Add 'Tips and Tricks' README Chapter.
+
+
 ## 2.23.0
 
 - Introduced the `RetryPolicy.Handle<TErrorContext>(Action, TErrorContext, CancellationToken)` method.

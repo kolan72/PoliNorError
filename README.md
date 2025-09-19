@@ -17,6 +17,7 @@ Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 - [PolicyResult handlers](#policyresult-handlers)
 - [RetryPolicy](#retrypolicy)
 - [FallbackPolicy](#fallbackpolicy)
+- [Retry-Then-Fallback](#retry-then-fallback)
 - [SimplePolicy](#simplepolicy)
 - [PolicyDelegate](#policydelegate)
 - [PolicyDelegateCollection](#policydelegatecollection)
@@ -396,13 +397,14 @@ There are three ways to create a `RetryDelay`, represented by the `RetryDelayTyp
 - `RetryDelayType.Constant` with corresponding `ConstantRetryDelay` subclass configured by `ConstantRetryDelayOptions`. For `baseDelay` = 200ms the time delay will be 200ms, 200ms, 200ms.  
 - `RetryDelayType.Linear` with corresponding `LinearRetryDelay` subclass configured by `LinearRetryDelayOptions`. For `baseDelay` = 200ms and  default `SlopeFactor` = 1.0 (since _version_ 2.19.11) the time delay will be 200ms, 400ms, 600ms.  
 - `RetryDelayType.Exponential` with corresponding `ExponentialRetryDelay` subclass configured by `ExponentialRetryDelayOptions`. For `baseDelay` = 200ms and  default `ExponentialFactor` = 2.0 the time delay will be 200ms, 400ms, 800ms.  
+- `RetryDelayType.TimeSeries` (since _version_ 2.24.0) with the corresponding `TimeSeriesRetryDelay` subclass, configured by `TimeSeriesRetryDelayOptions`, uses a predefined sequence of delays. For [500ms, 2s, 5s] the delays will be 500ms, 2s, 5s, 5s, 5s, …
 
-Since _version_ 2.19.5, the `ConstantRetryDelayOptions`, `LinearRetryDelayOptions`, and `ExponentialRetryDelayOptions` classes also have `MaxDelay` and `UseJitter` properties in their `RetryDelayOptions` base class:
+All retry delay option classes inherit from the `RetryDelayOptions` class, which defines the `MaxDelay` and `UseJitter` properties:
 
 - `MaxDelay` - the delay will not exceed this value, regardless of the number of retries. The default is `TimeSpan.MaxValue`.
 - `UseJitter` - indicates if jitter is used. The default is `false`.  
 
-You can also create `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay` classes using the `Create` static methods.
+You can also create `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay`, `TimeSeriesRetryDelay` classes using the `Create` static methods.
 
 `RetryDelay` offers a more precise way to manage retry delays, whereas `DelayErrorProcessor` allows for exception-specific delays. Note that, unlike `DelayErrorProcessor`, which can define different delays per attempt, `RetryDelay` configures a single delay per attempt for the entire `RetryPolicy`.  
 
@@ -461,6 +463,38 @@ With non-generic handling and only generic delegates present, no generic delegat
 
 Note that error processors for fallback policies run *before* calling fallback delegate. This lets you cancel before calling the fallback delegate if you need to, but if you want to get fallback faster, don't add long-running error processors.  
 `FallbackPolicy` can be customized of your implementation of `IFallbackProcessor` interface.  
+
+### Retry-Then-Fallback
+The **Retry-Then-Fallback** pattern retries an operation first and, if retries fail or a specific error occurs, uses a predefined fallback.  
+This code shows how to use **Retry-Then-Fallback** to handle a possible `DivideByZeroException` in a division operation.
+```csharp
+// Create a retry policy that will attempt the operation up to 3 times.
+var fallbackResult = new RetryPolicy(3)
+
+	// Exclude DivideByZeroException from being retried.
+	.ExcludeError<DivideByZeroException>()
+
+	// Switch to a fallback policy that wraps up the current retry policy.
+	.ThenFallback()
+
+	// Configure the fallback policy using a function that returns int.MaxValue.
+	.WithFallbackFunc(() => int.MaxValue)
+
+	// The fallback policy exclusively handles DivideByZeroException.
+	.IncludeError<DivideByZeroException>()
+
+	// Log an error message when fallback is triggered
+	.WithErrorProcessorOf(_ => logger.LogError("Fallback to int.MaxValue"))
+
+	// If the random value is zero,
+	// the fallback is triggered,
+	// "Fallback to int.MaxValue" is logged,
+	// and fallbackResult.Result is set to int.MaxValue.
+	.Handle(() => 5 / random);
+
+```
+The key point is the `ThenFallback` method — it wraps the retry policy, letting the fallback handle the `DivideByZeroException` exception. 
+When the `random` variable is zero, the retry policy skips this exception, the fallback policy catches it, logs the error, and the final `fallbackResult.Result` becomes `int.MaxValue`.
 
 ### SimplePolicy
 The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  
