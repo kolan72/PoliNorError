@@ -87,18 +87,17 @@ namespace PoliNorError
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
-			lock (_root)
-			{
-				return _list.GetEnumerator();
-			}
+			return ((IEnumerable<T>)this).GetEnumerator();
 		}
 
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
 		{
+			T[] snapshot;
 			lock (_root)
 			{
-				return ((IEnumerable<T>)_list).GetEnumerator();
+				snapshot = _list.ToArray();
 			}
+			return ((IEnumerable<T>)snapshot).GetEnumerator();
 		}
 
 		public T this[int index]

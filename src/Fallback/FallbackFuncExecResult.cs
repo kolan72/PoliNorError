@@ -7,6 +7,15 @@ namespace PoliNorError
 	{
 		private FallbackFuncExecResult() { }
 
+		public static FallbackFuncExecResult<T> Success(T result) => new FallbackFuncExecResult<T>() { Result = result };
+
+		public static new FallbackFuncExecResult<T> FromCanceledError(OperationCanceledException exception)
+		{
+			return new FallbackFuncExecResult<T>() { IsCanceled = true, CanceledError = exception };
+		}
+
+		public static new FallbackFuncExecResult<T> FromError(Exception exception) => new FallbackFuncExecResult<T>() { Error = exception };
+
 		internal static FallbackFuncExecResult<T> FromFuncExecWithTokenResult(FallbackFuncExecResult funcExecWithTokenResult)
 		{
 			return new FallbackFuncExecResult<T>
@@ -30,6 +39,11 @@ namespace PoliNorError
 
 		public static FallbackFuncExecResult Success() => new FallbackFuncExecResult();
 
+		public static FallbackFuncExecResult FromCanceledError(OperationCanceledException exception)
+		{
+			return new FallbackFuncExecResult() { IsCanceled = true, CanceledError = exception };
+		}
+
 		public static FallbackFuncExecResult FromErrorAndToken(OperationCanceledException exception, CancellationToken token)
 		{
 			if (exception.CancellationToken.Equals(token))
@@ -49,6 +63,9 @@ namespace PoliNorError
 		public static FallbackFuncExecResult FromError(Exception exception) => new FallbackFuncExecResult() { Error = exception };
 
 		public bool IsCanceled { get; protected set; }
+
+		public Exception CanceledError { get; protected set; }
+
 		public Exception Error { get; protected set; }
 
 		public bool IsSuccess => Error is null && !IsCanceled;

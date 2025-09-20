@@ -7,7 +7,6 @@ using System.Diagnostics;
 using static PoliNorError.Tests.DelayTimeErrorProcessorTests;
 using NUnit.Framework.Legacy;
 using static PoliNorError.Tests.ErrorWithInnerExcThrowingFuncs;
-using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
 {

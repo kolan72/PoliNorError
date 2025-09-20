@@ -343,7 +343,7 @@ namespace PoliNorError.Tests
 			{
 				using (var cancelTokenSource = new CancellationTokenSource())
 				{
-					var result = await rp.HandleAsync(async (ct) => await ActionThatThrowOperationCanceledExceptionOnLinkedSource(ct), cancelTokenSource.Token);
+					var result = await rp.HandleAsync(async (ct) => await ActionThatCanceledOnInnerAndThrowOnInner(ct), cancelTokenSource.Token);
 
 					Assert.That(result.IsCanceled, Is.False);
 					Assert.That(result.UnprocessedError, Is.TypeOf<OperationCanceledException>());
@@ -362,13 +362,43 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public async Task Should_Trigger_Cancellation_On_InnerToken_When_Inner_Or_Outer_TokenSource_IsCanceled(bool innerSourceCanceled)
+		{
+			var rp = new RetryPolicy(3).ExcludeError<OperationCanceledException>();
+			using (var outercancelTokenSource = new CancellationTokenSource())
+			{
+				var outerToken = outercancelTokenSource.Token;
+				using (var innercancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+				{
+					var innerToken = innercancelTokenSource.Token;
+					PolicyResult result = null;
+
+					if (innerSourceCanceled)
+					{
+						result = await rp.HandleAsync(async (ct) => { await Task.Delay(1); innercancelTokenSource.Cancel(); ct.ThrowIfCancellationRequested(); }, innerToken);
+					}
+					else
+					{
+						result = await rp.HandleAsync(async (ct) => { await Task.Delay(1); outercancelTokenSource.Cancel(); ct.ThrowIfCancellationRequested(); }, innerToken);
+					}
+
+					Assert.That(result.IsCanceled, Is.True);
+					Assert.That(result.UnprocessedError, Is.Null);
+					Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				}
+			}
+		}
+
 		private async Task ActionThatThrowOperationCanceledException(CancellationToken token)
 		{
 			await Task.Delay(TimeSpan.FromTicks(1));
 			token.ThrowIfCancellationRequested();
 		}
 
-		private async Task ActionThatThrowOperationCanceledExceptionOnLinkedSource(CancellationToken token)
+		private async Task ActionThatCanceledOnInnerAndThrowOnInner(CancellationToken token)
 		{
 			await Task.Delay(TimeSpan.FromTicks(1));
 			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token))

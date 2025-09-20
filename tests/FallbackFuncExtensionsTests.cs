@@ -1,9 +1,11 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.CancellationTests;
 
 namespace PoliNorError.Tests
 {
@@ -170,6 +172,114 @@ namespace PoliNorError.Tests
         }
 
         [Test]
+        public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_HandleAsFallbackAsync_Throws_DueTo_InnerToken()
+        {
+            using (var cancelTokenSource = new CancellationTokenSource())
+            {
+                Func<CancellationToken, Task> func = async (ct) => await CancelableActions.ActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
+                var fallbackResult = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+                Assert.That(fallbackResult.IsCanceled, Is.True);
+            }
+        }
+
+        [Test]
+        public async Task Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_GenericHandleAsFallbackAsync_Throws_DueTo_InnerToken()
+        {
+            using (var cancelTokenSource = new CancellationTokenSource())
+            {
+                Func<CancellationToken, Task<int>> func = async (ct) => await CancelableActions.GenericActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
+                var fallbackResult = await func.HandleAsFallbackAsync(false, cancelTokenSource.Token);
+                Assert.That(fallbackResult.IsCanceled, Is.True);
+            }
+        }
+
+        [Test]
+        [TestCase(TestCancellationMode.OperationCanceled)]
+        [TestCase(TestCancellationMode.Aggregate)]
+        public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_HandleAsFallback_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
+        {
+            using (var cancelTokenSource = new CancellationTokenSource())
+            {
+                Action<CancellationToken> action = null;
+                if (cancellationMode == TestCancellationMode.OperationCanceled)
+                {
+                    action = (ct) => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
+                }
+                else
+                {
+                    action = (ct) => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(ct, cancelTokenSource);
+                }
+                var fallbackResult = action.HandleAsFallback(cancelTokenSource.Token);
+                Assert.That(fallbackResult.IsCanceled, Is.True);
+            }
+        }
+
+        [Test]
+        [TestCase(TestCancellationMode.OperationCanceled)]
+        [TestCase(TestCancellationMode.Aggregate)]
+        public void Should_Have_IsCancel_True_When_OuterSource_IsCanceled_And_GenericHandleAsFallback_Throws_DueTo_InnerToken(TestCancellationMode cancellationMode)
+        {
+            using (var cancelTokenSource = new CancellationTokenSource())
+            {
+                Func<CancellationToken, int> action = null;
+                if (cancellationMode == TestCancellationMode.OperationCanceled)
+                {
+                    action = (ct) => CancelableActions.GenericSyncActionThatCanceledOnOuterAndThrowOnInner(ct, cancelTokenSource);
+                }
+                else
+                {
+                    action = (ct) => CancelableActions.GenericSyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(ct, cancelTokenSource);
+                }
+                var fallbackResult = action.HandleAsFallback(cancelTokenSource.Token);
+                Assert.That(fallbackResult.IsCanceled, Is.True);
+            }
+        }
+
+        [Test]
+        public void Should_PolicyResult_Contain_CatchBlockException_When_Exception_In_Fallback_Func()
+        {
+            var fallbackExc = new Exception("Test");
+            var result = FallbackFuncExecResult.FromError(fallbackExc);
+            var policyResult = PolicyResult.ForSync();
+            result.ChangePolicyResult(policyResult, fallbackExc);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.CatchBlockErrors.FirstOrDefault()?.InnerException, Is.EqualTo(fallbackExc));
+        }
+
+        [Test]
+        public void Should_Generic_PolicyResult_Contain_CatchBlockException_When_Exception_In_Generic_Fallback_Func()
+        {
+            var fallbackExc = new Exception("Test");
+            var result = FallbackFuncExecResult<int>.FromError(fallbackExc);
+            var policyResult = PolicyResult<int>.ForSync();
+            result.ChangePolicyResult(policyResult, fallbackExc);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.CatchBlockErrors.FirstOrDefault()?.InnerException, Is.EqualTo(fallbackExc));
+        }
+
+        [Test]
+        public void Should_PolicyResult_Contain_CatchBlockException_When_Cancellation_In_Fallback_Func()
+        {
+            var fallbackExc = new OperationCanceledException("Test");
+            var result = FallbackFuncExecResult.FromCanceledError(fallbackExc);
+            var policyResult = PolicyResult.ForSync();
+            result.ChangePolicyResult(policyResult, fallbackExc);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.CatchBlockErrors.FirstOrDefault()?.InnerException, Is.EqualTo(fallbackExc));
+        }
+
+        [Test]
+        public void Should_Generic_PolicyResult_Contain_CatchBlockException_When_Cancellation_In_Generic_Fallback_Func()
+        {
+            var fallbackExc = new OperationCanceledException("Test");
+            var result = FallbackFuncExecResult<int>.FromCanceledError(fallbackExc);
+            var policyResult = PolicyResult<int>.ForSync();
+            result.ChangePolicyResult(policyResult, fallbackExc);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.CatchBlockErrors.FirstOrDefault()?.InnerException, Is.EqualTo(fallbackExc));
+        }
+
+        [Test]
         public async Task Should_HandleAsFallbackAsync_ForGenericFunc_ConvertedFromSync_If_Cancel_And_CancelToken_Is_In_FallbackMethod_Body()
         {
             var cancelTokenSource = new CancellationTokenSource();
@@ -223,7 +333,8 @@ namespace PoliNorError.Tests
         {
             Func<CancellationToken, Task<int>> func = async (_) => { await Task.Delay(1); return 1; };
             var funcRes = await func.HandleAsFallbackAsync(false, default);
-            ClassicAssert.IsTrue(funcRes.IsSuccess);
+            Assert.That(funcRes.IsSuccess, Is.True);
+            Assert.That(funcRes.Result, Is.EqualTo(1));
         }
     }
 }

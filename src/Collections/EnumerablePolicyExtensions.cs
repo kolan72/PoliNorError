@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PoliNorError.Extensions.PolicyResultHandling;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -81,7 +82,7 @@ namespace PoliNorError
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(act));
 		}
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act, CancellationType convertType)
@@ -91,12 +92,12 @@ namespace PoliNorError
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Action<PolicyResult, CancellationToken> act)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(act));
 		}
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(func));
 		}
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func, CancellationType convertType)
@@ -106,12 +107,12 @@ namespace PoliNorError
 
 		internal static void SetResultHandler(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, CancellationToken, Task> func)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(func));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(act));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act, CancellationType convertType)
@@ -121,12 +122,12 @@ namespace PoliNorError
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>, CancellationToken> act)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(act));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(act));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(func));
 		}
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func, CancellationType convertType)
@@ -136,7 +137,7 @@ namespace PoliNorError
 
 		internal static void SetResultHandler<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			policies.ActionForAll((p) => (p as Policy)?.AddPolicyResultHandlerInner(func));
+			policies.ActionForAll((p) => (p as Policy)?.AddHandlerForPolicyResult(func));
 		}
 
 		internal static Policy LastPolicy(this IEnumerable<IPolicyBase> policies)
@@ -146,62 +147,62 @@ namespace PoliNorError
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(act);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Action<PolicyResult> act, CancellationType convertType)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(act, convertType);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(act, convertType);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Action<PolicyResult, CancellationToken> act)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(act);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(func);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, Task> func, CancellationType convertType)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(func, convertType);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, CancellationToken, Task> func)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(func);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(act);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>> act, CancellationType convertType)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(act, convertType);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(act, convertType);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Action<PolicyResult<T>, CancellationToken> act)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(act);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(act);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(func);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(func, convertType);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		internal static void AddPolicyResultHandlerToLastPolicyInner<T>(this IEnumerable<IPolicyBase> policies, Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			policies.LastPolicy()?.AddPolicyResultHandlerInner(func);
+			policies.LastPolicy()?.AddHandlerForPolicyResult(func);
 		}
 
 		internal static void SetPolicyResultFailedIfInner(this IEnumerable<IPolicyBase> policies, Func<PolicyResult, bool> predicate)

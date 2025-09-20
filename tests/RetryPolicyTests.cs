@@ -9,7 +9,6 @@ using NSubstitute;
 using NUnit.Framework.Legacy;
 using System.Collections.Generic;
 using System.Collections;
-using static PoliNorError.Tests.ExceptionFilterTests;
 
 namespace PoliNorError.Tests
 {

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using PoliNorError.Extensions.PolicyErrorFiltering;
+using PoliNorError.Extensions.PolicyResultHandling;
 
 namespace PoliNorError
 {
@@ -288,62 +289,62 @@ namespace PoliNorError
 
 		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult> action, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(action, convertType);
+			return this.AddHandlerForPolicyResult(action, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Action<PolicyResult, CancellationToken> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(func, convertType);
+			return this.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(action, convertType);
+			return this.AddHandlerForPolicyResult(action, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>, CancellationToken> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(func, convertType);
+			return this.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		public SimplePolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{SimplePolicy}"/>
@@ -423,6 +424,15 @@ namespace PoliNorError
 		{
 			PolicyProcessor.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
+		}
+
+		/// <summary>
+		/// Wraps this policy with a <see cref="FallbackPolicy"/> and returns the resulting fallback policy.
+		/// </summary>
+		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
+		public FallbackPolicy ThenFallback(bool onlyGenericFallbackForGenericDelegate = false)
+		{
+			return this.WrapUp(new FallbackPolicy(onlyGenericFallbackForGenericDelegate)).OuterPolicy;
 		}
 	}
 }

@@ -108,7 +108,7 @@ namespace PoliNorError.Tests
 		public void Should_Wait_Start_From_ZeroRetry()
 		{
 			var delayProvider = new FakeDelayProvider();
-			var delayProcessor = new DelayErrorProcessor((_,__) => TimeSpan.FromTicks(1), delayProvider);
+			var delayProcessor = new DelayErrorProcessor((_, __) => TimeSpan.FromTicks(1), delayProvider);
 			var policy = new RetryPolicy(1)
 						.WithWait(delayProcessor);
 			policy.Handle(() => throw new InvalidOperationException());
@@ -174,6 +174,19 @@ namespace PoliNorError.Tests
 			processor.Process(new Exception(), new RetryProcessingErrorInfo(numOfRetry));
 
 			Assert.That(retryDelay.Delay, Is.EqualTo(innerDelay.GetDelay(numOfRetry)));
+		}
+
+		[Test]
+		public void Should_Respect_RetryCount_When_Using_ErrorProcessor_With_Context_And_With_DelayProcessor()
+		{
+			const int baseTime = 2;
+			var innerDelay = LinearRetryDelay.Create(TimeSpan.FromTicks(baseTime));
+			var retryDelay = new LinearRetryDelayThatStoreTime(innerDelay);
+			var processor = new DelayErrorProcessor(retryDelay);
+
+			processor.Process(new Exception(), new RetryProcessingErrorInfo<int>(new RetryProcessingErrorContext<int>(1, 4)));
+
+			Assert.That(retryDelay.Delay, Is.EqualTo(innerDelay.GetDelay(1)));
 		}
 
 		[Test]

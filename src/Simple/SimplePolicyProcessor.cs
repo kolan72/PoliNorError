@@ -74,16 +74,20 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
 			try
 			{
 				action();
 				result.SetOk();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (AggregateException ae) when (ae.HasCanceledException(token))
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
@@ -104,9 +108,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, emptyErrorContext));
+				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -141,17 +143,21 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
 			try
 			{
 				var resAction = func();
 				result.SetOk();
 				result.SetResult(resAction);
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (AggregateException ae) when (ae.HasCanceledException(token))
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException());
 			}
@@ -172,9 +178,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(GetCatchBlockSyncHandler<Unit>(result, token)
-													 .Handle(ex, emptyErrorContext));
+				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -209,12 +213,16 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
+			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
+
 			try
 			{
 				await func(token).ConfigureAwait(configureAwait);
 				result.SetOk();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(oe);
 			}
@@ -235,9 +243,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait));
+				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -272,13 +278,17 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
+			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
+
 			try
 			{
 				var resAction = await func(token).ConfigureAwait(configureAwait);
 				result.SetResult(resAction);
 				result.SetOk();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException oe) when(token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(oe);
 			}
@@ -299,9 +309,7 @@ namespace PoliNorError
 					}
 				}
 
-				result.AddError(ex);
-				result.ChangeByHandleCatchBlockResult(await GetCatchBlockAsyncHandler<Unit>(result, configureAwait, token)
-															.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait));
+				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using PoliNorError.Extensions.PolicyErrorFiltering;
+using PoliNorError.Extensions.PolicyResultHandling;
 
 namespace PoliNorError
 {
@@ -89,62 +90,62 @@ namespace PoliNorError
 
 		public new FallbackPolicy AddPolicyResultHandler(Action<PolicyResult> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler(Action<PolicyResult> action, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(action, convertType);
+			return this.AddHandlerForPolicyResult(action, convertType);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler(Action<PolicyResult, CancellationToken> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler(Func<PolicyResult, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler(Func<PolicyResult, Task> func, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(func, convertType);
+			return this.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler(Func<PolicyResult, CancellationToken, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>> action, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(action, convertType);
+			return this.AddHandlerForPolicyResult(action, convertType);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler<T>(Action<PolicyResult<T>, CancellationToken> action)
 		{
-			return this.AddPolicyResultHandlerInner(action);
+			return this.AddHandlerForPolicyResult(action);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
-			return this.AddPolicyResultHandlerInner(func, convertType);
+			return this.AddHandlerForPolicyResult(func, convertType);
 		}
 
 		public new FallbackPolicy AddPolicyResultHandler<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			return this.AddPolicyResultHandlerInner(func);
+			return this.AddHandlerForPolicyResult(func);
 		}
 
 		///<inheritdoc cref = "PolicyResultHandlerRegistration.SetPolicyResultFailedIfInner{FallbackPolicy}"/>

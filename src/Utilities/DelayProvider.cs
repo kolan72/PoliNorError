@@ -12,6 +12,57 @@ namespace PoliNorError
 
 	internal static class IDelayProviderExtensions
 	{
+		public static bool DelayAndCheckIfResultFailed(this IDelayProvider delayProvider, TimeSpan? delay, PolicyResult policyResult, Exception handlingException, CancellationToken token = default)
+		{
+			if (delay > TimeSpan.Zero)
+			{
+				try
+				{
+					delayProvider.Backoff(delay.Value, token);
+				}
+				catch (OperationCanceledException) when (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (Exception ex)
+				{
+					policyResult.SetFailedWithCatchBlockError(ex, handlingException, CatchBlockExceptionSource.PolicyRule);
+				}
+			}
+			return policyResult.IsFailed;
+		}
+
+		public static async Task<bool> DelayAndCheckIfResultFailedAsync(this IDelayProvider delayProvider, TimeSpan? delay, PolicyResult policyResult, Exception handlingException, bool configureAwait, CancellationToken token = default)
+		{
+			if (delay > TimeSpan.Zero)
+			{
+				try
+				{
+					await delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
+				}
+				catch (OperationCanceledException) when (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				catch (Exception ex)
+				{
+					policyResult.SetFailedWithCatchBlockError(ex, handlingException, CatchBlockExceptionSource.PolicyRule);
+				}
+			}
+			return policyResult.IsFailed;
+		}
+
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static BasicResult BackoffSafely(this IDelayProvider delayProvider, TimeSpan delay, CancellationToken token = default)
 		{
 			try
@@ -19,11 +70,11 @@ namespace PoliNorError
 				delayProvider.Backoff(delay, token);
 				return BasicResult.Success();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException) when (token.IsCancellationRequested)
 			{
 				return BasicResult.Canceled();
 			}
-			catch (AggregateException ae) when (ae.HasCanceledException(token))
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				return BasicResult.Canceled();
 			}
@@ -33,6 +84,9 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static async Task<BasicResult> BackoffSafelyAsync(this IDelayProvider delayProvider, TimeSpan delay, bool configAwait = false, CancellationToken token = default)
 		{
 			try
@@ -40,7 +94,7 @@ namespace PoliNorError
 				await delayProvider.BackoffAsync(delay, configAwait, token).ConfigureAwait(configAwait);
 				return BasicResult.Success();
 			}
-			catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+			catch (OperationCanceledException) when (token.IsCancellationRequested)
 			{
 				return BasicResult.Canceled();
 			}

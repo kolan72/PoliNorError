@@ -13,25 +13,21 @@ namespace PoliNorError
 			policyResult.AddCatchBlockErrors(bulkProcessResult.ToCatchBlockExceptions());
 		}
 
-		internal static bool ChangeByHandleCatchBlockResult(this PolicyResult policyResult, HandleCatchBlockResult canHandleResult)
+		internal static bool WasResultSetToFailureByCatchBlock(this PolicyResult policyResult, HandleCatchBlockResult canHandleResult)
 		{
-			if (policyResult.IsFailed)
-				return false;
-
 			switch (canHandleResult)
 			{
 				case HandleCatchBlockResult.FailedByPolicyRules:
 					policyResult.SetFailedInner();
-					return true;
+					break;
 				case HandleCatchBlockResult.FailedByErrorFilter:
 					policyResult.SetFailedAndFilterUnsatisfied();
-					return true;
+					break;
 				case HandleCatchBlockResult.Canceled:
 					policyResult.SetFailedAndCanceled();
-					return true;
-				default:
-					return true;
+					break;
 			}
+			return policyResult.IsFailed;
 		}
 
 		internal static bool ChangeByRetryDelayResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)

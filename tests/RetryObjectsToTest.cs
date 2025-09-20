@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using static PoliNorError.Tests.CancellationTests;
 
 namespace PoliNorError.Tests
 {
@@ -60,25 +61,66 @@ namespace PoliNorError.Tests
 	internal class DelayProviderThatAlreadyCanceled : IDelayProvider
 	{
 		private readonly CancellationTokenSource _cts;
-		public DelayProviderThatAlreadyCanceled(CancellationTokenSource cts)
+		private readonly bool _canceledOnLinkedToken;
+		private readonly TestCancellationMode _cancellationMode;
+
+		public DelayProviderThatAlreadyCanceled(CancellationTokenSource cts, bool canceledOnLinkedToken = false, TestCancellationMode? cancellationMode = null)
 		{
 			_cts = cts;
+			_canceledOnLinkedToken = canceledOnLinkedToken;
+			_cancellationMode = cancellationMode ?? TestCancellationMode.OperationCanceled;
 		}
 
 		public void Backoff(TimeSpan delay, CancellationToken cancellationToken = default)
 		{
-			_cts.Cancel();
-			bool waitResult = cancellationToken.WaitHandle.WaitOne(delay);
-			if (waitResult)
+			if (_canceledOnLinkedToken)
 			{
-				cancellationToken.ThrowIfCancellationRequested();
+				if (_cancellationMode == TestCancellationMode.OperationCanceled)
+				{
+					using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+					{
+						var innerToken = cancelTokenSource.Token;
+						_cts.Cancel();
+						bool waitResult = innerToken.WaitHandle.WaitOne(delay);
+						if (waitResult)
+						{
+							innerToken.ThrowIfCancellationRequested();
+						}
+					}
+				}
+				else
+				{
+					void actionToHandle() => CancelableActions.SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(_cts.Token, _cts);
+					actionToHandle();
+				}
+			}
+			else
+			{
+				_cts.Cancel();
+				bool waitResult = cancellationToken.WaitHandle.WaitOne(delay);
+				if (waitResult)
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+				}
 			}
 		}
 
 		public async Task BackoffAsync(TimeSpan delay, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
-			_cts.Cancel();
-			await Task.Delay(delay, cancellationToken).ConfigureAwait(configAwait);
+			if (_canceledOnLinkedToken)
+			{
+				using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+				{
+					var innerToken = cancelTokenSource.Token;
+					_cts.Cancel();
+					await Task.Delay(delay, innerToken).ConfigureAwait(configAwait);
+				}
+			}
+			else
+			{
+				_cts.Cancel();
+				await Task.Delay(delay, cancellationToken).ConfigureAwait(configAwait);
+			}
 		}
 	}
 
@@ -93,6 +135,63 @@ namespace PoliNorError.Tests
 		{
 			await Task.Delay(1);
 			throw new InvalidOperationException();
+		}
+	}
+
+	internal static class CancelableActions
+	{
+		public static void SyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			ActionThatCanceledOnOuterAndThrowOnInner(outerToken, outerTokenSource).Wait();
+		}
+
+		public static int GenericSyncActionThatCanceledOnOuterAndThrowOnInnerAndThrowAgregateExc(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			return GenericActionThatCanceledOnOuterAndThrowOnInner(outerToken, outerTokenSource).Result;
+		}
+
+		public static async Task ActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			await Task.Delay(TimeSpan.FromTicks(1));
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+			}
+		}
+
+		public static async Task<int> GenericActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			await Task.Delay(TimeSpan.FromTicks(1));
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+				return 1;
+			}
+		}
+
+		public static void SyncActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+			}
+		}
+
+		public static int GenericSyncActionThatCanceledOnOuterAndThrowOnInner(CancellationToken outerToken, CancellationTokenSource outerTokenSource)
+		{
+			using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(outerToken))
+			{
+				var innerToken = cancelTokenSource.Token;
+				outerTokenSource.Cancel();
+				innerToken.ThrowIfCancellationRequested();
+				return 1;
+			}
 		}
 	}
 }

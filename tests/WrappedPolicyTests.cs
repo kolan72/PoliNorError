@@ -798,6 +798,57 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
+		public void Should_Simple_Then_Fallback_Returns_Valid_Result(bool isZero)
+		{
+			var fallbackErrorProcessorFlag = false;
+			var simpleErrorProcessorFlag = false;
+			var zero = isZero ? 0 : 5;
+
+			Func<int> funcToHandle;
+			if (isZero)
+			{
+				funcToHandle = () => 5 / zero;
+			}
+			else
+			{
+				funcToHandle = () => throw new InvalidOperationException();
+			}
+
+			var fallbackResult = new SimplePolicy()
+									.ExcludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => simpleErrorProcessorFlag = true)
+									.WrapUp(new FallbackPolicy())
+									.OuterPolicy
+									.WithFallbackFunc(() => int.MaxValue)
+									.IncludeError<DivideByZeroException>()
+									.WithErrorProcessorOf((_) => fallbackErrorProcessorFlag = true)
+									.Handle(funcToHandle);
+			if (isZero)
+			{
+				Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
+				Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
+				Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
+				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.ErrorFilterUnsatisfied, Is.True);
+				Assert.That(fallbackResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
+				Assert.That(fallbackErrorProcessorFlag, Is.True);
+				Assert.That(simpleErrorProcessorFlag, Is.False);
+			}
+			else
+			{
+				Assert.That(fallbackResult.Result, Is.EqualTo(default(int)));
+				Assert.That(fallbackResult.NoError, Is.True);
+				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.Errors.FirstOrDefault(), Is.TypeOf<InvalidOperationException>());
+				Assert.That(fallbackResult.WrappedPolicyResults.LastOrDefault()?.Result.NoError, Is.False);
+				Assert.That(fallbackResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.PolicySuccess));
+				Assert.That(simpleErrorProcessorFlag, Is.True);
+				Assert.That(fallbackErrorProcessorFlag, Is.False);
+			}
+			Assert.That(fallbackResult.WrappedPolicyResults.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
 		public async Task Should_Return_Correct_PolicyResult_When_OperationCanceledException_In_Wrapped_Policy_For_HandleAsync(bool withCanceledException)
 		{
 			using (var cts = new CancellationTokenSource())

@@ -186,6 +186,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -204,11 +206,11 @@ namespace PoliNorError
 						result.UnprocessedError = null;
 					break;
 				}
-				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (AggregateException ae) when (ae.HasCanceledException(token))
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException());
 				}
@@ -243,6 +245,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -262,11 +266,11 @@ namespace PoliNorError
 						result.UnprocessedError = null;
 					break;
 				}
-				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (AggregateException ae) when (ae.HasCanceledException(token))
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException());
 				}
@@ -296,6 +300,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -314,7 +320,7 @@ namespace PoliNorError
 						result.UnprocessedError = null;
 					break;
 				}
-				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 				{
 					result.SetFailedAndCanceled(oe);
 				}
@@ -344,6 +350,8 @@ namespace PoliNorError
 				return result;
 			}
 
+			result.SetExecuted();
+
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
@@ -363,7 +371,7 @@ namespace PoliNorError
 						result.UnprocessedError = null;
 					break;
 				}
-				catch (OperationCanceledException oe) when (oe.CancellationToken.Equals(token))
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 				{
 					result.SetFailedAndCanceled(oe);
 				}
@@ -431,11 +439,9 @@ namespace PoliNorError
 							CancellationToken token)
 		{
 			return !result.IsFailed
-						&& result.ChangeByHandleCatchBlockResult(handler
+						&& !result.WasResultSetToFailureByCatchBlock(handler
 																.Handle(ex, retryContext))
-						&& !result.IsFailed
-						&& result.ChangeByRetryDelayResult(DelayIfNeed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), token), ex)
-						&& !result.IsFailed;
+						&& !DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, token);
 		}
 
 		private async Task<bool> HandleErrorAsync(Exception ex,
@@ -447,31 +453,9 @@ namespace PoliNorError
 							CancellationToken token)
 		{
 			return !result.IsFailed
-						&& result.ChangeByHandleCatchBlockResult(await handler
+						&& !result.WasResultSetToFailureByCatchBlock(await handler
 																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
-						&& !result.IsFailed
-						&& result.ChangeByRetryDelayResult(await DelayIfNeedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), configureAwait, token).ConfigureAwait(configureAwait), ex)
-						&& !result.IsFailed;
-		}
-
-		private BasicResult DelayIfNeed(TimeSpan? delay, CancellationToken token)
-		{
-			BasicResult res = null;
-			if (delay > TimeSpan.Zero)
-			{
-				res = DelayProvider.BackoffSafely(delay.Value, token);
-			}
-			return res;
-		}
-
-		private async Task<BasicResult> DelayIfNeedAsync(TimeSpan? delay, bool configureAwait, CancellationToken token)
-		{
-			BasicResult res = null;
-			if (delay > TimeSpan.Zero)
-			{
-				res = await DelayProvider.BackoffSafelyAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
-			}
-			return res;
+						&& !await DelayProvider.DelayAndCheckIfResultFailedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;

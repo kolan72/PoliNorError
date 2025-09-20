@@ -15,6 +15,8 @@ namespace PoliNorError
 
 		private Exception _unprocessedError;
 
+		internal bool _executed;
+
 		internal static PolicyResult ForSync() => new PolicyResult();
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);
 		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
@@ -133,6 +135,55 @@ namespace PoliNorError
 		/// </summary>
 		public OperationCanceledException PolicyCanceledError { get; internal set; }
 
+		/// <summary>
+		/// Gets the wrapped policy execution status.
+		/// </summary>
+		/// <remarks>
+		/// The status is determined by:
+		/// <list type="number">
+		///   <item><description>Returns <see cref="WrappedPolicyStatus.NotExecuted"/> if wrapping policy was not executed</description></item>
+		///   <item><description>Otherwise checks the (last) wrapped policy result status</description></item>
+		///   <item><description>Returns <see cref="WrappedPolicyStatus.None"/> if no wrapped policy exists</description></item>
+		/// </list>
+		/// </remarks>
+		/// <value>
+		/// The computed <see cref="WrappedPolicyStatus"/>.
+		/// </value>
+		public WrappedPolicyStatus WrappedStatus
+		{
+			get
+			{
+				if (Status == PolicyStatus.NotExecuted)
+				{
+					return WrappedPolicyStatus.NotExecuted;
+				}
+
+				var lastWrappedResultStatus = GetLastWrappedPolicyResult()?.Status?.Status?.Status;
+				if (lastWrappedResultStatus is null)
+				{
+					return WrappedPolicyStatus.None;
+				}
+
+				switch ((PolicyResultStatus)lastWrappedResultStatus.Value)
+				{
+					case PolicyResultStatus.NoError:
+						return WrappedPolicyStatus.NoError;
+					case PolicyResultStatus.PolicySuccess:
+						return WrappedPolicyStatus.PolicySuccess;
+					case PolicyResultStatus.Canceled:
+						return WrappedPolicyStatus.Canceled;
+					case PolicyResultStatus.Failed:
+						return WrappedPolicyStatus.Failed;
+					case PolicyResultStatus.FailedWithCancellation:
+						return WrappedPolicyStatus.FailedWithCancellation;
+					case PolicyResultStatus.NotExecuted:
+						return WrappedPolicyStatus.NotExecuted;
+					default:
+						return WrappedPolicyStatus.None;
+				}
+			}
+		}
+
 		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
 		{
 			IsFailed = true;
@@ -198,7 +249,47 @@ namespace PoliNorError
 			IsCanceled = true;
 		}
 
+		internal void SetExecuted()
+		{
+			_executed = true;
+		}
+
 		internal bool Async { get; }
+
+		internal PolicyStatus Status
+		{
+			get
+			{
+				if (!_executed && !NoError && !IsFailed && !IsCanceled)
+				{
+					return PolicyStatus.NotExecuted;
+				}
+				else if (IsFailed)
+				{
+					if (IsCanceled)
+						return PolicyStatus.FailedWithCancellation;
+					else
+						return PolicyStatus.Failed;
+				}
+				else if (IsCanceled)
+				{
+					return PolicyStatus.Canceled;
+				}
+				else if (NoError)
+				{
+					return PolicyStatus.NoError;
+				}
+				else
+				{
+					return PolicyStatus.PolicySuccess;
+				}
+			}
+		}
+
+		internal virtual PolicyResult GetLastWrappedPolicyResult()
+		{
+			return WrappedPolicyResults?.LastOrDefault()?.Result;
+		}
 
 		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
@@ -232,6 +323,11 @@ namespace PoliNorError
 		/// </summary>
 		public new IEnumerable<PolicyDelegateResult<T>> WrappedPolicyResults { get; internal set; }
 
+		internal override PolicyResult GetLastWrappedPolicyResult()
+		{
+			return WrappedPolicyResults?.LastOrDefault()?.Result;
+		}
+
 		internal override IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
 
@@ -260,5 +356,111 @@ namespace PoliNorError
 		/// Policy  (re-)throws exception.
 		/// </summary>
 		UnhandledError
+	}
+
+	internal class PolicyStatus
+	{
+		public static readonly PolicyStatus NotExecuted = new PolicyStatus(ResultStatusValue.NotExecuted);
+		public static readonly PolicyStatus NoError = new PolicyStatus(ResultStatusValue.NoError);
+		public static readonly PolicyStatus PolicySuccess = new PolicyStatus(ResultStatusValue.PolicySuccess);
+		public static readonly PolicyStatus Failed = new PolicyStatus(ResultStatusValue.Failed);
+		public static readonly PolicyStatus Canceled = new PolicyStatus(ResultStatusValue.Canceled);
+		public static readonly PolicyStatus FailedWithCancellation = new PolicyStatus(ResultStatusValue.FailedWithCancellation);
+
+		internal PolicyStatus(ResultStatusValue resultStatus)
+		{
+			Status = resultStatus;
+		}
+
+		internal ResultStatusValue Status { get; }
+	}
+
+	/// <summary>
+	/// Represents possible status values for wrapped policy executions.
+	/// </summary>
+	public class WrappedPolicyStatus
+	{
+		/// <summary>Indicates that the policy was not executed.</summary>
+		public static readonly WrappedPolicyStatus NotExecuted = new WrappedPolicyStatus(ResultStatusValue.NotExecuted);
+
+		/// <summary>Indicates that the execution completed without errors.</summary>
+		public static readonly WrappedPolicyStatus NoError = new WrappedPolicyStatus(ResultStatusValue.NoError);
+
+		/// <summary>Indicates that the policy executed successfully.</summary>
+		public static readonly WrappedPolicyStatus PolicySuccess = new WrappedPolicyStatus(ResultStatusValue.PolicySuccess);
+
+		/// <summary>Indicates that the policy execution failed.</summary>
+		public static readonly WrappedPolicyStatus Failed = new WrappedPolicyStatus(ResultStatusValue.Failed);
+
+		/// <summary>Indicates that the execution was canceled.</summary>
+		public static readonly WrappedPolicyStatus Canceled = new WrappedPolicyStatus(ResultStatusValue.Canceled);
+
+		/// <summary>Indicates that the policy execution failed due to cancellation.</summary>
+		public static readonly WrappedPolicyStatus FailedWithCancellation = new WrappedPolicyStatus(ResultStatusValue.FailedWithCancellation);
+
+		/// <summary>Indicates that no wrapped policy is present.</summary>
+		public static readonly WrappedPolicyStatus None = new WrappedPolicyStatus(ResultStatusValue.NoneWrapped);
+
+		internal WrappedPolicyStatus(ResultStatusValue resultStatus)
+		{
+			Status = resultStatus;
+		}
+
+		internal ResultStatusValue Status { get; }
+	}
+
+	internal class ResultStatusValue : IEquatable<ResultStatusValue>
+	{
+		public static readonly ResultStatusValue NotExecuted = new ResultStatusValue(PolicyResultStatus.NotExecuted);
+		public static readonly ResultStatusValue NoError = new ResultStatusValue(PolicyResultStatus.NoError);
+		public static readonly ResultStatusValue PolicySuccess = new ResultStatusValue(PolicyResultStatus.PolicySuccess);
+		public static readonly ResultStatusValue Failed = new ResultStatusValue(PolicyResultStatus.Failed);
+		public static readonly ResultStatusValue Canceled = new ResultStatusValue(PolicyResultStatus.Canceled);
+		public static readonly ResultStatusValue FailedWithCancellation = new ResultStatusValue(PolicyResultStatus.FailedWithCancellation);
+
+		public static readonly ResultStatusValue NoneWrapped = new ResultStatusValue(WrappedPolicyResultStatusPart.None);
+
+		internal ResultStatusValue(PolicyResultStatus resultStatus)
+		{
+			Status = (int)resultStatus;
+		}
+
+		internal ResultStatusValue(WrappedPolicyResultStatusPart wrappedPolicyStatus)
+		{
+			Status = ((int)wrappedPolicyStatus + 1) * 100;
+		}
+
+		internal ResultStatusValue(int status)
+		{
+			Status = status;
+		}
+
+		internal int Status { get; }
+
+		public bool Equals(ResultStatusValue other) => Status == other.Status;
+
+		public override bool Equals(object obj) => obj is ResultStatusValue s && Equals(s);
+		public override int GetHashCode() => Status.GetHashCode();
+
+		public static bool operator ==(ResultStatusValue left, ResultStatusValue right) =>
+			left.Equals(right);
+
+		public static bool operator !=(ResultStatusValue left, ResultStatusValue right) =>
+			!left.Equals(right);
+	}
+
+	internal enum PolicyResultStatus
+	{
+		NotExecuted = 0,
+		NoError,
+		PolicySuccess,
+		Failed,
+		Canceled,
+		FailedWithCancellation
+	}
+
+	internal enum WrappedPolicyResultStatusPart
+	{
+		None = 0
 	}
 }
