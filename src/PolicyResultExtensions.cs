@@ -334,5 +334,10 @@ namespace PoliNorError
 			Exception error = wrappedResults?.FirstOrDefault()?.GetResult().Errors?.FirstOrDefault();
 			return (error, currentIndex);
 		}
+
+		internal static LastPolicyResultState ToLastPolicyResultState(this PolicyResult policyResult)
+		{
+			return new LastPolicyResultState() { IsCanceled = policyResult?.IsCanceled, IsFailed = policyResult?.IsFailed };
+		}
 	}
 }
