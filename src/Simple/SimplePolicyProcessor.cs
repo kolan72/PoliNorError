@@ -52,13 +52,65 @@ namespace PoliNorError
 
 		public PolicyResult Execute<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
 		{
-			return Execute(action.Apply(param), param, token);
+			return Execute(action, param, new EmptyErrorContext<TParam>(param), token);
 		}
 
 		public PolicyResult Execute<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return Execute(action, (EmptyErrorContext)emptyContext, token);
+		}
+
+		private PolicyResult Execute<TParam>(Action<TParam> action, TParam param, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		{
+			if (action == null)
+				return new PolicyResult().WithNoDelegateException();
+
+			var result = PolicyResult.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
+			try
+			{
+				action(param);
+				result.SetOk();
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				result.SetFailedAndCanceled(ae.GetCancellationException());
+			}
+			catch (Exception ex)
+			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						return result;
+					}
+				}
+
+				exHandler.Handle(ex, emptyErrorContext);
+			}
+			return result;
 		}
 
 		private PolicyResult Execute(Action action, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
