@@ -30,6 +30,9 @@ namespace PoliNorError
 			return policyResult.IsFailed;
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static bool ChangeByRetryDelayResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)
 		{
 			if (policyResult.IsFailed)
