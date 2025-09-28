@@ -173,13 +173,66 @@ namespace PoliNorError
 
 		public PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, CancellationToken token = default)
 		{
-			return Execute(func.Apply(param), param, token);
+			return Execute(func, param, new EmptyErrorContext<TParam>(param), token);
 		}
 
 		public PolicyResult<T> Execute<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return Execute(func, (EmptyErrorContext)emptyContext, token);
+		}
+
+		private PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		{
+			if (func == null)
+				return new PolicyResult<T>().WithNoDelegateException();
+
+			var result = PolicyResult<T>.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
+			try
+			{
+				var resAction = func(param);
+				result.SetOk();
+				result.SetResult(resAction);
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				result.SetFailedAndCanceled(ae.GetCancellationException());
+			}
+			catch (Exception ex)
+			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						return result;
+					}
+				}
+
+				exHandler.Handle(ex, emptyErrorContext);
+			}
+			return result;
 		}
 
 		private PolicyResult<T> Execute<T>(Func<T> func, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
