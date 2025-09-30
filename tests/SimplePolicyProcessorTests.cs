@@ -121,17 +121,22 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_ExecuteAsync_BeCancelable()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.Cancel();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
 
-			async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
-			const int i = 0;
-			var processor = SimplePolicyProcessor.CreateDefault();
-			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
+				async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				const int i = 0;
+				var processor = SimplePolicyProcessor.CreateDefault();
+				var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
 
-			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
-			ClassicAssert.AreEqual(0, i);
-			cancelTokenSource.Dispose();
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+
+				Assert.That(i, Is.EqualTo(0));
+			}
 		}
 
 		[Test]
