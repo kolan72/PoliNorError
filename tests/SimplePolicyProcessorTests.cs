@@ -616,6 +616,7 @@ namespace PoliNorError.Tests
 				var res = proc.Execute(ActionWithInner);
 				Assert.That(res.CatchBlockErrors.Count(), Is.EqualTo(1));
 				Assert.That(res.Errors.Count(), Is.EqualTo(1));
+				Assert.That(res.CatchBlockErrors.FirstOrDefault().ExceptionSource, Is.EqualTo(CatchBlockExceptionSource.ErrorFilter));
 			}
 			else
 			{

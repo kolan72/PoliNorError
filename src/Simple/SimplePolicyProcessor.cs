@@ -103,7 +103,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -155,7 +155,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -225,7 +225,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -278,7 +278,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -343,7 +343,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -391,7 +391,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -457,7 +457,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -506,7 +506,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -561,12 +561,6 @@ namespace PoliNorError
 			{
 				return (null, filterEx);
 			}
-		}
-
-		private static void AddErrorAndCatchBlockFilterError(PolicyResult result, Exception ex, Exception filterException)
-		{
-			result.AddError(ex);
-			result.SetFailedWithCatchBlockError(filterException, ex, CatchBlockExceptionSource.ErrorFilter);
 		}
 
 		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicyProcessor}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>

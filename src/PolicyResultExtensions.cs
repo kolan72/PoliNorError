@@ -79,6 +79,12 @@ namespace PoliNorError
 			result.SetFailedInner();
 		}
 
+		internal static void AddErrorAndCatchBlockFilterError(this PolicyResult result, Exception ex, Exception filterException)
+		{
+			result.AddError(ex);
+			result.SetFailedWithCatchBlockError(filterException, ex, CatchBlockExceptionSource.ErrorFilter);
+		}
+
 		internal static T WithNoDelegateException<T>(this T retryResult) where T : PolicyResult
 		{
 			return retryResult.SetFailedWithError(new NoDelegateException());
