@@ -155,13 +155,35 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_ExecuteT_WithContext_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+#pragma warning disable RCS1163 // Unused parameter.
+				int save(int i) => throw new ApplicationException();
+#pragma warning restore RCS1163 // Unused parameter.
+				var processor = new SimplePolicyProcessor();
+				var tryResCount = processor.Execute(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
 		public void Should_Execute_With_Param_BeCancelable()
 		{
 			using (var cancelTokenSource = new CancellationTokenSource())
 			{
 				cancelTokenSource.Cancel();
 
+#pragma warning disable RCS1163 // Unused parameter.
 				void save(int i) => throw new ApplicationException();
+#pragma warning restore RCS1163 // Unused parameter.
 				var processor = new SimplePolicyProcessor();
 				var tryResCount = processor.Execute(save, 1, cancelTokenSource.Token);
 
