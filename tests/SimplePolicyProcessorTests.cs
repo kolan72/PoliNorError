@@ -137,6 +137,24 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_ExecuteT_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				int save() => throw new ApplicationException();
+				var processor = SimplePolicyProcessor.CreateDefault();
+				var tryResCount = processor.Execute(save, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
 		public void Should_Execute_WithContext_BeCancelable()
 		{
 			using (var cancelTokenSource = new CancellationTokenSource())
