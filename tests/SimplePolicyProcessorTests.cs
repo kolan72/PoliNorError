@@ -321,6 +321,29 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_ExecuteAsyncT_WithParam_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+#pragma warning disable RCS1163 // Unused parameter.
+				async Task<int> save(int k, CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+#pragma warning restore RCS1163 // Unused parameter.
+				const int i = 0;
+				var processor = new SimplePolicyProcessor();
+				var tryResCount = await processor.ExecuteAsync(save, 1, false, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+
+				Assert.That(i, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
 		public void Should_PolicyResult_Be_Failed_And_Canceled_If_Canceled_During_Error_Processors_Run()
 		{
 			var cancelTokenSource = new CancellationTokenSource();
