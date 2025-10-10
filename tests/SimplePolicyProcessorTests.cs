@@ -282,6 +282,32 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_ExecuteAsyncT_With_Param_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+#pragma warning disable RCS1163 // Unused parameter.
+				Task<int> f(int i, CancellationToken ct)
+#pragma warning restore RCS1163 // Unused parameter.
+				{
+					return Task.Run(() => Task.Run(() => k = 1, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new SimplePolicyProcessor();
+				var result = await processor.ExecuteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
 		public async Task Should_ExecuteAsyncT_BeCancelable()
 		{
 			var cancelTokenSource = new CancellationTokenSource();
