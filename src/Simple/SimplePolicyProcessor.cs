@@ -419,7 +419,7 @@ namespace PoliNorError
 
 		public Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, CancellationToken token)
 		{
-			return ExecuteAsync(func, param, new EmptyErrorContext<TParam>(param), false, token);
+			return ExecuteAsync(func, param, false, token);
 		}
 
 		public async Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, bool configureAwait = false, CancellationToken token = default)
