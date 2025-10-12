@@ -308,6 +308,28 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_ExecuteAsyncT_With_Context_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				async Task<int> f(CancellationToken ct)
+				{
+					return await Task.Run(() => Task.Run(() => { k = 1; return k; }, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new SimplePolicyProcessor();
+				var result = await processor.ExecuteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
 		public async Task Should_ExecuteAsyncT_BeCancelable()
 		{
 			var cancelTokenSource = new CancellationTokenSource();
