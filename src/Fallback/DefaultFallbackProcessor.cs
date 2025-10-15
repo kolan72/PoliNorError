@@ -19,13 +19,55 @@ namespace PoliNorError
 
 		public PolicyResult Fallback<TParam>(Action<TParam> action, TParam param, Action<CancellationToken> fallback, CancellationToken token = default)
 		{
-			return Fallback(action.Apply(param), param, fallback, token);
+			return Fallback(action, param, fallback, new EmptyErrorContext<TParam>(param), token);
 		}
 
 		public PolicyResult Fallback<TErrorContext>(Action action, TErrorContext param, Action<CancellationToken> fallback, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return Fallback(action, fallback, emptyContext, token);
+		}
+
+		private PolicyResult Fallback<TParam>(Action<TParam> action, TParam param, Action<CancellationToken> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
+		{
+			if (action == null)
+				return new PolicyResult().WithNoDelegateException();
+
+			PolicyResult result = PolicyResult.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
+			try
+			{
+				action(param);
+				result.SetOk();
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				result.SetFailedAndCanceled(ae.GetCancellationException());
+			}
+			catch (Exception ex)
+			{
+				exHandler.Handle(ex, emptyErrorContext);
+
+				if (!result.IsFailed)
+				{
+					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
+				}
+			}
+			return result;
 		}
 
 		private PolicyResult Fallback(Action action, Action<CancellationToken> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
