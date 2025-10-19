@@ -169,5 +169,65 @@ namespace PoliNorError.Extensions.PolicyResultHandling
 			errorPolicyBase.AddSyncHandler(action);
 			return errorPolicyBase;
 		}
+
+		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Action<PolicyResult> action)
+		{
+			errorPolicyBase.AddSyncHandler(action);
+		}
+
+		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Action<PolicyResult<U>, CancellationToken> action)
+		{
+			errorPolicyBase.AddSyncHandler(action);
+		}
+
+		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Action<PolicyResult> action, CancellationType convertType)
+		{
+			errorPolicyBase.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
+		}
+
+		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Action<PolicyResult, CancellationToken> action)
+		{
+			errorPolicyBase.AddSyncHandler(action);
+		}
+
+		public static void AddHandlerForPolicyResult(this Policy  errorPolicyBase, Func<PolicyResult, Task> func)
+		{
+			errorPolicyBase.AddAsyncHandler(func);
+		}
+
+		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Func<PolicyResult, Task> func, CancellationType convertType)
+		{
+			errorPolicyBase.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
+		}
+
+		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Func<PolicyResult, CancellationToken, Task> func)
+		{
+			errorPolicyBase.AddAsyncHandler(func);
+		}
+
+		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Func<PolicyResult<U>, Task> func)
+		{
+			errorPolicyBase.AddAsyncHandler(func);
+		}
+
+		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Func<PolicyResult<U>, Task> func, CancellationType convertType)
+		{
+			errorPolicyBase.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
+		}
+
+		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Func<PolicyResult<U>, CancellationToken, Task> func)
+		{
+			errorPolicyBase.AddAsyncHandler(func);
+		}
+
+		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Action<PolicyResult<U>> action, CancellationType convertType)
+		{
+			errorPolicyBase.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
+		}
+
+		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Action<PolicyResult<U>> action)
+		{
+			errorPolicyBase.AddSyncHandler(action);
+		}
 	}
 }
