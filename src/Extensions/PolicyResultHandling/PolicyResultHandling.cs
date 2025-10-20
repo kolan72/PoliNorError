@@ -170,64 +170,134 @@ namespace PoliNorError.Extensions.PolicyResultHandling
 			return errorPolicyBase;
 		}
 
-		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Action<PolicyResult> action)
+		/// <summary>
+		/// Adds a synchronous handler for a policy result without cancellation support.
+		/// </summary>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="action">The action to execute when handling the policy result.</param>
+		public static void AddHandlerForPolicyResult(this Policy policy, Action<PolicyResult> action)
 		{
-			errorPolicyBase.AddSyncHandler(action);
+			policy.AddSyncHandler(action);
 		}
 
-		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Action<PolicyResult<U>, CancellationToken> action)
+		/// <summary>
+		/// The action to execute when handling the policy result.
+		/// </summary>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="action">The action to execute when handling the policy result.</param>
+		/// <param name="convertType">The type of cancellation to apply.</param>
+		public static void AddHandlerForPolicyResult(this Policy policy, Action<PolicyResult> action, CancellationType convertType)
 		{
-			errorPolicyBase.AddSyncHandler(action);
+			policy.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
 		}
 
-		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Action<PolicyResult> action, CancellationType convertType)
+		/// <summary>
+		/// Adds a synchronous handler for a policy result with cancellation support.
+		/// </summary>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="action">The action to execute when handling the policy result, accepting a cancellation token.</param>
+		public static void AddHandlerForPolicyResult(this Policy policy, Action<PolicyResult, CancellationToken> action)
 		{
-			errorPolicyBase.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
+			policy.AddSyncHandler(action);
 		}
 
-		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Action<PolicyResult, CancellationToken> action)
+		/// <summary>
+		/// Adds an asynchronous handler for a policy result without cancellation support.
+		/// </summary>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="func">The asynchronous function to execute when handling the policy result.</param>
+		public static void AddHandlerForPolicyResult(this Policy  policy, Func<PolicyResult, Task> func)
 		{
-			errorPolicyBase.AddSyncHandler(action);
+			policy.AddAsyncHandler(func);
 		}
 
-		public static void AddHandlerForPolicyResult(this Policy  errorPolicyBase, Func<PolicyResult, Task> func)
+		/// <summary>
+		/// Adds an asynchronous handler for a policy result with cancellation support based on the specified cancellation type.
+		/// </summary>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="func">The asynchronous function to execute when handling the policy result.</param>
+		/// <param name="convertType">The type of cancellation to apply.</param>
+		public static void AddHandlerForPolicyResult(this Policy policy, Func<PolicyResult, Task> func, CancellationType convertType)
 		{
-			errorPolicyBase.AddAsyncHandler(func);
+			policy.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
 		}
 
-		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Func<PolicyResult, Task> func, CancellationType convertType)
+		/// <summary>
+		/// Adds an asynchronous handler for a policy result with cancellation support.
+		/// </summary>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="func">The asynchronous function to execute when handling the policy result, accepting a cancellation token.</param>
+		public static void AddHandlerForPolicyResult(this Policy policy, Func<PolicyResult, CancellationToken, Task> func)
 		{
-			errorPolicyBase.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
+			policy.AddAsyncHandler(func);
 		}
 
-		public static void AddHandlerForPolicyResult(this Policy errorPolicyBase, Func<PolicyResult, CancellationToken, Task> func)
+		/// <summary>
+		/// Adds an asynchronous handler for a typed policy result without cancellation support.
+		/// </summary>
+		/// <typeparam name="T">The type of the policy result data.</typeparam>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="func">The asynchronous function to execute when handling the typed policy result.</param>
+		public static void AddHandlerForPolicyResult<T>(this Policy policy, Func<PolicyResult<T>, Task> func)
 		{
-			errorPolicyBase.AddAsyncHandler(func);
+			policy.AddAsyncHandler(func);
 		}
 
-		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Func<PolicyResult<U>, Task> func)
+		/// <summary>
+		/// Adds an asynchronous handler for a typed policy result with cancellation support based on the specified cancellation type.
+		/// </summary>
+		/// <typeparam name="T">The type of the policy result data.</typeparam>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="func">The asynchronous function to execute when handling the typed policy result.</param>
+		/// <param name="convertType">The type of cancellation to apply.</param>
+		public static void AddHandlerForPolicyResult<T>(this Policy policy, Func<PolicyResult<T>, Task> func, CancellationType convertType)
 		{
-			errorPolicyBase.AddAsyncHandler(func);
+			policy.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
 		}
 
-		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Func<PolicyResult<U>, Task> func, CancellationType convertType)
+		/// <summary>
+		/// Adds an asynchronous handler for a typed policy result with cancellation support.
+		/// </summary>
+		/// <typeparam name="T">The type of the policy result data.</typeparam>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="func">The asynchronous function to execute when handling the typed policy result, accepting a cancellation token.</param>
+		public static void AddHandlerForPolicyResult<T>(this Policy policy, Func<PolicyResult<T>, CancellationToken, Task> func)
 		{
-			errorPolicyBase.AddHandlerForPolicyResult(func.ToCancelableFunc(convertType));
+			policy.AddAsyncHandler(func);
 		}
 
-		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Func<PolicyResult<U>, CancellationToken, Task> func)
+		/// <summary>
+		/// Adds a synchronous handler for a typed policy result without cancellation support.
+		/// </summary>
+		/// <typeparam name="T">The type of the policy result data.</typeparam>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="action">The action to execute when handling the typed policy result.</param>
+		public static void AddHandlerForPolicyResult<T>(this Policy policy, Action<PolicyResult<T>> action)
 		{
-			errorPolicyBase.AddAsyncHandler(func);
+			policy.AddSyncHandler(action);
 		}
 
-		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Action<PolicyResult<U>> action, CancellationType convertType)
+		/// <summary>
+		///  Adds a synchronous handler for a typed policy result with cancellation support based on the specified cancellation type.
+		/// </summary>
+		/// <typeparam name="T">The type of the policy result data.</typeparam>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="action">The action to execute when handling the policy result.</param>
+		/// <param name="convertType">The type of cancellation to apply.</param>
+		public static void AddHandlerForPolicyResult<T>(this Policy policy, Action<PolicyResult<T>> action, CancellationType convertType)
 		{
-			errorPolicyBase.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
+			policy.AddHandlerForPolicyResult(action.ToCancelableAction(convertType));
 		}
 
-		public static void AddHandlerForPolicyResult<U>(this Policy errorPolicyBase, Action<PolicyResult<U>> action)
+		/// <summary>
+		/// Adds a synchronous handler for a typed policy result with cancellation support.
+		/// </summary>
+		/// <typeparam name="T">The type of the policy result data.</typeparam>
+		/// <param name="policy">The policy to which the handler is added.</param>
+		/// <param name="action">The action to execute when handling the typed policy result, accepting a cancellation token.</param>
+		public static void AddHandlerForPolicyResult<T>(this Policy policy, Action<PolicyResult<T>, CancellationToken> action)
 		{
-			errorPolicyBase.AddSyncHandler(action);
+			policy.AddSyncHandler(action);
 		}
 	}
 }
