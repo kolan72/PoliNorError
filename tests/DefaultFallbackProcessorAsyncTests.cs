@@ -452,5 +452,27 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(result.IsSuccess, Is.True);
 		}
+
+		[Test]
+		public async Task Should_FallbackAsync_With_Param_With_ConfigAwait_False_BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultFallbackProcessor();
+				var result = await processor.FallbackAsync(f, 1, (_) => Task.CompletedTask, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
 	}
 }

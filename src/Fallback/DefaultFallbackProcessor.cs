@@ -219,6 +219,11 @@ namespace PoliNorError
 			return await FallbackAsync(func, fallback, _emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
+		public Task<PolicyResult> FallbackAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, Func<CancellationToken, Task> fallback, CancellationToken token)
+		{
+			return FallbackAsync(func, param, fallback, false, token);
+		}
+
 		public async Task<PolicyResult> FallbackAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, Func<CancellationToken, Task> fallback, bool configureAwait = false, CancellationToken token = default)
 		{
 			return await FallbackAsync(func, param, fallback, new EmptyErrorContext<TParam>(param), configureAwait, token).ConfigureAwait(configureAwait);
