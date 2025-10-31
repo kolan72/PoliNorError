@@ -244,7 +244,7 @@ namespace PoliNorError
 
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 
@@ -283,7 +283,7 @@ namespace PoliNorError
 
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 

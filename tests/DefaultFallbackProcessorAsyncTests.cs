@@ -168,40 +168,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_FallbackAsync_BeCancelable()
-		{
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.Cancel();
-
-			async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
-			int i = 0;
-			var processor = FallbackProcessor.CreateDefault();
-			async Task fallback(CancellationToken _) { await Task.Delay(1); i++; }
-			var tryResCount = await processor.FallbackAsync(save, fallback, cancelTokenSource.Token);
-
-			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
-			ClassicAssert.AreEqual(0, i);
-			cancelTokenSource.Dispose();
-		}
-
-		[Test]
-		public async Task Should_FallbackAsyncT_BeCancelable()
-		{
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.Cancel();
-
-			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
-			int i = 0;
-			var processor = FallbackProcessor.CreateDefault();
-			async Task<int> fallback(CancellationToken _) { await Task.Delay(1); i++; return i; }
-			var tryResCount = await processor.FallbackAsync(save, fallback, cancelTokenSource.Token);
-
-			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
-			ClassicAssert.AreEqual(0, i);
-			cancelTokenSource.Dispose();
-		}
-
-		[Test]
 		public async Task Should_PolicyResult_Contains_NoDelegateException_When_FallbackAsync_Null_Delegate()
 		{
 			var proc = FallbackProcessor.CreateDefault();
@@ -454,6 +420,44 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public async Task Should_FallbackAsync_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				int i = 0;
+				var processor = FallbackProcessor.CreateDefault();
+				async Task fallback(CancellationToken _) { await Task.Delay(1); i++; }
+				var result = await processor.FallbackAsync(save, fallback, cancelTokenSource.Token);
+
+				ClassicAssert.AreEqual(true, result.IsCanceled);
+				ClassicAssert.AreEqual(0, i);
+
+				Assert.That(result.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public async Task Should_FallbackAsyncT_BeCancelable()
+		{
+			var cancelTokenSource = new CancellationTokenSource();
+			cancelTokenSource.Cancel();
+
+			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+			int i = 0;
+			var processor = FallbackProcessor.CreateDefault();
+			async Task<int> fallback(CancellationToken _) { await Task.Delay(1); i++; return i; }
+			var tryResCount = await processor.FallbackAsync(save, fallback, cancelTokenSource.Token);
+
+			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
+			ClassicAssert.AreEqual(0, i);
+			cancelTokenSource.Dispose();
+		}
+
+
+		[Test]
 		public async Task Should_FallbackAsync_With_Param_With_ConfigAwait_False_BeCancelable()
 		{
 			using (var cts = new CancellationTokenSource())
@@ -470,6 +474,8 @@ namespace PoliNorError.Tests
 
 				Assert.That(result.IsCanceled, Is.True);
 				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
 
 				Assert.That(k, Is.EqualTo(0));
 			}
