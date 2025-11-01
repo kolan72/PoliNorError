@@ -273,7 +273,6 @@ namespace PoliNorError
 			return result;
 		}
 
-
 		private async Task<PolicyResult> FallbackAsync(Func<CancellationToken, Task> func, Func<CancellationToken, Task> fallback, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
@@ -319,13 +318,52 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> FallbackAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, Func<CancellationToken, Task<T>> fallback, bool configureAwait = false, CancellationToken token = default)
 		{
-			return await FallbackAsync(func.Apply(param), param, fallback, configureAwait, token).ConfigureAwait(configureAwait);
+			return await FallbackAsync(func, param, fallback, new EmptyErrorContext<TParam>(param), configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		public async Task<PolicyResult<T>> FallbackAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, Func<CancellationToken, Task<T>> fallback, bool configureAwait = false, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return await FallbackAsync(func, fallback, emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<PolicyResult<T>> FallbackAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, Func<CancellationToken, Task<T>> fallback, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		{
+			if (func == null)
+				return new PolicyResult<T>().WithNoDelegateException();
+
+			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceled();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
+
+			try
+			{
+				var resAction = await func(param, token).ConfigureAwait(configureAwait);
+				result.SetResult(resAction);
+				result.SetOk();
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (Exception ex)
+			{
+				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
+
+				if (!result.IsFailed)
+				{
+					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
+				}
+			}
+			return result;
 		}
 
 		private async Task<PolicyResult<T>> FallbackAsync<T>(Func<CancellationToken, Task<T>> func, Func<CancellationToken, Task<T>> fallback, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
