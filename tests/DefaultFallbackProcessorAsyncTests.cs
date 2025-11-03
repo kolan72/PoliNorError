@@ -503,5 +503,28 @@ namespace PoliNorError.Tests
 				Assert.That(k, Is.EqualTo(0));
 			}
 		}
+
+		[Test]
+		public async Task Should_FallbackAsyncT_WithParam_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+#pragma warning disable RCS1163 // Unused parameter.
+				async Task<int> save(int k, CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+#pragma warning restore RCS1163 // Unused parameter.
+				const int i = 0;
+				var processor = new DefaultFallbackProcessor();
+				var tryResCount = await processor.FallbackAsync(save, 1, async (_) => { await Task.Delay(1); return 1; },  false, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+
+				Assert.That(i, Is.EqualTo(0));
+			}
+		}
 	}
 }
