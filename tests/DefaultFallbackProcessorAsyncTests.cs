@@ -442,18 +442,21 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_FallbackAsyncT_BeCancelable()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.Cancel();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
 
-			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
-			int i = 0;
-			var processor = FallbackProcessor.CreateDefault();
-			async Task<int> fallback(CancellationToken _) { await Task.Delay(1); i++; return i; }
-			var tryResCount = await processor.FallbackAsync(save, fallback, cancelTokenSource.Token);
+				async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				int i = 0;
+				var processor = FallbackProcessor.CreateDefault();
+				async Task<int> fallback(CancellationToken _) { await Task.Delay(1); i++; return i; }
+				var result = await processor.FallbackAsync(save, fallback, cancelTokenSource.Token);
 
-			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
-			ClassicAssert.AreEqual(0, i);
-			cancelTokenSource.Dispose();
+				ClassicAssert.AreEqual(true, result.IsCanceled);
+				ClassicAssert.AreEqual(0, i);
+
+				Assert.That(result.NoError, Is.True);
+			}
 		}
 
 		[Test]

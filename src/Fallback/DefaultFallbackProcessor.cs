@@ -380,7 +380,7 @@ namespace PoliNorError
 
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 
