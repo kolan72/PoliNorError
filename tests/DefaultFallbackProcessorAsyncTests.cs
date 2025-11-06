@@ -529,5 +529,29 @@ namespace PoliNorError.Tests
 				Assert.That(i, Is.EqualTo(0));
 			}
 		}
+
+		[Test]
+		public async Task Should_FallbackAsyncT_With_Param_With_ConfigAwait_False_BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				async Task<int> f(int p, CancellationToken ct)
+				{
+					return await Task.Run(() => Task.Run(() => { k = p; return k; }, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultFallbackProcessor();
+				var result = await processor.FallbackAsync(f, 1, async (_) => { await Task.Delay(1); return 1; }, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
 	}
 }
