@@ -29,7 +29,7 @@ namespace PoliNorError
         }
 
         /// <summary>
-        /// Processes the given exception synchronously.
+        /// Processes the given exception synchronously by invoking the overridden <see cref="Execute"/> method.
         /// </summary>
         /// <param name="error">The exception to be processed.</param>
         /// <param name="catchBlockProcessErrorInfo">Optional information about the context in which the exception was caught.</param>
@@ -46,7 +46,7 @@ namespace PoliNorError
         }
 
         /// <summary>
-        /// Processes the given exception asynchronously.
+        /// Processes the given exception synchronously by invoking the overridden <see cref="Execute"/> method and returning the result via <c>Task.FromResult(error)</c>.
         /// </summary>
         /// <param name="error">The exception to be processed.</param>
         /// <param name="catchBlockProcessErrorInfo">Optional information about the context in which the exception was caught.</param>
