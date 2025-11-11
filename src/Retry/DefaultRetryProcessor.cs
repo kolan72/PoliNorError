@@ -41,7 +41,7 @@ namespace PoliNorError
 
 		public PolicyResult Retry<TParam>(Action<TParam> action, TParam param, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
-			return RetryWithErrorContext(action.Apply(param), param, retryCountInfo, token);
+			return RetryInternal(action, param, retryCountInfo, null, token);
 		}
 
 		public PolicyResult<T> Retry<TParam, T>(Func<TParam, T> func, TParam param, int retryCount, CancellationToken token = default)
@@ -198,6 +198,61 @@ namespace PoliNorError
 				try
 				{
 					action();
+					if (retryContext.Context.IsZeroRetry)
+					{
+						result.SetOk();
+					}
+					if (result.UnprocessedError != null)
+						result.UnprocessedError = null;
+					break;
+				}
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+				{
+					result.SetFailedAndCanceled(oe);
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					result.SetFailedAndCanceled(ae.GetCancellationException());
+				}
+				catch (Exception ex)
+				{
+					SaveError(result, ex, retryContext, token);
+					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
+					{
+						retryContext.IncrementCount();
+					}
+				}
+			}
+			while (!result.IsFailed);
+			return result;
+		}
+
+		internal PolicyResult RetryInternal<TParam>(Action<TParam> action, TParam param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
+		{
+			if (action == null)
+				return new PolicyResult().WithNoDelegateException();
+
+			var result = PolicyResult.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			result.ErrorsNotUsed = ErrorsNotUsed;
+
+			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
+
+			var retryContext =  new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
+
+			do
+			{
+				try
+				{
+					action(param);
 					if (retryContext.Context.IsZeroRetry)
 					{
 						result.SetOk();
