@@ -1474,5 +1474,22 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_RetryWithErrorContextT_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				int save() => throw new ApplicationException();
+				var processor = new DefaultRetryProcessor();
+				var tryResCount = processor.RetryWithErrorContext(save, 1, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
 	}
 }
