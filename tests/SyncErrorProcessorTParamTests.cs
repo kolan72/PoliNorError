@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
-	internal class SyncErrorProcessorTContextTests
+	internal class SyncErrorProcessorTParamTests
 	{
 		[Test]
 		[TestCase(ContextCall.None)]
@@ -15,8 +15,8 @@ namespace PoliNorError.Tests
 		{
 			var exception = new InvalidOperationException("Test error");
 
-			var logger = new TestLoggerWithContext();
-			var errProcessor = new LogErrorProcessorWithContext(logger);
+			var logger = new TestLoggerWithParam();
+			var errProcessor = new LogErrorProcessorWithParam(logger);
 			var processor = new SimplePolicyProcessor()
 						.WithErrorProcessor(errProcessor);
 
@@ -27,7 +27,7 @@ namespace PoliNorError.Tests
 				const int correctContext = 5;
 				result = processor.Execute(() => throw exception, correctContext);
 				Assert.That(logger.LastLoggedException, Is.SameAs(exception));
-				Assert.That(logger.Context, Is.EqualTo(correctContext));
+				Assert.That(logger.Param, Is.EqualTo(correctContext));
 			}
 			else
 			{
@@ -42,7 +42,7 @@ namespace PoliNorError.Tests
 						break;
 				}
 				Assert.That(logger.LastLoggedException, Is.Null);
-				Assert.That(logger.Context, Is.Default);
+				Assert.That(logger.Param, Is.Default);
 			}
 
 			Assert.That(result.NoError, Is.False);
@@ -57,8 +57,8 @@ namespace PoliNorError.Tests
 		{
 			var exception = new InvalidOperationException("Test error");
 
-			var logger = new TestLoggerWithContext();
-			var errProcessor = new LogErrorProcessorWithContext(logger);
+			var logger = new TestLoggerWithParam();
+			var errProcessor = new LogErrorProcessorWithParam(logger);
 			var processor = new SimplePolicyProcessor()
 						.WithErrorProcessor(errProcessor);
 
@@ -69,7 +69,7 @@ namespace PoliNorError.Tests
 				const int correctContext = 5;
 				result = await processor.ExecuteAsync((_) => throw exception, correctContext);
 				Assert.That(logger.LastLoggedException, Is.SameAs(exception));
-				Assert.That(logger.Context, Is.EqualTo(correctContext));
+				Assert.That(logger.Param, Is.EqualTo(correctContext));
 			}
 			else
 			{
@@ -84,7 +84,7 @@ namespace PoliNorError.Tests
 						break;
 				}
 				Assert.That(logger.LastLoggedException, Is.Null);
-				Assert.That(logger.Context, Is.Default);
+				Assert.That(logger.Param, Is.Default);
 			}
 
 			Assert.That(result.NoError, Is.False);
@@ -99,8 +99,8 @@ namespace PoliNorError.Tests
 		{
 			var exception = new InvalidOperationException("Test error");
 
-			var logger = new TestLoggerWithContext();
-			var errProcessor = new LogErrorProcessorWithContext(logger);
+			var logger = new TestLoggerWithParam();
+			var errProcessor = new LogErrorProcessorWithParam(logger);
 			var policy = new SimplePolicy()
 						.WithErrorProcessor(errProcessor);
 
@@ -111,7 +111,7 @@ namespace PoliNorError.Tests
 				const int correctContext = 5;
 				result = policy.Handle(() => throw exception, correctContext);
 				Assert.That(logger.LastLoggedException, Is.SameAs(exception));
-				Assert.That(logger.Context, Is.EqualTo(correctContext));
+				Assert.That(logger.Param, Is.EqualTo(correctContext));
 			}
 			else
 			{
@@ -126,7 +126,7 @@ namespace PoliNorError.Tests
 						break;
 				}
 				Assert.That(logger.LastLoggedException, Is.Null);
-				Assert.That(logger.Context, Is.Default);
+				Assert.That(logger.Param, Is.Default);
 			}
 
 			Assert.That(result.NoError, Is.False);
@@ -141,8 +141,8 @@ namespace PoliNorError.Tests
 		{
 			var exception = new InvalidOperationException("Test error");
 
-			var logger = new TestLoggerWithContext();
-			var errProcessor = new LogErrorProcessorWithContext(logger);
+			var logger = new TestLoggerWithParam();
+			var errProcessor = new LogErrorProcessorWithParam(logger);
 			var policy = new SimplePolicy()
 						.WithErrorProcessor(errProcessor);
 
@@ -153,7 +153,7 @@ namespace PoliNorError.Tests
 				const int correctContext = 5;
 				result = await policy.HandleAsync((_) => throw exception, correctContext, default);
 				Assert.That(logger.LastLoggedException, Is.SameAs(exception));
-				Assert.That(logger.Context, Is.EqualTo(correctContext));
+				Assert.That(logger.Param, Is.EqualTo(correctContext));
 			}
 			else
 			{
@@ -168,7 +168,7 @@ namespace PoliNorError.Tests
 						break;
 				}
 				Assert.That(logger.LastLoggedException, Is.Null);
-				Assert.That(logger.Context, Is.Default);
+				Assert.That(logger.Param, Is.Default);
 			}
 
 			Assert.That(result.NoError, Is.False);
@@ -180,13 +180,13 @@ namespace PoliNorError.Tests
 		{
 			var exception = new InvalidOperationException("Test error");
 
-			var logger = new TestLoggerWithContext();
-			var errProcessor = new LogErrorProcessorWithContext(logger);
+			var logger = new TestLoggerWithParam();
+			var errProcessor = new LogErrorProcessorWithParam(logger);
 
 			var bp = new BulkErrorProcessor().WithErrorProcessor(errProcessor);
 			var _ = bp.Process(exception, new ProcessingErrorContext<int>(PolicyAlias.NotSet, 5));
 			Assert.That(logger.LastLoggedException, Is.SameAs(exception));
-			Assert.That(logger.Context, Is.EqualTo(5));
+			Assert.That(logger.Param, Is.EqualTo(5));
 		}
 
 		[Test]
@@ -194,39 +194,39 @@ namespace PoliNorError.Tests
 		{
 			var exception = new InvalidOperationException("Test error");
 
-			var logger = new TestLoggerWithContext();
-			var errProcessor = new LogErrorProcessorWithContext(logger);
+			var logger = new TestLoggerWithParam();
+			var errProcessor = new LogErrorProcessorWithParam(logger);
 
 			var bp = new BulkErrorProcessor().WithErrorProcessor(errProcessor);
 			var _ = await bp.ProcessAsync(exception, new ProcessingErrorContext<int>(PolicyAlias.NotSet, 5));
 			Assert.That(logger.LastLoggedException, Is.SameAs(exception));
-			Assert.That(logger.Context, Is.EqualTo(5));
+			Assert.That(logger.Param, Is.EqualTo(5));
 		}
 	}
 
-	public interface ILoggerWithContext<in TContext>
+	public interface ILoggerWithParam<in TParam>
 	{
-		void LogError(Exception exception, TContext context);
+		void LogError(Exception exception, TParam param);
 	}
 
-	public class TestLoggerWithContext : ILoggerWithContext<int>
+	public class TestLoggerWithParam : ILoggerWithParam<int>
 	{
 		public Exception LastLoggedException { get; private set; }
 
-		public int Context { get; private set; }
+		public int Param { get; private set; }
 
 		public void LogError(Exception exception, int context)
 		{
 			LastLoggedException = exception;
-			Context = context;
+			Param = context;
 		}
 	}
 
-	public class LogErrorProcessorWithContext : ErrorProcessor<int>
+	public class LogErrorProcessorWithParam : ErrorProcessor<int>
 	{
-		private readonly ILoggerWithContext<int> _logger;
+		private readonly ILoggerWithParam<int> _logger;
 
-		public LogErrorProcessorWithContext(ILoggerWithContext<int> logger)
+		public LogErrorProcessorWithParam(ILoggerWithParam<int> logger)
 		{
 			_logger = logger;
 		}

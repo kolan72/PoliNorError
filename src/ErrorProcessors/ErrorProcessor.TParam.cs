@@ -5,27 +5,27 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
     /// <summary>
-    /// Provides an abstract base class for processing errors with an associated context.
+    /// Provides an abstract base class for processing errors with a .
     /// </summary>
-    /// <typeparam name="TContext"/>
+    /// <typeparam name="TParam"/>
     /// <remarks>
     /// This class provides a common structure for synchronous and asynchronous error processing methods,
     /// delegating the actual processing logic to the concrete implementation of the <see cref="Execute"/> method.
     /// </remarks>
-    public abstract class ErrorProcessor<TContext> : IErrorProcessor
+    public abstract class ErrorProcessor<TParam> : IErrorProcessor
     {
-        private readonly DefaultErrorProcessor<TContext> _errorProcessor;
+        private readonly DefaultErrorProcessor<TParam> _errorProcessor;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ErrorProcessor{TContext}"/> class.
+        /// Initializes a new instance of the <see cref="ErrorProcessor{TParam}"/> class.
         /// </summary>
         /// <remarks>
         /// The constructor wires the <see cref="Execute"/> method into the internal
-        /// <see cref="DefaultErrorProcessor{TContext}"/> pipeline.
+        /// <see cref="DefaultErrorProcessor{TParam}"/> pipeline.
         /// </remarks>
         protected ErrorProcessor()
         {
-            _errorProcessor = new DefaultErrorProcessor<TContext>(Execute);
+            _errorProcessor = new DefaultErrorProcessor<TParam>(Execute);
         }
 
         /// <summary>
@@ -73,6 +73,6 @@ namespace PoliNorError
         /// <strong>Inheritors of this class MUST implement this method</strong> to define the specific error handling logic,
         /// such as logging, reporting, or transforming the exception.
         /// </remarks>
-        public abstract void Execute(Exception error, ProcessingErrorInfo<TContext> catchBlockProcessErrorInfo = null, CancellationToken token = default);
+        public abstract void Execute(Exception error, ProcessingErrorInfo<TParam> catchBlockProcessErrorInfo = null, CancellationToken token = default);
     }
 }

@@ -122,7 +122,7 @@
     <Compile Include="RetryDelay.Tests\RetryDelayRepeater.cs" />
     <Compile Include="RetryDelay.Tests\RetryDelayTests.cs" />
     <Compile Include="RetryObjectsToTest.cs" />
-    <Compile Include="SyncErrorProcessorTContextTests.cs" />
+    <Compile Include="SyncErrorProcessorTParamTests.cs" />
     <Compile Include="SyncErrorProcessorTests.cs" />
     <Compile Include="TryCatchBuilderTests.cs" />
     <Compile Include="TryCatchTests.cs" />
