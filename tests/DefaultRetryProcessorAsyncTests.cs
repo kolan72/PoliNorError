@@ -300,5 +300,23 @@ namespace PoliNorError.Tests
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
 			}
 		}
+
+		[Test]
+		public async Task Should_RetryAsync_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				var processor = RetryProcessor.CreateDefault();
+				var tryResCount = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
 	}
 }
