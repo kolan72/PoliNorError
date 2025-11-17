@@ -140,7 +140,7 @@ namespace PoliNorError
 
 		public Task<PolicyResult> RetryAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
 		{
-			return RetryWithErrorContextAsync(func.Apply(param), param, retryCountInfo, configureAwait, token);
+			return RetryInternalAsync(func, param, retryCountInfo, null, configureAwait, token);
 		}
 
 		public Task<PolicyResult> RetryAsync(Func<CancellationToken, Task> func, RetryCountInfo retryCountInfo, bool configureAwait = false, CancellationToken token = default)
@@ -246,7 +246,7 @@ namespace PoliNorError
 
 			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
 
-			var retryContext =  new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
+			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
 			do
 			{
@@ -335,6 +335,58 @@ namespace PoliNorError
 					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
 					{
 						retryContext.IncrementCount();
+					}
+				}
+			}
+			while (!result.IsFailed);
+			return result;
+		}
+
+		internal async Task<PolicyResult> RetryInternalAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
+		{
+			if (func == null)
+				return new PolicyResult().WithNoDelegateException();
+
+			var result = PolicyResult.InitByConfigureAwait(configureAwait);
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			result.ErrorsNotUsed = ErrorsNotUsed;
+
+			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
+
+			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
+
+			do
+			{
+				try
+				{
+					await func(param, token).ConfigureAwait(configureAwait);
+					if (retryContext.Context.IsZeroRetry)
+					{
+						result.SetOk();
+					}
+					if (result.UnprocessedError != null)
+						result.UnprocessedError = null;
+					break;
+				}
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+				{
+					result.SetFailedAndCanceled(oe);
+				}
+				catch (Exception ex)
+				{
+					await SaveErrorAsync(result, ex, retryContext, configureAwait, token).ConfigureAwait(configureAwait);
+
+					if (await HandleErrorAsync(ex, result, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
+					{
+						retryContext.IncrementCountAtomic();
 					}
 				}
 			}
