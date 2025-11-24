@@ -88,6 +88,11 @@ namespace PoliNorError
 			return RetryInternal(func, retryCountInfo, retryDelay, retryErrorContextCreator, token);
 		}
 
+		public Task<PolicyResult> RetryWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
+		{
+			return RetryWithErrorContextAsync(func, param, retryCountInfo, retryDelay, false, token);
+		}
+
 		public async Task<PolicyResult> RetryWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
 		{
 			var retryErrorContextCreator = GetRetryErrorContextCreator<TErrorContext>().Apply(param);
