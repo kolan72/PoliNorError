@@ -15,5 +15,10 @@ namespace PoliNorError
 		{
 			return RetryWithErrorContextAsync(func, param, retryCountInfo, false, token);
 		}
+
+		public Task<PolicyResult> RetryAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, RetryCountInfo retryCountInfo, CancellationToken token)
+		{
+			return RetryAsync(func, param, retryCountInfo, null, false, token);
+		}
 	}
 }
