@@ -1,0 +1,19 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace PoliNorError
+{
+	public sealed partial class DefaultRetryProcessor
+	{
+		public Task<PolicyResult> RetryInfiniteWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, CancellationToken token)
+		{
+			return RetryWithErrorContextAsync(func, param, RetryCountInfo.Infinite(), token);
+		}
+
+		public Task<PolicyResult> RetryWithErrorContextAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, RetryCountInfo retryCountInfo, CancellationToken token)
+		{
+			return RetryWithErrorContextAsync(func, param, retryCountInfo, false, token);
+		}
+	}
+}
