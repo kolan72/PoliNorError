@@ -20,5 +20,10 @@ namespace PoliNorError
 		{
 			return RetryAsync(func, param, retryCountInfo, null, false, token);
 		}
+
+		public Task<PolicyResult> RetryInfiniteAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, CancellationToken token)
+		{
+			return RetryAsync(func, param, RetryCountInfo.Infinite(), token);
+		}
 	}
 }
