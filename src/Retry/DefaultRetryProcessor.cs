@@ -218,6 +218,66 @@ namespace PoliNorError
 			return result;
 		}
 
+		internal PolicyResult<T> RetryInternal<TParam, T>(Func<TParam, T> func, TParam param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, CancellationToken token)
+		{
+			if (func == null)
+				return new PolicyResult<T>().WithNoDelegateException();
+
+			if (typeof(T) == typeof(Task) || typeof(T).IsSubclassOf(typeof(Task)))
+			{
+				throw new ArgumentException("Do not use this method for task return type!");
+			}
+
+			var result = PolicyResult<T>.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			result.ErrorsNotUsed = ErrorsNotUsed;
+
+			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
+
+			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
+			do
+			{
+				try
+				{
+					var res = func(param);
+					if (retryContext.Context.IsZeroRetry)
+					{
+						result.SetOk();
+					}
+					result.SetResult(res);
+					if (result.UnprocessedError != null)
+						result.UnprocessedError = null;
+					break;
+				}
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+				{
+					result.SetFailedAndCanceled(oe);
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					result.SetFailedAndCanceled(ae.GetCancellationException());
+				}
+				catch (Exception ex)
+				{
+					SaveError(result, ex, retryContext, token);
+					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
+					{
+						retryContext.IncrementCount();
+					}
+				}
+			}
+			while (!result.IsFailed);
+			return result;
+		}
+
 		internal async Task<PolicyResult> RetryInternalAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)

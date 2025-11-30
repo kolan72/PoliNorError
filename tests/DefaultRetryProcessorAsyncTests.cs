@@ -510,6 +510,5 @@ namespace PoliNorError.Tests
 				Assert.That(k, Is.EqualTo(0));
 			}
 		}
-
 	}
 }
