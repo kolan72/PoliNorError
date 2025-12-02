@@ -28,20 +28,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_RetryAsyncT_BeCancelable()
+		public async Task Should_RetryInfiniteAsyncT_BeCancelable()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
 
-			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				cancelTokenSource.CancelAfter(500);
 
-			cancelTokenSource.CancelAfter(500);
+				var processor = new DefaultRetryProcessor();
 
-			var processor = new DefaultRetryProcessor();
+				var tryResCount = await processor.RetryInfiniteAsync(save, cancelTokenSource.Token);
 
-			var tryResCount = await processor.RetryInfiniteAsync(save, cancelTokenSource.Token);
-
-			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
-			cancelTokenSource.Dispose();
+				ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
+			}
 		}
 
 		[Test]
@@ -309,6 +309,24 @@ namespace PoliNorError.Tests
 				cancelTokenSource.Cancel();
 
 				async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				var processor = RetryProcessor.CreateDefault();
+				var tryResCount = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryAsyncT_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
 				var processor = RetryProcessor.CreateDefault();
 				var tryResCount = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
 

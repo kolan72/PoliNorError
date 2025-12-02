@@ -389,7 +389,7 @@ namespace PoliNorError
 			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 
