@@ -494,7 +494,8 @@ var fallbackResult = new RetryPolicy(3)
 
 ```
 The key point is the `ThenFallback` method — it wraps the retry policy, letting the fallback handle the `DivideByZeroException` exception. 
-When the `random` variable is zero, the retry policy skips this exception, the fallback policy catches it, logs the error, and the final `fallbackResult.Result` becomes `int.MaxValue`.
+When the `random` variable is zero, the retry policy skips this exception, the fallback policy catches it, logs the error, and the final `fallbackResult.Result` becomes `int.MaxValue`.  
+Since _version_ 2.24.12, `SimplePolicy` supports `ThenFallback` in the same way.
 
 ### SimplePolicy
 The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  
