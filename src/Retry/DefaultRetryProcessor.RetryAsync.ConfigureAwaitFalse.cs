@@ -28,7 +28,12 @@ namespace PoliNorError
 
 		public Task<PolicyResult> RetryAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, RetryCountInfo retryCountInfo, CancellationToken token)
 		{
-			return RetryAsync(func, param, retryCountInfo, null, false, token);
+			return RetryAsync(func, param, retryCountInfo, false, token);
+		}
+
+		public Task<PolicyResult<T>> RetryAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, RetryCountInfo retryCountInfo, CancellationToken token)
+		{
+			return RetryAsync(func, param, retryCountInfo, false, token);
 		}
 
 		public Task<PolicyResult> RetryInfiniteAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, CancellationToken token)

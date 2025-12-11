@@ -620,5 +620,29 @@ namespace PoliNorError.Tests
 				Assert.That(result.Result, Is.EqualTo(0));
 			}
 		}
+
+		[Test]
+		public async Task Should_RetryAsyncT_With_RetryCountInfo_With_TParam_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task<int> f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryAsync(f, 1, new RetryCountInfo(), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
 	}
 }
