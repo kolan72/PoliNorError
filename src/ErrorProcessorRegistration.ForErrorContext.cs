@@ -18,7 +18,7 @@ namespace PoliNorError
 
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Action<Exception, ProcessingErrorInfo<TErrorContext>, CancellationToken> actionProcessor) where T : IPolicyProcessor
 		{
-			return policyProcessor.WithErrorContextProcessor(new DefaultErrorProcessor<TErrorContext>(actionProcessor), _addErrorProcessorAction);
+			return policyProcessor.WithErrorContextProcessorOf(actionProcessor, _addErrorProcessorAction);
 		}
 
 		internal static T WithErrorContextProcessorOf<T, TErrorContext>(this T policyProcessor, Func<Exception, ProcessingErrorInfo<TErrorContext>, Task> funcProcessor) where T : IPolicyProcessor
