@@ -7,31 +7,27 @@ namespace PoliNorError
 	/// </summary>
 	public sealed class LinearRetryDelay : RetryDelay
 	{
-		private readonly LinearRetryDelayOptions _options;
-
-		private readonly MaxDelayDelimiter _maxDelayDelimiter;
-
 		/// <summary>
 		/// Initializes a new instance of <see cref="LinearRetryDelay"/>.
 		/// </summary>
 		/// <param name="retryDelayOptions"><see cref="LinearRetryDelayOptions"/></param>
-		public LinearRetryDelay(LinearRetryDelayOptions retryDelayOptions)
+		public LinearRetryDelay(LinearRetryDelayOptions retryDelayOptions): base(GetDelayValueProvider(retryDelayOptions))
 		{
 #pragma warning disable CS0618 // Type or member is obsolete
 			InnerDelay = this;
-			_options = retryDelayOptions;
+#pragma warning restore CS0618 // Type or member is obsolete
+		}
 
-			if (_options.UseJitter)
+		private static Func<int, TimeSpan> GetDelayValueProvider(LinearRetryDelayOptions retryDelayOptions)
+		{
+			if (retryDelayOptions.UseJitter)
 			{
-				InnerDelayValueProvider = GetJitteredDelayValue;
+				return GetJitteredDelayValue(retryDelayOptions);
 			}
 			else
 			{
-				InnerDelayValueProvider = GetDelayValue;
+				return GetDelayValue(retryDelayOptions);
 			}
-			_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
-			DelayValueProvider = InnerDelayValueProvider;
-#pragma warning restore CS0618 // Type or member is obsolete
 		}
 
 		/// <summary>
@@ -56,19 +52,27 @@ namespace PoliNorError
 		internal LinearRetryDelay(TimeSpan baseDelay, double slopeFactor = RetryDelayConstants.SlopeFactor, TimeSpan? maxDelay = null, bool useJitter = false) :
 			 this(new LinearRetryDelayOptions() { BaseDelay = baseDelay, SlopeFactor = slopeFactor, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue } ) {}
 
-		private TimeSpan GetDelayValue(int attempt)
+		private static Func<int, TimeSpan> GetDelayValue(LinearRetryDelayOptions options)
 		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt));
+			return (attempt) =>
+			{
+				var maxDelayDelimiter = new MaxDelayDelimiter(options);
+				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt, options));
+			};
 		}
 
-		private TimeSpan GetJitteredDelayValue(int attempt)
+		private static Func<int, TimeSpan> GetJitteredDelayValue(LinearRetryDelayOptions options)
 		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(attempt)));
+			return (attempt) =>
+			{
+				var maxDelayDelimiter = new MaxDelayDelimiter(options);
+				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(attempt, options)));
+			};
 		}
 
-		private double GetDelayValueInMs(int attempt)
+		private static double GetDelayValueInMs(int attempt, LinearRetryDelayOptions options)
 		{
-			return (attempt + 1) * _options.SlopeFactor * _options.BaseDelay.TotalMilliseconds;
+			return (attempt + 1) * options.SlopeFactor * options.BaseDelay.TotalMilliseconds;
 		}
 	}
 
