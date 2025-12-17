@@ -7,31 +7,45 @@ namespace PoliNorError
 	/// </summary>
 	public sealed partial class ExponentialRetryDelay : RetryDelay
 	{
-		private readonly ExponentialRetryDelayOptions _options;
-		private readonly MaxDelayDelimiter _maxDelayDelimiter;
-
 		/// <summary>
 		/// Initializes a new instance of <see cref="ExponentialRetryDelay"/>.
 		/// </summary>
 		/// <param name="retryDelayOptions"><see cref="ExponentialRetryDelayOptions"/></param>
-		public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions)
+		public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions) : base(GetDelayValueProvider(retryDelayOptions))
 		{
 #pragma warning disable CS0618 // Type or member is obsolete
 			InnerDelay = this;
-			_options = retryDelayOptions;
+#pragma warning restore CS0618 // Type or member is obsolete
+		}
 
-			if (_options.UseJitter)
+		private static Func<int, TimeSpan> GetDelayValueProvider(ExponentialRetryDelayOptions retryDelayOptions)
+		{
+			if (retryDelayOptions.UseJitter)
 			{
-				var dj = new DecorrelatedJitter(_options.BaseDelay, _options.ExponentialFactor, _options.MaxDelay);
-				InnerDelayValueProvider = dj.DecorrelatedJitterBackoffV2;
+				return GetJitteredDelayValue(retryDelayOptions);
 			}
 			else
 			{
-				InnerDelayValueProvider = GetDelayValue;
-				_maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
+				return GetDelayValue(retryDelayOptions);
 			}
-			DelayValueProvider = InnerDelayValueProvider;
-#pragma warning restore CS0618 // Type or member is obsolete
+		}
+
+		private static Func<int, TimeSpan> GetJitteredDelayValue(ExponentialRetryDelayOptions options)
+		{
+			return (attempt) =>
+			{
+				var dj = new DecorrelatedJitter(options.BaseDelay, options.ExponentialFactor, options.MaxDelay);
+				return dj.DecorrelatedJitterBackoffV2(attempt);
+			};
+		}
+
+		private static Func<int, TimeSpan> GetDelayValue(ExponentialRetryDelayOptions options)
+		{
+			return (attempt) =>
+			{
+				var maxDelayDelimiter = new MaxDelayDelimiter(options);
+				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(options.ExponentialFactor, attempt) * options.BaseDelay.TotalMilliseconds);
+			};
 		}
 
 		/// <summary>
@@ -55,11 +69,6 @@ namespace PoliNorError
 
 		internal ExponentialRetryDelay(TimeSpan baseDelay, double exponentialFactor = RetryDelayConstants.ExponentialFactor, TimeSpan? maxDelay = null, bool useJitter = false) :
 			this(new ExponentialRetryDelayOptions() { BaseDelay = baseDelay, ExponentialFactor = exponentialFactor, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue}) {}
-
-		private TimeSpan GetDelayValue(int attempt)
-		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(_options.ExponentialFactor, attempt) * _options.BaseDelay.TotalMilliseconds);
-		}
 	}
 
 	/// <summary>
