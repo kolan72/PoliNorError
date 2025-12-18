@@ -5,12 +5,19 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
     /// <summary>
-    /// Provides an abstract base class for processing errors with a .
+    /// Provides an abstract base class for implementing custom error processing logic that operates on exceptions
+    /// and optional contextual information of type <typeparamref name="TParam"/>.
     /// </summary>
-    /// <typeparam name="TParam"/>
+    /// <typeparam name="TParam">
+    /// The type of the optional contextual parameter provided in <see cref="ProcessingErrorInfo{TParam}"/>
+    /// during error processing.
+    /// </typeparam>
     /// <remarks>
-    /// This class provides a common structure for synchronous and asynchronous error processing methods,
-    /// delegating the actual processing logic to the concrete implementation of the <see cref="Execute"/> method.
+    /// <para>
+    /// This class implements the <see cref="IErrorProcessor"/> interface and provides a common structure for both
+    /// synchronous and asynchronous error processing. It delegates the core processing logic to the abstract
+    /// <see cref="Execute"/> method, which derived classes must implement.
+    /// </para>
     /// </remarks>
     public abstract class ErrorProcessor<TParam> : IErrorProcessor
     {
