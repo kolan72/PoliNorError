@@ -190,6 +190,36 @@ var result = new SimplePolicy()
 
 Note that the error processor is added to the *whole* policy or policy processor, so its `Process` or `ProcessAsync` method will be called depending on the execution type of the policy handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
 
+Since _version_ 2.24.12 , you can inherit from the abstract `ErrorProcessor` and override the `Execute` method to run synchronously in both `Process` and `ProcessAsync`:
+
+```csharp
+public class RetryLoggingErrorProcessor : ErrorProcessor
+{
+	private readonly ILogger _logger;
+
+	public RetryLoggingErrorProcessor(ILogger logger)
+	{
+		_logger = logger;
+	}
+
+	public override void Execute(Exception error,
+			ProcessingErrorInfo? catchBlockProcessErrorInfo = null,
+			CancellationToken token = default)
+	{
+		_logger.LogError(error,
+			"An error occurred while doing work on {Attempt} attempt.",
+			catchBlockProcessErrorInfo.GetAttemptCount());
+	}
+}
+
+//Somewhere in your code:
+
+new RetryPolicy(3)
+	.WithErrorProcessor(new RetryLoggingErrorProcessor(_logger))
+	.HandleAsync(MightThrowAsync, token);
+
+```
+
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.  
 
 To have a common error processor set for more than one policy, create a common `BulkErrorProcessor`(supporting a fluent interface since _version_ 2.8.1) and inject it as a parameter into the each policy constructor:
