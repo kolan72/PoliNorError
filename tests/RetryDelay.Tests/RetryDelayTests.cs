@@ -285,7 +285,7 @@ namespace PoliNorError.Tests
 
 			var retryDelay = new TimeSeriesRetryDelay(options);
 
-			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
+			Assert.That(retryDelay.GetDelay(0), Is.EqualTo(maxTime));
 			Assert.That(retryDelay.GetDelay(1), Is.EqualTo(maxTime));
 			Assert.That(retryDelay.GetDelay(2), Is.EqualTo(maxTime));
 			Assert.That(retryDelay.GetDelay(3), Is.EqualTo(maxTime));
