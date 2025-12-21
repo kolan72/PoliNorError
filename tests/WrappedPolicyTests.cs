@@ -783,6 +783,7 @@ namespace PoliNorError.Tests
 			Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
 			Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
 			Assert.That(fallbackResult.WrappedPolicyResults.Count(), Is.EqualTo(1));
+			Assert.That(fallbackResult.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
 			Assert.That(errorProcessorFlag, Is.True);
 		}
 

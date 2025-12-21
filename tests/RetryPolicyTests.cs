@@ -1598,30 +1598,33 @@ namespace PoliNorError.Tests
 									.IncludeError<DivideByZeroException>()
 									.WithErrorProcessorOf((_) => errorProcessorMsg = fallBackLogMsg);
 
+			PolicyResult<int> result;
+
 			if (thenFallback)
 			{
-				var fallbackResult = policy
+				result = policy
 									.Handle(() => 5 / zero);
 
-				Assert.That(fallbackResult.IsSuccess, Is.True);
-				Assert.That(fallbackResult.Result, Is.EqualTo(int.MaxValue));
-				Assert.That(fallbackResult.Errors.Count(), Is.EqualTo(1));
-				Assert.That(fallbackResult.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
-				Assert.That(fallbackResult.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(1));
+				Assert.That(result.IsSuccess, Is.True);
+				Assert.That(result.ErrorFilterUnsatisfied, Is.False);
+				Assert.That(result.Result, Is.EqualTo(int.MaxValue));
+				Assert.That(result.Errors.FirstOrDefault()?.GetType(), Is.EqualTo(typeof(DivideByZeroException)));
+				Assert.That(result.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(1));
 				Assert.That(errorProcessorMsg, Is.EqualTo(fallBackLogMsg));
 			}
 			else
 			{
-				var result = policy
+				result = policy
 									.Handle<int>(() =>throw new InvalidOperationException());
 
 				Assert.That(result.IsFailed, Is.True);
 				Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 				Assert.That(result.Result, Is.EqualTo(default(int)));
-				Assert.That(result.Errors.Count(), Is.EqualTo(1));
 				Assert.That(result.UnprocessedError.GetType(), Is.EqualTo(typeof(InvalidOperationException)));
 				Assert.That(result.WrappedPolicyResults.FirstOrDefault().Result.Errors.Count, Is.EqualTo(4));
 			}
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+			Assert.That(result.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
 		}
 
 		[Test]
