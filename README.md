@@ -154,6 +154,7 @@ You might wonder why there are so many success-related properties. See [Nuances 
 
 If an exception occurs within the catch block, it will be stored in the  `CatchBlockErrors`  property that is collection of the `CatchBlockException`  objects. For a critical exception, as mentioned above, the `CatchBlockException.IsCritical` property will be equal to true.  
 The `CriticalError` property represents a critical exception itself or wrapped in the `AggregateException` (since _version_ 2.12.1).  
+The `PolicyResult.WrappedStatus` property (since _version_ 2.24.12) represents the execution status of the wrapped policy.
 
 For generic `Func` delegates, a return value will be stored in the `Result` property if the handling was successful (except for `SimplePolicy`, where `Result` can remain the default value even on success) or there were no errors at all.  
 
@@ -189,6 +190,36 @@ var result = new SimplePolicy()
 ```
 
 Note that the error processor is added to the *whole* policy or policy processor, so its `Process` or `ProcessAsync` method will be called depending on the execution type of the policy handling method. If an error processor was created by a delegate of a particular execution type, the library can utilize sync-over-async or `Task` creation to obtain its counterpart.  
+
+Since _version_ 2.24.12 , you can inherit from the abstract `ErrorProcessor` and override the `Execute` method to run synchronously in both `Process` and `ProcessAsync`:
+
+```csharp
+public class RetryLoggingErrorProcessor : ErrorProcessor
+{
+	private readonly ILogger _logger;
+
+	public RetryLoggingErrorProcessor(ILogger logger)
+	{
+		_logger = logger;
+	}
+
+	public override void Execute(Exception error,
+			ProcessingErrorInfo? catchBlockProcessErrorInfo = null,
+			CancellationToken token = default)
+	{
+		_logger.LogError(error,
+			"An error occurred while doing work on {Attempt} attempt.",
+			catchBlockProcessErrorInfo.GetAttemptCount());
+	}
+}
+
+//Somewhere in your code:
+
+new RetryPolicy(3)
+	.WithErrorProcessor(new RetryLoggingErrorProcessor(_logger))
+	.HandleAsync(MightThrowAsync, token);
+
+```
 
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.  
 
@@ -494,7 +525,8 @@ var fallbackResult = new RetryPolicy(3)
 
 ```
 The key point is the `ThenFallback` method — it wraps the retry policy, letting the fallback handle the `DivideByZeroException` exception. 
-When the `random` variable is zero, the retry policy skips this exception, the fallback policy catches it, logs the error, and the final `fallbackResult.Result` becomes `int.MaxValue`.
+When the `random` variable is zero, the retry policy skips this exception, the fallback policy catches it, logs the error, and the final `fallbackResult.Result` becomes `int.MaxValue`.  
+Since _version_ 2.24.12, `SimplePolicy` supports `ThenFallback` in the same way.
 
 ### SimplePolicy
 The `SimplePolicy` is a policy without rules. If an exception occurs, the `SimplePolicyProcessor` just stores it in the `Errors` collection and, if the error filters match, runs error processors. With policy result handlers, it can be helpful when a specific reaction to the result of handling is needed.  

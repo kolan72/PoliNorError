@@ -1,3 +1,54 @@
+## 2.24.12
+
+- Introduced the `PolicyResult.WrappedStatus` property and the enum-like `WrappedPolicyStatus` class, which encapsulate wrapped policy status values.
+- Introduced the `SimplePolicy.ThenFallback` method.
+- Introduced `Policy.AddHandlerForPolicyResult` extension methods in the new `PoliNorError.Extensions.PolicyResultHandling` namespace.
+- Introduce abstract `ErrorProcessor` class with `Execute` method that implementors must override to define error processing logic.  
+- Support cancellation via linked token in `FallbackPolicy.HandleAsync` and `DefaultFallbackProcessor.FallbackAsync` overloads.
+- Support cancellation via linked token in `FallbackPolicy.Handle` and `DefaultFallbackProcessor.Fallback` overloads.
+- Support cancellation via linked token in `FallbackPolicy.Handle<T>` and `DefaultFallbackProcessor.Fallback<T>` overloads.
+- Support cancellation via linked token in `FallbackPolicy.HandleAsync<T>` and `DefaultFallbackProcessor.FallbackAsync<T>` overloads.
+- Support cancellation via linked token in `SimplePolicy.HandleAsync` and `SimplePolicyProcessor.ExecuteAsync` overloads.
+- Support cancellation via linked token in `SimplePolicy.Handle` and `SimplePolicyProcessor.Execute` overloads.
+- Support cancellation via linked token in `SimplePolicy.Handle<T>` and `SimplePolicyProcessor.Execute<T>` overloads.
+- Support cancellation via linked token in `SimplePolicy.HandleAsync<T>` and `SimplePolicyProcessor.ExecuteAsync<T>` overloads.
+- Support cancellation via linked token in `RetryPolicy.HandleAsync` and `DefaultRetryProcessor.RetryAsync` overloads.
+- Support cancellation via linked token in `RetryPolicy.Handle` and `DefaultRetryProcessor.Retry` overloads.
+- Support cancellation via linked token in `RetryPolicy.Handle<T>` and `DefaultRetryProcessor.Retry<T>` overloads.
+- Support cancellation via linked token in `RetryPolicy.HandleAsync<T>` and `DefaultRetryProcessor.RetryAsync<T>` overloads.
+- Support cancellation via linked token in the `BulkErrorProcessor.ProcessAsync` method.
+- Support cancellation via linked token in the `BulkErrorProcessor.Process` method.
+- Add early return in `BulkErrorProcessor.Process` foreach loop when cancellation occurs while processing the current error processor.  
+- Supported cancellation via a linked token in the internal `IDelayProvider.BackoffSafelyAsync` extension method.
+- Supported cancellation via a linked token in the internal `IDelayProvider.BackoffSafely` extension method.
+- Introduced internal `IDelayProvider.DelayAndCheckIfResultFailed` extension method to replace the `IDelayProvider.BackoffSafely` method.
+- Introduced internal `IDelayProvider.DelayAndCheckIfResultFailedAsyc` extension method to replace the `IDelayProvider.BackoffSafelyAsync` method.
+- DRY refactoring of exception handling in `SimplePolicyProcessor.ExecuteAsync` and `SimplePolicyProcessor.ExecuteAsync<T>` via internal `SimpleAsyncExceptionHandler` class.
+- DRY refactoring of exception handling in `SimplePolicyProcessor.Execute` and `SimplePolicyProcessor.Execute<T>` via internal `SimpleSyncExceptionHandler` class.
+- DRY refactoring of exception handling in `DefaultFallbackProcessor.Fallback` and `DefaultFallbackProcessor.Fallback<T>` via internal `SimpleSyncExceptionHandler` class.
+- DRY refactoring of exception handling in `DefaultFallbackProcessor.FallbackAsync` and `DefaultFallbackProcessor.FallbackAsync<T>` via internal `SimpleAsyncExceptionHandler` class.
+- Refactor exception handling in `DefaultFallbackProcessor.Fallback` catch block to mark the result as canceled only when the passed or linked token is canceled.  
+- Refactor exception handling in `DefaultFallbackProcessor.FallbackAsync` catch block to mark the result as canceled only when the passed or linked token is canceled.  
+- Refactor exception handling in `DefaultFallbackProcessor.Fallback<T>` catch block to mark the result as canceled only when the passed or linked token is canceled.  
+- Refactor exception handling in `DefaultFallbackProcessor.FallbackAsync<T>` catch block to mark the result as canceled only when the passed or linked token is canceled.  
+- Ensure `DefaultFallbackProcessor.FallbackAsync<T>` returns `FallbackFuncExecResult<T>` with result on success path (test correction).  
+- Introduced internal `IDelayProvider.DelayAndCheckIfResultFailed` extension method to replace the `IDelayProvider.BackoffSafely` method.
+- Introduced internal `IDelayProvider.DelayAndCheckIfResultFailedAsyc` extension method to replace the `IDelayProvider.BackoffSafelyAsync` method.
+- Reduce allocations and GC load on each retry by using the `IDelayProvider.DelayAndCheckIfResultFailed` method (stop using `BasicResult` class in retry processing).  
+- Allows combining `DelayErrorProcessor` with error processors that support context.
+- Support safe enumeration of the library-internal collection `FlexSyncEnumerable<T>` when accessed asynchronously.
+- Remove the extra check from the internal `PolicyResult.ChangeByHandleCatchBlockResult` extension method and rename it to `WasResultSetToFailureByCatchBlock`.
+- Mark `IDelayProvider.BackoffSafely` and `IDelayProvider.BackoffSafelyAsync` as obsolete.  
+- Add `CatchBlockException` to `PolicyResult<T>.CatchBlockErrors` when cancellation occurs in generic fallback function.  
+- Add `CatchBlockException` to `PolicyResult.CatchBlockErrors` when cancellation occurs in fallback function.  
+- Add test to verify `PolicyResult<T>.CatchBlockErrors` contains exception when generic fallback function throws.  
+- Add test to verify `PolicyResult.CatchBlockErrors` contains exception when fallback function throws.  
+- Add XML summary comments for `BulkErrorProcessor`.  
+- Moved linked token cancellation tests into a single CancellationTests file.
+- Update NUnit NuGet package to v4.4.0.
+- Add 'Retry-Then-Fallback' README Chapter.
+
+
 ## 2.24.0
 
 - Introduced the `RetryPolicy.ThenFallback` method that implements the retry-then-fallback pattern.
