@@ -52,13 +52,65 @@ namespace PoliNorError
 
 		public PolicyResult Execute<TParam>(Action<TParam> action, TParam param, CancellationToken token = default)
 		{
-			return Execute(action.Apply(param), param, token);
+			return Execute(action, param, new EmptyErrorContext<TParam>(param), token);
 		}
 
 		public PolicyResult Execute<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return Execute(action, (EmptyErrorContext)emptyContext, token);
+		}
+
+		private PolicyResult Execute<TParam>(Action<TParam> action, TParam param, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		{
+			if (action == null)
+				return new PolicyResult().WithNoDelegateException();
+
+			var result = PolicyResult.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
+			try
+			{
+				action(param);
+				result.SetOk();
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				result.SetFailedAndCanceled(ae.GetCancellationException());
+			}
+			catch (Exception ex)
+			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
+						return result;
+					}
+				}
+
+				exHandler.Handle(ex, emptyErrorContext);
+			}
+			return result;
 		}
 
 		private PolicyResult Execute(Action action, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
@@ -70,7 +122,7 @@ namespace PoliNorError
 
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 
@@ -103,7 +155,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -121,13 +173,66 @@ namespace PoliNorError
 
 		public PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, CancellationToken token = default)
 		{
-			return Execute(func.Apply(param), param, token);
+			return Execute(func, param, new EmptyErrorContext<TParam>(param), token);
 		}
 
 		public PolicyResult<T> Execute<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return Execute(func, (EmptyErrorContext)emptyContext, token);
+		}
+
+		private PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		{
+			if (func == null)
+				return new PolicyResult<T>().WithNoDelegateException();
+
+			var result = PolicyResult<T>.ForSync();
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
+
+			try
+			{
+				var resAction = func(param);
+				result.SetOk();
+				result.SetResult(resAction);
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			{
+				result.SetFailedAndCanceled(ae.GetCancellationException());
+			}
+			catch (Exception ex)
+			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
+						return result;
+					}
+				}
+
+				exHandler.Handle(ex, emptyErrorContext);
+			}
+			return result;
 		}
 
 		private PolicyResult<T> Execute<T>(Func<T> func, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
@@ -139,7 +244,7 @@ namespace PoliNorError
 
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 
@@ -173,7 +278,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -189,15 +294,73 @@ namespace PoliNorError
 			return await ExecuteAsync(func, _emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
+		public Task<PolicyResult> ExecuteAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, CancellationToken token)
+		{
+			return ExecuteAsync(func, param, false, token);
+		}
+
 		public async Task<PolicyResult> ExecuteAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, bool configureAwait = false, CancellationToken token = default)
 		{
-			return await ExecuteAsync(func.Apply(param), param, configureAwait, token).ConfigureAwait(configureAwait);
+			return await ExecuteAsync(func, param, new EmptyErrorContext<TParam>(param), configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		public Task<PolicyResult> ExecuteAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, CancellationToken token)
+		{
+			return ExecuteAsync(func, param, false, token);
 		}
 
 		public async Task<PolicyResult> ExecuteAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, bool configureAwait = false, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return await ExecuteAsync(func, (EmptyErrorContext)emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<PolicyResult> ExecuteAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		{
+			if (func == null)
+				return new PolicyResult().WithNoDelegateException();
+
+			var result = PolicyResult.InitByConfigureAwait(configureAwait);
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
+
+			try
+			{
+				await func(param, token).ConfigureAwait(configureAwait);
+				result.SetOk();
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (Exception ex)
+			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
+						return result;
+					}
+				}
+
+				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
+			}
+			return result;
 		}
 
 		private async Task<PolicyResult> ExecuteAsync(Func<CancellationToken, Task> func, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
@@ -209,7 +372,7 @@ namespace PoliNorError
 
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 
@@ -238,7 +401,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -254,15 +417,74 @@ namespace PoliNorError
 			return await ExecuteAsync(func, _emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
+		public Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, CancellationToken token)
+		{
+			return ExecuteAsync(func, param, false, token);
+		}
+
 		public async Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, bool configureAwait = false, CancellationToken token = default)
 		{
-			return await ExecuteAsync(func.Apply(param), param, configureAwait, token).ConfigureAwait(configureAwait);
+			return await ExecuteAsync(func, param, new EmptyErrorContext<TParam>(param), configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		public Task<PolicyResult<T>> ExecuteAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, CancellationToken token)
+		{
+			return ExecuteAsync(func, param, false, token);
 		}
 
 		public async Task<PolicyResult<T>> ExecuteAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, bool configureAwait = false, CancellationToken token = default)
 		{
 			var emptyContext = new EmptyErrorContext<TErrorContext>(param);
 			return await ExecuteAsync(func, (EmptyErrorContext)emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		{
+			if (func == null)
+				return new PolicyResult<T>().WithNoDelegateException();
+
+			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
+
+			if (token.IsCancellationRequested)
+			{
+				result.SetCanceledEarly();
+				return result;
+			}
+
+			result.SetExecuted();
+
+			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
+
+			try
+			{
+				var resAction = await func(param, token).ConfigureAwait(configureAwait);
+				result.SetResult(resAction);
+				result.SetOk();
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(oe);
+			}
+			catch (Exception ex)
+			{
+				if (_rethrowIfErrorFilterUnsatisfied)
+				{
+					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+					if (filterUnsatisfied == true)
+					{
+						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						throw;
+					}
+					else if (!(filterException is null))
+					{
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
+						return result;
+					}
+				}
+
+				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
+			}
+			return result;
 		}
 
 		private async Task<PolicyResult<T>> ExecuteAsync<T>(Func<CancellationToken, Task<T>> func, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
@@ -274,7 +496,7 @@ namespace PoliNorError
 
 			if (token.IsCancellationRequested)
 			{
-				result.SetCanceled();
+				result.SetCanceledEarly();
 				return result;
 			}
 
@@ -304,7 +526,7 @@ namespace PoliNorError
 					}
 					else if (!(filterException is null))
 					{
-						AddErrorAndCatchBlockFilterError(result, ex, filterException);
+						result.AddErrorAndCatchBlockFilterError(ex, filterException);
 						return result;
 					}
 				}
@@ -359,12 +581,6 @@ namespace PoliNorError
 			{
 				return (null, filterEx);
 			}
-		}
-
-		private static void AddErrorAndCatchBlockFilterError(PolicyResult result, Exception ex, Exception filterException)
-		{
-			result.AddError(ex);
-			result.SetFailedWithCatchBlockError(filterException, ex, CatchBlockExceptionSource.ErrorFilter);
 		}
 
 		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicyProcessor}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>

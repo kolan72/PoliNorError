@@ -2,6 +2,7 @@
 using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace PoliNorError.Tests
 {
@@ -448,6 +449,157 @@ namespace PoliNorError.Tests
 
 			var actualErrFilterUnsatisfied = !filter.ErrorFilter.GetCanHandle()(errorToHandler);
 			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
+		}
+	}
+
+	[TestFixture]
+	internal class ExceptionFilterSetTests
+	{
+		[Test]
+		public void Should_InitializeWithEmptyFilters()
+		{
+			var filterSet = new ExceptionFilterSet();
+
+			Assert.That(filterSet.IncludedErrorFilters, Is.Empty);
+			Assert.That(filterSet.ExcludedErrorFilters, Is.Empty);
+		}
+
+		[Test]
+		public void Should_AddIncludedFilter()
+		{
+			var filterSet = new ExceptionFilterSet();
+			Expression<Func<Exception, bool>> filter = ex => ex is ArgumentNullException;
+
+			filterSet.IncludeFilter(filter);
+
+			Assert.That(filterSet.IncludedErrorFilters, Has.Count.EqualTo(1));
+			Assert.That(filterSet.IncludedErrorFilters, Contains.Item(filter));
+		}
+
+		[Test]
+		public void Should_AddExcludedFilter()
+		{
+			var filterSet = new ExceptionFilterSet();
+			Expression<Func<Exception, bool>> filter = ex => ex is InvalidOperationException;
+
+			filterSet.ExcludeFilter(filter);
+
+			Assert.That(filterSet.ExcludedErrorFilters, Has.Count.EqualTo(1));
+			Assert.That(filterSet.ExcludedErrorFilters, Contains.Item(filter));
+		}
+
+		[Test]
+		public void Should_AppendFiltersFromOtherFilterSet()
+		{
+			var filterSet1 = new ExceptionFilterSet();
+			var filterSet2 = new ExceptionFilterSet();
+
+			Expression<Func<Exception, bool>> includeFilter = ex => ex is ArgumentException;
+			Expression<Func<Exception, bool>> excludeFilter = ex => ex is NullReferenceException;
+
+			filterSet2.IncludeFilter(includeFilter);
+			filterSet2.ExcludeFilter(excludeFilter);
+
+			filterSet1.AppendFilter(filterSet2);
+
+			Assert.That(filterSet1.IncludedErrorFilters, Contains.Item(includeFilter));
+			Assert.That(filterSet1.ExcludedErrorFilters, Contains.Item(excludeFilter));
+		}
+
+		[Test]
+		public void Should_CompilePredicate_ReturnAlwaysTrue_WhenNoFilters()
+		{
+			var filterSet = new ExceptionFilterSet();
+			var predicate = filterSet.CompilePredicate();
+
+			Assert.That(predicate(new Exception()), Is.True);
+			Assert.That(predicate(new InvalidOperationException()), Is.True);
+		}
+
+		[Test]
+		public void Should_CompilePredicate_WithIncludedFilters()
+		{
+			var filterSet = new ExceptionFilterSet();
+			filterSet.IncludeFilter(ex => ex is ArgumentException);
+			filterSet.IncludeFilter(ex => ex is InvalidOperationException);
+
+			var predicate = filterSet.CompilePredicate();
+
+			Assert.That(predicate(new ArgumentException("Test")), Is.True);
+			Assert.That(predicate(new InvalidOperationException()), Is.True);
+			Assert.That(predicate(new Exception()), Is.False);
+			Assert.That(predicate(new NullReferenceException()), Is.False);
+		}
+
+		[Test]
+		public void Should_CompilePredicate_WithExcludedFilters()
+		{
+			var filterSet = new ExceptionFilterSet();
+			filterSet.ExcludeFilter(ex => ex is ArgumentException);
+			filterSet.IncludeFilter(ex => ex is InvalidOperationException);
+
+			var predicate = filterSet.CompilePredicate();
+
+			Assert.That(predicate(new ArgumentException("Test")), Is.False);
+			Assert.That(predicate(new InvalidOperationException()), Is.True);
+			Assert.That(predicate(new Exception()), Is.False);
+			Assert.That(predicate(new NullReferenceException()), Is.False);
+		}
+
+		[Test]
+		public void Should_CompilePredicate_WithBothIncludedAndExcludedFilters()
+		{
+			var filterSet = new ExceptionFilterSet();
+			filterSet.IncludeFilter(ex => ex is ArgumentException);
+			filterSet.ExcludeFilter(ex => ex.Message.Contains("Invalid"));
+
+			var predicate = filterSet.CompilePredicate();
+
+			Assert.That(predicate(new ArgumentException("Valid")), Is.True);
+			Assert.That(predicate(new ArgumentException("Invalid")), Is.False);
+			Assert.That(predicate(new InvalidOperationException("Valid")), Is.False);
+		}
+
+		[Test]
+		public void Should_CompilePredicate_WithMultipleIncludedAndExcludedFilters()
+		{
+			var filterSet = new ExceptionFilterSet();
+			filterSet.IncludeFilter(ex => ex is ArgumentException);
+			filterSet.IncludeFilter(ex => ex is InvalidOperationException);
+			filterSet.ExcludeFilter(ex => ex.Message.Contains("Ignore"));
+
+			var predicate = filterSet.CompilePredicate();
+
+			Assert.That(predicate(new ArgumentException("Valid")), Is.True);
+			Assert.That(predicate(new InvalidOperationException("Valid")), Is.True);
+			Assert.That(predicate(new ArgumentException("Ignore")), Is.False);
+			Assert.That(predicate(new Exception()), Is.False);
+		}
+
+		[Test]
+		public void Should_AppendFilter_PreserveExistingFilters()
+		{
+			var originalSet = new ExceptionFilterSet();
+			var additionalSet = new ExceptionFilterSet();
+
+			Expression<Func<Exception, bool>> originalInclude = ex => ex is ArgumentException;
+			Expression<Func<Exception, bool>> originalExclude = ex => ex is NullReferenceException;
+			Expression<Func<Exception, bool>> additionalInclude = ex => ex is InvalidOperationException;
+			Expression<Func<Exception, bool>> additionalExclude = ex => ex is DivideByZeroException;
+
+			originalSet.IncludeFilter(originalInclude);
+			originalSet.ExcludeFilter(originalExclude);
+			additionalSet.IncludeFilter(additionalInclude);
+			additionalSet.ExcludeFilter(additionalExclude);
+
+			originalSet.AppendFilter(additionalSet);
+
+			Assert.That(originalSet.IncludedErrorFilters, Has.Count.EqualTo(2));
+			Assert.That(originalSet.ExcludedErrorFilters, Has.Count.EqualTo(2));
+			Assert.That(originalSet.IncludedErrorFilters, Contains.Item(originalInclude));
+			Assert.That(originalSet.IncludedErrorFilters, Contains.Item(additionalInclude));
+			Assert.That(originalSet.ExcludedErrorFilters, Contains.Item(originalExclude));
+			Assert.That(originalSet.ExcludedErrorFilters, Contains.Item(additionalExclude));
 		}
 	}
 }

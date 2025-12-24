@@ -30,6 +30,9 @@ namespace PoliNorError
 			return policyResult.IsFailed;
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static bool ChangeByRetryDelayResult(this PolicyResult policyResult, BasicResult basicResult, Exception handlingException)
 		{
 			if (policyResult.IsFailed)
@@ -74,6 +77,12 @@ namespace PoliNorError
 		{
 			result.AddCatchBlockError(new CatchBlockException(processException, handlingException, errorSource, true));
 			result.SetFailedInner();
+		}
+
+		internal static void AddErrorAndCatchBlockFilterError(this PolicyResult result, Exception ex, Exception filterException)
+		{
+			result.AddError(ex);
+			result.SetFailedWithCatchBlockError(filterException, ex, CatchBlockExceptionSource.ErrorFilter);
 		}
 
 		internal static T WithNoDelegateException<T>(this T retryResult) where T : PolicyResult
@@ -333,6 +342,11 @@ namespace PoliNorError
 			}
 			Exception error = wrappedResults?.FirstOrDefault()?.GetResult().Errors?.FirstOrDefault();
 			return (error, currentIndex);
+		}
+
+		internal static LastPolicyResultState ToLastPolicyResultState(this PolicyResult policyResult)
+		{
+			return new LastPolicyResultState() { IsCanceled = policyResult?.IsCanceled, IsFailed = policyResult?.IsFailed };
 		}
 	}
 }

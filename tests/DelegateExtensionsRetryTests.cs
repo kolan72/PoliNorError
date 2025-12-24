@@ -76,7 +76,6 @@ namespace PoliNorError.Tests
 			public int ErrorsCount
 			{
 				get { return errorsCount; }
-				private set { errorsCount = value; }
 			}
 			public Exception LastError { get; private set; }
 		}

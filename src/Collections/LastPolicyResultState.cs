@@ -2,12 +2,10 @@
 {
 	internal sealed class LastPolicyResultState
 	{
-		private LastPolicyResultState() { }
+		internal LastPolicyResultState() { }
 
-		public bool? IsCanceled { get; private set; }
-		public bool? IsFailed { get; private set; }
-
-		public static LastPolicyResultState FromPolicyResult(PolicyResult policyResult) => new LastPolicyResultState() { IsCanceled = policyResult?.IsCanceled, IsFailed = policyResult?.IsFailed };
+		public bool? IsCanceled { get; internal set; }
+		public bool? IsFailed { get; internal set; }
 
 		public static LastPolicyResultState FromCanceled() => new LastPolicyResultState() { IsCanceled = true };
 

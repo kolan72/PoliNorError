@@ -28,20 +28,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_RetryAsyncT_BeCancelable()
+		public async Task Should_RetryInfiniteAsyncT_BeCancelable()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
 
-			async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				cancelTokenSource.CancelAfter(500);
 
-			cancelTokenSource.CancelAfter(500);
+				var processor = new DefaultRetryProcessor();
 
-			var processor = new DefaultRetryProcessor();
+				var tryResCount = await processor.RetryInfiniteAsync(save, cancelTokenSource.Token);
 
-			var tryResCount = await processor.RetryInfiniteAsync(save, cancelTokenSource.Token);
-
-			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
-			cancelTokenSource.Dispose();
+				ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
+			}
 		}
 
 		[Test]
@@ -298,6 +298,422 @@ namespace PoliNorError.Tests
 				var defProcessor = new DefaultRetryProcessor(delayProvider);
 				await defProcessor.RetryInfiniteAsync<int>((_) => throw new Exception("Test"), new ConstantRetryDelay(TimeSpan.FromMilliseconds(1)), false, source.Token);
 				Assert.That(delayProvider.NumOfCalls, Is.EqualTo(1));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryAsync_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				var processor = RetryProcessor.CreateDefault();
+				var tryResCount = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryAsyncT_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				var processor = RetryProcessor.CreateDefault();
+				var tryResCount = await processor.RetryAsync(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryWithErrorContextAsync_With_RetryCountInfo_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				const int k = 0;
+				Task f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => { }, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryWithErrorContextAsync(f, 1, new RetryCountInfo(), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteWithErrorContextAsync_With_RetryCountInfo_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => { }, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteWithErrorContextAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryWithErrorContextAsync_With_RetryCountInfo_With_RetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => { }, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryWithErrorContextAsync(f, 1, new RetryCountInfo(), ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteWithErrorContextAsync_With_RetryCountInfo_With_RetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => { }, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteWithErrorContextAsync(f, 1, ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryAsync_With_RetryCountInfo_With_TParam_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryAsync(f, 1, new RetryCountInfo(), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryAsync_With_RetryCountInfo_With_TParam_WithRetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryAsync(f, 1, new RetryCountInfo(), ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteAsync_With_TParam_With_RetryCountInfo_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteAsync_With_RetryCountInfo_With_TParam_WithRetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteAsync(f, 1, ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryWithErrorContextAsync__With_TParam_With_RetryCountInfo_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				Task<int> f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => 1, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryWithErrorContextAsync(f, 1, new RetryCountInfo(), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(result.Result, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteWithErrorContextAsyncT_With_RetryCountInfo_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				Task<int> f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => 1, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteWithErrorContextAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(result.Result, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryWithErrorContextAsyncT_With_RetryCountInfo_With_RetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				Task<int> f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => 1, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryWithErrorContextAsync(f, 1, new RetryCountInfo(), ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(result.Result, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteWithErrorContextAsyncT_With_RetryCountInfo_With_RetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				Task<int> f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => 1, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteWithErrorContextAsync(f, 1, ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(result.Result, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryAsyncT_With_RetryCountInfo_With_TParam_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task<int> f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryAsync(f, 1, new RetryCountInfo(), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteAsyncT_With_TParam_With_RetryCountInfo_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task<int> f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryAsyncT_With_RetryCountInfo_With_TParam_With_RetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task<int> f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryAsync(f, 1, new RetryCountInfo(), ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_RetryInfiniteAsyncT_With_RetryCountInfo_With_TParam_With_RetryDelay_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task<int> f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new DefaultRetryProcessor();
+				var result = await processor.RetryInfiniteAsync(f, 1, ConstantRetryDelay.Create(TimeSpan.FromMilliseconds(1)), token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
 			}
 		}
 	}

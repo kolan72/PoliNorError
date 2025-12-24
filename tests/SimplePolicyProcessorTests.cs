@@ -119,19 +119,214 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Execute_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				void save() => throw new ApplicationException();
+				var processor = SimplePolicyProcessor.CreateDefault();
+				var tryResCount = processor.Execute(save, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_ExecuteT_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				int save() => throw new ApplicationException();
+				var processor = SimplePolicyProcessor.CreateDefault();
+				var tryResCount = processor.Execute(save, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_Execute_WithContext_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				void save() => throw new ApplicationException();
+				var processor = new SimplePolicyProcessor();
+				var tryResCount = processor.Execute(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_ExecuteT_WithContext_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+#pragma warning disable RCS1163 // Unused parameter.
+				int save(int i) => throw new ApplicationException();
+#pragma warning restore RCS1163 // Unused parameter.
+				var processor = new SimplePolicyProcessor();
+				var tryResCount = processor.Execute(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_Execute_With_Param_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+#pragma warning disable RCS1163 // Unused parameter.
+				void save(int i) => throw new ApplicationException();
+#pragma warning restore RCS1163 // Unused parameter.
+				var processor = new SimplePolicyProcessor();
+				var tryResCount = processor.Execute(save, 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
 		public async Task Should_ExecuteAsync_BeCancelable()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.Cancel();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
 
-			async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
-			const int i = 0;
-			var processor = SimplePolicyProcessor.CreateDefault();
-			var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
+				async Task save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				const int i = 0;
+				var processor = SimplePolicyProcessor.CreateDefault();
+				var tryResCount = await processor.ExecuteAsync(save, cancelTokenSource.Token);
 
-			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
-			ClassicAssert.AreEqual(0, i);
-			cancelTokenSource.Dispose();
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+
+				Assert.That(i, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsync_With_Param_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(int i, CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = i, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new SimplePolicyProcessor();
+				var result = await processor.ExecuteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsync_With_Context_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				Task f(CancellationToken ct)
+				{
+					return Task.Run(() => Task.Run(() => k = 1, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new SimplePolicyProcessor();
+				var result = await processor.ExecuteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsyncT_With_Param_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+#pragma warning disable RCS1163 // Unused parameter.
+				Task<int> f(int i, CancellationToken ct)
+#pragma warning restore RCS1163 // Unused parameter.
+				{
+					return Task.Run(() => Task.Run(() => k = 1, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new SimplePolicyProcessor();
+				var result = await processor.ExecuteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(result.NoError, Is.True);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsyncT_With_Context_With_ConfigAwait_False__BeCancelable()
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var token = cts.Token;
+				var k = 0;
+				async Task<int> f(CancellationToken ct)
+				{
+					return await Task.Run(() => Task.Run(() => { k = 1; return k; }, token).GetAwaiter().GetResult(), ct);
+				}
+				var processor = new SimplePolicyProcessor();
+				var result = await processor.ExecuteAsync(f, 1, token).ConfigureAwait(false);
+
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsSuccess, Is.False);
+
+				Assert.That(k, Is.EqualTo(0));
+			}
 		}
 
 		[Test]
@@ -148,6 +343,73 @@ namespace PoliNorError.Tests
 			ClassicAssert.AreEqual(true, tryResCount.IsCanceled);
 			ClassicAssert.AreEqual(0, i);
 			cancelTokenSource.Dispose();
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsync_WithParam_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+#pragma warning disable RCS1163 // Unused parameter.
+				async Task save(int k, CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+#pragma warning restore RCS1163 // Unused parameter.
+				const int i = 0;
+				var processor = new SimplePolicyProcessor();
+				var tryResCount = await processor.ExecuteAsync(save, 1, false, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+
+				Assert.That(i, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsyncT_WithParam_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+#pragma warning disable RCS1163 // Unused parameter.
+				async Task<int> save(int k, CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+#pragma warning restore RCS1163 // Unused parameter.
+				const int i = 0;
+				var processor = new SimplePolicyProcessor();
+				var tryResCount = await processor.ExecuteAsync(save, 1, false, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+
+				Assert.That(i, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
+		public async Task Should_ExecuteAsyncT_WithContext_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				async Task<int> save(CancellationToken _) { await Task.Delay(1); throw new ApplicationException(); }
+				const int i = 0;
+				var processor = SimplePolicyProcessor.CreateDefault();
+				var tryResCount = await processor.ExecuteAsync(save, false, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+
+				Assert.That(i, Is.EqualTo(0));
+			}
 		}
 
 		[Test]
@@ -557,6 +819,7 @@ namespace PoliNorError.Tests
 				var res = proc.Execute(ActionWithInner);
 				Assert.That(res.CatchBlockErrors.Count(), Is.EqualTo(1));
 				Assert.That(res.Errors.Count(), Is.EqualTo(1));
+				Assert.That(res.CatchBlockErrors.FirstOrDefault().ExceptionSource, Is.EqualTo(CatchBlockExceptionSource.ErrorFilter));
 			}
 			else
 			{

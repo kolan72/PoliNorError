@@ -1,14 +1,11 @@
 ﻿using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
 	internal class PolicyResultExtensionsTests
 	{
+#pragma warning disable CS0618 // Type or member is obsolete
 		[Test]
 		public void Should_ChangeByRetryDelayResult_DoesNotThrow_On_Null_BasicResult()
 		{
@@ -16,5 +13,6 @@ namespace PoliNorError.Tests
 			pr.SetResult(1);
 			Assert.DoesNotThrow(() => pr.ChangeByRetryDelayResult(null, new Exception()));
 		}
+#pragma warning restore CS0618 // Type or member is obsolete
 	}
 }

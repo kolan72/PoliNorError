@@ -249,6 +249,12 @@ namespace PoliNorError
 			IsCanceled = true;
 		}
 
+		internal void SetCanceledEarly()
+		{
+			IsCanceled = true;
+			NoError = true;
+		}
+
 		internal void SetExecuted()
 		{
 			_executed = true;

@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace PoliNorError
 {
-	public abstract class PolicyProcessor : IPolicyProcessor
+	public abstract partial class PolicyProcessor : IPolicyProcessor
 	{
 		protected IBulkErrorProcessor _bulkErrorProcessor;
 
@@ -74,105 +74,5 @@ namespace PoliNorError
 
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-		public class ExceptionFilter
-		{
-			internal readonly List<Expression<Func<Exception, bool>>> _includedErrorFilters = new List<Expression<Func<Exception, bool>>>();
-			internal readonly List<Expression<Func<Exception, bool>>> _excludedErrorFilters = new List<Expression<Func<Exception, bool>>>();
-
-			internal void AddIncludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
-			{
-				_includedErrorFilters.Add(handledErrorFilter);
-			}
-
-			internal void AddIncludedErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
-			{
-				AddIncludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
-			}
-
-			internal void AddIncludedInnerErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
-			{
-				AddIncludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
-			}
-
-			internal void AddExcludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
-			{
-				_excludedErrorFilters.Add(handledErrorFilter);
-			}
-
-			internal void AddExcludedErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
-			{
-				AddExcludedErrorFilter(ExpressionHelper.GetTypedErrorFilter(func));
-			}
-
-			internal void AddExcludedInnerErrorFilter<TException>(Func<TException, bool> func = null) where TException : Exception
-			{
-				AddExcludedErrorFilter(ExpressionHelper.GetTypedInnerErrorFilter(func));
-			}
-
-			internal void AppendFilter(ExceptionFilter exceptionFilter)
-			{
-				foreach (var filter in exceptionFilter.IncludedErrorFilters)
-				{
-					_includedErrorFilters.Add(filter);
-				}
-				foreach (var filter in exceptionFilter.ExcludedErrorFilters)
-				{
-					_excludedErrorFilters.Add(filter);
-				}
-			}
-
-			internal Func<Exception, bool> GetCanHandle()
-			{
-				var (includeMode, includeExpression) = GetIncludedErrorFilterPredicateTuple();
-				var (excludeMode, excludeExpression) = GetExcludedErrorFilterPredicateTuple();
-
-				var resMode = includeMode | excludeMode;
-
-				if ((resMode & ErrorFilterModes.Include) != 0)
-				{
-					return (resMode & ErrorFilterModes.Exclude) != 0 ? includeExpression.And(excludeExpression).Compile() : includeExpression.Compile();
-				}
-				else if ((resMode & ErrorFilterModes.Exclude) != 0)
-				{
-					return excludeExpression.Compile();
-				}
-				else
-				{
-					return (_) => true;
-				}
-			}
-
-			public IEnumerable<Expression<Func<Exception, bool>>> IncludedErrorFilters => _includedErrorFilters;
-
-			public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => _excludedErrorFilters;
-
-			private (ErrorFilterModes mode, Expression<Func<Exception, bool>> expression) GetIncludedErrorFilterPredicateTuple()
-			{
-				if (_includedErrorFilters.Count == 0)
-					return (ErrorFilterModes.None, null);
-
-				return (ErrorFilterModes.Include, _includedErrorFilters.GetOrCombined());
-			}
-
-			private (ErrorFilterModes mode, Expression<Func<Exception, bool>> expression) GetExcludedErrorFilterPredicateTuple()
-			{
-				if (_excludedErrorFilters.Count == 0)
-					return (ErrorFilterModes.None, null);
-
-				var res = _excludedErrorFilters.GetOrCombined().Not();
-
-				return (ErrorFilterModes.Exclude, res);
-			}
-
-			[Flags]
-			private enum ErrorFilterModes
-			{
-				None = 0,
-				Include = 1,
-				Exclude = 2,
-				IncludeExclude = Include | Exclude
-			}
-		}
 	}
 }

@@ -69,7 +69,7 @@ namespace PoliNorError
 				}
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 
 		internal static (IEnumerable<PolicyDelegateResult<T>> HandleResults, LastPolicyResultState lastPolicyResultState) HandleAllForceSync<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default)
@@ -107,7 +107,7 @@ namespace PoliNorError
 				}
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 
 		internal static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState)> HandleAllBySyncType(IEnumerable<PolicyDelegate> policyDelegateInfos, PolicyDelegateHandleType handleType, CancellationToken token = default, bool configureAwait = false)
@@ -183,7 +183,7 @@ namespace PoliNorError
 
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 
 		internal static (IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState) HandleWhenAllReallySync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default)
@@ -209,7 +209,7 @@ namespace PoliNorError
 
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 
 		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState)> HandleAllMisc(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
@@ -239,7 +239,7 @@ namespace PoliNorError
 				}
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 
 		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, LastPolicyResultState lastPolicyResultState)> HandleAllMisc<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
@@ -269,7 +269,7 @@ namespace PoliNorError
 				}
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 
 		private static async Task<(IEnumerable<PolicyDelegateResult<T>> HandleResults, LastPolicyResultState lastPolicyResultState)> HandleWhenAllAsync<T>(IEnumerable<PolicyDelegate<T>> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
@@ -291,7 +291,7 @@ namespace PoliNorError
 				curPolResult = await si.HandleSafelyAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 
 		private static async Task<(IEnumerable<PolicyDelegateResult> HandleResults, LastPolicyResultState lastPolicyResultState)> HandleWhenAllAsync(IEnumerable<PolicyDelegate> policyDelegateInfos, CancellationToken token = default, bool configureAwait = false)
@@ -313,7 +313,7 @@ namespace PoliNorError
 				curPolResult = await si.HandleSafelyAsync(configureAwait, token).ConfigureAwait(configureAwait);
 				handledResults.AddPolicyDelegateResult(si, curPolResult);
 			}
-			return (handledResults, LastPolicyResultState.FromPolicyResult(curPolResult));
+			return (handledResults, curPolResult.ToLastPolicyResultState());
 		}
 	}
 }

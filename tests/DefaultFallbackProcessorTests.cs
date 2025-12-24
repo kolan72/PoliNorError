@@ -663,5 +663,41 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(result.IsSuccess, Is.True);
 		}
+
+		[Test]
+		public void Should_Fallback_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				void save() => throw new ApplicationException();
+				var processor = FallbackProcessor.CreateDefault();
+				var tryResCount = processor.Fallback(save, (_) => { }, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_FallbackT_BeCancelable()
+		{
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
+
+				int save() => throw new ApplicationException();
+				var processor = FallbackProcessor.CreateDefault();
+				var tryResCount = processor.Fallback(save, (_) => 1, cancelTokenSource.Token);
+
+				Assert.That(tryResCount.IsCanceled, Is.True);
+				Assert.That(tryResCount.IsSuccess, Is.False);
+
+				Assert.That(tryResCount.NoError, Is.True);
+			}
+		}
 	}
 }

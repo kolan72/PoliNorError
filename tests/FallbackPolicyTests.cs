@@ -74,15 +74,17 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Fallback_Result_BeCanceled_IfTokenJustCanceled()
 		{
-			var cancelTokenSource = new CancellationTokenSource();
-			cancelTokenSource.Cancel();
+			using (var cancelTokenSource = new CancellationTokenSource())
+			{
+				cancelTokenSource.Cancel();
 
-			var policy = new FallbackPolicy().WithFallbackAction((_) => { });
-			var res = policy.Handle(() => { }, cancelTokenSource.Token);
+				var policy = new FallbackPolicy().WithFallbackAction((_) => { });
+				var res = policy.Handle(() => { }, cancelTokenSource.Token);
 
-			ClassicAssert.IsTrue(res.IsCanceled);
-			ClassicAssert.IsFalse(res.NoError);
-			cancelTokenSource.Dispose();
+				ClassicAssert.IsTrue(res.IsCanceled);
+
+				ClassicAssert.IsTrue(res.NoError);
+			}
 		}
 
 		[Test]

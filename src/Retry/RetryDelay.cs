@@ -77,6 +77,9 @@ namespace PoliNorError
 		public RetryDelay(Func<int, TimeSpan> delayValueProvider)
 		{
 			DelayValueProvider = delayValueProvider ?? throw new ArgumentNullException(nameof(delayValueProvider));
+#pragma warning disable CS0618 // Type or member is obsolete
+			InnerDelayValueProvider = delayValueProvider;
+#pragma warning restore CS0618 // Type or member is obsolete
 		}
 
 		public static implicit operator RetryDelay(Func<int, TimeSpan> delayValueProvider) => new RetryDelay(delayValueProvider);
