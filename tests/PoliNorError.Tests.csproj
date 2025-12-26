@@ -113,6 +113,7 @@
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="ICanAddErrorFilterTests.cs" />
+    <Compile Include="PipelineFuncExtensionsTests.cs" />
     <Compile Include="PipelineResultTests.cs" />
     <Compile Include="PolicyDelegateCollectionResultTests.cs" />
     <Compile Include="PolicyDelegateTests.cs" />
