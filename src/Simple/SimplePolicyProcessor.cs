@@ -93,19 +93,16 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var (ShouldRethrow, HasFilterException) = ProcessErrorFilter(ex, result);
+				if (ShouldRethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
+				}
+
+				if (HasFilterException)
+				{
+					return result;
 				}
 
 				exHandler.Handle(ex, emptyErrorContext);
@@ -595,6 +592,28 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
+		}
+
+		private (bool ShouldRethrow, bool HasFilterException) ProcessErrorFilter(Exception ex, PolicyResult result)
+		{
+			if (!_rethrowIfErrorFilterUnsatisfied)
+				return (false, false);
+
+			var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
+
+			if (filterUnsatisfied == true)
+			{
+				return (true, false);
+			}
+			else if (!(filterException is null))
+			{
+				result.AddErrorAndCatchBlockFilterError(ex, filterException);
+				return (false, true);
+			}
+			else
+			{
+				return (false, false);
+			}
 		}
 	}
 }
