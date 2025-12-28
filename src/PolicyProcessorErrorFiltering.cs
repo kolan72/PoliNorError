@@ -109,7 +109,7 @@ namespace PoliNorError
 		{
 			foreach (var item in errorSet.Items)
 			{
-				policyProcessor.AddIncludedError(item);
+				policyProcessor.ErrorFilter.AddIncludedError(item);
 			}
 		}
 
@@ -124,7 +124,7 @@ namespace PoliNorError
 		{
 			foreach (var item in errorSet.Items)
 			{
-				policyProcessor.AddExcludedError(item);
+				policyProcessor.ErrorFilter.AddExcludedError(item);
 			}
 		}
 
@@ -136,16 +136,6 @@ namespace PoliNorError
 		internal static void AddExcludedInnerErrorFilter<TInnerException>(this IPolicyProcessor policyProcessor, Func<TInnerException, bool> func = null) where TInnerException : Exception
 		{
 			policyProcessor.ErrorFilter.AddExcludedInnerErrorFilter(func);
-		}
-
-		internal static void AddIncludedError(this IPolicyProcessor policyProcessor, ErrorSetItem errorSetItem)
-		{
-			policyProcessor.ErrorFilter.AddIncludedError(errorSetItem);
-		}
-
-		internal static void AddExcludedError(this IPolicyProcessor policyProcessor, ErrorSetItem errorSetItem)
-		{
-			policyProcessor.ErrorFilter.AddExcludedError(errorSetItem);
 		}
 	}
 }
