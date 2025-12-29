@@ -93,19 +93,17 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				var (ShouldRethrow, HasFilterException) = ProcessErrorFilter(ex, result);
-				if (ShouldRethrow)
+				var (shouldRethrow, hasFilterException) = ProcessErrorFilter(ex, result);
+				if (shouldRethrow)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
 
-				if (HasFilterException)
+				if (!hasFilterException)
 				{
-					return result;
+					exHandler.Handle(ex, emptyErrorContext);
 				}
-
-				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -605,14 +603,14 @@ namespace PoliNorError
 			{
 				return (true, false);
 			}
-			else if (!(filterException is null))
+			else if (filterException is null)
 			{
-				result.AddErrorAndCatchBlockFilterError(ex, filterException);
-				return (false, true);
+				return (false, false);
 			}
 			else
 			{
-				return (false, false);
+				result.AddErrorAndCatchBlockFilterError(ex, filterException);
+				return (false, true);
 			}
 		}
 	}
