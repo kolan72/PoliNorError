@@ -76,8 +76,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				action(param);
@@ -102,6 +100,7 @@ namespace PoliNorError
 
 				if (!hasFilterException)
 				{
+					var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
 					exHandler.Handle(ex, emptyErrorContext);
 				}
 			}
