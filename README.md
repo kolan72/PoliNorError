@@ -1304,7 +1304,7 @@ For quick, one-off error handling without complex logic, a policy processor is o
 
 ### Safeguarding Core Components
 
-- **`BulkErrorProcessor` and `ExceptionFilter` are central** to the library's processing pipeline. Add processors or filters carefully, especially when configuring them from different parts of an application.
+- **`BulkErrorProcessor` and `ExceptionFilter` are central** to the library's processing pipeline. Add error processors or filters carefully, especially when configuring them from different parts of an application.
 - **Use the `With...`*`PolicyName`** shorthand methods when adding policies to collections - they provide consistent configuration and clearer intent.
 
 ### Version-Specific Tips
