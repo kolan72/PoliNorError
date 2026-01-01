@@ -22,6 +22,15 @@ namespace PoliNorError
 			_policyRuleFunc = policyRuleFunc ?? ((_) => true);
 		}
 
+		protected HandleCatchBlockResult ShouldHandleException(Exception ex, ErrorContext<T> errorContext)
+		{
+			if (_cancellationToken.IsCancellationRequested)
+			{
+				return HandleCatchBlockResult.Canceled;
+			}
+			return CanHandle(ex, errorContext);
+		}
+
 		protected (HandleCatchBlockResult Result, bool CanProcess) PreHandle(Exception ex, ErrorContext<T> errorContext)
 		{
 			if (_cancellationToken.IsCancellationRequested)

@@ -16,13 +16,13 @@ namespace PoliNorError
 
 		public async Task<HandleCatchBlockResult> HandleAsync(Exception ex, ErrorContext<T> errorContext = null)
 		{
-			var (Result, CanProcess) = PreHandle(ex, errorContext);
-			if (!CanProcess)
-				return Result;
+			var shouldHandleResult = ShouldHandleException(ex, errorContext);
+			if(shouldHandleResult != HandleCatchBlockResult.Success)
+				return shouldHandleResult;
 
 			var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext.ToProcessingErrorContext(), _configAwait, _cancellationToken).ConfigureAwait(_configAwait);
 
-			return PostHandle(bulkProcessResult, Result);
+			return PostHandle(bulkProcessResult, shouldHandleResult);
 		}
 	}
 }
