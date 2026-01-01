@@ -31,6 +31,9 @@ namespace PoliNorError
 			return CanHandle(ex, errorContext);
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected (HandleCatchBlockResult Result, bool CanProcess) PreHandle(Exception ex, ErrorContext<T> errorContext)
 		{
 			if (_cancellationToken.IsCancellationRequested)
