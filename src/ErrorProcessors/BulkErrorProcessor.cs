@@ -259,6 +259,11 @@ namespace PoliNorError
 			public IEnumerable<ErrorProcessorException> ProcessErrors => _processErrors;
 
 			/// <summary>
+			/// Gets a value indicating whether any processing errors occurred.
+			/// </summary>
+			public bool HasProcessErrors => _processErrors.Count > 0;
+
+			/// <summary>
 			/// Gets a value indicating whether the bulk processing operation was canceled.
 			/// </summary>
 			public bool IsCanceled => _processErrors.Any(e => e.ErrorStatus == ProcessStatus.Canceled) || _isCanceledBetweenProcessOne;
