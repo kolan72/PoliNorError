@@ -57,6 +57,9 @@ namespace PoliNorError
 				return HandleCatchBlockResult.Success;
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected HandleCatchBlockResult PostHandle(BulkProcessResult bulkProcessResult, HandleCatchBlockResult resultIfNotCanceled)
 		{
 			_policyResult.AddBulkProcessorErrors(bulkProcessResult);
