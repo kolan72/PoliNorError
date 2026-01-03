@@ -10,7 +10,10 @@ namespace PoliNorError
 	{
 		internal static void AddBulkProcessorErrors(this PolicyResult policyResult, BulkErrorProcessor.BulkProcessResult bulkProcessResult)
 		{
-			policyResult.AddCatchBlockErrors(bulkProcessResult.ToCatchBlockExceptions());
+			if (bulkProcessResult.HasProcessErrors)
+			{
+				policyResult.AddCatchBlockErrors(bulkProcessResult.ToCatchBlockExceptions());
+			}
 		}
 
 		internal static bool WasResultSetToFailureByCatchBlock(this PolicyResult policyResult, HandleCatchBlockResult canHandleResult)
