@@ -22,7 +22,8 @@ namespace PoliNorError
 
 			var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext.ToProcessingErrorContext(), _configAwait, _cancellationToken).ConfigureAwait(_configAwait);
 
-			return PostHandle(bulkProcessResult, shouldHandleResult);
+			_policyResult.AddBulkProcessorErrors(bulkProcessResult);
+			return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : shouldHandleResult;
 		}
 	}
 }

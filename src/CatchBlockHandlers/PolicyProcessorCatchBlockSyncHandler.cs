@@ -18,7 +18,8 @@ namespace PoliNorError
 
 			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), _cancellationToken);
 
-			return PostHandle(bulkProcessResult, shouldHandleResult);
+			_policyResult.AddBulkProcessorErrors(bulkProcessResult);
+			return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : shouldHandleResult;
 		}
 	}
 }
