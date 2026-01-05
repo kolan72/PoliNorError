@@ -597,19 +597,14 @@ namespace PoliNorError
 				return (false, false);
 
 			var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-
-			if (filterUnsatisfied == true)
-			{
-				return (true, false);
-			}
-			else if (filterException is null)
-			{
-				return (false, false);
-			}
-			else
+			if (!(filterException is null))
 			{
 				result.AddErrorAndCatchBlockFilterError(ex, filterException);
 				return (false, true);
+			}
+			else
+			{
+				return (filterUnsatisfied == true, false);
 			}
 		}
 	}
