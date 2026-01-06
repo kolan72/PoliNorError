@@ -118,6 +118,7 @@
     <Compile Include="PipelineResultTests.cs" />
     <Compile Include="PolicyDelegateCollectionResultTests.cs" />
     <Compile Include="PolicyDelegateTests.cs" />
+    <Compile Include="PolicyProcessor.HandleException.Tests.cs" />
     <Compile Include="PolicyResultExtensionsTests.cs" />
     <Compile Include="ProcessingErrorInfoTests.cs" />
     <Compile Include="RetryDelay.Tests\RetryDelayChecker.cs" />
