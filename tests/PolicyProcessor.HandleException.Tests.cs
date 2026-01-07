@@ -29,7 +29,7 @@ namespace PoliNorError.Tests
                 Func<ErrorContext<T>, bool> policyRuleFunc = null,
                 ExceptionHandlingBehavior handlingBehavior = ExceptionHandlingBehavior.Handle)
             {
-                return HandleException(ex, policyResult, errorContext, token, policyRuleFunc, handlingBehavior);
+                return HandleException(ex, policyResult, errorContext, null, policyRuleFunc, handlingBehavior, token);
             }
         }
 
@@ -47,11 +47,14 @@ namespace PoliNorError.Tests
         {
             public BulkProcessResult ResultToReturn { get; set; }
 
+            public bool IsProcessed { get; private set; }
+
 			public void AddProcessor(IErrorProcessor errorProcessor) => throw new NotImplementedException();
 			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
 
 			public BulkProcessResult Process(Exception handlingError, ProcessingErrorContext errorContext = null, CancellationToken token = default)
             {
+                IsProcessed = true;
                 return ResultToReturn ?? new BulkProcessResult(handlingError, null);
             }
 
@@ -79,6 +82,7 @@ namespace PoliNorError.Tests
                 Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
                 Assert.That(policyResult.IsFailed, Is.True);
                 Assert.That(policyResult.IsCanceled, Is.True);
+                Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
             }
         }
 
@@ -100,6 +104,7 @@ namespace PoliNorError.Tests
 
             // Assert
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -150,6 +155,7 @@ namespace PoliNorError.Tests
             // Assert
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
             Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -174,6 +180,7 @@ namespace PoliNorError.Tests
             // Assert
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
             Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -200,6 +207,7 @@ namespace PoliNorError.Tests
 
             // Assert
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -228,6 +236,7 @@ namespace PoliNorError.Tests
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.IsCanceled, Is.True);
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -256,6 +265,8 @@ namespace PoliNorError.Tests
 
             // Assert
             Assert.That(policyResult.IsFailed, Is.False); // No critical errors
+            Assert.That(bulkProcessor.IsProcessed, Is.True);
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -280,6 +291,8 @@ namespace PoliNorError.Tests
 
             // Assert - exception is added internally
             Assert.That(policyResult.IsFailed, Is.False);
+            Assert.That(bulkProcessor.IsProcessed, Is.True);
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
     }
 }

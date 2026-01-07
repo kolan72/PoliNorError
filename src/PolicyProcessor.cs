@@ -72,18 +72,53 @@ namespace PoliNorError
 																policyRuleFunc);
 		}
 
-		protected internal ExceptionHandlingResult HandleException<T>(Exception ex, PolicyResult policyResult, ErrorContext<T> errorContext, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null, ExceptionHandlingBehavior handlingBehavior = ExceptionHandlingBehavior.Handle)
+		protected internal ExceptionHandlingResult HandleException<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> saveError,
+			Func<ErrorContext<T>, bool> policyRuleFunc,
+			ExceptionHandlingBehavior handlingBehavior,
+			CancellationToken token)
 		{
+			saveError = saveError ?? CreateDefaultErrorSaver<T>();
 			if (handlingBehavior != ExceptionHandlingBehavior.ConditionalRethrow)
 			{
-				policyResult.AddError(ex);
-			}
-			if (token.IsCancellationRequested)
-			{
-				policyResult.SetFailedAndCanceled();
-				return ExceptionHandlingResult.Handled;
+				saveError(policyResult, ex, errorContext, token);
+				if (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+					return ExceptionHandlingResult.Handled;
+				}
 			}
 
+			var result = DetermineExceptionHandlingResult(ex, policyResult, errorContext, saveError, policyRuleFunc, handlingBehavior, token);
+			if (result != ExceptionHandlingResult.Accepted)
+			{
+				return result;
+			}
+
+			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
+			policyResult.AddBulkProcessorErrors(bulkProcessResult);
+			if (bulkProcessResult.IsCanceled)
+			{
+				policyResult.SetFailedAndCanceled();
+			}
+			return ExceptionHandlingResult.Handled;
+		}
+
+		internal static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> CreateDefaultErrorSaver<T>() =>
+			 (pr, e, _, __) => pr.AddError(e);
+
+		private ExceptionHandlingResult DetermineExceptionHandlingResult<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> saveError,
+			Func<ErrorContext<T>, bool> policyRuleFunc,
+			ExceptionHandlingBehavior handlingBehavior,
+			CancellationToken token)
+		{
 			var (result, error) = ShouldHandleException(ex, errorContext, policyRuleFunc);
 			if (result == HandleCatchBlockResult.FailedByErrorFilter)
 			{
@@ -91,7 +126,7 @@ namespace PoliNorError
 				{
 					if (handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
 					{
-						policyResult.AddError(ex);
+						saveError(policyResult, ex, errorContext, token);
 					}
 					policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
 					policyResult.SetFailedAndFilterUnsatisfied();
@@ -111,20 +146,12 @@ namespace PoliNorError
 						return ExceptionHandlingResult.Handled;
 				}
 			}
-
 			if (result == HandleCatchBlockResult.FailedByPolicyRules)
 			{
 				policyResult.SetFailedInner();
 				return ExceptionHandlingResult.Handled;
 			}
-
-			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
-			policyResult.AddBulkProcessorErrors(bulkProcessResult);
-			if (bulkProcessResult.IsCanceled)
-			{
-				policyResult.SetFailedAndCanceled();
-			}
-			return ExceptionHandlingResult.Handled;
+			return ExceptionHandlingResult.Accepted;
 		}
 
 		private (HandleCatchBlockResult, Exception) ShouldHandleException<T>(Exception ex, ErrorContext<T> errorContext, Func<ErrorContext<T>, bool> policyRuleFunc = null)
@@ -162,6 +189,11 @@ namespace PoliNorError
 	public enum ExceptionHandlingResult
 	{
 		/// <summary>
+		/// The exception matched the configured filter and rule and should be processed.
+		/// </summary>
+		Accepted,
+
+		/// <summary>
 		/// The exception was handled and will not be rethrown.
 		/// </summary>
 		Handled,
@@ -179,7 +211,8 @@ namespace PoliNorError
 	{
 		/// <summary>
 		/// Handle the exception and do not rethrow it.
-		/// <para>Outcome: <see cref="ExceptionHandlingResult.Handled"/></para>
+		/// <para>Outcome: <see cref="ExceptionHandlingResult.Handled"/>
+		/// or <see cref="ExceptionHandlingResult.Accepted"/></para>
 		/// </summary>
 		Handle,
 
