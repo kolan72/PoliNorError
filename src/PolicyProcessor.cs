@@ -15,14 +15,14 @@ namespace PoliNorError
 #pragma warning restore S1133 // Deprecated code should be removed
 		protected bool _isPolicyAliasSet;
 
-		protected PolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null): this(new ExceptionFilter(), bulkErrorProcessor)
-		{}
+		protected PolicyProcessor(IBulkErrorProcessor bulkErrorProcessor = null) : this(new ExceptionFilter(), bulkErrorProcessor)
+		{ }
 
 #pragma warning disable S1133 // Deprecated code should be removed
 		[Obsolete("This constructor is obsolete.  Use constructors without the PolicyAlias parameter instead.")]
 #pragma warning restore S1133 // Deprecated code should be removed
 		protected PolicyProcessor(PolicyAlias policyAlias, IBulkErrorProcessor bulkErrorProcessor = null) : this(policyAlias, new ExceptionFilter(), bulkErrorProcessor)
-		{}
+		{ }
 
 		protected PolicyProcessor(ExceptionFilter exceptionFilter, IBulkErrorProcessor bulkErrorProcessor = null)
 		{
@@ -55,7 +55,7 @@ namespace PoliNorError
 
 		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
 		{
-			return new PolicyProcessorCatchBlockSyncHandler<T> (policyResult,
+			return new PolicyProcessorCatchBlockSyncHandler<T>(policyResult,
 																_bulkErrorProcessor,
 																token,
 																ErrorFilter.GetCanHandle(),
@@ -106,6 +106,8 @@ namespace PoliNorError
 			}
 			return ExceptionHandlingResult.Handled;
 		}
+
+		internal static Action<PolicyResult, Exception, ErrorContext<Unit>, CancellationToken> DefaultErrorSaver { get; } = CreateDefaultErrorSaver<Unit>();
 
 		internal static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> CreateDefaultErrorSaver<T>() =>
 			 (pr, e, _, __) => pr.AddError(e);
