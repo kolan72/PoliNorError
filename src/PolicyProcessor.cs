@@ -225,4 +225,32 @@ namespace PoliNorError
 		/// </summary>
 		ConditionalRethrow
 	}
+
+	/// <summary> 
+	/// Describes whether a cancellation that occurred during <see cref="BulkErrorProcessor"/> should be propagated to <see cref="PolicyResult.IsCanceled"/>.
+	/// </summary>
+	internal enum ErrorProcessingCancellationEffect
+	{
+		/// <summary>
+		/// Cancellation during error processing does not influence
+		/// the policy execution result.
+		/// </summary>
+		/// <remarks>
+		/// When this value is specified, cancellations occurring inside
+		/// error processors are treated as an internal execution concern
+		/// and <see cref="PolicyResult.IsCanceled"/> remains <c>false</c>.
+		/// </remarks>
+		Ignore,
+
+		/// <summary>
+		/// Cancellation during error processing is propagated
+		/// to the policy execution result.
+		/// </summary>
+		/// <remarks>
+		/// When this value is specified, a cancellation raised inside
+		/// an error processor causes <see cref="PolicyResult.IsCanceled"/>
+		/// to be set to <c>true</c>.
+		/// </remarks>
+		Propagate
+	}
 }
