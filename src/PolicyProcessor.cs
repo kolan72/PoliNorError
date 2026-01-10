@@ -79,6 +79,7 @@ namespace PoliNorError
 			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> saveError,
 			Func<ErrorContext<T>, bool> policyRuleFunc,
 			ExceptionHandlingBehavior handlingBehavior,
+			ErrorProcessingCancellationEffect cancellationEffect,
 			CancellationToken token)
 		{
 			saveError = saveError ?? CreateDefaultErrorSaver<T>();
@@ -100,7 +101,7 @@ namespace PoliNorError
 
 			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
 			policyResult.AddBulkProcessorErrors(bulkProcessResult);
-			if (bulkProcessResult.IsCanceled)
+			if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
 			{
 				policyResult.SetFailedAndCanceled();
 			}
@@ -229,7 +230,7 @@ namespace PoliNorError
 	/// <summary> 
 	/// Describes whether a cancellation that occurred during <see cref="BulkErrorProcessor"/> should be propagated to <see cref="PolicyResult.IsCanceled"/>.
 	/// </summary>
-	internal enum ErrorProcessingCancellationEffect
+	public enum ErrorProcessingCancellationEffect
 	{
 		/// <summary>
 		/// Cancellation during error processing does not influence

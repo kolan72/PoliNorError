@@ -27,9 +27,10 @@ namespace PoliNorError.Tests
                 ErrorContext<T> errorContext,
                 CancellationToken token,
                 Func<ErrorContext<T>, bool> policyRuleFunc = null,
-                ExceptionHandlingBehavior handlingBehavior = ExceptionHandlingBehavior.Handle)
+                ExceptionHandlingBehavior handlingBehavior = ExceptionHandlingBehavior.Handle,
+                ErrorProcessingCancellationEffect cancellationEffect = ErrorProcessingCancellationEffect.Propagate)
             {
-                return HandleException(ex, policyResult, errorContext, null, policyRuleFunc, handlingBehavior, token);
+                return HandleException(ex, policyResult, errorContext, null, policyRuleFunc, handlingBehavior, cancellationEffect, token);
             }
         }
 
@@ -49,18 +50,18 @@ namespace PoliNorError.Tests
 
             public bool IsProcessed { get; private set; }
 
-			public void AddProcessor(IErrorProcessor errorProcessor) => throw new NotImplementedException();
-			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
+            public void AddProcessor(IErrorProcessor errorProcessor) => throw new NotImplementedException();
+            public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
 
-			public BulkProcessResult Process(Exception handlingError, ProcessingErrorContext errorContext = null, CancellationToken token = default)
+            public BulkProcessResult Process(Exception handlingError, ProcessingErrorContext errorContext = null, CancellationToken token = default)
             {
                 IsProcessed = true;
                 return ResultToReturn ?? new BulkProcessResult(handlingError, null);
             }
 
-			public Task<BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default) => throw new NotImplementedException();
-			IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-		}
+            public Task<BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        }
 
         [Test]
         public void Should_ReturnHandled_AndSetFailedAndCanceled_WhenTokenIsCanceled()
@@ -71,17 +72,43 @@ namespace PoliNorError.Tests
             var policyResult = PolicyResult.ForSync();
             var errorContext = new TestErrorContext("test");
             var exception = new Exception("test exception");
-			using (var cts = new CancellationTokenSource())
-			{
-				cts.Cancel();
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
 
-				// Act
-				var result = processor.TestHandleException(exception, policyResult, errorContext, cts.Token);
+                // Act
+                var result = processor.TestHandleException(exception, policyResult, errorContext, cts.Token);
 
                 // Assert
                 Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
                 Assert.That(policyResult.IsFailed, Is.True);
                 Assert.That(policyResult.IsCanceled, Is.True);
+                Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+            }
+        }
+
+        [Test]
+        [TestCase(ErrorProcessingCancellationEffect.Ignore)]
+        [TestCase(ErrorProcessingCancellationEffect.Propagate)]
+        public void Should_Set_PolicyResult_IsCanceled_DependOn_CancellationEffect(ErrorProcessingCancellationEffect cancellationEffect)
+        {
+            var policyResult = PolicyResult.ForSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new Exception("test exception");
+            using (var cts = new CancellationTokenSource())
+            {
+                var bulkProcessor = new BulkErrorProcessor()
+                            .WithErrorProcessorOf((Exception _, CancellationToken __) => cts.Cancel());
+
+                var processor = new TestPolicyProcessor(bulkProcessor);
+
+                var result = processor.TestHandleException(exception, policyResult, errorContext, cts.Token, null, ExceptionHandlingBehavior.Handle, cancellationEffect);
+
+                Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+
+                Assert.That(policyResult.IsFailed, Is.EqualTo(cancellationEffect == ErrorProcessingCancellationEffect.Propagate));
+                Assert.That(policyResult.IsCanceled, Is.EqualTo(cancellationEffect == ErrorProcessingCancellationEffect.Propagate));
+
                 Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
             }
         }
