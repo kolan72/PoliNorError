@@ -232,7 +232,7 @@ namespace PoliNorError
 		ConditionalRethrow
 	}
 
-	/// <summary> 
+	/// <summary>
 	/// Describes whether a cancellation that occurred during <see cref="BulkErrorProcessor"/> should be propagated to <see cref="PolicyResult.IsCanceled"/>.
 	/// </summary>
 	public enum ErrorProcessingCancellationEffect

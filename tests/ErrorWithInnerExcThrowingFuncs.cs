@@ -7,6 +7,9 @@ namespace PoliNorError.Tests
 	public static class ErrorWithInnerExcThrowingFuncs
 	{
 		public static void ActionWithInner() => throw new TestExceptionWithInnerException();
+
+		public static void ActionWithParamWithInner(int _) => throw new TestExceptionWithInnerException();
+
 		public static void ActionWithInnerWithMsg(string innerExceptionMsg) => throw new TestExceptionWithInnerException("", innerExceptionMsg);
 
 		public static void Action() => throw new Exception();

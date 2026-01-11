@@ -22,10 +22,10 @@ namespace PoliNorError
 		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
 		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
 		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, null, rethrowIfErrorFilterUnsatisfied)
-		{}
+		{ }
 
 		internal SimplePolicyProcessor(CatchBlockFilter catchBlockFilter, IBulkErrorProcessor bulkErrorProcessor = null, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, (catchBlockFilter ?? new CatchBlockFilter()).ErrorFilter, rethrowIfErrorFilterUnsatisfied)
-		{}
+		{ }
 
 		private SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, ExceptionFilter exceptionFilter, bool rethrowIfErrorFilterUnsatisfied) : base(exceptionFilter ?? new ExceptionFilter(), bulkErrorProcessor)
 		{
@@ -91,17 +91,11 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				var (shouldRethrow, hasFilterException) = ProcessErrorFilter(ex, result);
-				if (shouldRethrow)
+				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
-				}
-
-				if (!hasFilterException)
-				{
-					var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-					exHandler.Handle(ex, emptyErrorContext);
 				}
 			}
 			return result;
@@ -591,21 +585,14 @@ namespace PoliNorError
 			return this;
 		}
 
-		private (bool ShouldRethrow, bool HasFilterException) ProcessErrorFilter(Exception ex, PolicyResult result)
-		{
-			if (!_rethrowIfErrorFilterUnsatisfied)
-				return (false, false);
+		private ExceptionHandlingResult HandleException(
+			Exception ex,
+			PolicyResult policyResult,
+			EmptyErrorContext errorContext,
+			CancellationToken token)
 
-			var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-			if (!(filterException is null))
-			{
-				result.AddErrorAndCatchBlockFilterError(ex, filterException);
-				return (false, true);
-			}
-			else
-			{
-				return (filterUnsatisfied == true, false);
-			}
+		{
+			return HandleException(ex, policyResult, errorContext, DefaultErrorSaver, DefaultPolicyRule, ExceptionHandlingBehavior.ConditionalRethrow, ErrorProcessingCancellationEffect.Propagate, token);
 		}
 	}
 }

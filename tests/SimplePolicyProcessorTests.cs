@@ -829,6 +829,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Rethrow_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteWithParam()
+		{
+			var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+			var exc = Assert.Throws<TestExceptionWithInnerException>(() => ((SimplePolicyProcessor)proc).Execute(ActionWithParamWithInner, 1));
+			Assert.That(exc.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY], Is.True);
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public async Task Should_Rethrow_Or_Handle_If_ProcessorCreated_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteAsync(bool errorInFilter)
