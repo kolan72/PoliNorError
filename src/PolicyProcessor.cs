@@ -113,6 +113,11 @@ namespace PoliNorError
 		internal static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> CreateDefaultErrorSaver<T>() =>
 			 (pr, e, _, __) => pr.AddError(e);
 
+		internal static Func<ErrorContext<Unit>, bool> DefaultPolicyRule { get; } = CreateDefaultPolicyRule<Unit>();
+
+		internal static Func<ErrorContext<T>, bool> CreateDefaultPolicyRule<T>() =>
+			(_) => true;
+
 		private ExceptionHandlingResult DetermineExceptionHandlingResult<T>(
 			Exception ex,
 			PolicyResult policyResult,
@@ -164,7 +169,7 @@ namespace PoliNorError
 			if (!filterPassed)
 				return (HandleCatchBlockResult.FailedByErrorFilter, error);
 
-			if (!(policyRuleFunc is null) && !policyRuleFunc(errorContext))
+			if (policyRuleFunc?.Invoke(errorContext) == false)
 				return (HandleCatchBlockResult.FailedByPolicyRules, null);
 
 			return (HandleCatchBlockResult.Success, null);
