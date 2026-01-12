@@ -99,6 +99,16 @@ namespace PoliNorError
 				return result;
 			}
 
+			if (handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
+			{
+				saveError(policyResult, ex, errorContext, token);
+				if (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+					return ExceptionHandlingResult.Handled;
+				}
+			}
+
 			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
 			policyResult.AddBulkProcessorErrors(bulkProcessResult);
 			if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
