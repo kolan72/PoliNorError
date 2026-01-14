@@ -226,8 +226,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				var resAction = func();
@@ -244,22 +242,12 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
