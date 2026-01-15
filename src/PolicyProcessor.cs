@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PoliNorError
 {
@@ -122,6 +123,9 @@ namespace PoliNorError
 
 		internal static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> CreateDefaultErrorSaver<T>() =>
 			 (pr, e, _, __) => pr.AddError(e);
+
+		internal static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> CreateDefaultAsyncErrorSaver<T>() =>
+			 (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
 
 		internal static Func<ErrorContext<Unit>, bool> DefaultPolicyRule { get; } = CreateDefaultPolicyRule<Unit>();
 
