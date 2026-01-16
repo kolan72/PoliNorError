@@ -124,6 +124,8 @@ namespace PoliNorError
 		internal static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> CreateDefaultErrorSaver<T>() =>
 			 (pr, e, _, __) => pr.AddError(e);
 
+		internal static Func<PolicyResult, Exception, ErrorContext<Unit>, bool, CancellationToken, Task> DefaultAsyncErrorSaver { get; } = CreateDefaultAsyncErrorSaver<Unit>();
+
 		internal static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> CreateDefaultAsyncErrorSaver<T>() =>
 			 (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
 
