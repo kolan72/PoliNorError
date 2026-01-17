@@ -77,16 +77,16 @@ namespace PoliNorError
 			Exception ex,
 			PolicyResult policyResult,
 			ErrorContext<T> errorContext,
-			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> saveError,
+			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver,
 			Func<ErrorContext<T>, bool> policyRuleFunc,
 			ExceptionHandlingBehavior handlingBehavior,
 			ErrorProcessingCancellationEffect cancellationEffect,
 			CancellationToken token)
 		{
-			saveError = saveError ?? CreateDefaultErrorSaver<T>();
+			var saver = errorSaver ?? CreateDefaultErrorSaver<T>();
 			if (handlingBehavior != ExceptionHandlingBehavior.ConditionalRethrow)
 			{
-				saveError(policyResult, ex, errorContext, token);
+				saver(policyResult, ex, errorContext, token);
 				if (token.IsCancellationRequested)
 				{
 					policyResult.SetFailedAndCanceled();
@@ -94,7 +94,15 @@ namespace PoliNorError
 				}
 			}
 
-			var result = DetermineExceptionHandlingResult(ex, policyResult, errorContext, saveError, policyRuleFunc, handlingBehavior, token);
+			var (handleResult, error) = ShouldHandleException(ex, errorContext, policyRuleFunc);
+
+			var result = DetermineExceptionHandlingResult(ex, policyResult, handlingBehavior, handleResult, error);
+
+			if (!(error is null) && handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
+			{
+				saver(policyResult, ex, errorContext, token);
+			}
+
 			if (result != ExceptionHandlingResult.Accepted)
 			{
 				return result;
@@ -102,7 +110,7 @@ namespace PoliNorError
 
 			if (handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
 			{
-				saveError(policyResult, ex, errorContext, token);
+				saver(policyResult, ex, errorContext, token);
 				if (token.IsCancellationRequested)
 				{
 					policyResult.SetFailedAndCanceled();
@@ -134,34 +142,28 @@ namespace PoliNorError
 		internal static Func<ErrorContext<T>, bool> CreateDefaultPolicyRule<T>() =>
 			(_) => true;
 
-		private ExceptionHandlingResult DetermineExceptionHandlingResult<T>(
+		private ExceptionHandlingResult DetermineExceptionHandlingResult(
 			Exception ex,
 			PolicyResult policyResult,
-			ErrorContext<T> errorContext,
-			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> saveError,
-			Func<ErrorContext<T>, bool> policyRuleFunc,
 			ExceptionHandlingBehavior handlingBehavior,
-			CancellationToken token)
+			HandleCatchBlockResult shouldHandleResult,
+			Exception error)
 		{
-			var (result, error) = ShouldHandleException(ex, errorContext, policyRuleFunc);
-			if (result == HandleCatchBlockResult.FailedByErrorFilter)
+			if (shouldHandleResult == HandleCatchBlockResult.FailedByErrorFilter)
 			{
-				if (!(error is null))
-				{
-					if (handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
-					{
-						saveError(policyResult, ex, errorContext, token);
-					}
-					policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
-					policyResult.SetFailedAndFilterUnsatisfied();
-					return ExceptionHandlingResult.Handled;
-				}
-
 				switch (handlingBehavior)
 				{
+					case ExceptionHandlingBehavior.ConditionalRethrow when !(error is null):
+						policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
+						policyResult.SetFailedAndFilterUnsatisfied();
+						return ExceptionHandlingResult.Handled;
 					case ExceptionHandlingBehavior.ConditionalRethrow:
 						return ExceptionHandlingResult.Rethrow;
 					case ExceptionHandlingBehavior.Handle:
+						if (!(error is null))
+						{
+							policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
+						}
 						policyResult.SetFailedAndFilterUnsatisfied();
 						return ExceptionHandlingResult.Handled;
 					default:
@@ -170,7 +172,7 @@ namespace PoliNorError
 						return ExceptionHandlingResult.Handled;
 				}
 			}
-			if (result == HandleCatchBlockResult.FailedByPolicyRules)
+			if (shouldHandleResult == HandleCatchBlockResult.FailedByPolicyRules)
 			{
 				policyResult.SetFailedInner();
 				return ExceptionHandlingResult.Handled;
