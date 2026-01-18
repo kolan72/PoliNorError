@@ -11,7 +11,7 @@ using static PoliNorError.BulkErrorProcessor;
 namespace PoliNorError.Tests
 {
     [TestFixture]
-    public class PolicyProcessorTests
+    public partial class PolicyProcessorTests
     {
         private class TestPolicyProcessor : PolicyProcessor
         {
@@ -32,6 +32,20 @@ namespace PoliNorError.Tests
             {
                 return HandleException(ex, policyResult, errorContext, null, policyRuleFunc, handlingBehavior, cancellationEffect, token);
             }
+
+            public Task<ExceptionHandlingResult> TestHandleExceptionAsync<T>(
+                Exception ex,
+                PolicyResult policyResult,
+                ErrorContext<T> errorContext,
+                Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
+                Func<ErrorContext<T>, bool> policyRuleFunc,
+                ExceptionHandlingBehavior handlingBehavior,
+                ErrorProcessingCancellationEffect cancellationEffect,
+                bool configureAwait,
+                CancellationToken token)
+            {
+                return HandleExceptionAsync(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, cancellationEffect, configureAwait, token);
+            }
         }
 
         private class TestErrorContext : ErrorContext<string>
@@ -48,6 +62,8 @@ namespace PoliNorError.Tests
         {
             public BulkProcessResult ResultToReturn { get; set; }
 
+            public bool IsCanceled { get; set; }
+
             public bool IsProcessed { get; private set; }
 
             public void AddProcessor(IErrorProcessor errorProcessor) => throw new NotImplementedException();
@@ -59,8 +75,14 @@ namespace PoliNorError.Tests
                 return ResultToReturn ?? new BulkProcessResult(handlingError, null);
             }
 
-            public Task<BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default) => throw new NotImplementedException();
+            public Task<BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default)
+            {
+                var result = new BulkProcessResult(handlingError, ProcessErrors ?? Array.Empty<ErrorProcessorException>(), IsCanceled);
+                return Task.FromResult(result);
+            }
+
             IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            public ErrorProcessorException[] ProcessErrors { get; set; }
         }
 
         [Test]

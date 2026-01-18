@@ -73,6 +73,59 @@ namespace PoliNorError
 																policyRuleFunc);
 		}
 
+		protected internal async Task<ExceptionHandlingResult> HandleExceptionAsync<T>(
+				Exception ex,
+				PolicyResult policyResult,
+				ErrorContext<T> errorContext,
+				Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
+				Func<ErrorContext<T>, bool> policyRuleFunc,
+				ExceptionHandlingBehavior handlingBehavior,
+				ErrorProcessingCancellationEffect cancellationEffect,
+				bool configureAwait,
+				CancellationToken token)
+		{
+			var saver = errorSaver ?? CreateDefaultAsyncErrorSaver<T>();
+			if (handlingBehavior != ExceptionHandlingBehavior.ConditionalRethrow)
+			{
+				await saver(policyResult, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
+				if (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+					return ExceptionHandlingResult.Handled;
+				}
+			}
+
+			var (result, error) = DetermineExceptionHandlingResult(ex, policyResult, handlingBehavior, errorContext, policyRuleFunc);
+
+			if (!(error is null) && handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
+			{
+				await saver(policyResult, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
+			}
+
+			if (result != ExceptionHandlingResult.Accepted)
+			{
+				return result;
+			}
+
+			if (handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
+			{
+				await saver(policyResult, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
+				if (token.IsCancellationRequested)
+				{
+					policyResult.SetFailedAndCanceled();
+					return ExceptionHandlingResult.Handled;
+				}
+			}
+
+			var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext.ToProcessingErrorContext(), configureAwait, token).ConfigureAwait(configureAwait);
+			policyResult.AddBulkProcessorErrors(bulkProcessResult);
+			if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
+			{
+				policyResult.SetFailedAndCanceled();
+			}
+			return ExceptionHandlingResult.Handled;
+		}
+
 		protected internal ExceptionHandlingResult HandleException<T>(
 			Exception ex,
 			PolicyResult policyResult,
