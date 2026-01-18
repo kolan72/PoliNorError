@@ -94,9 +94,7 @@ namespace PoliNorError
 				}
 			}
 
-			var (handleResult, error) = ShouldHandleException(ex, errorContext, policyRuleFunc);
-
-			var result = DetermineExceptionHandlingResult(ex, policyResult, handlingBehavior, handleResult, error);
+			var (result, error) = DetermineExceptionHandlingResult(ex, policyResult, handlingBehavior, errorContext, policyRuleFunc);
 
 			if (!(error is null) && handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
 			{
@@ -142,42 +140,49 @@ namespace PoliNorError
 		internal static Func<ErrorContext<T>, bool> CreateDefaultPolicyRule<T>() =>
 			(_) => true;
 
-		private ExceptionHandlingResult DetermineExceptionHandlingResult(
+		private (ExceptionHandlingResult, Exception) DetermineExceptionHandlingResult<T>(
 			Exception ex,
 			PolicyResult policyResult,
 			ExceptionHandlingBehavior handlingBehavior,
-			HandleCatchBlockResult shouldHandleResult,
-			Exception error)
+			ErrorContext<T> errorContext,
+			Func<ErrorContext<T>, bool> policyRuleFunc = null)
 		{
-			if (shouldHandleResult == HandleCatchBlockResult.FailedByErrorFilter)
+			var (handleResult, error) = ShouldHandleException(ex, errorContext, policyRuleFunc);
+
+			return (FailPolicyResultIfRequired(), error);
+
+			ExceptionHandlingResult FailPolicyResultIfRequired()
 			{
-				switch (handlingBehavior)
+				if (handleResult == HandleCatchBlockResult.FailedByErrorFilter)
 				{
-					case ExceptionHandlingBehavior.ConditionalRethrow when !(error is null):
-						policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
-						policyResult.SetFailedAndFilterUnsatisfied();
-						return ExceptionHandlingResult.Handled;
-					case ExceptionHandlingBehavior.ConditionalRethrow:
-						return ExceptionHandlingResult.Rethrow;
-					case ExceptionHandlingBehavior.Handle:
-						if (!(error is null))
-						{
+					switch (handlingBehavior)
+					{
+						case ExceptionHandlingBehavior.ConditionalRethrow when !(error is null):
 							policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
-						}
-						policyResult.SetFailedAndFilterUnsatisfied();
-						return ExceptionHandlingResult.Handled;
-					default:
-						policyResult.AddCatchBlockError(new CatchBlockException(new ArgumentOutOfRangeException(nameof(handlingBehavior), handlingBehavior, null), ex, CatchBlockExceptionSource.ErrorFilter, true));
-						policyResult.SetFailedAndFilterUnsatisfied();
-						return ExceptionHandlingResult.Handled;
+							policyResult.SetFailedAndFilterUnsatisfied();
+							return ExceptionHandlingResult.Handled;
+						case ExceptionHandlingBehavior.ConditionalRethrow:
+							return ExceptionHandlingResult.Rethrow;
+						case ExceptionHandlingBehavior.Handle:
+							if (!(error is null))
+							{
+								policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
+							}
+							policyResult.SetFailedAndFilterUnsatisfied();
+							return ExceptionHandlingResult.Handled;
+						default:
+							policyResult.AddCatchBlockError(new CatchBlockException(new NotSupportedException(), ex, CatchBlockExceptionSource.ErrorFilter, true));
+							policyResult.SetFailedAndFilterUnsatisfied();
+							return ExceptionHandlingResult.Handled;
+					}
 				}
+				if (handleResult == HandleCatchBlockResult.FailedByPolicyRules)
+				{
+					policyResult.SetFailedInner();
+					return ExceptionHandlingResult.Handled;
+				}
+				return ExceptionHandlingResult.Accepted;
 			}
-			if (shouldHandleResult == HandleCatchBlockResult.FailedByPolicyRules)
-			{
-				policyResult.SetFailedInner();
-				return ExceptionHandlingResult.Handled;
-			}
-			return ExceptionHandlingResult.Accepted;
 		}
 
 		private (HandleCatchBlockResult, Exception) ShouldHandleException<T>(Exception ex, ErrorContext<T> errorContext, Func<ErrorContext<T>, bool> policyRuleFunc = null)
