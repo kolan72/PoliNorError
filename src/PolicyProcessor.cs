@@ -147,7 +147,7 @@ namespace PoliNorError
 				}
 			}
 
-			var (result, error) = DetermineExceptionHandlingResult(ex, policyResult, handlingBehavior, errorContext, policyRuleFunc);
+			var (result, error) = EvaluateExceptionFilter(policyResult, ex, handlingBehavior);
 
 			if (!(error is null) && handlingBehavior == ExceptionHandlingBehavior.ConditionalRethrow)
 			{
@@ -167,6 +167,12 @@ namespace PoliNorError
 					policyResult.SetFailedAndCanceled();
 					return ExceptionHandlingResult.Handled;
 				}
+			}
+
+			var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc);
+			if (ruleResult != ExceptionHandlingResult.Accepted)
+			{
+				return ruleResult;
 			}
 
 			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
@@ -261,6 +267,62 @@ namespace PoliNorError
 					return (false, exIn);
 				}
 			}
+		}
+
+		private (ExceptionHandlingResult, Exception) EvaluateExceptionFilter(PolicyResult policyResult, Exception ex, ExceptionHandlingBehavior handlingBehavior)
+		{
+			var (filterPassed, error) = RunErrorFilterFunc();
+			return (FailPolicyResultIfRequired(), error);
+			ExceptionHandlingResult FailPolicyResultIfRequired()
+			{
+				if (!filterPassed)
+				{
+					switch (handlingBehavior)
+					{
+						case ExceptionHandlingBehavior.ConditionalRethrow when !(error is null):
+							policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
+							policyResult.SetFailedAndFilterUnsatisfied();
+							return ExceptionHandlingResult.Handled;
+						case ExceptionHandlingBehavior.ConditionalRethrow:
+							return ExceptionHandlingResult.Rethrow;
+						case ExceptionHandlingBehavior.Handle:
+							if (!(error is null))
+							{
+								policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
+							}
+							policyResult.SetFailedAndFilterUnsatisfied();
+							return ExceptionHandlingResult.Handled;
+						default:
+							policyResult.AddCatchBlockError(new CatchBlockException(new NotSupportedException(), ex, CatchBlockExceptionSource.ErrorFilter, true));
+							policyResult.SetFailedAndFilterUnsatisfied();
+							return ExceptionHandlingResult.Handled;
+					}
+				}
+				return ExceptionHandlingResult.Accepted;
+			}
+
+			(bool, Exception) RunErrorFilterFunc()
+			{
+				try
+				{
+					return (ErrorFilter.GetCanHandle()(ex), null);
+				}
+				catch (Exception exIn)
+				{
+					return (false, exIn);
+				}
+			}
+		}
+
+		private ExceptionHandlingResult EvaluatePolicyRule<T>(PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, bool> policyRuleFunc)
+		{
+			var ruleApplyResult = policyRuleFunc?.Invoke(errorContext);
+			if (ruleApplyResult == false)
+			{
+				policyResult.SetFailedInner();
+				return ExceptionHandlingResult.Handled;
+			}
+			return ExceptionHandlingResult.Accepted;
 		}
 
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();
