@@ -15,10 +15,13 @@ namespace PoliNorError.Tests
     {
         private class TestPolicyProcessor : PolicyProcessor
         {
-            public TestPolicyProcessor(IBulkErrorProcessor bulkErrorProcessor)
+            public TestPolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool testFilterUnsatisfied = false)
             {
                 _bulkErrorProcessor = bulkErrorProcessor;
-                ErrorFilter.AddExcludedErrorFilter<ArgumentException>();
+                if (testFilterUnsatisfied)
+                {
+                    ErrorFilter.AddExcludedErrorFilter<ArgumentException>();
+                }
             }
 
             public ExceptionHandlingResult TestHandleException<T>(
@@ -28,9 +31,10 @@ namespace PoliNorError.Tests
                 CancellationToken token,
                 Func<ErrorContext<T>, bool> policyRuleFunc = null,
                 ExceptionHandlingBehavior handlingBehavior = ExceptionHandlingBehavior.Handle,
-                ErrorProcessingCancellationEffect cancellationEffect = ErrorProcessingCancellationEffect.Propagate)
+                ErrorProcessingCancellationEffect cancellationEffect = ErrorProcessingCancellationEffect.Propagate,
+                Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver = null)
             {
-                return HandleException(ex, policyResult, errorContext, null, policyRuleFunc, handlingBehavior, cancellationEffect, token);
+                return HandleException(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, cancellationEffect, token);
             }
 
             public Task<ExceptionHandlingResult> TestHandleExceptionAsync<T>(
@@ -161,7 +165,7 @@ namespace PoliNorError.Tests
         {
             // Arrange
             var bulkProcessor = new TestBulkErrorProcessor();
-            var processor = new TestPolicyProcessor(bulkProcessor);
+            var processor = new TestPolicyProcessor(bulkProcessor, true);
             var policyResult = PolicyResult.ForSync();
             var errorContext = new TestErrorContext("test");
             var exception = new ArgumentException("test exception");
@@ -187,7 +191,7 @@ namespace PoliNorError.Tests
             {
                 ResultToReturn = new BulkProcessResult(new ArgumentException("test"), null)
             };
-            var processor = new TestPolicyProcessor(bulkProcessor);
+            var processor = new TestPolicyProcessor(bulkProcessor, true);
             var policyResult = PolicyResult.ForSync();
             var errorContext = new TestErrorContext("test");
             var exception = new ArgumentException("test");
@@ -341,6 +345,134 @@ namespace PoliNorError.Tests
             // Assert - exception is added internally
             Assert.That(policyResult.IsFailed, Is.False);
             Assert.That(bulkProcessor.IsProcessed, Is.True);
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+        }
+
+		[Test]
+		public void Should_UseCustomErrorSaver_WhenProvided()
+		{
+			// Arrange
+			var bulkProcessor = new TestBulkErrorProcessor
+			{
+				ResultToReturn = new BulkProcessResult(new InvalidOperationException(), null)
+			};
+			var processor = new TestPolicyProcessor(bulkProcessor);
+			var policyResult = PolicyResult.ForSync();
+			var errorContext = new TestErrorContext("test");
+			var exception = new InvalidOperationException("test exception");
+
+			var customErrorSaverCalled = false;
+			void customErrorSaver(PolicyResult pr, Exception _, ErrorContext<string> __, CancellationToken ___)
+			{
+				customErrorSaverCalled = true;
+				pr.AddError(new Exception("Custom error"));
+			}
+
+			// Act
+			var result = processor.TestHandleException(
+				exception,
+				policyResult,
+				errorContext,
+				CancellationToken.None,
+                null,
+                ExceptionHandlingBehavior.Handle,
+                ErrorProcessingCancellationEffect.Propagate,
+				errorSaver:customErrorSaver);
+
+			// Assert
+			Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+			Assert.That(customErrorSaverCalled, Is.True);
+			Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+		}
+
+		[Test]
+        [TestCase(ExceptionHandlingBehavior.Handle)]
+        [TestCase(ExceptionHandlingBehavior.ConditionalRethrow)]
+        public void Should_HandleErrorFilterThrowingException_WhenHandleOrRethrowBehavior(ExceptionHandlingBehavior handlingBehavior)
+		{
+			// Arrange
+			var bulkProcessor = new TestBulkErrorProcessor();
+            var processor = new TestPolicyProcessor(bulkProcessor);
+
+            // Make the error filter throw an exception
+            processor.ErrorFilter.AddIncludedErrorFilter((ex) => save(ex));
+
+			var policyResult = PolicyResult.ForSync();
+			var errorContext = new TestErrorContext("test");
+			var exception = new InvalidOperationException("test exception");
+
+			// Act
+			var result = processor.TestHandleException(
+				exception,
+				policyResult,
+				errorContext,
+				CancellationToken.None,
+				null,
+                handlingBehavior
+               );
+			// Assert
+			Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+			Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.CriticalError, Is.Not.Null);
+            Assert.That(policyResult.CatchBlockErrors.Count, Is.EqualTo(1));
+        }
+
+#pragma warning disable S1172 // Unused method parameters should be removed
+		private bool save(Exception _) => throw new InvalidOperationException("Filter error");
+#pragma warning restore S1172 // Unused method parameters should be removed
+
+		[Test]
+        public void Should_HandleNullPolicyRuleFunc()
+        {
+            // Arrange
+            var bulkProcessor = new TestBulkErrorProcessor
+            {
+                ResultToReturn = new BulkProcessResult(new InvalidOperationException(), null)
+            };
+            var processor = new TestPolicyProcessor(bulkProcessor);
+            var policyResult = PolicyResult.ForSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new InvalidOperationException("test exception");
+
+            // Act
+            var result = processor.TestHandleException(
+                exception,
+                policyResult,
+                errorContext,
+                CancellationToken.None,
+                null); // null policyRuleFunc
+
+            // Assert
+            Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+        }
+
+		[Test]
+        public void Should_ReturnHandled_WhenConditionalRethrowWithValidFilterAndPolicyRule()
+        {
+            // Arrange
+            var bulkProcessor = new TestBulkErrorProcessor
+            {
+                ResultToReturn = new BulkProcessResult(new InvalidOperationException(), null)
+            };
+            var processor = new TestPolicyProcessor(bulkProcessor);
+            var policyResult = PolicyResult.ForSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new InvalidOperationException("test exception");
+
+            bool policyRuleFunc(ErrorContext<string> _) => true;
+
+            // Act
+            var result = processor.TestHandleException(
+                exception,
+                policyResult,
+                errorContext,
+                CancellationToken.None,
+                policyRuleFunc,
+                ExceptionHandlingBehavior.ConditionalRethrow);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
             Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
     }

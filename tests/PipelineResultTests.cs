@@ -87,8 +87,8 @@ namespace PoliNorError.Tests
         [Test]
         public void Should_Create_Success_PipelineResult_With_Reference_Type()
         {
-            // Arrange
-            var expectedValue = "test string";
+			// Arrange
+			const string expectedValue = "test string";
             var policyResult = new PolicyResult<string>();
             policyResult.SetOk();
             policyResult.SetResult(expectedValue);
