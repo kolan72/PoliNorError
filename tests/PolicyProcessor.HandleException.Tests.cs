@@ -395,7 +395,7 @@ namespace PoliNorError.Tests
             var processor = new TestPolicyProcessor(bulkProcessor);
 
             // Make the error filter throw an exception
-            processor.ErrorFilter.AddIncludedErrorFilter((ex) => save(ex));
+            processor.ErrorFilter.AddIncludedErrorFilter((ex) => Save(ex));
 
 			var policyResult = PolicyResult.ForSync();
 			var errorContext = new TestErrorContext("test");
@@ -418,7 +418,7 @@ namespace PoliNorError.Tests
         }
 
 #pragma warning disable S1172 // Unused method parameters should be removed
-		private bool save(Exception _) => throw new InvalidOperationException("Filter error");
+		private bool Save(Exception _) => throw new InvalidOperationException("Filter error");
 #pragma warning restore S1172 // Unused method parameters should be removed
 
 		[Test]

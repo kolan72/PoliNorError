@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static PoliNorError.BulkErrorProcessor;
@@ -400,6 +401,73 @@ namespace PoliNorError.Tests
                 CancellationToken.None);
 
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+        }
+
+        [Test]
+        public async Task Should_ReturnRethrow_WhenExceptionFilterFailsAndBehaviorIsConditionalRethrow()
+        {
+            var processor = new TestPolicyProcessor(null, true);
+            var policyResult = new PolicyResult(true);
+            var exception = new ArgumentException("Test exception");
+            var errorContext = new TestErrorContext("test");
+            var result = await processor.TestHandleExceptionAsync(
+                exception,
+                policyResult,
+                errorContext,
+                null,
+                null,
+                ExceptionHandlingBehavior.ConditionalRethrow,
+                ErrorProcessingCancellationEffect.Ignore,
+                false,
+                CancellationToken.None);
+            Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Rethrow));
+        }
+
+        [Test]
+        public async Task Should_ReturnHandled_WhenExceptionFilterFailsAndBehaviorIsHandle()
+        {
+            var processor = new TestPolicyProcessor(new TestBulkErrorProcessor(), true);
+            var policyResult = new PolicyResult(true);
+            var exception = new ArgumentException("Test exception");
+            var errorContext = new TestErrorContext("test");
+            var result = await processor.TestHandleExceptionAsync(
+                exception,
+                policyResult,
+                errorContext,
+                null,
+                null,
+                ExceptionHandlingBehavior.Handle,
+                ErrorProcessingCancellationEffect.Ignore,
+                false,
+                CancellationToken.None);
+            Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+            Assert.That(policyResult.IsFailed, Is.True);
+        }
+
+        [Test]
+        [TestCase(ExceptionHandlingBehavior.Handle)]
+        [TestCase(ExceptionHandlingBehavior.ConditionalRethrow)]
+        public async Task Should_ReturnHandled_WhenExceptionFilterThrowsException(ExceptionHandlingBehavior handlingBehavior)
+        {
+            var processor = new TestPolicyProcessor(new TestBulkErrorProcessor());
+            processor.ErrorFilter.AddIncludedErrorFilter((ex) => Save(ex));
+            var policyResult = new PolicyResult(true);
+            var exception = new Exception("Test exception");
+            var errorContext = new TestErrorContext("test");
+            var result = await processor.TestHandleExceptionAsync(
+                exception,
+                policyResult,
+                errorContext,
+                null,
+                null,
+                handlingBehavior,
+                ErrorProcessingCancellationEffect.Ignore,
+                false,
+                CancellationToken.None);
+            Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
+            Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.CriticalError, Is.Not.Null);
+            Assert.That(policyResult.CatchBlockErrors.Count, Is.EqualTo(1));
         }
     }
 }
