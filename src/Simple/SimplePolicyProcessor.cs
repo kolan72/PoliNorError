@@ -353,7 +353,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token);
+				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
