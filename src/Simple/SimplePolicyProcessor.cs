@@ -405,8 +405,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				var resAction = await func(param, token).ConfigureAwait(configureAwait);
@@ -419,22 +417,12 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
