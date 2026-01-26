@@ -27,6 +27,8 @@ namespace PoliNorError.Tests
 
 		public static int FuncWithInner() => throw new TestExceptionWithInnerException();
 
+		public static int FuncWithParamWithInner(int _) => throw new TestExceptionWithInnerException();
+
 		public class TestExceptionWithInnerException : Exception
 		{
 			public TestExceptionWithInnerException() : this("", new TestInnerException())
