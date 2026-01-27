@@ -10,7 +10,7 @@ namespace PoliNorError
 	{
 		public static CatchBlockFilter Empty() => new CatchBlockFilter();
 
-		internal PolicyProcessor.ExceptionFilter ErrorFilter { get; } = new PolicyProcessor.ExceptionFilter();
+		internal PolicyProcessor.ExceptionFilter ErrorFilter { get; set; } = new PolicyProcessor.ExceptionFilter();
 
 		public CatchBlockFilter ExcludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
 		{
