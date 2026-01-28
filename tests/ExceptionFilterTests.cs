@@ -450,6 +450,19 @@ namespace PoliNorError.Tests
 			var actualErrFilterUnsatisfied = !filter.ErrorFilter.GetCanHandle()(errorToHandler);
 			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ExceptionFilter_IncludeErrorSet(bool inner)
+		{
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			var filter = new PolicyProcessor.ExceptionFilter();
+			filter = filter.IncludeErrorSet(errorSet);
+			var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilter(new NonEmptyCatchBlockFilter() { ErrorFilter = filter }, inner);
+			Assert.That(canHandle, Is.True);
+			Assert.That(filter, Is.Not.Null);
+		}
 	}
 
 	[TestFixture]

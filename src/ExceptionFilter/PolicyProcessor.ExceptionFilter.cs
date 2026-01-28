@@ -12,6 +12,12 @@ namespace PoliNorError
 
 			public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => FilterSet.ExcludedErrorFilters;
 
+			public ExceptionFilter IncludeErrorSet(IErrorSet errorSet)
+			{
+				this.AddIncludedErrorSet(errorSet);
+				return this;
+			}
+
 			internal ExceptionFilterSet FilterSet { get; } = new ExceptionFilterSet();
 
 			internal void AddIncludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
