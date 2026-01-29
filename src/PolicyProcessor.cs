@@ -139,6 +139,7 @@ namespace PoliNorError
 			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver,
 			Func<ErrorContext<T>, bool> policyRuleFunc,
 			ExceptionHandlingBehavior handlingBehavior,
+			ProcessingOrder processingOrder,
 			ErrorProcessingCancellationEffect cancellationEffect,
 			CancellationToken token)
 		{
@@ -175,18 +176,26 @@ namespace PoliNorError
 				}
 			}
 
-			var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc);
-			if (ruleResult != ExceptionHandlingResult.Accepted)
+			if (processingOrder == ProcessingOrder.EvaluateThenProcess)
 			{
-				return ruleResult;
+				var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc);
+				if (ruleResult != ExceptionHandlingResult.Accepted)
+				{
+					return ruleResult;
+				}
+
+				var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
+				policyResult.AddBulkProcessorErrors(bulkProcessResult);
+				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+			}
+			else
+			{
+				throw new NotImplementedException();
 			}
 
-			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
-			policyResult.AddBulkProcessorErrors(bulkProcessResult);
-			if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
-			{
-				policyResult.SetFailedAndCanceled();
-			}
 			return ExceptionHandlingResult.Handled;
 		}
 
@@ -332,5 +341,21 @@ namespace PoliNorError
 		/// to be set to <c>true</c>.
 		/// </remarks>
 		Propagate
+	}
+
+	/// <summary>
+	/// Defines the execution order for policy rule evaluation and bulk error processing.
+	/// </summary>
+	public enum ProcessingOrder
+	{
+		/// <summary>
+		/// Evaluates the policy rule before bulk error processing.
+		/// </summary>
+		EvaluateThenProcess,
+
+		/// <summary>
+		/// Performs bulk error processing before evaluating the policy rule.
+		/// </summary>
+		ProcessThenEvaluate
 	}
 }

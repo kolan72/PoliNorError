@@ -34,7 +34,7 @@ namespace PoliNorError.Tests
                 ErrorProcessingCancellationEffect cancellationEffect = ErrorProcessingCancellationEffect.Propagate,
                 Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver = null)
             {
-                return HandleException(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, cancellationEffect, token);
+                return HandleException(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, ProcessingOrder.EvaluateThenProcess, cancellationEffect, token);
             }
 
             public Task<ExceptionHandlingResult> TestHandleExceptionAsync<T>(
