@@ -44,6 +44,9 @@ namespace PoliNorError
 			return new FallbackFuncExecResult() { IsCanceled = true, CanceledError = exception };
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static FallbackFuncExecResult FromErrorAndToken(OperationCanceledException exception, CancellationToken token)
 		{
 			if (exception.CancellationToken.Equals(token))
@@ -52,6 +55,9 @@ namespace PoliNorError
 			return FromError(exception);
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static FallbackFuncExecResult FromErrorAndToken(AggregateException exception, CancellationToken token)
 		{
 			if (exception.HasCanceledException(token))
