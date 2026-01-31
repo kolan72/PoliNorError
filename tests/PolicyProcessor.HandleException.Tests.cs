@@ -29,12 +29,13 @@ namespace PoliNorError.Tests
                 PolicyResult policyResult,
                 ErrorContext<T> errorContext,
                 CancellationToken token,
+                ProcessingOrder processingOrder = ProcessingOrder.EvaluateThenProcess,
                 Func<ErrorContext<T>, bool> policyRuleFunc = null,
                 ExceptionHandlingBehavior handlingBehavior = ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect cancellationEffect = ErrorProcessingCancellationEffect.Propagate,
                 Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver = null)
             {
-                return HandleException(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, ProcessingOrder.EvaluateThenProcess, cancellationEffect, token);
+                return HandleException(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, processingOrder, cancellationEffect, token);
             }
 
             public Task<ExceptionHandlingResult> TestHandleExceptionAsync<T>(
@@ -128,7 +129,7 @@ namespace PoliNorError.Tests
 
                 var processor = new TestPolicyProcessor(bulkProcessor);
 
-                var result = processor.TestHandleException(exception, policyResult, errorContext, cts.Token, null, ExceptionHandlingBehavior.Handle, cancellationEffect);
+                var result = processor.TestHandleException(exception, policyResult, errorContext, cts.Token, ProcessingOrder.EvaluateThenProcess, null, ExceptionHandlingBehavior.Handle, cancellationEffect);
 
                 Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
 
@@ -140,7 +141,32 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        public void Should_ReturnHandled_WhenExceptionIsInvalidOperationException()
+        public void Should_Not_Set_PolicyResult_IsCanceled_When_ProcessingOrder_ProcessThenEvaluate_And_CancellationEffectIgnore()
+        {
+            // Arrange
+            var policyResult = PolicyResult.ForSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new Exception("test exception");
+            using (var cts = new CancellationTokenSource())
+            {
+                var bulkProcessor = new BulkErrorProcessor()
+                           .WithErrorProcessorOf((Exception _, CancellationToken __) => cts.Cancel());
+
+                var processor = new TestPolicyProcessor(bulkProcessor);
+
+                // Act
+                var result = processor.TestHandleException(exception, policyResult, errorContext, cts.Token, ProcessingOrder.ProcessThenEvaluate, cancellationEffect: ErrorProcessingCancellationEffect.Ignore);
+
+                // Assert
+                Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Accepted));
+                Assert.That(policyResult.IsFailed, Is.False);
+                Assert.That(policyResult.IsCanceled, Is.False);
+                Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+            }
+        }
+
+        [Test]
+        public void Should_ReturnHandled_WhenNullPolicyRuleFunc()
         {
             // Arrange
             var bulkProcessor = new TestBulkErrorProcessor
@@ -176,6 +202,7 @@ namespace PoliNorError.Tests
                 policyResult,
                 errorContext,
                 CancellationToken.None,
+                ProcessingOrder.EvaluateThenProcess,
                 null,
                 ExceptionHandlingBehavior.ConditionalRethrow);
 
@@ -202,6 +229,7 @@ namespace PoliNorError.Tests
                 policyResult,
                 errorContext,
                 CancellationToken.None,
+                ProcessingOrder.EvaluateThenProcess,
                 null,
                 ExceptionHandlingBehavior.Handle);
 
@@ -228,6 +256,7 @@ namespace PoliNorError.Tests
                 policyResult,
                 errorContext,
                 CancellationToken.None,
+                ProcessingOrder.EvaluateThenProcess,
                 policyRuleFunc);
 
             // Assert
@@ -256,6 +285,7 @@ namespace PoliNorError.Tests
                 policyResult,
                 errorContext,
                 CancellationToken.None,
+                ProcessingOrder.EvaluateThenProcess,
                 policyRuleFunc);
 
             // Assert
@@ -374,6 +404,7 @@ namespace PoliNorError.Tests
 				policyResult,
 				errorContext,
 				CancellationToken.None,
+                ProcessingOrder.EvaluateThenProcess,
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Propagate,
@@ -407,7 +438,8 @@ namespace PoliNorError.Tests
 				policyResult,
 				errorContext,
 				CancellationToken.None,
-				null,
+                ProcessingOrder.EvaluateThenProcess,
+                null,
                 handlingBehavior
                );
 			// Assert
@@ -420,32 +452,6 @@ namespace PoliNorError.Tests
 #pragma warning disable S1172 // Unused method parameters should be removed
 		private bool Save(Exception _) => throw new InvalidOperationException("Filter error");
 #pragma warning restore S1172 // Unused method parameters should be removed
-
-		[Test]
-        public void Should_HandleNullPolicyRuleFunc()
-        {
-            // Arrange
-            var bulkProcessor = new TestBulkErrorProcessor
-            {
-                ResultToReturn = new BulkProcessResult(new InvalidOperationException(), null)
-            };
-            var processor = new TestPolicyProcessor(bulkProcessor);
-            var policyResult = PolicyResult.ForSync();
-            var errorContext = new TestErrorContext("test");
-            var exception = new InvalidOperationException("test exception");
-
-            // Act
-            var result = processor.TestHandleException(
-                exception,
-                policyResult,
-                errorContext,
-                CancellationToken.None,
-                null); // null policyRuleFunc
-
-            // Assert
-            Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
-            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
-        }
 
 		[Test]
         public void Should_ReturnHandled_WhenConditionalRethrowWithValidFilterAndPolicyRule()
@@ -468,6 +474,7 @@ namespace PoliNorError.Tests
                 policyResult,
                 errorContext,
                 CancellationToken.None,
+                ProcessingOrder.EvaluateThenProcess,
                 policyRuleFunc,
                 ExceptionHandlingBehavior.ConditionalRethrow);
 

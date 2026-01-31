@@ -190,13 +190,22 @@ namespace PoliNorError
 				{
 					policyResult.SetFailedAndCanceled();
 				}
+
+				return ExceptionHandlingResult.Handled;
 			}
 			else
 			{
-				throw new NotImplementedException();
-			}
+				var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
+				policyResult.AddBulkProcessorErrors(bulkProcessResult);
 
-			return ExceptionHandlingResult.Handled;
+				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
+				{
+					policyResult.SetFailedAndCanceled();
+					return ExceptionHandlingResult.Handled;
+				}
+
+				return EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc);
+			}
 		}
 
 		internal static Action<PolicyResult, Exception, ErrorContext<Unit>, CancellationToken> DefaultErrorSaver { get; } = CreateDefaultErrorSaver<Unit>();
