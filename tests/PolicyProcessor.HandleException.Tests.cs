@@ -30,7 +30,7 @@ namespace PoliNorError.Tests
                 ErrorContext<T> errorContext,
                 CancellationToken token,
                 ProcessingOrder processingOrder = ProcessingOrder.EvaluateThenProcess,
-                Func<ErrorContext<T>, bool> policyRuleFunc = null,
+                Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null,
                 ExceptionHandlingBehavior handlingBehavior = ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect cancellationEffect = ErrorProcessingCancellationEffect.Propagate,
                 Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver = null)
@@ -43,7 +43,7 @@ namespace PoliNorError.Tests
                 PolicyResult policyResult,
                 ErrorContext<T> errorContext,
                 Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
-                Func<ErrorContext<T>, bool> policyRuleFunc,
+                Func<ErrorContext<T>, CancellationToken,bool> policyRuleFunc,
                 ExceptionHandlingBehavior handlingBehavior,
                 ErrorProcessingCancellationEffect cancellationEffect,
                 bool configureAwait,
@@ -248,7 +248,7 @@ namespace PoliNorError.Tests
             var policyResult = PolicyResult.ForSync();
             var errorContext = new TestErrorContext("test");
             var exception = new InvalidOperationException("test exception");
-			bool policyRuleFunc(ErrorContext<string> _) => false;
+			bool policyRuleFunc(ErrorContext<string> _, CancellationToken __) => false;
 
 			// Act
 			var result = processor.TestHandleException(
@@ -277,7 +277,7 @@ namespace PoliNorError.Tests
             var policyResult = PolicyResult.ForSync();
             var errorContext = new TestErrorContext("test");
             var exception = new InvalidOperationException("test exception");
-			bool policyRuleFunc(ErrorContext<string> _) => true;
+			bool policyRuleFunc(ErrorContext<string> _, CancellationToken __) => true;
 
 			// Act
 			var result = processor.TestHandleException(
@@ -466,7 +466,7 @@ namespace PoliNorError.Tests
             var errorContext = new TestErrorContext("test");
             var exception = new InvalidOperationException("test exception");
 
-            bool policyRuleFunc(ErrorContext<string> _) => true;
+            bool policyRuleFunc(ErrorContext<string> _, CancellationToken __) => true;
 
             // Act
             var result = processor.TestHandleException(

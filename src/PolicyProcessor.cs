@@ -78,7 +78,7 @@ namespace PoliNorError
 				PolicyResult policyResult,
 				ErrorContext<T> errorContext,
 				Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
-				Func<ErrorContext<T>, bool> policyRuleFunc,
+				Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc,
 				ExceptionHandlingBehavior handlingBehavior,
 				ErrorProcessingCancellationEffect cancellationEffect,
 				bool configureAwait,
@@ -117,7 +117,7 @@ namespace PoliNorError
 				}
 			}
 
-			var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc);
+			var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc, token);
 			if (ruleResult != ExceptionHandlingResult.Accepted)
 			{
 				return ruleResult;
@@ -137,7 +137,7 @@ namespace PoliNorError
 			PolicyResult policyResult,
 			ErrorContext<T> errorContext,
 			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver,
-			Func<ErrorContext<T>, bool> policyRuleFunc,
+			Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc,
 			ExceptionHandlingBehavior handlingBehavior,
 			ProcessingOrder processingOrder,
 			ErrorProcessingCancellationEffect cancellationEffect,
@@ -178,7 +178,7 @@ namespace PoliNorError
 
 			if (processingOrder == ProcessingOrder.EvaluateThenProcess)
 			{
-				var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc);
+				var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc, token);
 				if (ruleResult != ExceptionHandlingResult.Accepted)
 				{
 					return ruleResult;
@@ -204,7 +204,7 @@ namespace PoliNorError
 					return ExceptionHandlingResult.Handled;
 				}
 
-				return EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc);
+				return EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc, token);
 			}
 		}
 
@@ -218,10 +218,10 @@ namespace PoliNorError
 		internal static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> CreateDefaultAsyncErrorSaver<T>() =>
 			 (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
 
-		internal static Func<ErrorContext<Unit>, bool> DefaultPolicyRule { get; } = CreateDefaultPolicyRule<Unit>();
+		internal static Func<ErrorContext<Unit>, CancellationToken, bool> DefaultPolicyRule { get; } = CreateDefaultPolicyRule<Unit>();
 
-		internal static Func<ErrorContext<T>, bool> CreateDefaultPolicyRule<T>() =>
-			(_) => true;
+		internal static Func<ErrorContext<T>, CancellationToken, bool> CreateDefaultPolicyRule<T>() =>
+			(_, __) => true;
 
 		private (ExceptionHandlingResult, Exception) EvaluateExceptionFilter(PolicyResult policyResult, Exception ex, ExceptionHandlingBehavior handlingBehavior)
 		{
@@ -268,9 +268,9 @@ namespace PoliNorError
 			}
 		}
 
-		private ExceptionHandlingResult EvaluatePolicyRule<T>(PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, bool> policyRuleFunc)
+		private ExceptionHandlingResult EvaluatePolicyRule<T>(PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc, CancellationToken token)
 		{
-			var ruleApplyResult = policyRuleFunc?.Invoke(errorContext);
+			var ruleApplyResult = policyRuleFunc?.Invoke(errorContext, token);
 			if (ruleApplyResult == false)
 			{
 				policyResult.SetFailedInner();
