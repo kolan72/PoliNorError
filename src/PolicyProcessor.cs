@@ -117,7 +117,7 @@ namespace PoliNorError
 				}
 			}
 
-			var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc, token);
+			var ruleResult = EvaluatePolicyRule(ex, policyResult, errorContext, policyRuleFunc, token);
 			if (ruleResult != ExceptionHandlingResult.Accepted)
 			{
 				return ruleResult;
@@ -178,7 +178,7 @@ namespace PoliNorError
 
 			if (processingOrder == ProcessingOrder.EvaluateThenProcess)
 			{
-				var ruleResult = EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc, token);
+				var ruleResult = EvaluatePolicyRule(ex, policyResult, errorContext, policyRuleFunc, token);
 				if (ruleResult != ExceptionHandlingResult.Accepted)
 				{
 					return ruleResult;
@@ -204,7 +204,7 @@ namespace PoliNorError
 					return ExceptionHandlingResult.Handled;
 				}
 
-				return EvaluatePolicyRule(policyResult, errorContext, policyRuleFunc, token);
+				return EvaluatePolicyRule(ex, policyResult, errorContext, policyRuleFunc, token);
 			}
 		}
 
@@ -268,15 +268,55 @@ namespace PoliNorError
 			}
 		}
 
-		private ExceptionHandlingResult EvaluatePolicyRule<T>(PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc, CancellationToken token)
+		private static ExceptionHandlingResult EvaluatePolicyRule<T>(Exception ex, PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc, CancellationToken token)
 		{
-			var ruleApplyResult = policyRuleFunc?.Invoke(errorContext, token);
-			if (ruleApplyResult == false)
+			var(accepted, canceled, error) = RunPolicyRuleFunc();
+			if (accepted)
 			{
-				policyResult.SetFailedInner();
+				return ExceptionHandlingResult.Accepted;
+			}
+			else
+			{
+				if (!(error is null))
+				{
+					if (canceled)
+					{
+						policyResult.SetFailedAndCanceled();
+						policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.PolicyRule));
+					}
+					else
+					{
+						policyResult.SetFailedWithCatchBlockError(error, ex, CatchBlockExceptionSource.PolicyRule);
+					}
+				}
+				else
+				{
+					policyResult.SetFailedInner();
+				}
+
 				return ExceptionHandlingResult.Handled;
 			}
-			return ExceptionHandlingResult.Accepted;
+
+			(bool Result, bool IsCanceled, Exception error) RunPolicyRuleFunc()
+			{
+				try
+				{
+					var result = policyRuleFunc?.Invoke(errorContext, token);
+					return (result != false, false, null);
+				}
+				catch (OperationCanceledException tce) when (token.IsCancellationRequested)
+				{
+					return (false, true, tce);
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					return (false, true, ae.GetCancellationException());
+				}
+				catch (Exception cex)
+				{
+					return (false, false, cex);
+				}
+			}
 		}
 
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();
