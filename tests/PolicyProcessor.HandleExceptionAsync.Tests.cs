@@ -122,7 +122,7 @@ namespace PoliNorError.Tests
             var exception = new Exception("Test exception");
             var errorContext = new TestErrorContext("test");
 
-			bool policyRuleFunc(ErrorContext<string> _, CancellationToken __) => false;
+			Task<bool> policyRuleFunc(ErrorContext<string> _, CancellationToken __) => Task.FromResult(false);
 
 			var result = await processor.TestHandleExceptionAsync(
                 exception,
@@ -387,7 +387,7 @@ namespace PoliNorError.Tests
             var exception = new Exception("Test exception");
             var errorContext = new TestErrorContext("test");
 
-			bool policyRuleFunc(ErrorContext<string> _, CancellationToken __) => true;
+			Task<bool> policyRuleFunc(ErrorContext<string> _, CancellationToken __) => Task.FromResult(true);
 
 			var result = await processor.TestHandleExceptionAsync(
                 exception,

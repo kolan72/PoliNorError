@@ -43,7 +43,7 @@ namespace PoliNorError.Tests
                 PolicyResult policyResult,
                 ErrorContext<T> errorContext,
                 Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
-                Func<ErrorContext<T>, CancellationToken,bool> policyRuleFunc,
+                Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
                 ExceptionHandlingBehavior handlingBehavior,
                 ErrorProcessingCancellationEffect cancellationEffect,
                 bool configureAwait,

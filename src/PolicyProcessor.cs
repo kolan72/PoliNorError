@@ -78,7 +78,7 @@ namespace PoliNorError
 				PolicyResult policyResult,
 				ErrorContext<T> errorContext,
 				Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
-				Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc,
+				Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
 				ExceptionHandlingBehavior handlingBehavior,
 				ErrorProcessingCancellationEffect cancellationEffect,
 				bool configureAwait,
@@ -117,7 +117,7 @@ namespace PoliNorError
 				}
 			}
 
-			var ruleResult = EvaluatePolicyRule(ex, policyResult, errorContext, policyRuleFunc, token);
+			var ruleResult = await EvaluatePolicyRuleAsync(ex, policyResult, errorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
 			if (ruleResult != ExceptionHandlingResult.Accepted)
 			{
 				return ruleResult;
@@ -218,6 +218,8 @@ namespace PoliNorError
 		internal static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> CreateDefaultAsyncErrorSaver<T>() =>
 			 (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
 
+		internal static Func<ErrorContext<Unit>, CancellationToken, Task<bool>> DefaultAsyncPolicyRule { get; }= (_, __) => Task.FromResult(true);
+
 		internal static Func<ErrorContext<Unit>, CancellationToken, bool> DefaultPolicyRule { get; } = CreateDefaultPolicyRule<Unit>();
 
 		internal static Func<ErrorContext<T>, CancellationToken, bool> CreateDefaultPolicyRule<T>() =>
@@ -303,6 +305,59 @@ namespace PoliNorError
 				{
 					var result = policyRuleFunc?.Invoke(errorContext, token);
 					return (result != false, false, null);
+				}
+				catch (OperationCanceledException tce) when (token.IsCancellationRequested)
+				{
+					return (false, true, tce);
+				}
+				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+				{
+					return (false, true, ae.GetCancellationException());
+				}
+				catch (Exception cex)
+				{
+					return (false, false, cex);
+				}
+			}
+		}
+
+		private static async Task<ExceptionHandlingResult> EvaluatePolicyRuleAsync<T>(Exception ex, PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc, bool configureAwait, CancellationToken token)
+		{
+			var (accepted, canceled, error) = await RunPolicyRuleFunc().ConfigureAwait(configureAwait);
+			if (accepted)
+			{
+				return ExceptionHandlingResult.Accepted;
+			}
+			else
+			{
+				if (!(error is null))
+				{
+					if (canceled)
+					{
+						policyResult.SetFailedAndCanceled();
+						policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.PolicyRule));
+					}
+					else
+					{
+						policyResult.SetFailedWithCatchBlockError(error, ex, CatchBlockExceptionSource.PolicyRule);
+					}
+				}
+				else
+				{
+					policyResult.SetFailedInner();
+				}
+
+				return ExceptionHandlingResult.Handled;
+			}
+
+			async Task<(bool Result, bool IsCanceled, Exception error)> RunPolicyRuleFunc()
+			{
+				try
+				{
+					if (policyRuleFunc is null)
+						return (true, false, null);
+					var result = await policyRuleFunc(errorContext, token).ConfigureAwait(configureAwait);
+					return (result, false, null);
 				}
 				catch (OperationCanceledException tce) when (token.IsCancellationRequested)
 				{
