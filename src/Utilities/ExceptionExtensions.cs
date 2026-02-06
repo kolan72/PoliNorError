@@ -6,9 +6,7 @@ namespace PoliNorError
 {
 	internal static class ExceptionExtensions
 	{
-#pragma warning disable RCS1175 // Unused this parameter.
-		public static bool IsOperationCanceledWithRequestedToken(this AggregateException ae,
-#pragma warning restore RCS1175 // Unused this parameter.
+		public static bool IsOperationCanceledWithRequestedToken(this AggregateException _,
 														   CancellationToken token) => token.IsCancellationRequested;
 
 		public static bool HasCanceledException(this AggregateException ae, CancellationToken token) => ae.Flatten().InnerExceptions
