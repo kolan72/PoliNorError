@@ -463,6 +463,19 @@ namespace PoliNorError.Tests
 			Assert.That(canHandle, Is.True);
 			Assert.That(filter, Is.Not.Null);
 		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_ExceptionFilter_ExcludeErrorSet(bool inner)
+		{
+			var errorSet = ErrorSet.FromError<ArgumentException>().WithInnerError<ArgumentNullException>();
+			var filter = new PolicyProcessor.ExceptionFilter();
+			filter = filter.ExcludeErrorSet(errorSet);
+			var canHandle = IsErrorCanBeHandledByNonEmptyCatchBlockFilter(new NonEmptyCatchBlockFilter() { ErrorFilter = filter }, inner);
+			Assert.That(canHandle, Is.False);
+			Assert.That(filter, Is.Not.Null);
+		}
 	}
 
 	[TestFixture]

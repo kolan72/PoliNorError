@@ -18,6 +18,12 @@ namespace PoliNorError
 				return this;
 			}
 
+			public ExceptionFilter ExcludeErrorSet(IErrorSet errorSet)
+			{
+				this.AddExcludedErrorSet(errorSet);
+				return this;
+			}
+
 			internal ExceptionFilterSet FilterSet { get; } = new ExceptionFilterSet();
 
 			internal void AddIncludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
