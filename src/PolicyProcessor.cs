@@ -272,32 +272,7 @@ namespace PoliNorError
 
 		private static ExceptionHandlingResult EvaluatePolicyRule<T>(Exception ex, PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc, CancellationToken token)
 		{
-			var(accepted, canceled, error) = RunPolicyRuleFunc();
-			if (accepted)
-			{
-				return ExceptionHandlingResult.Accepted;
-			}
-			else
-			{
-				if (!(error is null))
-				{
-					if (canceled)
-					{
-						policyResult.SetFailedAndCanceled();
-						policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.PolicyRule));
-					}
-					else
-					{
-						policyResult.SetFailedWithCatchBlockError(error, ex, CatchBlockExceptionSource.PolicyRule);
-					}
-				}
-				else
-				{
-					policyResult.SetFailedInner();
-				}
-
-				return ExceptionHandlingResult.Handled;
-			}
+			return HandlePolicyRuleFuncResult(RunPolicyRuleFunc(), ex, policyResult);
 
 			(bool Result, bool IsCanceled, Exception error) RunPolicyRuleFunc()
 			{
@@ -323,32 +298,7 @@ namespace PoliNorError
 
 		private static async Task<ExceptionHandlingResult> EvaluatePolicyRuleAsync<T>(Exception ex, PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc, bool configureAwait, CancellationToken token)
 		{
-			var (accepted, canceled, error) = await RunPolicyRuleFunc().ConfigureAwait(configureAwait);
-			if (accepted)
-			{
-				return ExceptionHandlingResult.Accepted;
-			}
-			else
-			{
-				if (!(error is null))
-				{
-					if (canceled)
-					{
-						policyResult.SetFailedAndCanceled();
-						policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.PolicyRule));
-					}
-					else
-					{
-						policyResult.SetFailedWithCatchBlockError(error, ex, CatchBlockExceptionSource.PolicyRule);
-					}
-				}
-				else
-				{
-					policyResult.SetFailedInner();
-				}
-
-				return ExceptionHandlingResult.Handled;
-			}
+			return HandlePolicyRuleFuncResult(await RunPolicyRuleFunc().ConfigureAwait(configureAwait), ex, policyResult);
 
 			async Task<(bool Result, bool IsCanceled, Exception error)> RunPolicyRuleFunc()
 			{
@@ -371,6 +321,35 @@ namespace PoliNorError
 				{
 					return (false, false, cex);
 				}
+			}
+		}
+
+		private static ExceptionHandlingResult HandlePolicyRuleFuncResult((bool accepted, bool canceled, Exception error) result, Exception ex, PolicyResult policyResult)
+		{
+			if (result.accepted)
+			{
+				return ExceptionHandlingResult.Accepted;
+			}
+			else
+			{
+				if (!(result.error is null))
+				{
+					if (result.canceled)
+					{
+						policyResult.SetFailedAndCanceled();
+						policyResult.AddCatchBlockError(new CatchBlockException(result.error, ex, CatchBlockExceptionSource.PolicyRule));
+					}
+					else
+					{
+						policyResult.SetFailedWithCatchBlockError(result.error, ex, CatchBlockExceptionSource.PolicyRule);
+					}
+				}
+				else
+				{
+					policyResult.SetFailedInner();
+				}
+
+				return ExceptionHandlingResult.Handled;
 			}
 		}
 
