@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -17,8 +18,12 @@ namespace PoliNorError
 
 		internal bool _executed;
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult ForSync() => new PolicyResult();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);
+
 		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		/// <summary>
