@@ -1289,6 +1289,40 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsSuccess, Is.True);
 		}
 
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Execute_Action_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new SimplePolicyProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+				}
+				else
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
 		private class TestErrorProcessor : IErrorProcessor
 		{
 			public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
