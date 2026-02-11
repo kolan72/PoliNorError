@@ -1290,11 +1290,15 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(false, true)]
-		[TestCase(true, false)]
-		[TestCase(false, false)]
-		public void Should_Execute_Action_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public void Should_Execute_Action_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll, bool withContext)
 		{
 			using (var cts = new CancellationTokenSource())
 			{
@@ -1304,11 +1308,25 @@ namespace PoliNorError.Tests
 
 				if (waitAll)
 				{
-					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+					if (withContext)
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), 5, cts.Token);
+					}
+					else
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+					}
 				}
 				else
 				{
-					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+					if (withContext)
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), 5, cts.Token);
+					}
+					else
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+					}
 				}
 				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
 				Assert.That(pr.IsFailed, Is.True);
