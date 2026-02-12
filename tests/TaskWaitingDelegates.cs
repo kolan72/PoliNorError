@@ -6,32 +6,17 @@ namespace PoliNorError.Tests
 {
 	internal static class TaskWaitingDelegates
 	{
-		public static Action GetFuncWithTaskWait(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
+		public static Action<int> GetActionWithParamWithTaskWait(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
 		{
-			return () =>
-			{
-				if (canceledOnLinkedSource)
-				{
-					using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(sourceThatWillBeCanceled.Token))
-					{
-						var innerToken = cancelTokenSource.Token;
-						GetTask(innerToken).Wait();
-					}
-				}
-				else
-				{
-					GetTask(sourceThatWillBeCanceled.Token).Wait();
-				}
-				async Task GetTask(CancellationToken token)
-				{
-					await Task.Delay(1);
-					sourceThatWillBeCanceled.Cancel();
-					token.ThrowIfCancellationRequested();
-				}
-			};
+			return (_) => GetActionWithTaskWait(sourceThatWillBeCanceled, canceledOnLinkedSource)();
 		}
 
-		public static Action GetFuncWithTaskWaitAll(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
+		public static Action<int> GetActionWithParamWithTaskWaitAll(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
+		{
+			return (_) => GetActionWithTaskWaitAll(sourceThatWillBeCanceled, canceledOnLinkedSource)();
+		}
+
+		public static Action GetActionWithTaskWaitAll(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
 		{
 			return () =>
 			{
@@ -44,27 +29,56 @@ namespace PoliNorError.Tests
 						ctsOther.Token.ThrowIfCancellationRequested();
 					});
 
-					async Task GetTask()
-					{
-						await Task.Delay(1);
-						if (canceledOnLinkedSource)
-						{
-							using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(ctsOther.Token))
-							{
-								var innerToken = cancelTokenSource.Token;
-								sourceThatWillBeCanceled.Cancel();
-								innerToken.ThrowIfCancellationRequested();
-							}
-						}
-						else
-						{
-							sourceThatWillBeCanceled.Cancel();
-							sourceThatWillBeCanceled.Token.ThrowIfCancellationRequested();
-						}
-					}
-					Task.WaitAll(otherTask, GetTask());
+					Task.WaitAll(otherTask,
+								GetTaskThatCanBeThrowOnLinkedToken(sourceThatWillBeCanceled,
+										   canceledOnLinkedSource));
 				}
 			};
+		}
+
+		public static Action GetActionWithTaskWait(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
+		{
+			return () =>
+			{
+				if (canceledOnLinkedSource)
+				{
+					using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(sourceThatWillBeCanceled.Token))
+					{
+						var innerToken = cancelTokenSource.Token;
+						GetCanceledTask(innerToken, sourceThatWillBeCanceled).Wait();
+					}
+				}
+				else
+				{
+					GetCanceledTask(sourceThatWillBeCanceled.Token, sourceThatWillBeCanceled).Wait();
+				}
+			};
+		}
+
+		private async static Task GetCanceledTask(CancellationToken tokenThatThrow, CancellationTokenSource sourceThatWillBeCanceled)
+		{
+			await Task.Delay(1);
+			sourceThatWillBeCanceled.Cancel();
+			tokenThatThrow.ThrowIfCancellationRequested();
+		}
+
+		private async static Task GetTaskThatCanBeThrowOnLinkedToken(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
+		{
+			await Task.Delay(1);
+			if (canceledOnLinkedSource)
+			{
+				using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(sourceThatWillBeCanceled.Token))
+				{
+					var innerToken = cancelTokenSource.Token;
+					sourceThatWillBeCanceled.Cancel();
+					innerToken.ThrowIfCancellationRequested();
+				}
+			}
+			else
+			{
+				sourceThatWillBeCanceled.Cancel();
+				sourceThatWillBeCanceled.Token.ThrowIfCancellationRequested();
+			}
 		}
 	}
 }

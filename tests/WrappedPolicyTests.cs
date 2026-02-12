@@ -959,11 +959,11 @@ namespace PoliNorError.Tests
 
 				if (waitAll)
 				{
-					pr = policy.Handle(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+					pr = policy.Handle(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
 				}
 				else
 				{
-					pr = policy.Handle(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+					pr = policy.Handle(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
 				}				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
 				Assert.That(pr.IsFailed, Is.True);
 				Assert.That(pr.WrappedPolicyResults.FirstOrDefault().Result.PolicyCanceledError, Is.Not.Null);
