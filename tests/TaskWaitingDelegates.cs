@@ -6,6 +6,16 @@ namespace PoliNorError.Tests
 {
 	internal static class TaskWaitingDelegates
 	{
+		public static Func<int> GetFuncWithTaskWait(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
+		{
+			return () => { GetActionWithTaskWait(sourceThatWillBeCanceled, canceledOnLinkedSource)(); return 1; };
+		}
+
+		public static Func<int> GetFuncWithTaskWaitAll(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
+		{
+			return () => { GetActionWithTaskWaitAll(sourceThatWillBeCanceled, canceledOnLinkedSource)(); return 1; };
+		}
+
 		public static Action<int> GetActionWithParamWithTaskWait(CancellationTokenSource sourceThatWillBeCanceled, bool canceledOnLinkedSource)
 		{
 			return (_) => GetActionWithTaskWait(sourceThatWillBeCanceled, canceledOnLinkedSource)();

@@ -1294,6 +1294,40 @@ namespace PoliNorError.Tests
 		[TestCase(true, false)]
 		[TestCase(false, true)]
 		[TestCase(false, false)]
+		public void Should_Execute_Func_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new SimplePolicyProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+				}
+				else
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
 		public void Should_Execute_ActionWithParam_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
 		{
 			using (var cts = new CancellationTokenSource())
