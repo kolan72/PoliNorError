@@ -528,7 +528,17 @@ namespace PoliNorError
 			CancellationToken token)
 
 		{
-			return HandleExceptionAsync(ex, policyResult, errorContext, DefaultAsyncErrorSaver, DefaultAsyncPolicyRule, _rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle, ErrorProcessingCancellationEffect.Propagate, configAwait, token);
+			return HandleExceptionAsync(
+				ex,
+				policyResult,
+				errorContext,
+				DefaultAsyncErrorSaver,
+				DefaultAsyncPolicyRule,
+				_rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.EvaluateThenProcess,
+				ErrorProcessingCancellationEffect.Propagate,
+				configAwait,
+				token);
 		}
 	}
 }

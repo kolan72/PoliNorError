@@ -26,8 +26,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
         }
@@ -48,8 +47,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(policyResult.NoError, Is.False);
         }
@@ -77,8 +75,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(errorSaverCalled, Is.True);
         }
@@ -107,7 +104,8 @@ namespace PoliNorError.Tests
 					ExceptionHandlingBehavior.Handle,
 					ErrorProcessingCancellationEffect.Ignore,
 					false,
-					cts.Token);
+                    ProcessingOrder.EvaluateThenProcess,
+                    cts.Token);
 			}
 
 			Assert.That(policyResult.IsFailed, Is.True);
@@ -132,8 +130,7 @@ namespace PoliNorError.Tests
                 policyRuleFunc,
                 ExceptionHandlingBehavior.ConditionalRethrow,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
             Assert.That(policyResult.IsFailed, Is.True);
@@ -156,8 +153,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(policyResult.IsSuccess, Is.True);
         }
@@ -182,8 +178,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(policyResult.IsSuccess, Is.True);
         }
@@ -208,8 +203,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Propagate,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.IsCanceled, Is.True);
@@ -235,8 +229,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(policyResult.IsCanceled, Is.False);
         }
@@ -265,8 +258,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(errorSaverOrder, Is.EqualTo(1));
         }
@@ -294,8 +286,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.ConditionalRethrow,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(errorSaverCallCount, Is.EqualTo(1));
         }
@@ -316,8 +307,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                true,
-                CancellationToken.None);
+                true);
 
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
         }
@@ -342,6 +332,7 @@ namespace PoliNorError.Tests
 					ExceptionHandlingBehavior.Handle,
 					ErrorProcessingCancellationEffect.Ignore,
 					false,
+                    ProcessingOrder.EvaluateThenProcess,
 					cts.Token);
 
 				Assert.That(policyResult.IsSuccess, Is.True);
@@ -372,7 +363,8 @@ namespace PoliNorError.Tests
 					ExceptionHandlingBehavior.ConditionalRethrow,
 					ErrorProcessingCancellationEffect.Ignore,
 					false,
-					cts.Token);
+                    ProcessingOrder.EvaluateThenProcess,
+                    cts.Token);
 			}
 
 			Assert.That(policyResult.IsFailed, Is.True);
@@ -397,8 +389,7 @@ namespace PoliNorError.Tests
                 policyRuleFunc,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
 
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
         }
@@ -418,8 +409,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.ConditionalRethrow,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Rethrow));
         }
 
@@ -438,8 +428,7 @@ namespace PoliNorError.Tests
                 null,
                 ExceptionHandlingBehavior.Handle,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
             Assert.That(policyResult.IsFailed, Is.True);
         }
@@ -462,12 +451,55 @@ namespace PoliNorError.Tests
                 null,
                 handlingBehavior,
                 ErrorProcessingCancellationEffect.Ignore,
-                false,
-                CancellationToken.None);
+                false);
             Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Handled));
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.CriticalError, Is.Not.Null);
             Assert.That(policyResult.CatchBlockErrors.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task Should_HandleExceptionAsync_Not_Set_PolicyResult_IsCanceled_When_ProcessingOrder_ProcessThenEvaluate_And_CancellationEffectIgnore()
+        {
+            // Arrange
+            var policyResult = PolicyResult.ForNotSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new Exception("test exception");
+
+            bool ruleResult = false;
+			Task<bool> ruleFunc(ErrorContext<string> _, CancellationToken __)
+            {
+                ruleResult = true;
+                return Task.FromResult(true);
+            }
+
+            using (var cts = new CancellationTokenSource())
+            {
+                var bulkProcessor = new BulkErrorProcessor()
+                           .WithErrorProcessorOf((Exception _, CancellationToken __) => cts.Cancel());
+
+                var processor = new TestPolicyProcessor(bulkProcessor);
+
+                // Act
+                var result = await processor.TestHandleExceptionAsync(
+					exception,
+					policyResult,
+					errorContext,
+                    null,
+                    ruleFunc,
+                    ExceptionHandlingBehavior.Handle,
+                    ErrorProcessingCancellationEffect.Ignore,
+                    false,
+                    ProcessingOrder.ProcessThenEvaluate,
+                    cts.Token);
+
+                // Assert
+                Assert.That(ruleResult, Is.True);
+                Assert.That(result, Is.EqualTo(ExceptionHandlingResult.Accepted));
+                Assert.That(policyResult.IsFailed, Is.False);
+                Assert.That(policyResult.IsCanceled, Is.False);
+                Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+            }
         }
     }
 }

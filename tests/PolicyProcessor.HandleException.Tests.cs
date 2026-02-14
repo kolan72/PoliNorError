@@ -47,9 +47,10 @@ namespace PoliNorError.Tests
                 ExceptionHandlingBehavior handlingBehavior,
                 ErrorProcessingCancellationEffect cancellationEffect,
                 bool configureAwait,
-                CancellationToken token)
+                ProcessingOrder processingOrder = ProcessingOrder.EvaluateThenProcess,
+                CancellationToken token = default)
             {
-                return HandleExceptionAsync(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, cancellationEffect, configureAwait, token);
+                return HandleExceptionAsync(ex, policyResult, errorContext, errorSaver, policyRuleFunc, handlingBehavior, processingOrder, cancellationEffect, configureAwait, token);
             }
         }
 

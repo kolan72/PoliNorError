@@ -80,6 +80,7 @@ namespace PoliNorError
 				Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
 				Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
 				ExceptionHandlingBehavior handlingBehavior,
+				ProcessingOrder processingOrder,
 				ErrorProcessingCancellationEffect cancellationEffect,
 				bool configureAwait,
 				CancellationToken token)
@@ -117,19 +118,33 @@ namespace PoliNorError
 				}
 			}
 
-			var ruleResult = await EvaluatePolicyRuleAsync(ex, policyResult, errorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
-			if (ruleResult != ExceptionHandlingResult.Accepted)
+			if (processingOrder == ProcessingOrder.EvaluateThenProcess)
 			{
-				return ruleResult;
-			}
+				var ruleResult = await EvaluatePolicyRuleAsync(ex, policyResult, errorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+				if (ruleResult != ExceptionHandlingResult.Accepted)
+				{
+					return ruleResult;
+				}
 
-			var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext.ToProcessingErrorContext(), configureAwait, token).ConfigureAwait(configureAwait);
-			policyResult.AddBulkProcessorErrors(bulkProcessResult);
-			if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
-			{
-				policyResult.SetFailedAndCanceled();
+				var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext.ToProcessingErrorContext(), configureAwait, token).ConfigureAwait(configureAwait);
+				policyResult.AddBulkProcessorErrors(bulkProcessResult);
+				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
+				{
+					policyResult.SetFailedAndCanceled();
+				}
+				return ExceptionHandlingResult.Handled;
 			}
-			return ExceptionHandlingResult.Handled;
+			else
+			{
+				var bulkProcessResult = await _bulkErrorProcessor.ProcessAsync(ex, errorContext.ToProcessingErrorContext(), configureAwait, token).ConfigureAwait(configureAwait);
+				policyResult.AddBulkProcessorErrors(bulkProcessResult);
+				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
+				{
+					policyResult.SetFailedAndCanceled();
+					return ExceptionHandlingResult.Handled;
+				}
+				return await EvaluatePolicyRuleAsync(ex, policyResult, errorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+			}
 		}
 
 		protected internal ExceptionHandlingResult HandleException<T>(
