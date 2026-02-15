@@ -3,6 +3,7 @@ using NUnit.Framework.Legacy;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using static PoliNorError.PolicyProcessor;
 
 namespace PoliNorError.Tests
 {
@@ -251,6 +252,37 @@ namespace PoliNorError.Tests
 
 			Assert.That(filter.ErrorFilter.ExcludedErrorFilters.Count(), Is.EqualTo(2));
 			Assert.That(filter.ErrorFilter.IncludedErrorFilters.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_Add_ErrorFilter_FromFunc()
+		{
+			var filter = new ExceptionFilter();
+			filter.IncludeError<ArgumentException>((_) => true);
+
+			Assert.That(filter.IncludedErrorFilters.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_IncludeError_ForInnerError(bool errFilterUnsatisfied)
+		{
+			var filter = new ExceptionFilter();
+			filter.IncludeError<ArgumentException>().IncludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
+
+			Exception errorToHandler;
+			if (errFilterUnsatisfied)
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentNullException();
+			}
+			else
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentException();
+			}
+
+			var actualErrFilterUnsatisfied = !filter.GetCanHandle()(errorToHandler);
+			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
 		}
 
 		[Test]

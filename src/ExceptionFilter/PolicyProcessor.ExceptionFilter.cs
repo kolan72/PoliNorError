@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using static PoliNorError.CatchBlockFilter;
 
 namespace PoliNorError
 {
@@ -22,6 +23,26 @@ namespace PoliNorError
 			{
 				this.AddExcludedErrorSet(errorSet);
 				return this;
+			}
+
+			public ExceptionFilter IncludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				return IncludeError<TException>(null, errorType);
+			}
+
+			public ExceptionFilter IncludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				switch (errorType)
+				{
+					case ErrorType.Error:
+						AddIncludedErrorFilter(func);
+						return this;
+					case ErrorType.InnerError:
+						AddIncludedInnerErrorFilter(func);
+						return this;
+					default:
+						throw new NotImplementedException();
+				}
 			}
 
 			internal ExceptionFilterSet FilterSet { get; } = new ExceptionFilterSet();
