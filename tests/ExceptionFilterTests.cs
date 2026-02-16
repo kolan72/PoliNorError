@@ -259,8 +259,10 @@ namespace PoliNorError.Tests
 		{
 			var filter = new ExceptionFilter();
 			filter.IncludeError<ArgumentException>((_) => true);
+			filter.ExcludeError<ArgumentException>((_) => true);
 
 			Assert.That(filter.IncludedErrorFilters.Count(), Is.EqualTo(1));
+			Assert.That(filter.ExcludedErrorFilters.Count(), Is.EqualTo(1));
 		}
 
 		[Test]
@@ -279,6 +281,28 @@ namespace PoliNorError.Tests
 			else
 			{
 				errorToHandler = new TestExceptionWithInnerArgumentException();
+			}
+
+			var actualErrFilterUnsatisfied = !filter.GetCanHandle()(errorToHandler);
+			Assert.That(actualErrFilterUnsatisfied, Is.EqualTo(errFilterUnsatisfied));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_ExcludeError_ForInnerError(bool errFilterUnsatisfied)
+		{
+			var filter = new ExceptionFilter();
+			filter.ExcludeError<ArgumentException>().ExcludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
+
+			Exception errorToHandler;
+			if (errFilterUnsatisfied)
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentException();
+			}
+			else
+			{
+				errorToHandler = new TestExceptionWithInnerArgumentNullException();
 			}
 
 			var actualErrFilterUnsatisfied = !filter.GetCanHandle()(errorToHandler);

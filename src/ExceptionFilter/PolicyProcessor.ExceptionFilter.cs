@@ -45,6 +45,26 @@ namespace PoliNorError
 				}
 			}
 
+			public ExceptionFilter ExcludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				return ExcludeError<TException>(null, errorType);
+			}
+
+			public ExceptionFilter ExcludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				switch (errorType)
+				{
+					case ErrorType.Error:
+						AddExcludedErrorFilter(func);
+						return this;
+					case ErrorType.InnerError:
+						AddExcludedInnerErrorFilter(func);
+						return this;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+
 			internal ExceptionFilterSet FilterSet { get; } = new ExceptionFilterSet();
 
 			internal void AddIncludedErrorFilter(Expression<Func<Exception, bool>> handledErrorFilter)
