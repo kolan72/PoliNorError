@@ -28,9 +28,6 @@ namespace PoliNorError
 
 		internal abstract Task<T> HandleAsync(CancellationToken token);
 
-		internal IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults
-		{
-			get { return _policyHandledResults; }
-		}
+		internal IEnumerable<PolicyDelegateResult<T>> PolicyDelegateResults => _policyHandledResults;
 	}
 }
