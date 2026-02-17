@@ -90,9 +90,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BulkErrorProcessorTests.cs" />
+    <Compile Include="BulkheadPolicyTests.cs" />
     <Compile Include="BulkProcessResultTests.cs" />
     <Compile Include="CancellationTests.cs" />
     <Compile Include="CatchBlockHandlersTests.cs" />
+    <Compile Include="CircuitBreakerPolicyTests.cs" />
     <Compile Include="DefaultFallbackProcessorAsyncTests.cs" />
     <Compile Include="DefaultFallbackProcessorTests.cs" />
     <Compile Include="DefaultRetryProcessorAsyncTests.cs" />
@@ -130,6 +132,7 @@
     <Compile Include="SyncErrorProcessorTParamTests.cs" />
     <Compile Include="SyncErrorProcessorTests.cs" />
     <Compile Include="TaskWaitingDelegates.cs" />
+    <Compile Include="TimeoutPolicyTests.cs" />
     <Compile Include="TryCatchBuilderTests.cs" />
     <Compile Include="TryCatchTests.cs" />
     <Compile Include="UtilitiesTests.cs" />

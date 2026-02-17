@@ -55,5 +55,22 @@ namespace PoliNorError
 			errorPolicyBase.PolicyName = policyName;
 			return errorPolicyBase;
 		}
+
+		public static TimeoutPolicy ThenTimeout(this IPolicyBase policy, TimeSpan timeout)
+		{
+			return policy.WrapUp(new TimeoutPolicy(timeout)).OuterPolicy;
+		}
+
+		public static CircuitBreakerPolicy ThenCircuitBreaker(this IPolicyBase policy, Action<CircuitBreakerOptions> configure = null)
+		{
+			var breaker = new CircuitBreakerPolicy();
+			breaker.WithOptions(configure);
+			return policy.WrapUp(breaker).OuterPolicy;
+		}
+
+		public static BulkheadPolicy ThenBulkhead(this IPolicyBase policy, int maxParallelization, int maxQueueSize = 0)
+		{
+			return policy.WrapUp(new BulkheadPolicy(maxParallelization, maxQueueSize)).OuterPolicy;
+		}
 	}
 }
