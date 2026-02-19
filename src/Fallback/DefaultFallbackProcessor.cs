@@ -85,8 +85,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				action();
@@ -102,12 +100,9 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				exHandler.Handle(ex, emptyErrorContext);
+				bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
 
-				if (!result.IsFailed)
-				{
-					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
-				}
+				HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
 			}
 			return result;
 		}
@@ -467,6 +462,26 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
+		}
+
+		private void HandleException(
+			Exception ex,
+			PolicyResult policyResult,
+			EmptyErrorContext errorContext,
+			Func<ErrorContext<Unit>, CancellationToken, bool> policyRuleFunc,
+			CancellationToken token)
+
+		{
+			HandleException(
+				ex,
+				policyResult,
+				errorContext,
+				DefaultErrorSaver,
+				policyRuleFunc,
+				ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.ProcessThenEvaluate,
+				ErrorProcessingCancellationEffect.Propagate,
+				token);
 		}
 	}
 }
