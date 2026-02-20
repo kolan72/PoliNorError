@@ -96,7 +96,7 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{

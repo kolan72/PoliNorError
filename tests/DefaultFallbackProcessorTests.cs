@@ -699,5 +699,57 @@ namespace PoliNorError.Tests
 				Assert.That(tryResCount.NoError, Is.True);
 			}
 		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public void Should_Fallback_Action_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll, bool withContext)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new DefaultFallbackProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					if (withContext)
+					{
+						pr = processor.Fallback(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), 5, (_) => { }, cts.Token);
+					}
+					else
+					{
+						pr = processor.Fallback(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), (_) => { }, cts.Token);
+					}
+				}
+				else
+				{
+					if (withContext)
+					{
+						pr = processor.Fallback(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), 5, (_) => { }, cts.Token);
+					}
+					else
+					{
+						pr = processor.Fallback(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), (_) => { }, cts.Token);
+					}
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
 	}
 }
