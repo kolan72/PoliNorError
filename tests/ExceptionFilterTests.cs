@@ -255,11 +255,21 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Add_ErrorFilter_FromFunc()
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_Add_ErrorFilter_FromFunc_Or_ByExpression(bool fromFunc)
 		{
 			var filter = new ExceptionFilter();
-			filter.IncludeError<ArgumentException>((_) => true);
-			filter.ExcludeError<ArgumentException>((_) => true);
+			if (fromFunc)
+			{
+				filter.IncludeError<ArgumentException>((_) => true);
+				filter.ExcludeError<ArgumentException>((_) => true);
+			}
+			else
+			{
+				filter.IncludeError((_) => true);
+				filter.ExcludeError((_) => true);
+			}
 
 			Assert.That(filter.IncludedErrorFilters.Count(), Is.EqualTo(1));
 			Assert.That(filter.ExcludedErrorFilters.Count(), Is.EqualTo(1));

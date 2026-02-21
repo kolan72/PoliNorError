@@ -45,6 +45,12 @@ namespace PoliNorError
 				}
 			}
 
+			public ExceptionFilter IncludeError(Expression<Func<Exception, bool>> expression)
+			{
+				AddIncludedErrorFilter(expression);
+				return this;
+			}
+
 			public ExceptionFilter ExcludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
 			{
 				return ExcludeError<TException>(null, errorType);
@@ -63,6 +69,12 @@ namespace PoliNorError
 					default:
 						throw new NotImplementedException();
 				}
+			}
+
+			public ExceptionFilter ExcludeError(Expression<Func<Exception, bool>> expression)
+			{
+				AddExcludedErrorFilter(expression);
+				return this;
 			}
 
 			internal ExceptionFilterSet FilterSet { get; } = new ExceptionFilterSet();
