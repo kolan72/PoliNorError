@@ -43,8 +43,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				action(param);
@@ -60,12 +58,9 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				exHandler.Handle(ex, emptyErrorContext);
+				bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
 
-				if (!result.IsFailed)
-				{
-					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
-				}
+				HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
 			}
 			return result;
 		}
