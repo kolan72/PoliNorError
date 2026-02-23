@@ -311,8 +311,12 @@ namespace PoliNorError
 	/// <typeparam name="T">Type of result.</typeparam>
 	public class PolicyResult<T> : PolicyResult
 	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> ForSync() => new PolicyResult<T>();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> ForNotSync() => new PolicyResult<T>(true);
+
 		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		///<inheritdoc cref = "PolicyResult(bool)"/>
