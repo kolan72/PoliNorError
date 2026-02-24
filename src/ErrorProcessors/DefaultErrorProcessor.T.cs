@@ -62,7 +62,7 @@ namespace PoliNorError
 		{
 			void action(Exception ex, ProcessingErrorInfo pi, CancellationToken token)
 			{
-				if (pi is ProcessingErrorInfo<TParam> gpi)
+				if (TryGetProcessingErrorInfo<TParam>(pi, out var gpi))
 					actionProcessor(ex, gpi, token);
 			}
 			var res = new DefaultErrorProcessorT();
@@ -90,7 +90,7 @@ namespace PoliNorError
 		{
 			Task fn(Exception ex, ProcessingErrorInfo pi, CancellationToken token)
 			{
-				if (pi is ProcessingErrorInfo<TParam> gpi)
+				if (TryGetProcessingErrorInfo<TParam>(pi, out var gpi))
 					return funcProcessor(ex, gpi, token);
 				else
 					return Task.CompletedTask;
@@ -112,7 +112,7 @@ namespace PoliNorError
 		{
 			return (Exception ex, ProcessingErrorInfo pi) =>
 			{
-				if (pi is ProcessingErrorInfo<TParam> gpi)
+				if (TryGetProcessingErrorInfo<TParam>(pi, out var gpi))
 					actionProcessor(ex, gpi);
 			};
 		}
@@ -121,11 +121,24 @@ namespace PoliNorError
 		{
 			return (Exception ex, ProcessingErrorInfo pi) =>
 			{
-				if (pi is ProcessingErrorInfo<TParam> gpi)
+				if (TryGetProcessingErrorInfo<TParam>(pi, out var gpi))
 					return funcProcessor(ex, gpi);
 				else
 					return Task.CompletedTask;
 			};
+		}
+
+		public static bool TryGetProcessingErrorInfo<TParam>(
+				ProcessingErrorInfo pi,
+				out ProcessingErrorInfo<TParam> gpi)
+		{
+			if (pi is ProcessingErrorInfo<TParam> result)
+			{
+				gpi = result;
+				return true;
+			}
+			gpi = null;
+			return false;
 		}
 
 		protected override Func<ProcessingErrorInfo, ProcessingErrorInfo> ParameterConverter => (_) => _;
