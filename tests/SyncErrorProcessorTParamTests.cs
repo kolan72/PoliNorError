@@ -184,7 +184,7 @@ namespace PoliNorError.Tests
 			var errProcessor = new LogErrorProcessorWithParam(logger);
 
 			var bp = new BulkErrorProcessor().WithErrorProcessor(errProcessor);
-			var _ = bp.Process(exception, new ProcessingErrorContext<int>(PolicyAlias.NotSet, 5));
+			bp.Process(exception, new ProcessingErrorContext<int>(PolicyAlias.NotSet, 5));
 			Assert.That(logger.LastLoggedException, Is.SameAs(exception));
 			Assert.That(logger.Param, Is.EqualTo(5));
 		}
@@ -198,7 +198,7 @@ namespace PoliNorError.Tests
 			var errProcessor = new LogErrorProcessorWithParam(logger);
 
 			var bp = new BulkErrorProcessor().WithErrorProcessor(errProcessor);
-			var _ = await bp.ProcessAsync(exception, new ProcessingErrorContext<int>(PolicyAlias.NotSet, 5));
+			await bp.ProcessAsync(exception, new ProcessingErrorContext<int>(PolicyAlias.NotSet, 5));
 			Assert.That(logger.LastLoggedException, Is.SameAs(exception));
 			Assert.That(logger.Param, Is.EqualTo(5));
 		}
