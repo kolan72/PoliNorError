@@ -290,5 +290,21 @@ namespace PoliNorError.Tests
 			Assert.That(retryDelay.GetDelay(2), Is.EqualTo(maxTime));
 			Assert.That(retryDelay.GetDelay(3), Is.EqualTo(maxTime));
 		}
+
+		[Test]
+		public void Should_Implicitly_Convert_ConstantRetryDelayOptions_To_RetryDelay()
+		{
+			var crdo = new ConstantRetryDelayOptions() { BaseDelay = TimeSpan.FromMilliseconds(1) };
+			var tester = new RetryDelayTester();
+			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(1)));
+		}
+
+		private class RetryDelayTester
+		{
+			public TimeSpan GetAttemptDelay(RetryDelay retryDelay, int attemptNumber = 0)
+			{
+				return retryDelay.GetDelay(attemptNumber);
+			}
+		}
 	}
 }
