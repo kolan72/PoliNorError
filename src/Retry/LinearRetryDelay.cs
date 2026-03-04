@@ -87,5 +87,7 @@ namespace PoliNorError
 		/// Slope factor to use.
 		/// </summary>
 		public double SlopeFactor { get; set; } = RetryDelayConstants.SlopeFactor;
+
+		public static implicit operator LinearRetryDelay(LinearRetryDelayOptions options) => new LinearRetryDelay(options);
 	}
 }
