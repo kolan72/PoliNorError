@@ -307,6 +307,14 @@ namespace PoliNorError.Tests
 			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(2 * crdo.SlopeFactor)));
 		}
 
+		[Test]
+		public void Should_Implicitly_Convert_ExponentialRetryDelayOptions_To_RetryDelay()
+		{
+			var crdo = new ExponentialRetryDelayOptions() { BaseDelay = TimeSpan.FromMilliseconds(2), ExponentialFactor = 2 };
+			var tester = new RetryDelayTester();
+			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(2 * Math.Pow(crdo.ExponentialFactor, 0))));
+		}
+
 		private class RetryDelayTester
 		{
 			public TimeSpan GetAttemptDelay(RetryDelay retryDelay, int attemptNumber = 0)

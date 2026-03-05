@@ -82,5 +82,7 @@ namespace PoliNorError
 		/// Exponential factor to use.
 		/// </summary>
 		public double ExponentialFactor { get; set; } = RetryDelayConstants.ExponentialFactor;
+
+		public static implicit operator ExponentialRetryDelay(ExponentialRetryDelayOptions options) => new ExponentialRetryDelay(options);
 	}
 }
