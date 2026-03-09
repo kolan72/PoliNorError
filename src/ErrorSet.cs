@@ -31,6 +31,34 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Creates the <see cref="ErrorSet"/> set and adds <see cref="ErrorSetItem"/> items with the <typeparamref name="TException1"/> and <typeparamref name="TException2"/> types and <see cref="ErrorSetItem.ItemType.Error"/> kind to the new set.
+		/// </summary>
+		/// <typeparam name="TException1">The first type of exception.</typeparam>
+		/// <typeparam name="TException2">The second type of exception.</typeparam>
+		/// <returns>A new <see cref="ErrorSet"/> containing the specified error types.</returns>
+		public static ErrorSet FromErrors<TException1, TException2>()
+			where TException1 : Exception
+			where TException2 : Exception
+		{
+			return new ErrorSet().WithError<TException1>().WithError<TException2>();
+		}
+
+		/// <summary>
+		/// Creates the <see cref="ErrorSet"/> set and adds <see cref="ErrorSetItem"/> items with the <typeparamref name="TException1"/>, <typeparamref name="TException2"/>, and <typeparamref name="TException3"/> types and <see cref="ErrorSetItem.ItemType.Error"/> kind to the new set.
+		/// </summary>
+		/// <typeparam name="TException1">The first type of exception.</typeparam>
+		/// <typeparam name="TException2">The second type of exception.</typeparam>
+		/// <typeparam name="TException3">The third type of exception.</typeparam>
+		/// <returns>A new <see cref="ErrorSet"/> containing the specified error types.</returns>
+		public static ErrorSet FromErrors<TException1, TException2, TException3>()
+			where TException1 : Exception
+			where TException2 : Exception
+			where TException3 : Exception
+		{
+			return new ErrorSet().WithError<TException1>().WithError<TException2>().WithError<TException3>();
+		}
+
+		/// <summary>
 		/// Creates  the <see cref="ErrorSet"/> set and adds the <see cref="ErrorSetItem"/> item with the <typeparamref name="TInnerException"/> type and <see cref="ErrorSetItem.ItemType.InnerError"/> kind to the new set.
 		/// </summary>
 		/// <typeparam name="TInnerException">The type of inner exception.</typeparam>

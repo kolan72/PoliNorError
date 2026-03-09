@@ -1,12 +1,21 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Linq;
-using static PoliNorError.ErrorSet;
 
 namespace PoliNorError.Tests
 {
 	public class ErrorSetTests
 	{
+#pragma warning disable RCS1194 // Implement exception constructors.
+#pragma warning disable S3376 // Attribute, EventArgs, and Exception type names should end with the type being extended
+#pragma warning disable S3871 // Exception types should be "public"
+		private class TestException1 : Exception { }
+		private class TestException2 : Exception { }
+		private class TestException3 : Exception { }
+#pragma warning restore S3871 // Exception types should be "public"
+#pragma warning restore S3376 // Attribute, EventArgs, and Exception type names should end with the type being extended
+#pragma warning restore RCS1194 // Implement exception constructors.
+
 		[Test]
 		[TestCase(false)]
 		[TestCase(true)]
@@ -33,8 +42,72 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ErrorSetItem_Be_Equatable_With_Null()
 		{
-			var esi = new ErrorSetItem(typeof(InvalidOperationException), ErrorSetItem.ItemType.Error);
+			var esi = new ErrorSet.ErrorSetItem(typeof(InvalidOperationException), ErrorSet.ErrorSetItem.ItemType.Error);
 			Assert.That(esi.Equals(null), Is.False);
 		}
-	}
+
+        [Test]
+        public void Should_ContainTwoErrorItems_When_CallingFromErrorsWithTwoGenericTypes()
+        {
+            // Act
+            var result = ErrorSet.FromErrors<TestException1, TestException2>();
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Items, Has.Count.EqualTo(2));
+
+            var expectedItem1 = new ErrorSet.ErrorSetItem(typeof(TestException1), ErrorSet.ErrorSetItem.ItemType.Error);
+            var expectedItem2 = new ErrorSet.ErrorSetItem(typeof(TestException2), ErrorSet.ErrorSetItem.ItemType.Error);
+
+            Assert.That(result.Items, Does.Contain(expectedItem1));
+            Assert.That(result.Items, Does.Contain(expectedItem2));
+        }
+
+        [Test]
+        public void Should_ContainThreeErrorItems_When_CallingFromErrorsWithThreeGenericTypes()
+        {
+            // Act
+            var result = ErrorSet.FromErrors<TestException1, TestException2, TestException3>();
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Items, Has.Count.EqualTo(3));
+
+            var expectedItem1 = new ErrorSet.ErrorSetItem(typeof(TestException1), ErrorSet.ErrorSetItem.ItemType.Error);
+            var expectedItem2 = new ErrorSet.ErrorSetItem(typeof(TestException2), ErrorSet.ErrorSetItem.ItemType.Error);
+            var expectedItem3 = new ErrorSet.ErrorSetItem(typeof(TestException3), ErrorSet.ErrorSetItem.ItemType.Error);
+
+            Assert.That(result.Items, Does.Contain(expectedItem1));
+            Assert.That(result.Items, Does.Contain(expectedItem2));
+            Assert.That(result.Items, Does.Contain(expectedItem3));
+        }
+
+        [Test]
+        public void Should_MarkAllItemsAsErrorKind_When_CallingFromErrors()
+        {
+            // Act
+            var result = ErrorSet.FromErrors<TestException1, TestException2>();
+
+            // Assert
+            foreach (var item in result.Items)
+            {
+                Assert.That(item.ErrorKind, Is.EqualTo(ErrorSet.ErrorSetItem.ItemType.Error),
+                    "FromErrors should only add items with ItemType.Error");
+            }
+        }
+
+        [Test]
+        public void Should_NotAddDuplicateItems_When_CallingFromErrorsWithSameTypeMultipleTimes()
+        {
+            // Act
+            var result = ErrorSet.FromErrors<TestException1, TestException1, TestException1>();
+
+            // Assert
+            // HashSet implementation should prevent duplicates based on ErrorType and ErrorKind
+            Assert.That(result.Items, Has.Count.EqualTo(1));
+
+            var expectedItem = new ErrorSet.ErrorSetItem(typeof(TestException1), ErrorSet.ErrorSetItem.ItemType.Error);
+            Assert.That(result.Items, Does.Contain(expectedItem));
+        }
+    }
 }
