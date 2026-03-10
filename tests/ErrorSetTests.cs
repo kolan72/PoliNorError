@@ -109,5 +109,47 @@ namespace PoliNorError.Tests
             var expectedItem = new ErrorSet.ErrorSetItem(typeof(TestException1), ErrorSet.ErrorSetItem.ItemType.Error);
             Assert.That(result.Items, Does.Contain(expectedItem));
         }
+
+		[Test]
+		public void Should_HasErrorGeneric_ReturnTrue_When_ErrorTypeExists()
+		{
+			var errorSet = ErrorSet.FromError<TestException1>();
+
+			var result = errorSet.HasError<TestException1>();
+
+			Assert.That(result, Is.True);
+		}
+
+		[Test]
+		public void Should_HasErrorGeneric_ReturnFalse_When_ErrorTypeMissing()
+		{
+			var errorSet = ErrorSet.FromError<TestException1>();
+
+			var result = errorSet.HasError<TestException2>();
+
+			Assert.That(result, Is.False);
+		}
+
+		[Test]
+		public void Should_HasInnerErrorGeneric_ReturnTrue_When_InnerErrorTypeExists()
+		{
+			var errorSet = ErrorSet.FromError<TestException1>()
+				.WithInnerError<TestException2>();
+
+			var result = errorSet.HasInnerError<TestException2>();
+
+			Assert.That(result, Is.True);
+		}
+
+		[Test]
+		public void Should_HasInnerErrorGeneric_ReturnFalse_When_InnerErrorTypeMissing()
+		{
+			var errorSet = ErrorSet.FromError<TestException1>()
+				.WithInnerError<TestException2>();
+
+			var result = errorSet.HasInnerError<TestException3>();
+
+			Assert.That(result, Is.False);
+		}
     }
 }

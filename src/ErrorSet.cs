@@ -99,6 +99,42 @@ namespace PoliNorError
 		public IEnumerable<ErrorSetItem> Items => _set;
 
 		/// <summary>
+		/// Checks whether the set contains the specified exception type for an exception itself.
+		/// </summary>
+		/// <typeparam name="TException">The exception type to check.</typeparam>
+		/// <returns><c>true</c> if the exception type exists in the set; otherwise, <c>false</c>.</returns>
+		public bool HasError<TException>() where TException : Exception
+		{
+			return HasError(typeof(TException), ErrorSetItem.ItemType.Error);
+		}
+
+		/// <summary>
+		/// Checks whether the set contains the specified exception type for an inner exception.
+		/// </summary>
+		/// <typeparam name="TInnerException">The exception type to check.</typeparam>
+		/// <returns><c>true</c> if the exception type exists in the set; otherwise, <c>false</c>.</returns>
+		public bool HasInnerError<TInnerException>() where TInnerException : Exception
+		{
+			return HasError(typeof(TInnerException), ErrorSetItem.ItemType.InnerError);
+		}
+
+		/// <summary>
+		/// Checks whether the set contains the specified exception type with the given kind.
+		/// </summary>
+		/// <param name="exceptionType">The exception type to check.</param>
+		/// <param name="errorType">The kind of exception to check for.</param>
+		/// <returns><c>true</c> if the exception type exists in the set; otherwise, <c>false</c>.</returns>
+		private bool HasError(Type exceptionType, ErrorSetItem.ItemType errorType)
+		{
+			if (exceptionType == null)
+			{
+				return false;
+			}
+
+			return _set.Contains(new ErrorSetItem(exceptionType, errorType));
+		}
+
+		/// <summary>
 		/// Represents the type and kind of an exception.
 		/// </summary>
 		public sealed class ErrorSetItem : IEquatable<ErrorSetItem>
