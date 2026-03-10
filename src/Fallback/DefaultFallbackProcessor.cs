@@ -58,9 +58,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
-
-				HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -95,9 +93,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
-
-				HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -244,8 +240,6 @@ namespace PoliNorError
 			}
 
 			result.SetExecuted();
-
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
 
 			try
 			{
@@ -457,6 +451,18 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
+		}
+
+		private void HandleException(
+			Action<CancellationToken> fallback,
+			EmptyErrorContext emptyErrorContext,
+			PolicyResult result,
+			Exception ex,
+			CancellationToken token)
+		{
+			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
+
+			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
 		}
 
 		private void HandleException(
