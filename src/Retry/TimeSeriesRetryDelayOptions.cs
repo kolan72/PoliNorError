@@ -14,5 +14,7 @@ namespace PoliNorError
 
         /// <inheritdoc/>
         public override RetryDelayType DelayType => RetryDelayType.TimeSeries;
+
+        public static implicit operator TimeSeriesRetryDelay(TimeSeriesRetryDelayOptions options) => new TimeSeriesRetryDelay(options);
     }
 }
