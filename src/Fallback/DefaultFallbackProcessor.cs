@@ -341,8 +341,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				var resAction = await func(param, token).ConfigureAwait(configureAwait);
@@ -355,12 +353,14 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
-
-				if (!result.IsFailed)
+				async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
 				{
-					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
+					var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
+					result.SetResult(fallbackResult);
+					return true;
 				}
+
+				await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
