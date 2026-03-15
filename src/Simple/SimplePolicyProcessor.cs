@@ -475,18 +475,6 @@ namespace PoliNorError
 			return this.WithErrorContextProcessor<SimplePolicyProcessor, TErrorContext>(errorProcessor);
 		}
 
-		private (bool? FilterUnsatisfied, Exception exception) GetFilterUnsatisfiedOrFilterException(Exception ex)
-		{
-			try
-			{
-				return (!ErrorFilter.GetCanHandle()(ex), null);
-			}
-			catch (Exception filterEx)
-			{
-				return (null, filterEx);
-			}
-		}
-
 		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicyProcessor}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
 		public SimplePolicyProcessor AddErrorFilter(NonEmptyCatchBlockFilter filter)
 		{
