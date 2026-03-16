@@ -24,6 +24,7 @@ namespace PoliNorError
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		/// <summary>
@@ -317,6 +318,7 @@ namespace PoliNorError
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> ForNotSync() => new PolicyResult<T>(true);
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		///<inheritdoc cref = "PolicyResult(bool)"/>
