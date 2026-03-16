@@ -145,14 +145,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-				{
-					var fallbackResult = fallback(ct);
-					result.SetResult(fallbackResult);
-					return true;
-				}
-
-				HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -188,14 +181,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-				{
-					var fallbackResult = fallback(ct);
-					result.SetResult(fallbackResult);
-					return true;
-				}
-
-				HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -451,6 +437,23 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
+		}
+
+		private void HandleException<T>(
+			Func<CancellationToken, T> fallback,
+			EmptyErrorContext emptyErrorContext,
+			PolicyResult<T> result,
+			Exception ex,
+			CancellationToken token)
+		{
+			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
+			{
+				var fallbackResult = fallback(ct);
+				result.SetResult(fallbackResult);
+				return true;
+			}
+
+			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
 		}
 
 		private void HandleException(
