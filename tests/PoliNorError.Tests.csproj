@@ -6,6 +6,7 @@
   <Import Project="../packages/NUnit.4.3.0/build/NUnit.props" Condition="Exists('../packages/NUnit.4.3.0/build/NUnit.props')" />
   <Import Project="../packages/NUnit.4.2.2/build/NUnit.props" Condition="Exists('../packages/NUnit.4.2.2/build/NUnit.props')" />
   <Import Project="../packages/NUnit3TestAdapter.4.6.0/build/net462/NUnit3TestAdapter.props" Condition="Exists('../packages/NUnit3TestAdapter.4.6.0/build/net462/NUnit3TestAdapter.props')" />
+  <Import Project="../packages/System.ValueTuple.4.6.1/build/net471/System.ValueTuple.targets" Condition="Exists('../packages/System.ValueTuple.4.6.1/build/net471/System.ValueTuple.targets')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -188,8 +189,6 @@
     <Error Condition="!Exists('../packages/NUnit.4.2.2/build/NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '../packages/NUnit.4.2.2/build/NUnit.props'))" />
     <Error Condition="!Exists('../packages/NUnit.4.3.0/build/NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '../packages/NUnit.4.3.0/build/NUnit.props'))" />
     <Error Condition="!Exists('../packages/NUnit.4.3.1/build/NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '../packages/NUnit.4.3.1/build/NUnit.props'))" />
-    <Error Condition="!Exists('../packages/System.ValueTuple.4.6.1/build/net471/System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', '../packages/System.ValueTuple.4.6.1/build/net471/System.ValueTuple.targets'))" />
     <Error Condition="!Exists('..\packages\NUnit.4.4.0\build\NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NUnit.4.4.0\build\NUnit.props'))" />
   </Target>
-  <Import Project="../packages/System.ValueTuple.4.6.1/build/net471/System.ValueTuple.targets" Condition="Exists('../packages/System.ValueTuple.4.6.1/build/net471/System.ValueTuple.targets')" />
 </Project>
