@@ -327,14 +327,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-				{
-					var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
-					result.SetResult(fallbackResult);
-					return true;
-				}
-
-				await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -366,14 +359,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-				{
-					var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
-					result.SetResult(fallbackResult);
-					return true;
-				}
-
-				await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -476,7 +462,25 @@ namespace PoliNorError
 				token);
 		}
 
-		private async Task HandleExceptionAsync(
+		private async Task<ExceptionHandlingResult> HandleExceptionAsync<T>(
+			Func<CancellationToken, Task<T>> fallback,
+			EmptyErrorContext emptyErrorContext,
+			PolicyResult<T> result,
+			Exception ex,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
+			{
+				var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
+				result.SetResult(fallbackResult);
+				return true;
+			}
+
+			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<ExceptionHandlingResult> HandleExceptionAsync(
 			Func<CancellationToken, Task> fallback,
 			EmptyErrorContext emptyErrorContext,
 			PolicyResult result,
@@ -490,7 +494,7 @@ namespace PoliNorError
 				return true;
 			}
 
-			await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 
