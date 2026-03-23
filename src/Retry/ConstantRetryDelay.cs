@@ -26,7 +26,8 @@ namespace PoliNorError
 		{
 			if (retryDelayOptions.UseJitter)
 			{
-				return GetJitteredDelayValue(retryDelayOptions);
+				var maxDelayDelimiter = new MaxDelayDelimiter(retryDelayOptions);
+				return (_) => maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(retryDelayOptions)));
 			}
 			else
 			{
@@ -46,15 +47,6 @@ namespace PoliNorError
 		internal ConstantRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue }){}
 
 		private static Func<int, TimeSpan> GetDelayValue(ConstantRetryDelayOptions options) => (_) => options.BaseDelay;
-
-		private static Func<int, TimeSpan> GetJitteredDelayValue(ConstantRetryDelayOptions options)
-		{
-			return (_) =>
-			{
-				var maxDelayDelimiter = new MaxDelayDelimiter(options);
-				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(options)));
-			};
-		}
 
 		private static double GetDelayValueInMs(ConstantRetryDelayOptions options)
 		{
