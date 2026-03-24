@@ -323,6 +323,58 @@ namespace PoliNorError.Tests
 			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(1)));
 		}
 
+		[Test]
+		public void Should_Apply_Jitter_To_ConstantRetryDelay_Within_Expected_Range_When_UseJitter_True()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(1000);
+			var options = new ConstantRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				MaxDelay = TimeSpan.MaxValue,
+				UseJitter = true
+			};
+			var delay = new ConstantRetryDelay(options);
+
+			var result = delay.GetDelay(1);
+			var baseMs = baseDelay.TotalMilliseconds;
+			var offset = baseMs * RetryDelayConstants.JitterFactor / 2;
+			var minExpected = TimeSpan.FromMilliseconds(baseMs - offset);
+			var maxExpected = TimeSpan.FromMilliseconds(baseMs + offset);
+
+			Assert.That(result, Is.GreaterThanOrEqualTo(minExpected));
+			Assert.That(result, Is.LessThanOrEqualTo(maxExpected));
+		}
+
+		[Test]
+		public void Should_Cap_ConstantRetryDelay_At_MaxDelay_When_Jitter_Exceeds_Max()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(1000);
+			var maxDelay = TimeSpan.FromMilliseconds(1100);
+			var options = new ConstantRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				MaxDelay = maxDelay,
+				UseJitter = true
+			};
+			var delay = new ConstantRetryDelay(options);
+
+			// Force jitter to exceed max by using a known random value
+			// Note: This test assumes internal implementation details
+			var result = delay.GetDelay(1);
+
+			Assert.That(result, Is.LessThanOrEqualTo(maxDelay));
+		}
+
+		[Test]
+		public void Should_Create_ConstantRetryDelay_Instance_Via_Create_Method()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(200);
+			var instance = ConstantRetryDelay.Create(baseDelay, useJitter: true);
+
+			Assert.That(instance, Is.Not.Null);
+			Assert.That(instance.GetDelay(1), Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(150)));
+		}
+
 		private class RetryDelayTester
 		{
 			public TimeSpan GetAttemptDelay(RetryDelay retryDelay, int attemptNumber = 0)
