@@ -375,6 +375,58 @@ namespace PoliNorError.Tests
 			Assert.That(instance.GetDelay(1), Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(150)));
 		}
 
+		[Test]
+		public void Should_Apply_Jitter_To_LinearRetryDelay_Within_Expected_Range_When_UseJitter_True()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(100);
+			var options = new LinearRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				UseJitter = true,
+				SlopeFactor = 1.0
+			};
+			var delay = new LinearRetryDelay(options);
+
+			var result = delay.GetDelay(1);
+			var baseValue = 200.0; // 2 * 100 * 1.0
+			var jitterRange = baseValue * RetryDelayConstants.JitterFactor / 2;
+			var minExpected = TimeSpan.FromMilliseconds(baseValue - jitterRange);
+			var maxExpected = TimeSpan.FromMilliseconds(baseValue + jitterRange);
+
+			Assert.That(result, Is.GreaterThanOrEqualTo(minExpected));
+			Assert.That(result, Is.LessThanOrEqualTo(maxExpected));
+		}
+
+		[Test]
+		public void Should_Cap_LinearRetryDelay_At_MaxDelay_When_Exceeded()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(100);
+			var maxDelay = TimeSpan.FromMilliseconds(250);
+			var options = new LinearRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				MaxDelay = maxDelay,
+				UseJitter = false,
+				SlopeFactor = 1.0
+			};
+			var delay = new LinearRetryDelay(options);
+
+			var result = delay.GetDelay(2); // Should be 300ms without cap
+
+			Assert.That(result, Is.EqualTo(maxDelay));
+		}
+
+		[Test]
+		public void Should_Create_LinearRetryDelay_Instance_With_Create_Method_Default_Slope()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(100);
+			var instance = LinearRetryDelay.Create(baseDelay);
+
+			var result = instance.GetDelay(1);
+
+			Assert.That(result, Is.EqualTo(TimeSpan.FromMilliseconds(200)));
+		}
+
 		private class RetryDelayTester
 		{
 			public TimeSpan GetAttemptDelay(RetryDelay retryDelay, int attemptNumber = 0)
