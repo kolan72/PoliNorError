@@ -27,6 +27,8 @@ namespace PoliNorError
 		{
 		}
 
+		internal RetryDelay(DelayCoreBase delayCore) : this(delayCore.DelayProvider) { }
+
 		/// <summary>
 		/// Initializes a new instance of <see cref="RetryDelay"/>.
 		/// </summary>
