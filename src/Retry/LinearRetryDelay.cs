@@ -11,7 +11,7 @@ namespace PoliNorError
 		/// Initializes a new instance of <see cref="LinearRetryDelay"/>.
 		/// </summary>
 		/// <param name="retryDelayOptions"><see cref="LinearRetryDelayOptions"/></param>
-		public LinearRetryDelay(LinearRetryDelayOptions retryDelayOptions): base(new LinearDelayCore(retryDelayOptions).GetDelay)
+		public LinearRetryDelay(LinearRetryDelayOptions retryDelayOptions): base(new LinearDelayCore(retryDelayOptions))
 		{
 #pragma warning disable CS0618 // Type or member is obsolete
 			InnerDelay = this;
@@ -55,36 +55,23 @@ namespace PoliNorError
 		public static implicit operator LinearRetryDelay(LinearRetryDelayOptions options) => new LinearRetryDelay(options);
 	}
 
-	internal class LinearDelayCore
+	internal class LinearDelayCore : DelayCoreBase
 	{
 		private readonly LinearRetryDelayOptions _delayOptions;
 		private readonly MaxDelayDelimiter _maxDelayDelimiter;
 
-		private readonly Func<int, TimeSpan> _getDelay;
-
-		public LinearDelayCore(LinearRetryDelayOptions delayOptions)
+		public LinearDelayCore(LinearRetryDelayOptions delayOptions) : base(delayOptions)
 		{
 			_delayOptions = delayOptions;
 			_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
-
-			if (delayOptions.UseJitter)
-			{
-				_getDelay = GetJitteredDelay;
-			}
-			else
-			{
-				_getDelay = GetBaseDelay;
-			}
 		}
 
-		public TimeSpan GetDelay(int attempt) => _getDelay(attempt);
-
-		private TimeSpan GetBaseDelay(int attempt)
+		protected override TimeSpan GetBaseDelay(int attempt)
 		{
 			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt, _delayOptions));
 		}
 
-		private TimeSpan GetJitteredDelay(int attempt)
+		protected override TimeSpan GetJitteredDelay(int attempt)
 		{
 			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(StandardJitter.AddJitter(GetDelayValueInMs(attempt, _delayOptions)));
 		}
