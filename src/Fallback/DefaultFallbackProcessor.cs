@@ -497,7 +497,6 @@ namespace PoliNorError
 			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-
 		private Task<ExceptionHandlingResult> HandleExceptionAsync(
 			Exception ex,
 			PolicyResult policyResult,

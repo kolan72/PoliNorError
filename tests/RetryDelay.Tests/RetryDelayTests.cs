@@ -427,6 +427,122 @@ namespace PoliNorError.Tests
 			Assert.That(result, Is.EqualTo(TimeSpan.FromMilliseconds(200)));
 		}
 
+		[TestFixture]
+		public class DecorrelatedJitterTests
+		{
+			private ExponentialRetryDelay.DecorrelatedJitter _jitter;
+
+			[SetUp]
+			public void Setup()
+			{
+				_jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					TimeSpan.FromMilliseconds(100),
+					2.0,
+					TimeSpan.FromMinutes(5));
+			}
+
+			[Test]
+			public void Should_GeneratePositiveDelaysForAllAttempts()
+			{
+				// Act & Assert
+				for (int i = 0; i < 10; i++)
+				{
+					var delay = _jitter.DecorrelatedJitterBackoffV2(i);
+					Assert.That(delay.TotalMilliseconds, Is.GreaterThan(0));
+				}
+			}
+
+			[Test]
+			public void Should_RespectMaxDelayLimit()
+			{
+				// Arrange
+				var maxDelay = TimeSpan.FromMilliseconds(500);
+				var jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					TimeSpan.FromMilliseconds(100),
+					2.0,
+					maxDelay);
+
+				// Act
+				var delay = jitter.DecorrelatedJitterBackoffV2(100); // Very high attempt
+
+				// Assert
+				Assert.That(delay, Is.LessThanOrEqualTo(maxDelay));
+			}
+
+			[Test]
+			public void Should_HandleInfinityCase()
+			{
+				// Arrange
+				var maxDelay = TimeSpan.FromSeconds(30);
+				var jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					TimeSpan.FromMilliseconds(100),
+					2.0,
+					maxDelay);
+
+				// Act
+				var delay = jitter.DecorrelatedJitterBackoffV2(1024); // This should trigger infinity case
+
+				// Assert
+				Assert.That(delay, Is.EqualTo(maxDelay));
+			}
+
+			[Test]
+			public void Should_ProduceVariedDelaysWithSameAttempt()
+			{
+				// Arrange
+				var delays = new TimeSpan[10];
+
+				// Act
+				for (int i = 0; i < 10; i++)
+				{
+					delays[i] = _jitter.DecorrelatedJitterBackoffV2(1);
+				}
+
+				// Assert - Due to randomization, not all delays should be identical
+				bool hasVariation = false;
+				for (int i = 1; i < delays.Length; i++)
+				{
+					if (delays[i] != delays[0])
+					{
+						hasVariation = true;
+						break;
+					}
+				}
+				Assert.That(hasVariation, Is.True);
+			}
+
+			[Test]
+			public void Should_GenerateReasonableDelayProgression()
+			{
+				// Arrange
+				var baseDelay = TimeSpan.FromMilliseconds(100);
+				var jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					baseDelay,
+					2.0,
+					TimeSpan.FromMinutes(5));
+
+				// Act
+				var delay0 = jitter.DecorrelatedJitterBackoffV2(0);
+				var delay1 = jitter.DecorrelatedJitterBackoffV2(1);
+				var delay2 = jitter.DecorrelatedJitterBackoffV2(2);
+
+				// Assert - Generally, delays should increase (though jitter may cause some variation)
+				Assert.That(delay0.TotalMilliseconds, Is.GreaterThan(0));
+				Assert.That(delay1.TotalMilliseconds, Is.GreaterThan(0));
+				Assert.That(delay2.TotalMilliseconds, Is.GreaterThan(0));
+			}
+
+			[Test]
+			public void Should_HandleZeroAttempt()
+			{
+				// Act
+				var delay = _jitter.DecorrelatedJitterBackoffV2(0);
+
+				// Assert
+				Assert.That(delay.TotalMilliseconds, Is.GreaterThan(0));
+			}
+		}
+
 		private class RetryDelayTester
 		{
 			public TimeSpan GetAttemptDelay(RetryDelay retryDelay, int attemptNumber = 0)
