@@ -427,6 +427,64 @@ namespace PoliNorError.Tests
 			Assert.That(result, Is.EqualTo(TimeSpan.FromMilliseconds(200)));
 		}
 
+		[Test]
+		public void Should_ApplyMaxDelayInCreateMethods_ToTimeSeriesRetryDelay_WhenMaxDelaySpecified()
+		{
+			// Arrange
+			TimeSpan? maxDelay = TimeSpan.FromSeconds(2);
+
+			// Act
+			var delay = TimeSeriesRetryDelay.Create(TimeSpan.FromSeconds(5), maxDelay);
+			var result = delay.GetDelay(0);
+
+			// Assert
+			Assert.That(result, Is.EqualTo(maxDelay));
+		}
+
+		[Test]
+		public void Should_UseJitteredValues_ForTimeSeriesRetryDelay_WhenJitterEnabled()
+		{
+			// Arrange
+			var times = new[] { TimeSpan.FromSeconds(1) };
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				BaseDelay = TimeSpan.FromSeconds(1),
+				MaxDelay = TimeSpan.FromSeconds(10),
+				UseJitter = true,
+				Times = times
+			};
+			var delay = new TimeSeriesRetryDelay(options);
+
+			// Act
+			var results = Enumerable.Range(0, 10).Select(_ => delay.GetDelay(0)).ToArray();
+
+			// Assert - With jitter, we should get some variation in results
+			Assert.That(results.Distinct().Count(), Is.GreaterThan(1));
+			Assert.That(results.ToList().TrueForAll(r => r.TotalMilliseconds >= 500 && r.TotalMilliseconds <= 1500), Is.True);
+		}
+
+		[Test]
+		public void Should_UseNonJitteredValues_ForTimeSeriesRetryDelay_WhenJitterDisabled()
+		{
+			// Arrange
+			var times = new[] { TimeSpan.FromSeconds(1) };
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				BaseDelay = TimeSpan.FromSeconds(1),
+				MaxDelay = TimeSpan.FromSeconds(10),
+				UseJitter = false,
+				Times = times
+			};
+			var delay = new TimeSeriesRetryDelay(options);
+
+			// Act
+			var results = Enumerable.Range(0, 10).Select(_ => delay.GetDelay(0)).ToArray();
+
+			// Assert - Without jitter, all results should be identical
+			Assert.That(results.Distinct().Count(), Is.EqualTo(1));
+			Assert.That(results[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
+		}
+
 		[TestFixture]
 		public class DecorrelatedJitterTests
 		{
