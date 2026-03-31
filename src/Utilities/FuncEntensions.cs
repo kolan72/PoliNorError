@@ -6,11 +6,11 @@ namespace PoliNorError
 {
 	internal static class FuncEntensions
 	{
-		public static Func<CancellationToken, Task> ToTaskReturnFunc(this Action<CancellationToken> action)
+		public static Func<CancellationToken, Task> ToTaskReturnFunc(this Action<CancellationToken> action, bool propagateCancellation = true)
 		{
 			return (ct) =>
 			{
-				if (ct.IsCancellationRequested)
+				if (ct.IsCancellationRequested && propagateCancellation)
 				{
 					return Task.FromCanceled(ct);
 				}
@@ -19,11 +19,11 @@ namespace PoliNorError
 			};
 		}
 
-		public static Func<CancellationToken, Task<T>> ToTaskReturnFunc<T>(this Func<CancellationToken, T> func)
+		public static Func<CancellationToken, Task<T>> ToTaskReturnFunc<T>(this Func<CancellationToken, T> func, bool propagateCancellation = true)
 		{
 			return (ct) =>
 			{
-				if (ct.IsCancellationRequested)
+				if (ct.IsCancellationRequested && propagateCancellation)
 				{
 					return Task.FromCanceled<T>(ct);
 				}
