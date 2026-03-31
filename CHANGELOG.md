@@ -1,3 +1,49 @@
+## 2.24.20
+
+- Eliminated closure allocations across all `Fallback`, `Retry`, and `Execute` policy processor methods by introducing internal/private overloads that accept the original `Action<TParam>`, `Func<TParam, T>`, `Func<TParam, CancellationToken, Task>` and `Func<TParam, CancellationToken, Task<T>>` delegates directly.
+Applied these optimizations consistently to:
+  - `DefaultRetryProcessor` (sync and async variants, with and without `RetryDelay` / `RetryCountInfo`)
+  - `DefaultFallbackProcessor` (sync and async variants)
+  - `SimplePolicyProcessor` (sync and async execution paths)
+- Add `DefaultRetryProcessor` async method overloads with required `CancellationToken` parameter (no `configureAwait`), delegating to existing methods with `configureAwait` set to `false`:
+  - `RetryAsync<TParam>` and `RetryAsync<TParam, T>` (with and without `RetryDelay`)
+  - `RetryInfiniteAsync<TParam>` and `RetryInfiniteAsync<TParam, T>` (with and without `RetryDelay`)
+  - `RetryWithErrorContextAsync<TErrorContext>` and `RetryWithErrorContextAsync<TErrorContext, T>` (with and without `RetryDelay`)
+  - `RetryInfiniteWithErrorContextAsync<TErrorContext>` and `RetryInfiniteWithErrorContextAsync<TErrorContext, T>` (with and without `RetryDelay`)
+- Add `DefaultFallbackProcessor` async method overloads with required `CancellationToken` parameter (no `configureAwait`), delegating to existing methods with `configureAwait` set to `false`:
+  - `FallbackAsync<TErrorContext>` and `FallbackAsync<TErrorContext, T>`
+  - `FallbackAsync<TParam>` and `FallbackAsync<TParam, T>`
+- Add `SimplePolicyProcessor` async method overloads with required `CancellationToken` parameter (no `configureAwait`), delegating to existing methods with `configureAwait` set to `false`:
+  - `ExecuteAsync<TErrorContext>` and `ExecuteAsync<TErrorContext, T>`
+  - `ExecuteAsync<TParam>` and `ExecuteAsync<TParam, T>`
+- Introduce abstract `ErrorProcessor<TParam>` with an overridable `Execute` method for parameter-aware error processing.
+- Introduce `void Policy.AddHandlerForPolicyResult` extension method overloads.
+- Introduce an internal `PolicyResult.SetCanceledEarly` method to mark `NoError` as `true` on early cancellation and apply it to all core `Retry`, `Fallback`, and `Simple` policy processor methods.
+- Convert `SimplePolicyProcessor.AddErrorAndCatchBlockFilterError` from a private method to an extension method on the `PolicyResult` class.
+- Add internal `PolicyResult.ToLastPolicyResultState` extension method and refactor to use `LastPolicyResultState` class.
+- Refactor `PolicyProcessor.ExceptionFilter` by extracting its logic into a new internal `ExceptionFilterSet` class.
+- DRY refactor `ConstantRetryDelay`.
+- DRY refactor `ExponentialRetryDelay`.
+- DRY refactor `LinearRetryDelay`.
+- DRY refactor `TimeSeriesRetryDelay`.
+- DRY refactoring of all internal `IPolicyProcessor.WithErrorContextProcessorOf<T, TErrorContext>` extension methods to unify shared logic across their various `Action<Exception, ProcessingErrorInfo<TErrorContext>>` overloads.
+- DRY refactoring of all internal `IPolicyProcessor.WithErrorContextProcessorOf<T, TErrorContext>` extension methods to unify shared logic across their various `Func<Exception, ProcessingErrorInfo<TErrorContext>, Task>` overloads.
+- Refactor `PolicyDelegateCollectionResultBase` internal constructor and add new tests for `PolicyDelegateCollectionResult`.
+- Update XML documentation for `ErrorProcessor.Process` and `ErrorProcessor.ProcessAsync` to clarify that both methods directly call `Execute`.
+- Add `PolicyResult.WrappedStatus` checks to existing tests.
+- Add new tests for `RetryCountInfo`.
+- Edit 'Error processors' README Chapter.
+- Edit 'Retry-Then-Fallback' README chapter.
+- Update `PolicyResult` README Chapter.
+- Add THIRD-PARTY-NOTICES.
+- Mark `PolicyResult.ChangeByRetryDelayResult` as obsolete.
+- Rename `DefaultRetryProcessor.RetryOverloads.cs` file to `DefaultRetryProcessor.RetryOverloads.RetryDelay.cs`.
+- Move all `DefaultRetryProcessor.Retry...` methods that take an `int retryCount` parameter into `DefaultRetryProcessor.RetryOverloads.LimitedRetries.cs`.
+- Move all `DefaultRetryProcessor.Retry…` methods with `RetryDelay` and `int retryCount` parameters into `DefaultRetryProcessor.RetryOverloads.RetryDelay.LimitedRetries.cs`.
+- Move all `DefaultRetryProcessor` methods that use `ConfigureAwait(false)` into the new files `DefaultRetryProcessor.RetryAsync.ConfigureAwaitFalse.cs` and `DefaultRetryProcessor.RetryDelay.RetryAsync.ConfigureAwaitFalse.cs`
+- Move non-interface `DefaultRetryProcessor Retry(Async)` methods to `DefaultRetryProcessor.RetryOverloads.cs`.
+
+
 ## 2.24.12
 
 - Introduced the `PolicyResult.WrappedStatus` property and the enum-like `WrappedPolicyStatus` class, which encapsulate wrapped policy status values.

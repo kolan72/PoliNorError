@@ -220,7 +220,38 @@ new RetryPolicy(3)
 	.HandleAsync(MightThrowAsync, token);
 
 ```
+Since _version_ 2.24.20, you can also inherit from the generic `ErrorProcessor<TParam>` - which follows the same principles as `ErrorProcessor` - when your handled delegate accepts a parameter:
+```csharp
+public class SimpleLoggingErrorProcessor : ErrorProcessor<int>
+{
+	private readonly ILogger _logger;
 
+	public SimpleLoggingErrorProcessor(ILogger logger)
+	{
+		_logger = logger;
+	}
+
+	public override void Execute(Exception error,
+			ProcessingErrorInfo<int>? catchBlockProcessErrorInfo = null,
+			CancellationToken token = default)
+	{
+		_logger.LogError(error,
+			"Error occurred while executing delegate with parameter {Parameter}.",
+			catchBlockProcessErrorInfo!.Param);
+	}
+}
+
+//Somewhere in your code:
+
+_simplePolicy = new SimplePolicy()
+	.WithErrorProcessor(new SimpleLoggingErrorProcessor(logger));
+
+await _simplePolicy.HandleAsync(MightThrowWithParamAsync, 10, token);
+
+//, where MightThrowWithParamAsync:
+
+private async Task MightThrowWithParamAsync(int i, CancellationToken token){...}
+```
 Error processors are handled one by one by the `BulkErrorProcessor` class. To customize this behavior, you could implement the `IBulkErrorProcessor` interface and use one of the policy or policy processor class constructors.  
 
 To have a common error processor set for more than one policy, create a common `BulkErrorProcessor`(supporting a fluent interface since _version_ 2.8.1) and inject it as a parameter into the each policy constructor:
@@ -1301,6 +1332,11 @@ For quick, one-off error handling without complex logic, a policy processor is o
 * **Save memory on high retry counts** by customizing error saving via `UseCustomErrorSaverOf`.
 - **Enable** `failedIfSaveErrorThrow: true` to fail fast on `OutOfMemoryException`.
 - **Minimize heavy operations** in error processors.
+
+### Safeguarding Core Components
+
+- **`BulkErrorProcessor` and `ExceptionFilter` are central** to the library's processing pipeline. Add error processors or filters carefully, especially when configuring them from different parts of an application.
+- **Use the `With...`*`PolicyName`** shorthand methods when adding policies to collections - they provide consistent configuration and clearer intent.
 
 ### Version-Specific Tips
 
