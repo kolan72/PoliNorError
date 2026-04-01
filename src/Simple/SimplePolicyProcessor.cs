@@ -22,10 +22,10 @@ namespace PoliNorError
 		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
 		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
 		public SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, null, rethrowIfErrorFilterUnsatisfied)
-		{}
+		{ }
 
 		internal SimplePolicyProcessor(CatchBlockFilter catchBlockFilter, IBulkErrorProcessor bulkErrorProcessor = null, bool rethrowIfErrorFilterUnsatisfied = false) : this(bulkErrorProcessor, (catchBlockFilter ?? new CatchBlockFilter()).ErrorFilter, rethrowIfErrorFilterUnsatisfied)
-		{}
+		{ }
 
 		private SimplePolicyProcessor(IBulkErrorProcessor bulkErrorProcessor, ExceptionFilter exceptionFilter, bool rethrowIfErrorFilterUnsatisfied) : base(exceptionFilter ?? new ExceptionFilter(), bulkErrorProcessor)
 		{
@@ -76,8 +76,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				action(param);
@@ -89,26 +87,16 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -128,8 +116,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				action();
@@ -141,26 +127,16 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -197,8 +173,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				var resAction = func(param);
@@ -211,26 +185,16 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -250,8 +214,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				var resAction = func();
@@ -264,26 +226,16 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				exHandler.Handle(ex, emptyErrorContext);
 			}
 			return result;
 		}
@@ -330,8 +282,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				await func(param, token).ConfigureAwait(configureAwait);
@@ -343,22 +293,12 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -378,8 +318,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				await func(token).ConfigureAwait(configureAwait);
@@ -391,22 +329,12 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -453,8 +381,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				var resAction = await func(param, token).ConfigureAwait(configureAwait);
@@ -467,22 +393,12 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -502,8 +418,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				var resAction = await func(token).ConfigureAwait(configureAwait);
@@ -516,22 +430,12 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				if (_rethrowIfErrorFilterUnsatisfied)
+				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+				if (handlingResult == ExceptionHandlingResult.Rethrow)
 				{
-					var (filterUnsatisfied, filterException) = GetFilterUnsatisfiedOrFilterException(ex);
-					if (filterUnsatisfied == true)
-					{
-						ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						throw;
-					}
-					else if (!(filterException is null))
-					{
-						result.AddErrorAndCatchBlockFilterError(ex, filterException);
-						return result;
-					}
+					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+					throw;
 				}
-
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -571,18 +475,6 @@ namespace PoliNorError
 			return this.WithErrorContextProcessor<SimplePolicyProcessor, TErrorContext>(errorProcessor);
 		}
 
-		private (bool? FilterUnsatisfied, Exception exception) GetFilterUnsatisfiedOrFilterException(Exception ex)
-		{
-			try
-			{
-				return (!ErrorFilter.GetCanHandle()(ex), null);
-			}
-			catch (Exception filterEx)
-			{
-				return (null, filterEx);
-			}
-		}
-
 		///<inheritdoc cref = "ICanAddErrorFilter{SimplePolicyProcessor}.AddErrorFilter(NonEmptyCatchBlockFilter)"/>
 		public SimplePolicyProcessor AddErrorFilter(NonEmptyCatchBlockFilter filter)
 		{
@@ -595,6 +487,46 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
+		}
+
+		private ExceptionHandlingResult HandleException(
+			Exception ex,
+			PolicyResult policyResult,
+			EmptyErrorContext errorContext,
+			CancellationToken token)
+
+		{
+			return HandleException(
+				ex,
+				policyResult,
+				errorContext,
+				DefaultErrorSaver,
+				DefaultPolicyRule,
+				_rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.EvaluateThenProcess,
+				ErrorProcessingCancellationEffect.Propagate,
+				token);
+		}
+
+		private Task<ExceptionHandlingResult> HandleExceptionAsync(
+			Exception ex,
+			PolicyResult policyResult,
+			EmptyErrorContext errorContext,
+			bool configAwait,
+			CancellationToken token)
+
+		{
+			return HandleExceptionAsync(
+				ex,
+				policyResult,
+				errorContext,
+				DefaultAsyncErrorSaver,
+				DefaultAsyncPolicyRule,
+				_rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.EvaluateThenProcess,
+				ErrorProcessingCancellationEffect.Propagate,
+				configAwait,
+				token);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -17,8 +18,13 @@ namespace PoliNorError
 
 		internal bool _executed;
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult ForSync() => new PolicyResult();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		/// <summary>
@@ -306,8 +312,13 @@ namespace PoliNorError
 	/// <typeparam name="T">Type of result.</typeparam>
 	public class PolicyResult<T> : PolicyResult
 	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> ForSync() => new PolicyResult<T>();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> ForNotSync() => new PolicyResult<T>(true);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
 		///<inheritdoc cref = "PolicyResult(bool)"/>

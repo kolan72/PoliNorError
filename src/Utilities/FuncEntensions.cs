@@ -6,11 +6,11 @@ namespace PoliNorError
 {
 	internal static class FuncEntensions
 	{
-		public static Func<CancellationToken, Task> ToTaskReturnFunc(this Action<CancellationToken> action)
+		public static Func<CancellationToken, Task> ToTaskReturnFunc(this Action<CancellationToken> action, bool propagateCancellation = true)
 		{
 			return (ct) =>
 			{
-				if (ct.IsCancellationRequested)
+				if (ct.IsCancellationRequested && propagateCancellation)
 				{
 					return Task.FromCanceled(ct);
 				}
@@ -19,11 +19,11 @@ namespace PoliNorError
 			};
 		}
 
-		public static Func<CancellationToken, Task<T>> ToTaskReturnFunc<T>(this Func<CancellationToken, T> func)
+		public static Func<CancellationToken, Task<T>> ToTaskReturnFunc<T>(this Func<CancellationToken, T> func, bool propagateCancellation = true)
 		{
 			return (ct) =>
 			{
-				if (ct.IsCancellationRequested)
+				if (ct.IsCancellationRequested && propagateCancellation)
 				{
 					return Task.FromCanceled<T>(ct);
 				}
@@ -32,29 +32,10 @@ namespace PoliNorError
 		}
 
 		public static Func<CancellationToken, Task> ToAsyncFunc(this Action<CancellationToken> action)
-		{
-			return (ct) =>
-			{
-				if (ct.IsCancellationRequested)
-				{
-					return Task.FromCanceled(ct);
-				}
-				action(ct);
-				return Task.CompletedTask;
-			};
-		}
+			=> action.ToTaskReturnFunc();
 
 		public static Func<CancellationToken, Task<T>> ToAsyncFunc<T>(this Func<CancellationToken, T> func)
-		{
-			return (ct) =>
-			{
-				if (ct.IsCancellationRequested)
-				{
-					return Task.FromCanceled<T>(ct);
-				}
-				return Task.FromResult(func(ct));
-			};
-		}
+			=> func.ToTaskReturnFunc();
 
 		public static Action<CancellationToken> ToSyncFunc(this Func<CancellationToken, Task> func)
 		{
@@ -169,7 +150,7 @@ namespace PoliNorError
 
 		public static Func<T, K, CancellationToken, Task> ToCancelableFunc<T, K>(this Func<T, K, Task> fnTask)
 		{
-			return (t, k, ct) => fnTask(t,k).WithCancellation(ct);
+			return (t, k, ct) => fnTask(t, k).WithCancellation(ct);
 		}
 
 		public static Func<CancellationToken, Task> ToCancelableFunc(this Func<Task> fallbackAsync, CancellationType convertType, bool throwIfCanceled = false)

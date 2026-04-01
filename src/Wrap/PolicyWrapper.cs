@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	internal  abstract class PolicyWrapper : PolicyWrapperBase
+	internal abstract class PolicyWrapper : PolicyWrapperBase
 	{
 		protected readonly Func<CancellationToken, Task> _func;
 		protected readonly Action _action;
@@ -27,9 +27,6 @@ namespace PoliNorError
 
 		internal abstract void Handle();
 
-		internal IEnumerable<PolicyDelegateResult> PolicyDelegateResults
-		{
-			get { return _policyHandledResults; }
-		}
+		internal IEnumerable<PolicyDelegateResult> PolicyDelegateResults => _policyHandledResults;
 	}
 }

@@ -829,6 +829,30 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Rethrow_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteWithParam()
+		{
+			var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+			var exc = Assert.Throws<TestExceptionWithInnerException>(() => ((SimplePolicyProcessor)proc).Execute(ActionWithParamWithInner, 1));
+			Assert.That(exc.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY], Is.True);
+		}
+
+		[Test]
+		public void Should_Rethrow_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteAsyncTWithParam()
+		{
+			var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+			var exc = Assert.ThrowsAsync<TestExceptionWithInnerException>(async () => await ((SimplePolicyProcessor)proc).ExecuteAsync(AsyncFuncWithParamWithInnerT, 1));
+			Assert.That(exc.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY], Is.True);
+		}
+
+		[Test]
+		public void Should_Rethrow_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteTWithParam()
+		{
+			var proc = new SimplePolicyProcessor(true).ExcludeError<TestExceptionWithInnerException>();
+			var exc = Assert.Throws<TestExceptionWithInnerException>(() => ((SimplePolicyProcessor)proc).Execute(FuncWithParamWithInner, 1));
+			Assert.That(exc.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY], Is.True);
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public async Task Should_Rethrow_Or_Handle_If_ProcessorCreated_With_ThrowIfErrorFilterUnsatisfied_True_ForExecuteAsync(bool errorInFilter)
@@ -1263,6 +1287,160 @@ namespace PoliNorError.Tests
 				Assert.That(result.NoError, Is.True);
 			}
 			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Execute_Func_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new SimplePolicyProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+				}
+				else
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Execute_Func_WithParam_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new SimplePolicyProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithParamWithTaskWaitAll(cts, canceledOnLinkedSource), 1, cts.Token);
+				}
+				else
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetFuncWithParamWithTaskWait(cts, canceledOnLinkedSource), 1, cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Execute_ActionWithParam_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new SimplePolicyProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetActionWithParamWithTaskWaitAll(cts, canceledOnLinkedSource), 4, cts.Token);
+				}
+				else
+				{
+					pr = processor.Execute(TaskWaitingDelegates.GetActionWithParamWithTaskWait(cts, canceledOnLinkedSource), 4, cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public void Should_Execute_Action_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll, bool withContext)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new SimplePolicyProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					if (withContext)
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), 5, cts.Token);
+					}
+					else
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+					}
+				}
+				else
+				{
+					if (withContext)
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), 5, cts.Token);
+					}
+					else
+					{
+						pr = processor.Execute(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+					}
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
 		}
 
 		private class TestErrorProcessor : IErrorProcessor

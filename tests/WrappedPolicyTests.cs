@@ -943,6 +943,41 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public void Should_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token_In_Wrapped_Policy(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var policy = new RetryPolicy(1);
+				policy.WrapPolicy(new SimplePolicy());
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = policy.Handle(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), cts.Token);
+				}
+				else
+				{
+					pr = policy.Handle(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), cts.Token);
+				}				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				Assert.That(pr.WrappedPolicyResults.FirstOrDefault().Result.PolicyCanceledError, Is.Not.Null);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.WrappedPolicyResults.FirstOrDefault().Result.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.WrappedPolicyResults.FirstOrDefault().Result.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
 		private class AlwaysFailedAndCanceledSimplePolicyProcessor : ISimplePolicyProcessor
 		{
 			private readonly bool _setCanceledExcepton;

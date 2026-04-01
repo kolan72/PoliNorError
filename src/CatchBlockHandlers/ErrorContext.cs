@@ -1,6 +1,6 @@
 ﻿namespace PoliNorError
 {
-	internal abstract class ErrorContext<T>
+	public abstract class ErrorContext<T>
 	{
 		protected ErrorContext(T t)
 		{

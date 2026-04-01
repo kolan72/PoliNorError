@@ -1,4 +1,5 @@
 ﻿using System;
+using static PoliNorError.ExponentialRetryDelay;
 
 namespace PoliNorError
 {
@@ -11,41 +12,11 @@ namespace PoliNorError
 		/// Initializes a new instance of <see cref="ExponentialRetryDelay"/>.
 		/// </summary>
 		/// <param name="retryDelayOptions"><see cref="ExponentialRetryDelayOptions"/></param>
-		public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions) : base(GetDelayValueProvider(retryDelayOptions))
+		public ExponentialRetryDelay(ExponentialRetryDelayOptions retryDelayOptions) : base(new ExponentialDelayCore(retryDelayOptions))
 		{
 #pragma warning disable CS0618 // Type or member is obsolete
 			InnerDelay = this;
 #pragma warning restore CS0618 // Type or member is obsolete
-		}
-
-		private static Func<int, TimeSpan> GetDelayValueProvider(ExponentialRetryDelayOptions retryDelayOptions)
-		{
-			if (retryDelayOptions.UseJitter)
-			{
-				return GetJitteredDelayValue(retryDelayOptions);
-			}
-			else
-			{
-				return GetDelayValue(retryDelayOptions);
-			}
-		}
-
-		private static Func<int, TimeSpan> GetJitteredDelayValue(ExponentialRetryDelayOptions options)
-		{
-			return (attempt) =>
-			{
-				var dj = new DecorrelatedJitter(options.BaseDelay, options.ExponentialFactor, options.MaxDelay);
-				return dj.DecorrelatedJitterBackoffV2(attempt);
-			};
-		}
-
-		private static Func<int, TimeSpan> GetDelayValue(ExponentialRetryDelayOptions options)
-		{
-			return (attempt) =>
-			{
-				var maxDelayDelimiter = new MaxDelayDelimiter(options);
-				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(options.ExponentialFactor, attempt) * options.BaseDelay.TotalMilliseconds);
-			};
 		}
 
 		/// <summary>
@@ -82,5 +53,35 @@ namespace PoliNorError
 		/// Exponential factor to use.
 		/// </summary>
 		public double ExponentialFactor { get; set; } = RetryDelayConstants.ExponentialFactor;
+
+		public static implicit operator ExponentialRetryDelay(ExponentialRetryDelayOptions options) => new ExponentialRetryDelay(options);
+	}
+
+	internal class ExponentialDelayCore : DelayCoreBase
+	{
+		private readonly ExponentialRetryDelayOptions _delayOptions;
+
+		private readonly DecorrelatedJitter _jitter;
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+
+		public ExponentialDelayCore(ExponentialRetryDelayOptions delayOptions) : base(delayOptions)
+		{
+			_delayOptions = delayOptions;
+
+			if (delayOptions.UseJitter)
+			{
+				_jitter = new DecorrelatedJitter(delayOptions.BaseDelay, delayOptions.ExponentialFactor, delayOptions.MaxDelay);
+			}
+			else
+			{
+				_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
+			}
+		}
+
+		protected override TimeSpan GetBaseDelay(int attempt)
+			=> _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(_delayOptions.ExponentialFactor, attempt) * _delayOptions.BaseDelay.TotalMilliseconds);
+
+		protected override TimeSpan GetJitteredDelay(int attempt)
+			=> _jitter.DecorrelatedJitterBackoffV2(attempt);
 	}
 }

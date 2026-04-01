@@ -520,5 +520,17 @@ namespace PoliNorError.Tests
 
 			Assert.That(fallbackProcessor.Fallback(() => throw errorToHandle, (_) => { }).ErrorFilterUnsatisfied, Is.EqualTo(excludeFilterWork));
 		}
+
+		[Test]
+		public void Should_AddAddExceptionFilter()
+		{
+			var retryPolicy = new RetryPolicy(1);
+			var filter = new PolicyProcessor.ExceptionFilter();
+			filter.AddExcludedErrorFilter((_) => true);
+			retryPolicy.AddExceptionFilter(filter);
+			var result = retryPolicy.Handle(() => throw new InvalidOperationException());
+			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
+			Assert.That(result.IsFailed, Is.True);
+		}
 	}
 }

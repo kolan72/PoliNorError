@@ -31,6 +31,34 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Creates the <see cref="ErrorSet"/> set and adds <see cref="ErrorSetItem"/> items with the <typeparamref name="TException1"/> and <typeparamref name="TException2"/> types and <see cref="ErrorSetItem.ItemType.Error"/> kind to the new set.
+		/// </summary>
+		/// <typeparam name="TException1">The first type of exception.</typeparam>
+		/// <typeparam name="TException2">The second type of exception.</typeparam>
+		/// <returns>A new <see cref="ErrorSet"/> containing the specified error types.</returns>
+		public static ErrorSet FromErrors<TException1, TException2>()
+			where TException1 : Exception
+			where TException2 : Exception
+		{
+			return new ErrorSet().WithError<TException1>().WithError<TException2>();
+		}
+
+		/// <summary>
+		/// Creates the <see cref="ErrorSet"/> set and adds <see cref="ErrorSetItem"/> items with the <typeparamref name="TException1"/>, <typeparamref name="TException2"/>, and <typeparamref name="TException3"/> types and <see cref="ErrorSetItem.ItemType.Error"/> kind to the new set.
+		/// </summary>
+		/// <typeparam name="TException1">The first type of exception.</typeparam>
+		/// <typeparam name="TException2">The second type of exception.</typeparam>
+		/// <typeparam name="TException3">The third type of exception.</typeparam>
+		/// <returns>A new <see cref="ErrorSet"/> containing the specified error types.</returns>
+		public static ErrorSet FromErrors<TException1, TException2, TException3>()
+			where TException1 : Exception
+			where TException2 : Exception
+			where TException3 : Exception
+		{
+			return new ErrorSet().WithError<TException1>().WithError<TException2>().WithError<TException3>();
+		}
+
+		/// <summary>
 		/// Creates  the <see cref="ErrorSet"/> set and adds the <see cref="ErrorSetItem"/> item with the <typeparamref name="TInnerException"/> type and <see cref="ErrorSetItem.ItemType.InnerError"/> kind to the new set.
 		/// </summary>
 		/// <typeparam name="TInnerException">The type of inner exception.</typeparam>
@@ -69,6 +97,42 @@ namespace PoliNorError
 
 		///<inheritdoc cref = "IErrorSet.Items"/>
 		public IEnumerable<ErrorSetItem> Items => _set;
+
+		/// <summary>
+		/// Checks whether the set contains the specified exception type for an exception itself.
+		/// </summary>
+		/// <typeparam name="TException">The exception type to check.</typeparam>
+		/// <returns><c>true</c> if the exception type exists in the set; otherwise, <c>false</c>.</returns>
+		public bool HasError<TException>() where TException : Exception
+		{
+			return HasError(typeof(TException), ErrorSetItem.ItemType.Error);
+		}
+
+		/// <summary>
+		/// Checks whether the set contains the specified exception type for an inner exception.
+		/// </summary>
+		/// <typeparam name="TInnerException">The exception type to check.</typeparam>
+		/// <returns><c>true</c> if the exception type exists in the set; otherwise, <c>false</c>.</returns>
+		public bool HasInnerError<TInnerException>() where TInnerException : Exception
+		{
+			return HasError(typeof(TInnerException), ErrorSetItem.ItemType.InnerError);
+		}
+
+		/// <summary>
+		/// Checks whether the set contains the specified exception type with the given kind.
+		/// </summary>
+		/// <param name="exceptionType">The exception type to check.</param>
+		/// <param name="errorType">The kind of exception to check for.</param>
+		/// <returns><c>true</c> if the exception type exists in the set; otherwise, <c>false</c>.</returns>
+		private bool HasError(Type exceptionType, ErrorSetItem.ItemType errorType)
+		{
+			if (exceptionType == null)
+			{
+				return false;
+			}
+
+			return _set.Contains(new ErrorSetItem(exceptionType, errorType));
+		}
 
 		/// <summary>
 		/// Represents the type and kind of an exception.

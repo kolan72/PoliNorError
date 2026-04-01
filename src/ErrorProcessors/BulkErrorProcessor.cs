@@ -233,6 +233,8 @@ namespace PoliNorError
 		{
 			private readonly bool _isCanceledBetweenProcessOne;
 
+			private readonly IReadOnlyList<ErrorProcessorException> _processErrors;
+
 			/// <summary>
 			/// Initializes a new instance of the <see cref="BulkProcessResult"/> class.
 			/// </summary>
@@ -242,7 +244,7 @@ namespace PoliNorError
 			public BulkProcessResult(Exception handlingError, IEnumerable<ErrorProcessorException> processErrors, bool isCanceledBetweenProcessOne = false)
 			{
 				HandlingError = handlingError;
-				ProcessErrors = processErrors;
+				_processErrors = (processErrors ?? Array.Empty<ErrorProcessorException>()).ToList();
 				_isCanceledBetweenProcessOne = isCanceledBetweenProcessOne;
 			}
 
@@ -254,12 +256,17 @@ namespace PoliNorError
 			/// <summary>
 			/// Gets a collection of exceptions that occurred within the error processors.
 			/// </summary>
-			public IEnumerable<ErrorProcessorException> ProcessErrors { get; }
+			public IEnumerable<ErrorProcessorException> ProcessErrors => _processErrors;
+
+			/// <summary>
+			/// Gets a value indicating whether any processing errors occurred.
+			/// </summary>
+			public bool HasProcessErrors => _processErrors.Count > 0;
 
 			/// <summary>
 			/// Gets a value indicating whether the bulk processing operation was canceled.
 			/// </summary>
-			public bool IsCanceled => ProcessErrors.Any(e => e.ErrorStatus == ProcessStatus.Canceled) || _isCanceledBetweenProcessOne;
+			public bool IsCanceled => _processErrors.Any(e => e.ErrorStatus == ProcessStatus.Canceled) || _isCanceledBetweenProcessOne;
 
 			/// <summary>
 			/// Converts the processing errors into a collection of <see cref="CatchBlockException"/>.
@@ -267,9 +274,13 @@ namespace PoliNorError
 			/// <returns>An enumerable of <see cref="CatchBlockException"/>.</returns>
 			public IEnumerable<CatchBlockException> ToCatchBlockExceptions()
 			{
-				return ProcessErrors?.Any() != true
-					? Array.Empty<CatchBlockException>()
-					: ProcessErrors.Select(pe => new CatchBlockException(pe, HandlingError, CatchBlockExceptionSource.ErrorProcessor));
+				foreach (var pe in _processErrors)
+				{
+					yield return new CatchBlockException(
+						pe,
+						HandlingError,
+						CatchBlockExceptionSource.ErrorProcessor);
+				}
 			}
 		}
 	}

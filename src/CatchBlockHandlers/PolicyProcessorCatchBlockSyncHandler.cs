@@ -12,13 +12,14 @@ namespace PoliNorError
 
 		public HandleCatchBlockResult Handle(Exception ex, ErrorContext<T> errorContext = null)
 		{
-			var (Result, CanProcess) = PreHandle(ex, errorContext);
-			if (!CanProcess)
-				return Result;
+			var shouldHandleResult = ShouldHandleException(ex, errorContext);
+			if (shouldHandleResult != HandleCatchBlockResult.Success)
+				return shouldHandleResult;
 
 			var bulkProcessResult = _bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), _cancellationToken);
 
-			return PostHandle(bulkProcessResult, Result);
+			_policyResult.AddBulkProcessorErrors(bulkProcessResult);
+			return bulkProcessResult.IsCanceled ? HandleCatchBlockResult.Canceled : shouldHandleResult;
 		}
 	}
 }

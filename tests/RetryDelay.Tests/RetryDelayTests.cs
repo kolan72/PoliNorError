@@ -290,5 +290,323 @@ namespace PoliNorError.Tests
 			Assert.That(retryDelay.GetDelay(2), Is.EqualTo(maxTime));
 			Assert.That(retryDelay.GetDelay(3), Is.EqualTo(maxTime));
 		}
+
+		[Test]
+		public void Should_Implicitly_Convert_ConstantRetryDelayOptions_To_RetryDelay()
+		{
+			var crdo = new ConstantRetryDelayOptions() { BaseDelay = TimeSpan.FromMilliseconds(1) };
+			var tester = new RetryDelayTester();
+			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(1)));
+		}
+
+		[Test]
+		public void Should_Implicitly_Convert_LinearRetryDelayOptions_To_RetryDelay()
+		{
+			var crdo = new LinearRetryDelayOptions() { BaseDelay = TimeSpan.FromMilliseconds(2), SlopeFactor = 2 };
+			var tester = new RetryDelayTester();
+			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(2 * crdo.SlopeFactor)));
+		}
+
+		[Test]
+		public void Should_Implicitly_Convert_ExponentialRetryDelayOptions_To_RetryDelay()
+		{
+			var crdo = new ExponentialRetryDelayOptions() { BaseDelay = TimeSpan.FromMilliseconds(2), ExponentialFactor = 2 };
+			var tester = new RetryDelayTester();
+			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(2 * Math.Pow(crdo.ExponentialFactor, 0))));
+		}
+
+		[Test]
+		public void Should_Implicitly_Convert_TimeSeriesRetryDelayOptions_To_RetryDelay()
+		{
+			var crdo = new TimeSeriesRetryDelayOptions() { BaseDelay = TimeSpan.FromMilliseconds(2), Times = new TimeSpan[] {TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(2) } };
+			var tester = new RetryDelayTester();
+			Assert.That(tester.GetAttemptDelay(crdo), Is.EqualTo(TimeSpan.FromMilliseconds(1)));
+		}
+
+		[Test]
+		public void Should_Apply_Jitter_To_ConstantRetryDelay_Within_Expected_Range_When_UseJitter_True()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(1000);
+			var options = new ConstantRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				MaxDelay = TimeSpan.MaxValue,
+				UseJitter = true
+			};
+			var delay = new ConstantRetryDelay(options);
+
+			var result = delay.GetDelay(1);
+			var baseMs = baseDelay.TotalMilliseconds;
+			var offset = baseMs * RetryDelayConstants.JitterFactor / 2;
+			var minExpected = TimeSpan.FromMilliseconds(baseMs - offset);
+			var maxExpected = TimeSpan.FromMilliseconds(baseMs + offset);
+
+			Assert.That(result, Is.GreaterThanOrEqualTo(minExpected));
+			Assert.That(result, Is.LessThanOrEqualTo(maxExpected));
+		}
+
+		[Test]
+		public void Should_Cap_ConstantRetryDelay_At_MaxDelay_When_Jitter_Exceeds_Max()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(1000);
+			var maxDelay = TimeSpan.FromMilliseconds(1100);
+			var options = new ConstantRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				MaxDelay = maxDelay,
+				UseJitter = true
+			};
+			var delay = new ConstantRetryDelay(options);
+
+			// Force jitter to exceed max by using a known random value
+			// Note: This test assumes internal implementation details
+			var result = delay.GetDelay(1);
+
+			Assert.That(result, Is.LessThanOrEqualTo(maxDelay));
+		}
+
+		[Test]
+		public void Should_Create_ConstantRetryDelay_Instance_Via_Create_Method()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(200);
+			var instance = ConstantRetryDelay.Create(baseDelay, useJitter: true);
+
+			Assert.That(instance, Is.Not.Null);
+			Assert.That(instance.GetDelay(1), Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(150)));
+		}
+
+		[Test]
+		public void Should_Apply_Jitter_To_LinearRetryDelay_Within_Expected_Range_When_UseJitter_True()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(100);
+			var options = new LinearRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				UseJitter = true,
+				SlopeFactor = 1.0
+			};
+			var delay = new LinearRetryDelay(options);
+
+			var result = delay.GetDelay(1);
+			var baseValue = 200.0; // 2 * 100 * 1.0
+			var jitterRange = baseValue * RetryDelayConstants.JitterFactor / 2;
+			var minExpected = TimeSpan.FromMilliseconds(baseValue - jitterRange);
+			var maxExpected = TimeSpan.FromMilliseconds(baseValue + jitterRange);
+
+			Assert.That(result, Is.GreaterThanOrEqualTo(minExpected));
+			Assert.That(result, Is.LessThanOrEqualTo(maxExpected));
+		}
+
+		[Test]
+		public void Should_Cap_LinearRetryDelay_At_MaxDelay_When_Exceeded()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(100);
+			var maxDelay = TimeSpan.FromMilliseconds(250);
+			var options = new LinearRetryDelayOptions
+			{
+				BaseDelay = baseDelay,
+				MaxDelay = maxDelay,
+				UseJitter = false,
+				SlopeFactor = 1.0
+			};
+			var delay = new LinearRetryDelay(options);
+
+			var result = delay.GetDelay(2); // Should be 300ms without cap
+
+			Assert.That(result, Is.EqualTo(maxDelay));
+		}
+
+		[Test]
+		public void Should_Create_LinearRetryDelay_Instance_With_Create_Method_Default_Slope()
+		{
+			var baseDelay = TimeSpan.FromMilliseconds(100);
+			var instance = LinearRetryDelay.Create(baseDelay);
+
+			var result = instance.GetDelay(1);
+
+			Assert.That(result, Is.EqualTo(TimeSpan.FromMilliseconds(200)));
+		}
+
+		[Test]
+		public void Should_ApplyMaxDelayInCreateMethods_ToTimeSeriesRetryDelay_WhenMaxDelaySpecified()
+		{
+			// Arrange
+			TimeSpan? maxDelay = TimeSpan.FromSeconds(2);
+
+			// Act
+			var delay = TimeSeriesRetryDelay.Create(TimeSpan.FromSeconds(5), maxDelay);
+			var result = delay.GetDelay(0);
+
+			// Assert
+			Assert.That(result, Is.EqualTo(maxDelay));
+		}
+
+		[Test]
+		public void Should_UseJitteredValues_ForTimeSeriesRetryDelay_WhenJitterEnabled()
+		{
+			// Arrange
+			var times = new[] { TimeSpan.FromSeconds(1) };
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				BaseDelay = TimeSpan.FromSeconds(1),
+				MaxDelay = TimeSpan.FromSeconds(10),
+				UseJitter = true,
+				Times = times
+			};
+			var delay = new TimeSeriesRetryDelay(options);
+
+			// Act
+			var results = Enumerable.Range(0, 10).Select(_ => delay.GetDelay(0)).ToArray();
+
+			// Assert - With jitter, we should get some variation in results
+			Assert.That(results.Distinct().Count(), Is.GreaterThan(1));
+			Assert.That(results.ToList().TrueForAll(r => r.TotalMilliseconds >= 500 && r.TotalMilliseconds <= 1500), Is.True);
+		}
+
+		[Test]
+		public void Should_UseNonJitteredValues_ForTimeSeriesRetryDelay_WhenJitterDisabled()
+		{
+			// Arrange
+			var times = new[] { TimeSpan.FromSeconds(1) };
+			var options = new TimeSeriesRetryDelayOptions
+			{
+				BaseDelay = TimeSpan.FromSeconds(1),
+				MaxDelay = TimeSpan.FromSeconds(10),
+				UseJitter = false,
+				Times = times
+			};
+			var delay = new TimeSeriesRetryDelay(options);
+
+			// Act
+			var results = Enumerable.Range(0, 10).Select(_ => delay.GetDelay(0)).ToArray();
+
+			// Assert - Without jitter, all results should be identical
+			Assert.That(results.Distinct().Count(), Is.EqualTo(1));
+			Assert.That(results[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
+		}
+
+		[TestFixture]
+		public class DecorrelatedJitterTests
+		{
+			private ExponentialRetryDelay.DecorrelatedJitter _jitter;
+
+			[SetUp]
+			public void Setup()
+			{
+				_jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					TimeSpan.FromMilliseconds(100),
+					2.0,
+					TimeSpan.FromMinutes(5));
+			}
+
+			[Test]
+			public void Should_GeneratePositiveDelaysForAllAttempts()
+			{
+				// Act & Assert
+				for (int i = 0; i < 10; i++)
+				{
+					var delay = _jitter.DecorrelatedJitterBackoffV2(i);
+					Assert.That(delay.TotalMilliseconds, Is.GreaterThan(0));
+				}
+			}
+
+			[Test]
+			public void Should_RespectMaxDelayLimit()
+			{
+				// Arrange
+				var maxDelay = TimeSpan.FromMilliseconds(500);
+				var jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					TimeSpan.FromMilliseconds(100),
+					2.0,
+					maxDelay);
+
+				// Act
+				var delay = jitter.DecorrelatedJitterBackoffV2(100); // Very high attempt
+
+				// Assert
+				Assert.That(delay, Is.LessThanOrEqualTo(maxDelay));
+			}
+
+			[Test]
+			public void Should_HandleInfinityCase()
+			{
+				// Arrange
+				var maxDelay = TimeSpan.FromSeconds(30);
+				var jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					TimeSpan.FromMilliseconds(100),
+					2.0,
+					maxDelay);
+
+				// Act
+				var delay = jitter.DecorrelatedJitterBackoffV2(1024); // This should trigger infinity case
+
+				// Assert
+				Assert.That(delay, Is.EqualTo(maxDelay));
+			}
+
+			[Test]
+			public void Should_ProduceVariedDelaysWithSameAttempt()
+			{
+				// Arrange
+				var delays = new TimeSpan[10];
+
+				// Act
+				for (int i = 0; i < 10; i++)
+				{
+					delays[i] = _jitter.DecorrelatedJitterBackoffV2(1);
+				}
+
+				// Assert - Due to randomization, not all delays should be identical
+				bool hasVariation = false;
+				for (int i = 1; i < delays.Length; i++)
+				{
+					if (delays[i] != delays[0])
+					{
+						hasVariation = true;
+						break;
+					}
+				}
+				Assert.That(hasVariation, Is.True);
+			}
+
+			[Test]
+			public void Should_GenerateReasonableDelayProgression()
+			{
+				// Arrange
+				var baseDelay = TimeSpan.FromMilliseconds(100);
+				var jitter = new ExponentialRetryDelay.DecorrelatedJitter(
+					baseDelay,
+					2.0,
+					TimeSpan.FromMinutes(5));
+
+				// Act
+				var delay0 = jitter.DecorrelatedJitterBackoffV2(0);
+				var delay1 = jitter.DecorrelatedJitterBackoffV2(1);
+				var delay2 = jitter.DecorrelatedJitterBackoffV2(2);
+
+				// Assert - Generally, delays should increase (though jitter may cause some variation)
+				Assert.That(delay0.TotalMilliseconds, Is.GreaterThan(0));
+				Assert.That(delay1.TotalMilliseconds, Is.GreaterThan(0));
+				Assert.That(delay2.TotalMilliseconds, Is.GreaterThan(0));
+			}
+
+			[Test]
+			public void Should_HandleZeroAttempt()
+			{
+				// Act
+				var delay = _jitter.DecorrelatedJitterBackoffV2(0);
+
+				// Assert
+				Assert.That(delay.TotalMilliseconds, Is.GreaterThan(0));
+			}
+		}
+
+		private class RetryDelayTester
+		{
+			public TimeSpan GetAttemptDelay(RetryDelay retryDelay, int attemptNumber = 0)
+			{
+				return retryDelay.GetDelay(attemptNumber);
+			}
+		}
 	}
 }

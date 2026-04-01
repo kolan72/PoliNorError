@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using static PoliNorError.CatchBlockFilter;
 
 namespace PoliNorError
 {
@@ -11,6 +12,70 @@ namespace PoliNorError
 			public IEnumerable<Expression<Func<Exception, bool>>> IncludedErrorFilters => FilterSet.IncludedErrorFilters;
 
 			public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => FilterSet.ExcludedErrorFilters;
+
+			public ExceptionFilter IncludeErrorSet(IErrorSet errorSet)
+			{
+				this.AddIncludedErrorSet(errorSet);
+				return this;
+			}
+
+			public ExceptionFilter ExcludeErrorSet(IErrorSet errorSet)
+			{
+				this.AddExcludedErrorSet(errorSet);
+				return this;
+			}
+
+			public ExceptionFilter IncludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				return IncludeError<TException>(null, errorType);
+			}
+
+			public ExceptionFilter IncludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				switch (errorType)
+				{
+					case ErrorType.Error:
+						AddIncludedErrorFilter(func);
+						return this;
+					case ErrorType.InnerError:
+						AddIncludedInnerErrorFilter(func);
+						return this;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+
+			public ExceptionFilter IncludeError(Expression<Func<Exception, bool>> expression)
+			{
+				AddIncludedErrorFilter(expression);
+				return this;
+			}
+
+			public ExceptionFilter ExcludeError<TException>(ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				return ExcludeError<TException>(null, errorType);
+			}
+
+			public ExceptionFilter ExcludeError<TException>(Func<TException, bool> func, ErrorType errorType = ErrorType.Error) where TException : Exception
+			{
+				switch (errorType)
+				{
+					case ErrorType.Error:
+						AddExcludedErrorFilter(func);
+						return this;
+					case ErrorType.InnerError:
+						AddExcludedInnerErrorFilter(func);
+						return this;
+					default:
+						throw new NotImplementedException();
+				}
+			}
+
+			public ExceptionFilter ExcludeError(Expression<Func<Exception, bool>> expression)
+			{
+				AddExcludedErrorFilter(expression);
+				return this;
+			}
 
 			internal ExceptionFilterSet FilterSet { get; } = new ExceptionFilterSet();
 

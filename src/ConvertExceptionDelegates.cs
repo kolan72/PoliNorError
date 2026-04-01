@@ -17,5 +17,17 @@ namespace PoliNorError
 				return false;
 			}
 		}
+
+		public static bool ToSubException<TException>(Exception exception, out TException typedException) where TException : Exception
+		{
+			if (exception is TException found)
+			{
+				typedException = found;
+				return true;
+			}
+
+			typedException = null;
+			return false;
+		}
 	}
 }

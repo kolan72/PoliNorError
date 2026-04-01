@@ -12,8 +12,8 @@ namespace PoliNorError
 		/// <summary>
 		/// Initializes a new instance of <see cref="TimeSeriesRetryDelay"/>.
 		/// </summary>
-		/// <param name="timeSeriesOptions"><see cref="ConstantRetryDelayOptions"/></param>
-		public TimeSeriesRetryDelay(TimeSeriesRetryDelayOptions timeSeriesOptions) : base(GetDelayValueProvider(timeSeriesOptions)){}
+		/// <param name="timeSeriesOptions"><see cref="TimeSeriesRetryDelayOptions"/></param>
+		public TimeSeriesRetryDelay(TimeSeriesRetryDelayOptions timeSeriesOptions) : base(new TimeSeriesDelayCore(timeSeriesOptions)) {}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TimeSeriesRetryDelay"/> class with the specified base delay, optional maximum delay, and jitter setting.
@@ -94,50 +94,41 @@ namespace PoliNorError
 				Times = times.ToArray()
 			});
 		}
+	}
 
-		private static Func<int, TimeSpan> GetDelayValueProvider(TimeSeriesRetryDelayOptions retryDelayOptions)
+	internal class TimeSeriesDelayCore : DelayCoreBase
+	{
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+		private readonly TimeSpan[] _times;
+		private readonly int _maxIndex;
+
+		public TimeSeriesDelayCore(TimeSeriesRetryDelayOptions delayOptions) : base(delayOptions)
 		{
-			TimeSpan[] times;
-			if (retryDelayOptions.Times?.Length == 0)
+			_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
+			if (delayOptions.Times?.Length == 0)
 			{
-				times = new[] { retryDelayOptions.BaseDelay > retryDelayOptions.MaxDelay ? retryDelayOptions.MaxDelay : retryDelayOptions.BaseDelay };
+				_times = new[] { delayOptions.BaseDelay > delayOptions.MaxDelay ? delayOptions.MaxDelay : delayOptions.BaseDelay };
 			}
 			else
 			{
-				times = retryDelayOptions.Times;
+				_times = delayOptions.Times;
 			}
-			if (retryDelayOptions.UseJitter)
-			{
-				return GetJitteredDelayValueFunc(retryDelayOptions, times);
-			}
-			else
-			{
-				return GetDelayValueFunc(retryDelayOptions, times);
-			}
+			_maxIndex = _times.Length - 1;
 		}
 
-		private static Func<int, TimeSpan> GetDelayValueFunc(RetryDelayOptions options, TimeSpan[] timeSpans)
+		protected override TimeSpan GetBaseDelay(int attempt)
 		{
-			return (attempt) =>
-			{
-				var maxDelayDelimiter = new MaxDelayDelimiter(options);
-				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayInner(attempt, timeSpans).TotalMilliseconds);
-			};
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayInner(attempt).TotalMilliseconds);
 		}
 
-		private static Func<int, TimeSpan> GetJitteredDelayValueFunc(RetryDelayOptions options, TimeSpan[] timeSpans)
+		protected override TimeSpan GetJitteredDelay(int attempt)
 		{
-			return (attempt) =>
-			{
-				var maxDelayDelimiter = new MaxDelayDelimiter(options);
-				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayInner(attempt, timeSpans).TotalMilliseconds));
-			};
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(StandardJitter.AddJitter(GetDelayInner(attempt).TotalMilliseconds));
 		}
 
-		private static TimeSpan GetDelayInner(int attempt, TimeSpan[] times)
+		private TimeSpan GetDelayInner(int attempt)
 		{
-			int maxIndex = times.Length - 1;
-			return times[(uint)attempt <= (uint)maxIndex ? attempt : maxIndex];
+			return _times[(uint)attempt <= (uint)_maxIndex ? attempt : _maxIndex];
 		}
 	}
 }

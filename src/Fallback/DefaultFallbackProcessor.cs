@@ -43,8 +43,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				action(param);
@@ -56,16 +54,11 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				exHandler.Handle(ex, emptyErrorContext);
-
-				if (!result.IsFailed)
-				{
-					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
-				}
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -85,8 +78,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				action();
@@ -98,16 +89,11 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				exHandler.Handle(ex, emptyErrorContext);
-
-				if (!result.IsFailed)
-				{
-					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
-				}
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -143,8 +129,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				var resAction = func(param);
@@ -157,16 +141,11 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				exHandler.Handle(ex, emptyErrorContext);
-
-				if (!result.IsFailed)
-				{
-					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
-				}
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -186,8 +165,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleSyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), token);
-
 			try
 			{
 				var resAction = func();
@@ -200,16 +177,11 @@ namespace PoliNorError
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
-				result.SetFailedAndCanceled(ae.GetCancellationException());
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex)
 			{
-				exHandler.Handle(ex, emptyErrorContext);
-
-				if (!result.IsFailed)
-				{
-					fallback.HandleAsFallback(token).ChangePolicyResult(result, ex);
-				}
+				HandleException(fallback, emptyErrorContext, result, ex, token);
 			}
 			return result;
 		}
@@ -255,8 +227,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				await func(param, token).ConfigureAwait(configureAwait);
@@ -268,12 +238,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
-
-				if (!result.IsFailed)
-				{
-					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
-				}
+				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -293,8 +258,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				await func(token).ConfigureAwait(configureAwait);
@@ -306,12 +269,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
-
-				if (!result.IsFailed)
-				{
-					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
-				}
+				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -357,8 +315,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				var resAction = await func(param, token).ConfigureAwait(configureAwait);
@@ -371,12 +327,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
-
-				if (!result.IsFailed)
-				{
-					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
-				}
+				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -396,8 +347,6 @@ namespace PoliNorError
 
 			result.SetExecuted();
 
-			var exHandler = new SimpleAsyncExceptionHandler(result, _bulkErrorProcessor, ErrorFilter.GetCanHandle(), configureAwait, token);
-
 			try
 			{
 				var resAction = await func(token).ConfigureAwait(configureAwait);
@@ -410,12 +359,7 @@ namespace PoliNorError
 			}
 			catch (Exception ex)
 			{
-				await exHandler.HandleAsync(ex, emptyErrorContext).ConfigureAwait(configureAwait);
-
-				if (!result.IsFailed)
-				{
-					(await fallback.HandleAsFallbackAsync(configureAwait, token).ConfigureAwait(configureAwait)).ChangePolicyResult(result, ex);
-				}
+				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -467,6 +411,112 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
+		}
+
+		private void HandleException<T>(
+			Func<CancellationToken, T> fallback,
+			EmptyErrorContext emptyErrorContext,
+			PolicyResult<T> result,
+			Exception ex,
+			CancellationToken token)
+		{
+			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
+			{
+				var fallbackResult = fallback(ct);
+				result.SetResult(fallbackResult);
+				return true;
+			}
+
+			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+		}
+
+		private void HandleException(
+			Action<CancellationToken> fallback,
+			EmptyErrorContext emptyErrorContext,
+			PolicyResult result,
+			Exception ex,
+			CancellationToken token)
+		{
+			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
+
+			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+		}
+
+		private void HandleException(
+			Exception ex,
+			PolicyResult policyResult,
+			EmptyErrorContext errorContext,
+			Func<ErrorContext<Unit>, CancellationToken, bool> policyRuleFunc,
+			CancellationToken token)
+
+		{
+			HandleException(
+				ex,
+				policyResult,
+				errorContext,
+				DefaultErrorSaver,
+				policyRuleFunc,
+				ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.ProcessThenEvaluate,
+				ErrorProcessingCancellationEffect.Propagate,
+				token);
+		}
+
+		private async Task<ExceptionHandlingResult> HandleExceptionAsync<T>(
+			Func<CancellationToken, Task<T>> fallback,
+			EmptyErrorContext emptyErrorContext,
+			PolicyResult<T> result,
+			Exception ex,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
+			{
+				var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
+				result.SetResult(fallbackResult);
+				return true;
+			}
+
+			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private async Task<ExceptionHandlingResult> HandleExceptionAsync(
+			Func<CancellationToken, Task> fallback,
+			EmptyErrorContext emptyErrorContext,
+			PolicyResult result,
+			Exception ex,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
+			{
+				await fallback(ct).ConfigureAwait(configureAwait);
+				return true;
+			}
+
+			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		private Task<ExceptionHandlingResult> HandleExceptionAsync(
+			Exception ex,
+			PolicyResult policyResult,
+			EmptyErrorContext errorContext,
+			Func<ErrorContext<Unit>, CancellationToken, Task<bool>> policyRuleFunc,
+			bool configAwait,
+			CancellationToken token)
+
+		{
+			return HandleExceptionAsync(
+				ex,
+				policyResult,
+				errorContext,
+				DefaultAsyncErrorSaver,
+				policyRuleFunc,
+				ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.ProcessThenEvaluate,
+				ErrorProcessingCancellationEffect.Propagate,
+				configAwait,
+				token);
 		}
 	}
 }

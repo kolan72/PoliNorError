@@ -22,6 +22,18 @@ namespace PoliNorError
 			_policyRuleFunc = policyRuleFunc ?? ((_) => true);
 		}
 
+		protected HandleCatchBlockResult ShouldHandleException(Exception ex, ErrorContext<T> errorContext)
+		{
+			if (_cancellationToken.IsCancellationRequested)
+			{
+				return HandleCatchBlockResult.Canceled;
+			}
+			return CanHandle(ex, errorContext);
+		}
+
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected (HandleCatchBlockResult Result, bool CanProcess) PreHandle(Exception ex, ErrorContext<T> errorContext)
 		{
 			if (_cancellationToken.IsCancellationRequested)
@@ -45,6 +57,9 @@ namespace PoliNorError
 				return HandleCatchBlockResult.Success;
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		protected HandleCatchBlockResult PostHandle(BulkProcessResult bulkProcessResult, HandleCatchBlockResult resultIfNotCanceled)
 		{
 			_policyResult.AddBulkProcessorErrors(bulkProcessResult);

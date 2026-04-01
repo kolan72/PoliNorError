@@ -11,7 +11,7 @@ namespace PoliNorError
 		/// Initializes a new instance of <see cref="ConstantRetryDelay"/>.
 		/// </summary>
 		/// <param name="retryDelayOptions"><see cref="ConstantRetryDelayOptions"/></param>
-		public ConstantRetryDelay(ConstantRetryDelayOptions retryDelayOptions) : base(GetDelayValueProvider(retryDelayOptions))
+		public ConstantRetryDelay(ConstantRetryDelayOptions retryDelayOptions) : base(new ConstantDelayCore(retryDelayOptions))
 		{
 			if (retryDelayOptions.UseJitter && retryDelayOptions.MaxDelay < retryDelayOptions.BaseDelay)
 			{
@@ -20,18 +20,6 @@ namespace PoliNorError
 #pragma warning disable CS0618 // Type or member is obsolete
 			InnerDelay = this;
 #pragma warning restore CS0618 // Type or member is obsolete
-		}
-
-		private static Func<int, TimeSpan> GetDelayValueProvider(ConstantRetryDelayOptions retryDelayOptions)
-		{
-			if (retryDelayOptions.UseJitter)
-			{
-				return GetJitteredDelayValue(retryDelayOptions);
-			}
-			else
-			{
-				return GetDelayValue(retryDelayOptions);
-			}
 		}
 
 		/// <summary>
@@ -44,22 +32,6 @@ namespace PoliNorError
 		public static ConstantRetryDelay Create(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) => new ConstantRetryDelay(baseDelay, maxDelay, useJitter);
 
 		internal ConstantRetryDelay(TimeSpan baseDelay, TimeSpan? maxDelay = null, bool useJitter = false) : this(new ConstantRetryDelayOptions() { BaseDelay = baseDelay, UseJitter = useJitter, MaxDelay = maxDelay ?? TimeSpan.MaxValue }){}
-
-		private static Func<int, TimeSpan> GetDelayValue(ConstantRetryDelayOptions options) => (_) => options.BaseDelay;
-
-		private static Func<int, TimeSpan> GetJitteredDelayValue(ConstantRetryDelayOptions options)
-		{
-			return (_) =>
-			{
-				var maxDelayDelimiter = new MaxDelayDelimiter(options);
-				return maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(ApplyJitter(GetDelayValueInMs(options)));
-			};
-		}
-
-		private static double GetDelayValueInMs(ConstantRetryDelayOptions options)
-		{
-			return options.BaseDelay.TotalMilliseconds;
-		}
 	}
 
 	/// <summary>
@@ -68,5 +40,32 @@ namespace PoliNorError
 	public class ConstantRetryDelayOptions : RetryDelayOptions
 	{
 		public override RetryDelayType DelayType => RetryDelayType.Constant;
+
+		public static implicit operator ConstantRetryDelay(ConstantRetryDelayOptions options) => new ConstantRetryDelay(options);
+	}
+
+	internal class ConstantDelayCore : DelayCoreBase
+	{
+		private readonly ConstantRetryDelayOptions _delayOptions;
+		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+
+		public ConstantDelayCore(ConstantRetryDelayOptions delayOptions) : base(delayOptions)
+		{
+			_delayOptions = delayOptions;
+			if (delayOptions.UseJitter)
+			{
+				_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
+			}
+		}
+
+		protected override TimeSpan GetBaseDelay(int attempt)
+		{
+			return _delayOptions.BaseDelay;
+		}
+
+		protected override TimeSpan GetJitteredDelay(int attempt)
+		{
+			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(StandardJitter.AddJitter(_delayOptions.BaseDelay.TotalMilliseconds));
+		}
 	}
 }

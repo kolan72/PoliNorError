@@ -20,7 +20,7 @@ namespace PoliNorError.Tests
 
             // Assert
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.TypeOf<OperationCanceledException>());
+            Assert.That(result, Is.TypeOf<ServiceOperationCanceledException>());
         }
 
         [Test]

@@ -211,5 +211,39 @@ namespace PoliNorError.Tests
 			await errPr.ProcessAsync(new Exception(), piToTest);
 			Assert.That(i, Is.EqualTo(isGeneric ? 1 : 0));
 		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_DefaultTypedErrorProcessor_Of_Action_With_TokenParam_Process_Only_Typed_Exception(bool errCanBeProcessed, bool isSync)
+		{
+			int i = 0;
+			var processor = new DefaultTypedErrorProcessor<ArgumentException>((ex, _, __) => { if (ex.ParamName == "Test") i++; });
+
+			Exception exToTest = null;
+
+			if (errCanBeProcessed)
+			{
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+				exToTest = new ArgumentException("", "Test");
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+			}
+			else
+			{
+				exToTest = new Exception("");
+			}
+
+			if (isSync)
+			{
+				processor.Process(exToTest, new ProcessingErrorInfo(PolicyAlias.NotSet));
+			}
+			else
+			{
+				await processor.ProcessAsync(exToTest, new ProcessingErrorInfo(PolicyAlias.NotSet));
+			}
+			Assert.That(i, Is.EqualTo(errCanBeProcessed ? 1 : 0));
+		}
 	}
 }
