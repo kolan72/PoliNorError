@@ -21,7 +21,7 @@ namespace PoliNorError.Tests
             var original = new InvalidOperationException("Test message");
 
             // Act
-            bool result = ConvertExceptionDelegates.ToSubException<InvalidOperationException>(original, out var typedException);
+            bool result = ConvertExceptionDelegates.TryCast<InvalidOperationException>(original, out var typedException);
 
             // Assert
             Assert.That(result, Is.True);
@@ -35,7 +35,7 @@ namespace PoliNorError.Tests
             var subclassEx = new CustomTestException();
 
             // Act - Checking if a CustomTestException can be treated as an InvalidOperationException
-            bool result = ConvertExceptionDelegates.ToSubException<InvalidOperationException>(subclassEx, out var typedException);
+            bool result = ConvertExceptionDelegates.TryCast<InvalidOperationException>(subclassEx, out var typedException);
 
             // Assert
             Assert.That(result, Is.True);
@@ -50,7 +50,7 @@ namespace PoliNorError.Tests
             var unrelated = new UnrelatedException();
 
             // Act
-            bool result = ConvertExceptionDelegates.ToSubException<ArgumentNullException>(unrelated, out var typedException);
+            bool result = ConvertExceptionDelegates.TryCast<ArgumentNullException>(unrelated, out var typedException);
 
             // Assert
             Assert.That(result, Is.False);
@@ -64,7 +64,7 @@ namespace PoliNorError.Tests
             Exception nullEx = null;
 
             // Act
-            bool result = ConvertExceptionDelegates.ToSubException<Exception>(nullEx, out var typedException);
+            bool result = ConvertExceptionDelegates.TryCast<Exception>(nullEx, out var typedException);
 
             // Assert
             Assert.That(result, Is.False);
