@@ -298,6 +298,29 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(false)]
 		[TestCase(true)]
+		public void Should_FuncBased_ExcludeError_For_SubException_Do_Not_Handle(bool exactType)
+		{
+			var filter = new ExceptionFilter();
+
+			Exception errorToHandler;
+			if (exactType)
+			{
+				errorToHandler = new Exception("Test");
+			}
+			else
+			{
+				errorToHandler = new TestException("Test");
+			}
+			filter.ExcludeError<Exception>();
+
+			var canExclude = !filter.GetCanHandle()(errorToHandler);
+
+			Assert.That(canExclude, Is.EqualTo(exactType));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
 		public void Should_IncludeError_ForInnerError(bool errFilterUnsatisfied)
 		{
 			var filter = new ExceptionFilter();
