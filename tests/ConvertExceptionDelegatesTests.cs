@@ -70,5 +70,120 @@ namespace PoliNorError.Tests
             Assert.That(result, Is.False);
             Assert.That(typedException, Is.Null);
         }
+
+        [Test]
+        public void Should_ReturnTrue_WhenExceptionTypeMatchesExactly()
+        {
+            // Arrange
+            var exception = new ArgumentException("Test message");
+
+            // Act
+            var result = ConvertExceptionDelegates.TryAsExact<ArgumentException>(exception, out var typedException);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(typedException, Is.Not.Null);
+            Assert.That(typedException, Is.SameAs(exception));
+        }
+
+        [Test]
+        public void Should_ReturnFalse_WhenExceptionTypeIsDerived()
+        {
+			// Arrange
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+			var exception = new ArgumentNullException("paramName");
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+
+			// Act
+			var result = ConvertExceptionDelegates.TryAsExact<ArgumentException>(exception, out var typedException);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(typedException, Is.Null);
+        }
+
+        [Test]
+        public void Should_ReturnFalse_WhenExceptionTypeIsBase()
+        {
+            // Arrange
+            var exception = new ArgumentException("Test message");
+
+            // Act
+            var result = ConvertExceptionDelegates.TryAsExact<Exception>(exception, out var typedException);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(typedException, Is.Null);
+        }
+
+        [Test]
+        public void Should_ReturnFalse_WhenExceptionIsNull()
+        {
+            // Arrange
+            Exception exception = null;
+
+            // Act
+            var result = ConvertExceptionDelegates.TryAsExact<ArgumentException>(exception, out var typedException);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(typedException, Is.Null);
+        }
+
+        [Test]
+        public void Should_ReturnFalse_WhenExceptionTypeIsCompletelyDifferent()
+        {
+            // Arrange
+            var exception = new InvalidOperationException("Test message");
+
+            // Act
+            var result = ConvertExceptionDelegates.TryAsExact<ArgumentException>(exception, out var typedException);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(typedException, Is.Null);
+        }
+
+        [Test]
+        public void Should_ReturnTrue_WhenUsingCustomExceptionType()
+        {
+            // Arrange
+            var exception = new CustomException();
+
+            // Act
+            var result = ConvertExceptionDelegates.TryAsExact<CustomException>(exception, out var typedException);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(typedException, Is.Not.Null);
+            Assert.That(typedException, Is.SameAs(exception));
+        }
+
+        [Test]
+        public void Should_ReturnFalse_WhenCustomExceptionIsDerived()
+        {
+            // Arrange
+            var exception = new DerivedCustomException();
+
+            // Act
+            var result = ConvertExceptionDelegates.TryAsExact<CustomException>(exception, out var typedException);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(typedException, Is.Null);
+        }
+
+		// Helper classes for testing
+#pragma warning disable RCS1194 // Implement exception constructors.
+#pragma warning disable S3871 // Exception types should be "public"
+		private class CustomException : Exception
+		{
+        }
+
+        private class DerivedCustomException : CustomException
+        {
+        }
+#pragma warning restore S3871 // Exception types should be "public"
+#pragma warning restore RCS1194 // Implement exception constructors.
     }
 }

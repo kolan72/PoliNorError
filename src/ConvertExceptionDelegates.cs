@@ -23,5 +23,11 @@ namespace PoliNorError
 			TException probe = typedException = exception as TException;
 			return probe != null;
 		}
+
+		public static bool TryAsExact<TException>(Exception exception, out TException typedException) where TException : Exception
+		{
+			typedException = exception?.GetType() == typeof(TException) ? (TException)exception : null;
+			return typedException != null;
+		}
 	}
 }
