@@ -128,7 +128,7 @@
     <Compile Include="RetryObjectsToTest.cs" />
     <Compile Include="SyncErrorProcessorTParamTests.cs" />
     <Compile Include="SyncErrorProcessorTests.cs" />
-    <Compile Include="SyncTypedErrorProcessor.cs" />
+    <Compile Include="SyncTypedErrorProcessorTests.cs" />
     <Compile Include="TaskWaitingDelegates.cs" />
     <Compile Include="TryCatchBuilderTests.cs" />
     <Compile Include="TryCatchTests.cs" />
