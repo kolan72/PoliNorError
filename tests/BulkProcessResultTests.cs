@@ -201,5 +201,148 @@ namespace PoliNorError.Tests
             Assert.That(catchBlockExceptions.Count, Is.EqualTo(1));
             Assert.That(catchBlockExceptions.First().InnerException, Is.EqualTo(handlingError));
         }
+
+        [Test]
+        public void Should_ReturnFalseForIsCanceledBetweenProcessOne_WhenNotCanceledBetweenProcessors()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+
+            // Act
+            var result = new BulkProcessResult(handlingError, null, isCanceledBetweenProcessors: false);
+
+            // Assert
+            Assert.That(result.IsCanceledBetweenProcessors, Is.False);
+        }
+
+        [Test]
+        public void Should_ReturnTrueForIsCanceledBetweenProcessOne_WhenCanceledBetweenProcessors()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+
+            // Act
+            var result = new BulkProcessResult(handlingError, null, isCanceledBetweenProcessors: true);
+
+            // Assert
+            Assert.That(result.IsCanceledBetweenProcessors, Is.True);
+        }
+
+        [Test]
+        public void Should_ReturnTrueForIsCanceledBetweenProcessOne_WhenProcessorErrorsContainCanceledStatus()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+            var processErrors = new List<ErrorProcessorException>
+            {
+                new ErrorProcessorException(new OperationCanceledException("Canceled error"), null, ProcessStatus.Canceled)
+            };
+
+            // Act
+            var result = new BulkProcessResult(handlingError, processErrors, isCanceledBetweenProcessors: false);
+
+            // Assert
+            Assert.That(result.IsCanceledBetweenProcessors, Is.False);
+        }
+
+        [Test]
+        public void Should_ReturnNullForCancellationException_WhenNoProcessErrors()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+
+            // Act
+            var result = new BulkProcessResult(handlingError, null);
+
+            // Assert
+            Assert.That(result.CancellationException, Is.Null);
+        }
+
+        [Test]
+        public void Should_ReturnNullForCancellationException_WhenNoCanceledStatusInProcessErrors()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+            var processErrors = new List<ErrorProcessorException>
+            {
+                new ErrorProcessorException(new Exception("Error 1"), null, ProcessStatus.Faulted),
+                new ErrorProcessorException(new Exception("Error 2"), null, ProcessStatus.Faulted)
+            };
+
+            // Act
+            var result = new BulkProcessResult(handlingError, processErrors);
+
+            // Assert
+            Assert.That(result.CancellationException, Is.Null);
+        }
+
+        [Test]
+        public void Should_ReturnCancellationException_WhenProcessErrorHasCanceledStatus()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+            var cancelException = new OperationCanceledException("Operation was canceled");
+            var processErrors = new List<ErrorProcessorException>
+            {
+                new ErrorProcessorException(cancelException, null, ProcessStatus.Canceled)
+            };
+
+            // Act
+            var result = new BulkProcessResult(handlingError, processErrors);
+
+            // Assert
+            Assert.That(result.CancellationException, Is.EqualTo(cancelException));
+        }
+
+        [Test]
+        public void Should_ReturnFirstCancellationException_WhenMultipleCanceledProcessErrors()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+            var firstCancelException = new OperationCanceledException("First cancellation");
+            var secondCancelException = new OperationCanceledException("Second cancellation");
+            var processErrors = new List<ErrorProcessorException>
+            {
+                new ErrorProcessorException(firstCancelException, null, ProcessStatus.Canceled),
+                new ErrorProcessorException(new Exception("Faulted error"), null, ProcessStatus.Faulted),
+                new ErrorProcessorException(secondCancelException, null, ProcessStatus.Canceled)
+            };
+
+            // Act
+            var result = new BulkProcessResult(handlingError, processErrors);
+
+            // Assert
+            Assert.That(result.CancellationException, Is.EqualTo(firstCancelException));
+        }
+
+        [Test]
+        public void Should_ReturnNullForCancellationException_WhenCanceledErrorHasNonCancellationInnerException()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+            var processErrors = new List<ErrorProcessorException>
+            {
+                new ErrorProcessorException(new InvalidOperationException("Not a cancellation"), null, ProcessStatus.Canceled)
+            };
+
+            // Act
+            var result = new BulkProcessResult(handlingError, processErrors);
+
+            // Assert
+            Assert.That(result.CancellationException, Is.Null);
+        }
+
+        [Test]
+        public void Should_ReturnNullForCancellationException_WhenIsCanceledBetweenProcessOneButNoCanceledErrors()
+        {
+            // Arrange
+            var handlingError = new Exception("Test error");
+
+            // Act
+            var result = new BulkProcessResult(handlingError, null, isCanceledBetweenProcessors: true);
+
+            // Assert
+            Assert.That(result.CancellationException, Is.Null);
+        }
     }
 }
