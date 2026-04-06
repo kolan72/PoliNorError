@@ -57,7 +57,7 @@ namespace PoliNorError
 					errors.Add(result.Exception);
 					if (result.Exception.ErrorStatus == ProcessStatus.Canceled)
 					{
-						return new BulkProcessResult(handlingError, errors, isCanceledBetweenProcessors: true);
+						return new BulkProcessResult(handlingError, errors);
 					}
 				}
 
@@ -113,7 +113,7 @@ namespace PoliNorError
 					errors.Add(result.Exception);
 					if (result.Exception.ErrorStatus == ProcessStatus.Canceled)
 					{
-						return new BulkProcessResult(handlingError, errors, isCanceledBetweenProcessors: true);
+						return new BulkProcessResult(handlingError, errors);
 					}
 				}
 
