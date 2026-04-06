@@ -786,7 +786,9 @@ namespace PoliNorError.Tests
 				// Assert
 				Assert.That(result.HandlingError, Is.SameAs(originalException));
 				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+				Assert.That(result.ProcessErrors.Count(), Is.EqualTo(1));
+				Assert.That(result.IsCanceledBetweenProcessors, Is.True);
+				Assert.That(result.CancellationException, Is.Not.Null);
 			}
 		}
 
@@ -835,7 +837,9 @@ namespace PoliNorError.Tests
 				// Assert
 				Assert.That(result.HandlingError, Is.SameAs(originalException));
 				Assert.That(result.IsCanceled, Is.True);
-				Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+				Assert.That(result.ProcessErrors.Count(), Is.EqualTo(1));
+				Assert.That(result.IsCanceledBetweenProcessors, Is.True);
+				Assert.That(result.CancellationException, Is.Not.Null);
 			}
 		}
 

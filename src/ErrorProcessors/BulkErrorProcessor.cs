@@ -41,7 +41,20 @@ namespace PoliNorError
 		{
 			var errors = new List<ErrorProcessorException>();
 
-			if (_errorProcessors.Count == 0 || token.IsCancellationRequested)
+			var earlyReturn = false;
+			if (_errorProcessors.Count == 0)
+			{
+				earlyReturn = true;
+			}
+
+			if (!earlyReturn && token.IsCancellationRequested)
+			{
+				var oe = new ErrorProcessorException(new OperationCanceledException(token), null, ProcessStatus.Canceled);
+				errors.Add(oe);
+				earlyReturn = true;
+			}
+
+			if (earlyReturn)
 			{
 				return new BulkProcessResult(handlingError, errors, token.IsCancellationRequested);
 			}
@@ -63,6 +76,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
+					var oe = new ErrorProcessorException(new OperationCanceledException(token), processor, ProcessStatus.Canceled);
+					errors.Add(oe);
 					return new BulkProcessResult(handlingError, errors, isCanceledBetweenProcessors: true);
 				}
 
@@ -97,7 +112,20 @@ namespace PoliNorError
 		{
 			var errors = new FlexSyncEnumerable<ErrorProcessorException>(!configAwait);
 
-			if (_errorProcessors.Count == 0 || token.IsCancellationRequested)
+			var earlyReturn = false;
+			if (_errorProcessors.Count == 0)
+			{
+				earlyReturn = true;
+			}
+
+			if (!earlyReturn && token.IsCancellationRequested)
+			{
+				var oe = new ErrorProcessorException(new OperationCanceledException(token), null, ProcessStatus.Canceled);
+				errors.Add(oe);
+				earlyReturn = true;
+			}
+
+			if (earlyReturn)
 			{
 				return new BulkProcessResult(handlingError, errors, token.IsCancellationRequested);
 			}
@@ -119,6 +147,8 @@ namespace PoliNorError
 
 				if (token.IsCancellationRequested)
 				{
+					var oe = new ErrorProcessorException(new OperationCanceledException(token), processor, ProcessStatus.Canceled);
+					errors.Add(oe);
 					return new BulkProcessResult(handlingError, errors, isCanceledBetweenProcessors: true);
 				}
 
