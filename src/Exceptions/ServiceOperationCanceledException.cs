@@ -14,6 +14,6 @@ namespace PoliNorError
 	public class ServiceOperationCanceledException : OperationCanceledException
 #pragma warning restore RCS1194 // Implement exception constructors.
     {
-        internal ServiceOperationCanceledException(CancellationToken token) : base(token) { }
+        internal ServiceOperationCanceledException() { }
     }
 }

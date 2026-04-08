@@ -19,7 +19,7 @@ namespace PoliNorError
 								.OfType<OperationCanceledException>()
 								.FirstOrDefault(ex => ex.CancellationToken.Equals(token));
 
-			return resExc ?? new ServiceOperationCanceledException(token);
+			return resExc ?? new ServiceOperationCanceledException();
 		}
 
 		internal static bool DataContainsKeyStringWithValue<TValue>(this Exception exception, string key, TValue value)
