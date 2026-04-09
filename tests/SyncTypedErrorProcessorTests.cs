@@ -6,18 +6,23 @@ using System.Threading.Tasks;
 namespace PoliNorError.Tests
 {
 	[TestFixture]
-	internal class SyncTypedErrorProcessor
+	internal class SyncTypedErrorProcessorTests
 	{
 #pragma warning disable RCS1194 // Implement exception constructors.
 #pragma warning disable S3871 // Exception types should be "public"
 		private class TestException : Exception
-#pragma warning restore S3871 // Exception types should be "public"
-#pragma warning restore RCS1194 // Implement exception constructors.
 		{
             public TestException(string message) : base(message) { }
 
             public string TestProperty { get; set; }
         }
+
+        private class TestSubException : TestException
+        {
+            public TestSubException(string msg) : base(msg) { }
+        }
+#pragma warning restore S3871 // Exception types should be "public"
+#pragma warning restore RCS1194 // Implement exception constructors.
 
         private class TestTypedErrorProcessor : TypedErrorProcessor<TestException>
         {
@@ -51,6 +56,20 @@ namespace PoliNorError.Tests
             Assert.That(processor.LastException, Is.SameAs(exception));
             Assert.That(processor.LastException.TestProperty, Is.EqualTo(nameof(TestException.TestProperty)));
             Assert.That(result, Is.SameAs(exception));
+        }
+
+        [Test]
+        public void Should_Not_CallExecute_WhenProcessIsCalled()
+        {
+            // Arrange
+            var processor = new TestTypedErrorProcessor();
+            var exception = new TestSubException("test error");
+
+            // Act
+           processor.Process(exception);
+
+            // Assert
+            Assert.That(processor.ExecuteCallCount, Is.EqualTo(0));
         }
 
         [Test]

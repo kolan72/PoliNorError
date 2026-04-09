@@ -10,20 +10,24 @@ namespace PoliNorError
 	/// <summary>
 	/// Implements a processor that handles a collection of error processors in sequence.
 	/// </summary>
-	public class BulkErrorProcessor : IBulkErrorProcessor
+	public partial class BulkErrorProcessor : IBulkErrorProcessor
 	{
 		private readonly List<IErrorProcessor> _errorProcessors = new List<IErrorProcessor>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BulkErrorProcessor"/> class.
 		/// </summary>
-		public BulkErrorProcessor() {}
+		public BulkErrorProcessor()
+		{
+		}
 
 #pragma warning disable S1133 // Deprecated code should be removed
 		[Obsolete("This constructor is obsolete. Use parameterless constructor instead.")]
 #pragma warning restore S1133 // Deprecated code should be removed
 #pragma warning disable RCS1163 // Unused parameter.
-		public BulkErrorProcessor(PolicyAlias policyAlias){}
+		public BulkErrorProcessor(PolicyAlias policyAlias)
+		{
+		}
 #pragma warning restore RCS1163 // Unused parameter.
 
 		/// <inheritdoc/>
@@ -35,117 +39,132 @@ namespace PoliNorError
 		/// <inheritdoc/>
 		public BulkProcessResult Process(Exception handlingError, ProcessingErrorContext errorContext = null, CancellationToken token = default)
 		{
-			List<ErrorProcessorException> errorProcessorExceptions = new List<ErrorProcessorException>();
-			if (_errorProcessors.Count == 0)
+			var errors = new List<ErrorProcessorException>();
+
+			if (TryGetEarlyReturnResult(handlingError, token, errors, (errs, ex) => ((List<ErrorProcessorException>)errs).Add(ex), out var earlyReturnResult))
 			{
-				return new BulkProcessResult(handlingError, errorProcessorExceptions);
+				return earlyReturnResult;
 			}
 
-			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
-			if (token.IsCancellationRequested)
-			{
-				return new BulkProcessResult(handlingError, errorProcessorExceptions, true);
-			}
-
+			var info = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
 			var curError = handlingError;
-			var isCanceledBetweenProcessOne = false;
 
-			foreach (var errorProcessor in _errorProcessors)
+			foreach (var processor in _errorProcessors)
 			{
-				var resProcess = ProcessOne(errorProcessor, catchBlockProcessErrorInfo, curError, token);
-				if (resProcess.Item1 != null)
+				var result = ProcessOne(processor, info, curError, token);
+				if (result.Exception != null)
 				{
-					errorProcessorExceptions.Add(resProcess.Item1);
-					if (resProcess.Item1.ErrorStatus == ProcessStatus.Canceled)
+					errors.Add(result.Exception);
+					if (result.Exception.ErrorStatus == ProcessStatus.Canceled)
 					{
-						break;
+						return new BulkProcessResult(handlingError, errors);
 					}
 				}
 
 				if (token.IsCancellationRequested)
 				{
-					isCanceledBetweenProcessOne = true;
-					break;
+					var oe = new ErrorProcessorException(new OperationCanceledException(token), processor, ProcessStatus.Canceled);
+					errors.Add(oe);
+					return new BulkProcessResult(handlingError, errors, isCanceledBetweenProcessors: true);
 				}
-				curError = resProcess.Item2;
+
+				curError = result.Error;
 			}
-			return new BulkProcessResult(handlingError, errorProcessorExceptions, isCanceledBetweenProcessOne);
+
+			return new BulkProcessResult(handlingError, errors);
 		}
 
-		private (ErrorProcessorException, Exception) ProcessOne(IErrorProcessor errorProcessor, ProcessingErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token)
+		private static ProcessorResult ProcessOne(IErrorProcessor processor, ProcessingErrorInfo info, Exception curError, CancellationToken token)
 		{
 			try
 			{
-				curError = errorProcessor.Process(curError, catchBlockProcessErrorInfo, token);
-				return (null, curError);
+				return new ProcessorResult(processor.Process(curError, info, token));
 			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			catch (OperationCanceledException ex) when (token.IsCancellationRequested)
 			{
-				return (new ErrorProcessorException(oe, errorProcessor, ProcessStatus.Canceled), curError);
+				return new ProcessorResult(new ErrorProcessorException(ex, processor, ProcessStatus.Canceled), curError);
 			}
-			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			catch (AggregateException ex) when (ex.IsOperationCanceledWithRequestedToken(token))
 			{
-				return (new ErrorProcessorException(ae.GetCancellationException(), errorProcessor, ProcessStatus.Canceled), curError);
+				return new ProcessorResult(new ErrorProcessorException(ex.GetCancellationException(), processor, ProcessStatus.Canceled), curError);
 			}
 			catch (Exception ex)
 			{
-				return (new ErrorProcessorException(ex, errorProcessor, ProcessStatus.Faulted), curError);
+				return new ProcessorResult(new ErrorProcessorException(ex, processor, ProcessStatus.Faulted), curError);
 			}
 		}
 
 		/// <inheritdoc/>
 		public async Task<BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default)
 		{
-			var errorProcessorExceptions = new FlexSyncEnumerable<ErrorProcessorException>(!configAwait);
-			if (_errorProcessors.Count == 0)
+			var errors = new FlexSyncEnumerable<ErrorProcessorException>(!configAwait);
+
+			if (TryGetEarlyReturnResult(handlingError, token, errors, (errs, ex) => ((FlexSyncEnumerable<ErrorProcessorException>)errs).Add(ex), out var earlyReturnResult))
 			{
-				return new BulkProcessResult(handlingError, errorProcessorExceptions);
+				return earlyReturnResult;
 			}
 
-			var catchBlockProcessErrorInfo = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
-			if (token.IsCancellationRequested)
-			{
-				return new BulkProcessResult(handlingError, errorProcessorExceptions, true);
-			}
-
+			var info = (errorContext ?? new ProcessingErrorContext()).ToProcessingErrorInfo();
 			var curError = handlingError;
-			var isCanceledBetweenProcessOne = false;
 
-			foreach (var errorProcessor in _errorProcessors)
+			foreach (var processor in _errorProcessors)
 			{
-				var resProcess = await ProcessOneAsync(errorProcessor, catchBlockProcessErrorInfo, curError, token, configAwait).ConfigureAwait(configAwait);
-				if (resProcess.Item1 != null)
+				var result = await ProcessOneAsync(processor, info, curError, token, configAwait).ConfigureAwait(configAwait);
+				if (result.Exception != null)
 				{
-					errorProcessorExceptions.Add(resProcess.Item1);
-					if(resProcess.Item1.ErrorStatus == ProcessStatus.Canceled)
+					errors.Add(result.Exception);
+					if (result.Exception.ErrorStatus == ProcessStatus.Canceled)
 					{
-						break;
+						return new BulkProcessResult(handlingError, errors);
 					}
 				}
+
 				if (token.IsCancellationRequested)
 				{
-					isCanceledBetweenProcessOne = true;
-					break;
+					var oe = new ErrorProcessorException(new OperationCanceledException(token), processor, ProcessStatus.Canceled);
+					errors.Add(oe);
+					return new BulkProcessResult(handlingError, errors, isCanceledBetweenProcessors: true);
 				}
-				curError = resProcess.Item2;
+
+				curError = result.Error;
 			}
-			return new BulkProcessResult(handlingError, errorProcessorExceptions, isCanceledBetweenProcessOne);
+
+			return new BulkProcessResult(handlingError, errors);
 		}
 
-		private  async Task<(ErrorProcessorException, Exception)> ProcessOneAsync(IErrorProcessor errorProcessor, ProcessingErrorInfo catchBlockProcessErrorInfo, Exception curError, CancellationToken token, bool configAwait)
+		private bool TryGetEarlyReturnResult(Exception handlingError, CancellationToken token, IEnumerable<ErrorProcessorException> errors,  Action<IEnumerable<ErrorProcessorException>, ErrorProcessorException> addAction,  out BulkProcessResult result)
+		{
+			if (_errorProcessors.Count == 0)
+			{
+				result = new BulkProcessResult(handlingError, errors, token.IsCancellationRequested);
+				return true;
+			}
+
+			if (token.IsCancellationRequested)
+			{
+				var oe = new ErrorProcessorException(new OperationCanceledException(token), null, ProcessStatus.Canceled);
+				addAction(errors, oe);
+				result = new BulkProcessResult(handlingError, errors, isCanceledBetweenProcessors: true);
+				return true;
+			}
+
+			result = null;
+			return false;
+		}
+
+		private static async Task<ProcessorResult> ProcessOneAsync(IErrorProcessor processor, ProcessingErrorInfo info, Exception curError, CancellationToken token, bool configAwait)
 		{
 			try
 			{
-				curError = await errorProcessor.ProcessAsync(curError, catchBlockProcessErrorInfo, configAwait, token).ConfigureAwait(configAwait);
-				return (null, curError);
+				return new ProcessorResult(await processor.ProcessAsync(curError, info, configAwait, token).ConfigureAwait(configAwait));
 			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			catch (OperationCanceledException ex) when (token.IsCancellationRequested)
 			{
-				return (new ErrorProcessorException(oe, errorProcessor, ProcessStatus.Canceled), curError);
+				return new ProcessorResult(new ErrorProcessorException(ex, processor, ProcessStatus.Canceled), curError);
 			}
 			catch (Exception ex)
 			{
-				return (new ErrorProcessorException(ex, errorProcessor, ProcessStatus.Faulted), curError);
+				return new ProcessorResult(new ErrorProcessorException(ex, processor, ProcessStatus.Faulted), curError);
 			}
 		}
 
@@ -154,6 +173,27 @@ namespace PoliNorError
 
 		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+		/// <summary>
+		/// Represents the result of processing a single error processor.
+		/// </summary>
+		private readonly struct ProcessorResult
+		{
+			public ProcessorResult(Exception error)
+			{
+				Exception = null;
+				Error = error;
+			}
+
+			public ProcessorResult(ErrorProcessorException exception, Exception error)
+			{
+				Exception = exception;
+				Error = error;
+			}
+
+			public ErrorProcessorException Exception { get; }
+			public Exception Error { get; }
+		}
 
 #pragma warning disable S1133 // Deprecated code should be removed
 		[Obsolete("This enum is obsolete")]
@@ -198,7 +238,8 @@ namespace PoliNorError
 			/// <param name="processException">The inner exception thrown by the processor.</param>
 			/// <param name="processor">The processor that threw the exception.</param>
 			/// <param name="processStatus">The status of the processor's execution.</param>
-			public ErrorProcessorException(Exception processException, IErrorProcessor processor, ProcessStatus processStatus) : this("Exception in error processing", processException, processor, processStatus)
+			public ErrorProcessorException(Exception processException, IErrorProcessor processor, ProcessStatus processStatus)
+				: this("Exception in error processing", processException, processor, processStatus)
 			{
 			}
 
@@ -209,7 +250,8 @@ namespace PoliNorError
 			/// <param name="processException">The inner exception thrown by the processor.</param>
 			/// <param name="processor">The processor that threw the exception.</param>
 			/// <param name="processStatus">The status of the processor's execution.</param>
-			public ErrorProcessorException(string msg, Exception processException, IErrorProcessor processor, ProcessStatus processStatus) : base(msg, processException)
+			public ErrorProcessorException(string msg, Exception processException, IErrorProcessor processor, ProcessStatus processStatus)
+				: base(msg, processException)
 			{
 				ErrorProcessor = processor;
 				ErrorStatus = processStatus;
@@ -224,64 +266,6 @@ namespace PoliNorError
 			/// Gets the status of the processor's execution when the exception was thrown.
 			/// </summary>
 			public ProcessStatus ErrorStatus { get; }
-		}
-
-		/// <summary>
-		/// Represents the result of a bulk processing operation.
-		/// </summary>
-		public class BulkProcessResult
-		{
-			private readonly bool _isCanceledBetweenProcessOne;
-
-			private readonly IReadOnlyList<ErrorProcessorException> _processErrors;
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="BulkProcessResult"/> class.
-			/// </summary>
-			/// <param name="handlingError">The original exception that was handled.</param>
-			/// <param name="processErrors">A collection of exceptions that occurred within the error processors.</param>
-			/// <param name="isCanceledBetweenProcessOne">A flag indicating if cancellation was requested between processor executions.</param>
-			public BulkProcessResult(Exception handlingError, IEnumerable<ErrorProcessorException> processErrors, bool isCanceledBetweenProcessOne = false)
-			{
-				HandlingError = handlingError;
-				_processErrors = (processErrors ?? Array.Empty<ErrorProcessorException>()).ToList();
-				_isCanceledBetweenProcessOne = isCanceledBetweenProcessOne;
-			}
-
-			/// <summary>
-			/// Gets the original exception that was handled.
-			/// </summary>
-			public Exception HandlingError { get; }
-
-			/// <summary>
-			/// Gets a collection of exceptions that occurred within the error processors.
-			/// </summary>
-			public IEnumerable<ErrorProcessorException> ProcessErrors => _processErrors;
-
-			/// <summary>
-			/// Gets a value indicating whether any processing errors occurred.
-			/// </summary>
-			public bool HasProcessErrors => _processErrors.Count > 0;
-
-			/// <summary>
-			/// Gets a value indicating whether the bulk processing operation was canceled.
-			/// </summary>
-			public bool IsCanceled => _processErrors.Any(e => e.ErrorStatus == ProcessStatus.Canceled) || _isCanceledBetweenProcessOne;
-
-			/// <summary>
-			/// Converts the processing errors into a collection of <see cref="CatchBlockException"/>.
-			/// </summary>
-			/// <returns>An enumerable of <see cref="CatchBlockException"/>.</returns>
-			public IEnumerable<CatchBlockException> ToCatchBlockExceptions()
-			{
-				foreach (var pe in _processErrors)
-				{
-					yield return new CatchBlockException(
-						pe,
-						HandlingError,
-						CatchBlockExceptionSource.ErrorProcessor);
-				}
-			}
 		}
 	}
 }

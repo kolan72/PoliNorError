@@ -18,16 +18,16 @@ namespace PoliNorError
 			}
 		}
 
-		public static bool ToSubException<TException>(Exception exception, out TException typedException) where TException : Exception
+		public static bool TryCast<TException>(Exception exception, out TException typedException) where TException : Exception
 		{
-			if (exception is TException found)
-			{
-				typedException = found;
-				return true;
-			}
+			TException probe = typedException = exception as TException;
+			return probe != null;
+		}
 
-			typedException = null;
-			return false;
+		public static bool TryAsExact<TException>(Exception exception, out TException typedException) where TException : Exception
+		{
+			typedException = exception?.GetType() == typeof(TException) ? (TException)exception : null;
+			return typedException != null;
 		}
 	}
 }

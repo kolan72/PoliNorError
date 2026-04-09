@@ -9,19 +9,26 @@ namespace PoliNorError
 		private readonly Func<int, Exception, TimeSpan> _sleepProvider;
 		private readonly IDelayProvider _delayProvider;
 
-		public DelayErrorProcessor(TimeSpan timeSpan) : this((_, __) => timeSpan){}
+		public DelayErrorProcessor(TimeSpan timeSpan) : this((_, __) => timeSpan)
+		{
+		}
 
-		public DelayErrorProcessor(Func<int, TimeSpan> delayOnRetryFunc) : this((retryAttempt, _) => delayOnRetryFunc(retryAttempt)){}
+		public DelayErrorProcessor(Func<int, TimeSpan> delayOnRetryFunc) : this((retryAttempt, _) => delayOnRetryFunc(retryAttempt))
+		{
+		}
 
-		public DelayErrorProcessor(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg) :
-			this((retryAttempt, exc) => delayOnRetryFunc.Apply(delayFuncArg)(retryAttempt, exc))
-		{}
+		public DelayErrorProcessor(Func<TimeSpan, int, Exception, TimeSpan> delayOnRetryFunc, TimeSpan delayFuncArg)
+			: this((retryAttempt, exc) => delayOnRetryFunc(delayFuncArg, retryAttempt, exc))
+		{
+		}
 
-		public DelayErrorProcessor(RetryDelay retryDelay) : this((retryAttempt, __) => retryDelay.GetDelay(retryAttempt))
-		{}
+		public DelayErrorProcessor(RetryDelay retryDelay) : this((retryAttempt, _) => retryDelay.GetDelay(retryAttempt))
+		{
+		}
 
 		public DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider) : this(sleepProvider, null)
-		{}
+		{
+		}
 
 		internal DelayErrorProcessor(Func<int, Exception, TimeSpan> sleepProvider, IDelayProvider delayProvider)
 		{
@@ -31,37 +38,21 @@ namespace PoliNorError
 
 		public virtual Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
-			_delayProvider.Backoff(GetCurDelay(GetRetry(catchBlockProcessErrorInfo), error), cancellationToken);
+			var delay = GetDelay(catchBlockProcessErrorInfo, error);
+			_delayProvider.Backoff(delay, cancellationToken);
 			return error;
 		}
 
 		public virtual async Task<Exception> ProcessAsync(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, bool configAwait = false, CancellationToken cancellationToken = default)
 		{
-			await _delayProvider.BackoffAsync(GetCurDelay(GetRetry(catchBlockProcessErrorInfo), error), configAwait, cancellationToken).ConfigureAwait(configAwait);
+			var delay = GetDelay(catchBlockProcessErrorInfo, error);
+			await _delayProvider.BackoffAsync(delay, configAwait, cancellationToken).ConfigureAwait(configAwait);
 			return error;
 		}
 
-		private static int GetRetry(ProcessingErrorInfo catchBlockProcessErrorInfo)
+		private TimeSpan GetDelay(ProcessingErrorInfo info, Exception ex)
 		{
-			switch (catchBlockProcessErrorInfo)
-			{
-				case null:
-					return 0;
-				default:
-					if (catchBlockProcessErrorInfo.HasContext && (catchBlockProcessErrorInfo is IRetryExecutionInfo info))
-					{
-						return info.RetryCount;
-					}
-					else
-					{
-						return 0;
-					}
-			}
-		}
-
-		private TimeSpan GetCurDelay(int retry, Exception ex)
-		{
-			return _sleepProvider(retry, ex);
+			return _sleepProvider(info.GetRetryCount(), ex);
 		}
 	}
 }

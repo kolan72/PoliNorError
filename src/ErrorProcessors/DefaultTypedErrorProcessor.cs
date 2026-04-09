@@ -28,7 +28,7 @@ namespace PoliNorError
 	{
 		public static DefaultTypedErrorProcessorT<TException> Create(Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor)
 		{
-			var action = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.ToSubException);
+			var action = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
 
 			var res = new DefaultTypedErrorProcessorT<TException>();
 			res.SetSyncRunner(action);

@@ -278,6 +278,49 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(false)]
 		[TestCase(true)]
+		public void Should_FuncBased_IncludeError_For_SubException_Do_Not_Handle(bool canHandle)
+		{
+			var filter = new ExceptionFilter();
+
+			Exception errorToHandler;
+			if (canHandle)
+			{
+				errorToHandler = new TestException("Test");
+			}
+			else
+			{
+				errorToHandler = new TestSubException("Test");
+			}
+			filter.IncludeError<TestException>();
+			Assert.That(filter.GetCanHandle()(errorToHandler), Is.EqualTo(canHandle));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Should_FuncBased_ExcludeError_For_SubException_Do_Not_Handle(bool exactType)
+		{
+			var filter = new ExceptionFilter();
+
+			Exception errorToHandler;
+			if (exactType)
+			{
+				errorToHandler = new Exception("Test");
+			}
+			else
+			{
+				errorToHandler = new TestException("Test");
+			}
+			filter.ExcludeError<Exception>();
+
+			var canExclude = !filter.GetCanHandle()(errorToHandler);
+
+			Assert.That(canExclude, Is.EqualTo(exactType));
+		}
+
+		[Test]
+		[TestCase(false)]
+		[TestCase(true)]
 		public void Should_IncludeError_ForInnerError(bool errFilterUnsatisfied)
 		{
 			var filter = new ExceptionFilter();
@@ -542,6 +585,21 @@ namespace PoliNorError.Tests
 			Assert.That(canHandle, Is.False);
 			Assert.That(filter, Is.Not.Null);
 		}
+
+#pragma warning disable RCS1194 // Implement exception constructors.
+#pragma warning disable S3871 // Exception types should be "public"
+		private class TestException : Exception
+		{
+			public TestException(string message) : base(message) { }
+		}
+
+		private class TestSubException : TestException
+
+		{
+			public TestSubException(string msg) : base(msg){}
+		}
+#pragma warning restore S3871 // Exception types should be "public"
+#pragma warning restore RCS1194 // Implement exception constructors.
 	}
 
 	[TestFixture]

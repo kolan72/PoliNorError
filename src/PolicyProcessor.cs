@@ -130,7 +130,7 @@ namespace PoliNorError
 				policyResult.AddBulkProcessorErrors(bulkProcessResult);
 				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(bulkProcessResult.CancellationException);
 				}
 				return ExceptionHandlingResult.Handled;
 			}
@@ -140,7 +140,7 @@ namespace PoliNorError
 				policyResult.AddBulkProcessorErrors(bulkProcessResult);
 				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(bulkProcessResult.CancellationException);
 					return ExceptionHandlingResult.Handled;
 				}
 				return await EvaluatePolicyRuleAsync(ex, policyResult, errorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
@@ -203,7 +203,7 @@ namespace PoliNorError
 				policyResult.AddBulkProcessorErrors(bulkProcessResult);
 				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(bulkProcessResult.CancellationException);
 				}
 
 				return ExceptionHandlingResult.Handled;
@@ -215,7 +215,7 @@ namespace PoliNorError
 
 				if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(bulkProcessResult.CancellationException);
 					return ExceptionHandlingResult.Handled;
 				}
 
@@ -351,7 +351,7 @@ namespace PoliNorError
 				{
 					if (result.canceled)
 					{
-						policyResult.SetFailedAndCanceled();
+						policyResult.SetFailedAndCanceled((OperationCanceledException)result.error);
 						policyResult.AddCatchBlockError(new CatchBlockException(result.error, ex, CatchBlockExceptionSource.PolicyRule));
 					}
 					else
