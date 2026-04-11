@@ -164,7 +164,7 @@ namespace PoliNorError
 				saver(policyResult, ex, errorContext, token);
 				if (token.IsCancellationRequested)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(new OperationCanceledException(token));
 					return ExceptionHandlingResult.Handled;
 				}
 			}
@@ -186,7 +186,7 @@ namespace PoliNorError
 				saver(policyResult, ex, errorContext, token);
 				if (token.IsCancellationRequested)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(new OperationCanceledException(token));
 					return ExceptionHandlingResult.Handled;
 				}
 			}
