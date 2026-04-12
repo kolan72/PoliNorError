@@ -452,7 +452,48 @@ namespace PoliNorError.Tests
                     errorSaver: customErrorSaver);
 
                 Assert.That(policyResult.PolicyCanceledError, Is.Not.Null);
-            }           
+            }
+        }
+
+        [Test]
+        [TestCase(ExceptionHandlingBehavior.Handle)]
+        [TestCase(ExceptionHandlingBehavior.ConditionalRethrow)]
+        public async Task Should_Honor_PolicyCanceledError_WhenCancellation_In_AsyncErrorSaver(ExceptionHandlingBehavior handlingBehavior)
+        {
+            // Arrange
+            var bulkProcessor = new TestBulkErrorProcessor
+            {
+                ResultToReturn = new BulkProcessResult(new InvalidOperationException(), null)
+            };
+            var processor = new TestPolicyProcessor(bulkProcessor);
+            var policyResult = PolicyResult.ForNotSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new InvalidOperationException("test exception");
+
+            using (var cts = new CancellationTokenSource())
+            {
+                async Task customErrorSaverAsync(PolicyResult _, Exception __, ErrorContext<string> ___, bool ____, CancellationToken _____)
+                {
+                    await Task.Delay(1);
+                    cts.Cancel();
+                }
+
+                // Act
+               await processor.TestHandleExceptionAsync(
+                    exception,
+                    policyResult,
+                    errorContext,
+                    customErrorSaverAsync,
+                    null,
+                    handlingBehavior,
+                    ErrorProcessingCancellationEffect.Propagate,
+                    false,
+                    ProcessingOrder.EvaluateThenProcess,
+                    cts.Token
+                    ).ConfigureAwait(false);
+
+                Assert.That(policyResult.PolicyCanceledError, Is.Not.Null);
+            }
         }
 
         [Test]

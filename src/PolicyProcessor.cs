@@ -91,7 +91,7 @@ namespace PoliNorError
 				await saver(policyResult, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
 				if (token.IsCancellationRequested)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(new OperationCanceledException(token));
 					return ExceptionHandlingResult.Handled;
 				}
 			}
@@ -113,7 +113,7 @@ namespace PoliNorError
 				await saver(policyResult, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
 				if (token.IsCancellationRequested)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(new OperationCanceledException(token));
 					return ExceptionHandlingResult.Handled;
 				}
 			}
