@@ -1491,5 +1491,57 @@ namespace PoliNorError.Tests
 				Assert.That(tryResCount.NoError, Is.True);
 			}
 		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public void Should_Retry_Action_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll, bool withContext)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new DefaultRetryProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					if (withContext)
+					{
+						pr = processor.RetryWithErrorContext(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+					}
+					else
+					{
+						pr = processor.Retry(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), 1, cts.Token);
+					}
+				}
+				else
+				{
+					if (withContext)
+					{
+						pr = processor.RetryWithErrorContext(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+					}
+					else
+					{
+						pr = processor.Retry(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), 1, cts.Token);
+					}
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
 	}
 }
