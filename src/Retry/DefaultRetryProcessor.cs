@@ -92,8 +92,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					SaveError(result, ex, retryContext, token);
-					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
+					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -147,8 +146,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					SaveError(result, ex, retryContext, token);
-					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
+					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -207,8 +205,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					SaveError(result, ex, retryContext, token);
-					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
+					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -267,8 +264,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					SaveError(result, ex, retryContext, token);
-					if (HandleError(ex, result, retryDelay, handler, retryContext, token))
+					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -525,17 +521,35 @@ namespace PoliNorError
 
 		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
 
-		private bool HandleError(Exception ex,
+		private bool HandleException(
+			Exception ex,
+			PolicyResult result,
+			ErrorContext<RetryContext> errorContext,
+			RetryDelay retryDelay,
+			PolicyProcessorCatchBlockSyncHandler<RetryContext> handler,
+			CancellationToken token)
+		{
+			SaveError(result, ex, errorContext, token);
+
+			if (result.IsFailed)
+				return false;
+
+			HandleError(ex, result, retryDelay, handler, errorContext, token);
+			return !result.IsFailed;
+		}
+
+		private void HandleError(Exception ex,
 							PolicyResult result,
 							RetryDelay retryDelay,
 							PolicyProcessorCatchBlockSyncHandler<RetryContext> handler,
-							RetryErrorContext retryContext,
+							ErrorContext<RetryContext> retryContext,
 							CancellationToken token)
 		{
-			return !result.IsFailed
-						&& !result.WasResultSetToFailureByCatchBlock(handler
-																.Handle(ex, retryContext))
-						&& !DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, token);
+			result.WasResultSetToFailureByCatchBlock(handler.Handle(ex, retryContext));
+			if (result.IsFailed)
+				return;
+
+			DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, token);
 		}
 
 		private async Task<bool> HandleErrorAsync(Exception ex,
