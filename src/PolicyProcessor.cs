@@ -43,17 +43,42 @@ namespace PoliNorError
 			ErrorFilter = exceptionFilter;
 		}
 
+		/// <summary>
+		/// Adds an error processor to the bulk error processor.
+		/// </summary>
+		/// <param name="newErrorProcessor">The error processor to add.</param>
+		/// <exception cref="ArgumentNullException">Thrown when newErrorProcessor is null.</exception>
 		public void AddErrorProcessor(IErrorProcessor newErrorProcessor)
 		{
 			_bulkErrorProcessor.AddProcessor(newErrorProcessor);
 		}
 
+		/// <summary>
+		/// Gets the collection of included error filters that determine which exceptions should be handled by this policy processor.
+		/// </summary>
+		/// <returns>An enumerable of expressions that define included error filters.</returns>
 		public IEnumerable<Expression<Func<Exception, bool>>> IncludedErrorFilters => ErrorFilter.IncludedErrorFilters;
 
+		/// <summary>
+		/// Gets the collection of excluded error filters that determine which exceptions should not be handled by this policy processor.
+		/// </summary>
+		/// <returns>An enumerable of expressions that define excluded error filters.</returns>
 		public IEnumerable<Expression<Func<Exception, bool>>> ExcludedErrorFilters => ErrorFilter.ExcludedErrorFilters;
 
+		/// <summary>
+		/// Gets the exception filter used to determine which exceptions should be handled by this policy processor.
+		/// </summary>
+		/// <returns>The exception filter instance.</returns>
 		public ExceptionFilter ErrorFilter { get; }
 
+		/// <summary>
+		/// Creates a synchronous catch block handler for the specified error context type.
+		/// </summary>
+		/// <typeparam name="T">The type of the error context.</typeparam>
+		/// <param name="policyResult">The policy result to update during error handling.</param>
+		/// <param name="token">The cancellation token.</param>
+		/// <param name="policyRuleFunc">Optional policy rule function to determine if the exception should be handled.</param>
+		/// <returns>A new instance of PolicyProcessorCatchBlockSyncHandler.</returns>
 		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
 		{
 			return new PolicyProcessorCatchBlockSyncHandler<T>(policyResult,
@@ -223,23 +248,57 @@ namespace PoliNorError
 			}
 		}
 
+		/// <summary>
+		/// Gets the default error saver for policy results with Unit error context.
+		/// </summary>
 		internal static Action<PolicyResult, Exception, ErrorContext<Unit>, CancellationToken> DefaultErrorSaver { get; } = CreateDefaultErrorSaver<Unit>();
 
+		/// <summary>
+		/// Creates a default error saver that adds the exception to the policy result.
+		/// </summary>
+		/// <typeparam name="T">The type of the error context.</typeparam>
+		/// <returns>A default error saver action.</returns>
 		internal static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> CreateDefaultErrorSaver<T>() =>
 			 (pr, e, _, __) => pr.AddError(e);
 
+		/// <summary>
+		/// Gets the default async error saver for policy results with Unit error context.
+		/// </summary>
 		internal static Func<PolicyResult, Exception, ErrorContext<Unit>, bool, CancellationToken, Task> DefaultAsyncErrorSaver { get; } = CreateDefaultAsyncErrorSaver<Unit>();
 
+		/// <summary>
+		/// Creates a default async error saver that adds the exception to the policy result.
+		/// </summary>
+		/// <typeparam name="T">The type of the error context.</typeparam>
+		/// <returns>A default async error saver function.</returns>
 		internal static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> CreateDefaultAsyncErrorSaver<T>() =>
 			 (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
 
+		/// <summary>
+		/// Gets the default async policy rule that always returns true for Unit error context.
+		/// </summary>
 		internal static Func<ErrorContext<Unit>, CancellationToken, Task<bool>> DefaultAsyncPolicyRule { get; }= (_, __) => Task.FromResult(true);
 
+		/// <summary>
+		/// Gets the default policy rule for Unit error context.
+		/// </summary>
 		internal static Func<ErrorContext<Unit>, CancellationToken, bool> DefaultPolicyRule { get; } = CreateDefaultPolicyRule<Unit>();
 
+		/// <summary>
+		/// Creates a default policy rule that always returns true.
+		/// </summary>
+		/// <typeparam name="T">The type of the error context.</typeparam>
+		/// <returns>A default policy rule function.</returns>
 		internal static Func<ErrorContext<T>, CancellationToken, bool> CreateDefaultPolicyRule<T>() =>
 			(_, __) => true;
 
+		/// <summary>
+		/// Evaluates the exception filter against the given exception and determines the handling result.
+		/// </summary>
+		/// <param name="policyResult">The policy result to update based on the filter evaluation.</param>
+		/// <param name="ex">The exception to evaluate.</param>
+		/// <param name="handlingBehavior">The exception handling behavior to apply.</param>
+		/// <returns>A tuple containing the handling result and any error encountered during evaluation.</returns>
 		private (ExceptionHandlingResult, Exception) EvaluateExceptionFilter(PolicyResult policyResult, Exception ex, ExceptionHandlingBehavior handlingBehavior)
 		{
 			var (filterPassed, error) = RunErrorFilterFunc();
@@ -285,6 +344,16 @@ namespace PoliNorError
 			}
 		}
 
+		/// <summary>
+		/// Evaluates a policy rule synchronously to determine if an exception should be handled.
+		/// </summary>
+		/// <typeparam name="T">The type of the error context.</typeparam>
+		/// <param name="ex">The exception to evaluate.</param>
+		/// <param name="policyResult">The policy result to update based on the rule evaluation.</param>
+		/// <param name="errorContext">The error context containing additional information about the exception.</param>
+		/// <param name="policyRuleFunc">The policy rule function to evaluate.</param>
+		/// <param name="token">The cancellation token.</param>
+		/// <returns>The exception handling result based on the policy rule evaluation.</returns>
 		private static ExceptionHandlingResult EvaluatePolicyRule<T>(Exception ex, PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc, CancellationToken token)
 		{
 			return HandlePolicyRuleFuncResult(RunPolicyRuleFunc(), ex, policyResult);
@@ -311,6 +380,17 @@ namespace PoliNorError
 			}
 		}
 
+		/// <summary>
+		/// Evaluates a policy rule asynchronously to determine if an exception should be handled.
+		/// </summary>
+		/// <typeparam name="T">The type of the error context.</typeparam>
+		/// <param name="ex">The exception to evaluate.</param>
+		/// <param name="policyResult">The policy result to update based on the rule evaluation.</param>
+		/// <param name="errorContext">The error context containing additional information about the exception.</param>
+		/// <param name="policyRuleFunc">The policy rule function to evaluate.</param>
+		/// <param name="configureAwait">Whether to configure await for the async operations.</param>
+		/// <param name="token">The cancellation token.</param>
+		/// <returns>A task representing the exception handling result based on the policy rule evaluation.</returns>
 		private static async Task<ExceptionHandlingResult> EvaluatePolicyRuleAsync<T>(Exception ex, PolicyResult policyResult, ErrorContext<T> errorContext, Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc, bool configureAwait, CancellationToken token)
 		{
 			return HandlePolicyRuleFuncResult(await RunPolicyRuleFunc().ConfigureAwait(configureAwait), ex, policyResult);
@@ -339,6 +419,13 @@ namespace PoliNorError
 			}
 		}
 
+		/// <summary>
+		/// Handles the result of a policy rule function evaluation and updates the policy result accordingly.
+		/// </summary>
+		/// <param name="result">The result from the policy rule function evaluation.</param>
+		/// <param name="ex">The original exception that was evaluated.</param>
+		/// <param name="policyResult">The policy result to update based on the rule evaluation.</param>
+		/// <returns>The exception handling result based on the policy rule function evaluation.</returns>
 		private static ExceptionHandlingResult HandlePolicyRuleFuncResult((bool accepted, bool canceled, Exception error) result, Exception ex, PolicyResult policyResult)
 		{
 			if (result.accepted)
@@ -368,7 +455,16 @@ namespace PoliNorError
 			}
 		}
 
+		/// <summary>
+		/// Returns an enumerator that iterates through the collection of error processors.
+		/// </summary>
+		/// <returns>An enumerator that can be used to iterate through the collection.</returns>
 		public IEnumerator<IErrorProcessor> GetEnumerator() => _bulkErrorProcessor.GetEnumerator();
+
+		/// <summary>
+		/// Returns an enumerator that iterates through the collection of error processors.
+		/// </summary>
+		/// <returns>An enumerator that can be used to iterate through the collection.</returns>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	}
 
