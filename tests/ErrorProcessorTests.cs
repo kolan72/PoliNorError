@@ -1,12 +1,16 @@
 ﻿using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
 	public class ErrorProcessorTests
 	{
+		private readonly Exception testException = new Exception("Test exception");
+		private readonly ProcessingErrorInfo testErrorInfo = new ProcessingErrorInfo(new ProcessingErrorContext());
+
 		[Test]
 		[TestCase(true, true)]
 		[TestCase(true, false)]
@@ -144,7 +148,7 @@ namespace PoliNorError.Tests
 		public void Should_DefaultErrorProcessor_TParam_Of_Action_With_TokenParam_Process_Only_ProcessingErrorInfo_TParam(bool isGeneric)
 		{
 			int i = 0;
-			DefaultErrorProcessor<int> errPr = new DefaultErrorProcessor<int>((_, __,  ___) => i++);
+			DefaultErrorProcessor<int> errPr = new DefaultErrorProcessor<int>((_, __, ___) => i++);
 
 			ProcessingErrorInfo piToTest = null;
 			if (isGeneric)
@@ -245,5 +249,232 @@ namespace PoliNorError.Tests
 			}
 			Assert.That(i, Is.EqualTo(errCanBeProcessed ? 1 : 0));
 		}
+
+		#region DefaultErrorProcessorConstructorTests
+		[Test]
+		public void Should_DefaultErrorProcessor_Internal_Constructor_Create_Instance()
+		{
+			var processor = new DefaultErrorProcessor();
+			Assert.That(processor, Is.Not.Null);
+			Assert.That(processor, Is.InstanceOf<DefaultErrorProcessor>());
+		}
+
+		[Test]
+		public void Should_DefaultErrorProcessor_Action_Constructor_Set_Sync_Runner()
+		{
+			bool actionCalled = false;
+			var processor = new DefaultErrorProcessor((ex, errorInfo) =>
+			{
+				actionCalled = true;
+				Assert.That(ex, Is.SameAs(testException));
+				Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+			});
+
+			processor.Process(testException, testErrorInfo);
+			Assert.That(actionCalled, Is.True);
+		}
+
+		[Test]
+		public void Should_DefaultErrorProcessor_Action_With_CancellationToken_Constructor_Set_Sync_Runner()
+		{
+			bool actionCalled = false;
+			var processor = new DefaultErrorProcessor((ex, errorInfo, cancellationToken) =>
+			{
+				actionCalled = true;
+				Assert.That(ex, Is.SameAs(testException));
+				Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				Assert.That(cancellationToken, Is.EqualTo(default(CancellationToken)));
+			});
+
+			processor.Process(testException, testErrorInfo);
+			Assert.That(actionCalled, Is.True);
+		}
+
+		[Test]
+		public void Should_DefaultErrorProcessor_Action_With_CancellationType_Constructor_Set_Sync_Runner()
+		{
+			bool actionCalled = false;
+			var processor = new DefaultErrorProcessor((ex, errorInfo) =>
+			{
+				actionCalled = true;
+				Assert.That(ex, Is.SameAs(testException));
+				Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+			}, CancellationType.Precancelable);
+
+			processor.Process(testException, testErrorInfo);
+			Assert.That(actionCalled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_DefaultErrorProcessor_Func_Constructor_Set_Async_Runner()
+		{
+			bool funcCalled = false;
+			var processor = new DefaultErrorProcessor(async (ex, errorInfo) =>
+			{
+				funcCalled = true;
+				await Task.Delay(1);
+				Assert.That(ex, Is.SameAs(testException));
+				Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+			});
+
+			await processor.ProcessAsync(testException, testErrorInfo);
+			Assert.That(funcCalled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_DefaultErrorProcessor_Func_With_CancellationToken_Constructor_Set_Async_Runner()
+		{
+			bool funcCalled = false;
+			var processor = new DefaultErrorProcessor(async (ex, errorInfo, cancellationToken) =>
+			{
+				funcCalled = true;
+				await Task.Delay(1);
+				Assert.That(ex, Is.SameAs(testException));
+				Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				Assert.That(cancellationToken, Is.EqualTo(default(CancellationToken)));
+			});
+
+			await processor.ProcessAsync(testException, testErrorInfo);
+			Assert.That(funcCalled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_DefaultErrorProcessor_Func_With_CancellationType_Constructor_Set_Async_Runner()
+		{
+			bool funcCalled = false;
+			var processor = new DefaultErrorProcessor(async (ex, errorInfo) =>
+			{
+				funcCalled = true;
+				await Task.Delay(1);
+				Assert.That(ex, Is.SameAs(testException));
+				Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+			}, CancellationType.Precancelable);
+
+			await processor.ProcessAsync(testException, testErrorInfo);
+			Assert.That(funcCalled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_DefaultErrorProcessor_Func_And_Action_Constructor_Set_Both_Runners()
+		{
+			bool actionCalled = false;
+			bool funcCalled = false;
+
+			var processor = new DefaultErrorProcessor(
+				async (ex, errorInfo) =>
+				{
+					funcCalled = true;
+					await Task.Delay(1);
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				},
+				(ex, errorInfo) =>
+				{
+					actionCalled = true;
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				});
+
+			processor.Process(testException, testErrorInfo);
+			Assert.That(actionCalled, Is.True);
+
+			// Reset for async test
+			actionCalled = false;
+			funcCalled = false;
+
+			await processor.ProcessAsync(testException, testErrorInfo);
+			Assert.That(funcCalled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_DefaultErrorProcessor_Func_And_Action_With_CancellationType_Constructor_Set_Both_Runners()
+		{
+			bool actionCalled = false;
+			bool funcCalled = false;
+
+			var processor = new DefaultErrorProcessor(
+				async (ex, errorInfo) =>
+				{
+					funcCalled = true;
+					await Task.Delay(1);
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				},
+				(ex, errorInfo) =>
+				{
+					actionCalled = true;
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				},
+				CancellationType.Precancelable);
+
+			processor.Process(testException, testErrorInfo);
+			Assert.That(actionCalled, Is.True);
+
+			// Reset for async test
+			actionCalled = false;
+			funcCalled = false;
+
+			await processor.ProcessAsync(testException, testErrorInfo);
+			Assert.That(funcCalled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_DefaultErrorProcessor_Func_And_Action_Constructor_Set_Both_Runners_Async()
+		{
+			bool actionCalled = false;
+			bool funcCalled = false;
+
+			var processor = new DefaultErrorProcessor(
+				async (ex, errorInfo) =>
+				{
+					funcCalled = true;
+					await Task.Delay(1);
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				},
+				(ex, errorInfo) =>
+				{
+					actionCalled = true;
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				});
+
+			await processor.ProcessAsync(testException, testErrorInfo);
+			Assert.That(funcCalled, Is.True);
+
+			processor.Process(testException, testErrorInfo);
+			Assert.That(actionCalled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_DefaultErrorProcessor_Func_And_Action_With_CancellationType_Constructor_Set_Both_Runners_Async()
+		{
+			bool actionCalled = false;
+			bool funcCalled = false;
+
+			var processor = new DefaultErrorProcessor(
+				async (ex, errorInfo) =>
+				{
+					funcCalled = true;
+					await Task.Delay(1);
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				},
+				(ex, errorInfo) =>
+				{
+					actionCalled = true;
+					Assert.That(ex, Is.SameAs(testException));
+					Assert.That(errorInfo, Is.SameAs(testErrorInfo));
+				},
+				CancellationType.Precancelable);
+
+			await processor.ProcessAsync(testException, testErrorInfo);
+			Assert.That(funcCalled, Is.True);
+
+			processor.Process(testException, testErrorInfo);
+			Assert.That(actionCalled, Is.True);
+		}
+		#endregion
 	}
 }
