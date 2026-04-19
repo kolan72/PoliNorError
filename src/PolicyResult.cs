@@ -15,6 +15,7 @@ namespace PoliNorError
 		private readonly FlexSyncEnumerable<PolicyResultHandlingException> _handleResultErrors;
 
 		private Exception _unprocessedError;
+		private Exception _lastError; // cached last exception to avoid iterating Errors on every UnprocessedError access
 
 		internal bool _executed;
 
@@ -110,7 +111,7 @@ namespace PoliNorError
 		public Exception UnprocessedError
 		{
 			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError))
-															? Errors.LastOrDefault()
+															? _lastError
 															: null); }
 			internal set { _unprocessedError = value; }
 		}
@@ -204,6 +205,7 @@ namespace PoliNorError
 		internal void AddError(Exception exception)
 		{
 			_errors.Add(exception);
+			_lastError = exception;
 		}
 
 		internal void AddCatchBlockError(CatchBlockException catchBlockException)
