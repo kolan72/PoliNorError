@@ -217,14 +217,27 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(false, true)]
-		[TestCase(true, false)]
-		[TestCase(false, false)]
-		public async Task Should_DefaultTypedErrorProcessor_Of_Action_With_TokenParam_Process_Only_Typed_Exception(bool errCanBeProcessed, bool isSync)
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public async Task Should_DefaultTypedErrorProcessor_Of_Action_With_TokenParam_Process_Only_Typed_Exception(bool errCanBeProcessed, bool isSync, bool withCancelType)
 		{
 			int i = 0;
-			var processor = new DefaultTypedErrorProcessor<ArgumentException>((ex, _, __) => { if (ex.ParamName == "Test") i++; });
+
+			DefaultTypedErrorProcessor<ArgumentException> processor;
+			if (withCancelType)
+			{
+				processor = new DefaultTypedErrorProcessor<ArgumentException>((ex, _) => { if (ex.ParamName == "Test") i++; }, CancellationType.Precancelable);
+			}
+			else
+			{
+				processor = new DefaultTypedErrorProcessor<ArgumentException>((ex, _, __) => { if (ex.ParamName == "Test") i++; });
+			}
 
 			Exception exToTest = null;
 
