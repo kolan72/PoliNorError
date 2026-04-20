@@ -47,14 +47,14 @@ namespace PoliNorError
 	internal class ConstantDelayCore : DelayCoreBase
 	{
 		private readonly ConstantRetryDelayOptions _delayOptions;
-		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+		private readonly double _adaptedMaxDelayMs;
 
 		public ConstantDelayCore(ConstantRetryDelayOptions delayOptions) : base(delayOptions)
 		{
 			_delayOptions = delayOptions;
 			if (delayOptions.UseJitter)
 			{
-				_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
+				_adaptedMaxDelayMs = delayOptions.GetAdaptedMaxDelayMs();
 			}
 		}
 
@@ -65,7 +65,10 @@ namespace PoliNorError
 
 		protected override TimeSpan GetJitteredDelay(int attempt)
 		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(StandardJitter.AddJitter(_delayOptions.BaseDelay.TotalMilliseconds));
+			return MaxDelayHelper.LimitToMaxDelay(
+				StandardJitter.AddJitter(_delayOptions.BaseDelay.TotalMilliseconds),
+				_adaptedMaxDelayMs,
+				_delayOptions.MaxDelay);
 		}
 	}
 }
