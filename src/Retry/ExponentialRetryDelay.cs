@@ -62,7 +62,7 @@ namespace PoliNorError
 		private readonly ExponentialRetryDelayOptions _delayOptions;
 
 		private readonly DecorrelatedJitter _jitter;
-		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+		private readonly double _adaptedMaxDelayMs;
 
 		public ExponentialDelayCore(ExponentialRetryDelayOptions delayOptions) : base(delayOptions)
 		{
@@ -74,12 +74,12 @@ namespace PoliNorError
 			}
 			else
 			{
-				_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
+				_adaptedMaxDelayMs = delayOptions.GetAdaptedMaxDelayMs();
 			}
 		}
 
 		protected override TimeSpan GetBaseDelay(int attempt)
-			=> _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(Math.Pow(_delayOptions.ExponentialFactor, attempt) * _delayOptions.BaseDelay.TotalMilliseconds);
+			=> MaxDelayHelper.LimitToMaxDelay(Math.Pow(_delayOptions.ExponentialFactor, attempt) * _delayOptions.BaseDelay.TotalMilliseconds, _adaptedMaxDelayMs, _delayOptions.MaxDelay);
 
 		protected override TimeSpan GetJitteredDelay(int attempt)
 			=> _jitter.DecorrelatedJitterBackoffV2(attempt);
