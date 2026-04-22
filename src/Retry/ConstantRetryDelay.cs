@@ -54,7 +54,7 @@ namespace PoliNorError
 			_delayOptions = delayOptions;
 			if (delayOptions.UseJitter)
 			{
-				_adaptedMaxDelayMs = delayOptions.GetAdaptedMaxDelayMs();
+				_adaptedMaxDelayMs = MaxDelayHelper.GetAdaptedMaxDelayMs(delayOptions.MaxDelay);
 			}
 		}
 
