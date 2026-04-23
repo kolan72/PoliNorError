@@ -58,22 +58,22 @@ namespace PoliNorError
 	internal class LinearDelayCore : DelayCoreBase
 	{
 		private readonly LinearRetryDelayOptions _delayOptions;
-		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+		private readonly double _adaptedMaxDelayMs;
 
 		public LinearDelayCore(LinearRetryDelayOptions delayOptions) : base(delayOptions)
 		{
 			_delayOptions = delayOptions;
-			_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
+			_adaptedMaxDelayMs = MaxDelayHelper.GetAdaptedMaxDelayMs(delayOptions.MaxDelay);
 		}
 
 		protected override TimeSpan GetBaseDelay(int attempt)
 		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayValueInMs(attempt, _delayOptions));
+			return MaxDelayHelper.LimitToMaxDelay(GetDelayValueInMs(attempt, _delayOptions), _adaptedMaxDelayMs, _delayOptions.MaxDelay);
 		}
 
 		protected override TimeSpan GetJitteredDelay(int attempt)
 		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(StandardJitter.AddJitter(GetDelayValueInMs(attempt, _delayOptions)));
+			return MaxDelayHelper.LimitToMaxDelay(StandardJitter.AddJitter(GetDelayValueInMs(attempt, _delayOptions)), _adaptedMaxDelayMs, _delayOptions.MaxDelay);
 		}
 
 		private static double GetDelayValueInMs(int attempt, LinearRetryDelayOptions options)
