@@ -98,13 +98,15 @@ namespace PoliNorError
 
 	internal class TimeSeriesDelayCore : DelayCoreBase
 	{
-		private readonly MaxDelayDelimiter _maxDelayDelimiter;
+		private readonly double _adaptedMaxDelayMs;
+		private readonly TimeSpan _maxDelay;
 		private readonly TimeSpan[] _times;
 		private readonly int _maxIndex;
 
 		public TimeSeriesDelayCore(TimeSeriesRetryDelayOptions delayOptions) : base(delayOptions)
 		{
-			_maxDelayDelimiter = new MaxDelayDelimiter(delayOptions);
+			_adaptedMaxDelayMs = MaxDelayHelper.GetAdaptedMaxDelayMs(delayOptions.MaxDelay);
+			_maxDelay = delayOptions.MaxDelay;
 			if (delayOptions.Times?.Length == 0)
 			{
 				_times = new[] { delayOptions.BaseDelay > delayOptions.MaxDelay ? delayOptions.MaxDelay : delayOptions.BaseDelay };
@@ -118,12 +120,12 @@ namespace PoliNorError
 
 		protected override TimeSpan GetBaseDelay(int attempt)
 		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(GetDelayInner(attempt).TotalMilliseconds);
+			return MaxDelayHelper.LimitToMaxDelay(GetDelayInner(attempt).TotalMilliseconds, _adaptedMaxDelayMs, _maxDelay);
 		}
 
 		protected override TimeSpan GetJitteredDelay(int attempt)
 		{
-			return _maxDelayDelimiter.GetDelayLimitedToMaxDelayIfNeed(StandardJitter.AddJitter(GetDelayInner(attempt).TotalMilliseconds));
+			return MaxDelayHelper.LimitToMaxDelay(StandardJitter.AddJitter(GetDelayInner(attempt).TotalMilliseconds), _adaptedMaxDelayMs, _maxDelay);
 		}
 
 		private TimeSpan GetDelayInner(int attempt)
