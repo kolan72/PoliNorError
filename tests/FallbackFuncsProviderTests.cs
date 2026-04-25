@@ -202,6 +202,76 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
+		public void Should_CreateGenericSyncProvider_Return_Instance_With_GenericFunc(bool tokenAware)
+		{
+			FallbackBehavior<int> provider;
+			if (tokenAware)
+			{
+				provider = FallbackBehavior<int>.Create((_) => 11);
+			}
+			else
+			{
+				provider = FallbackBehavior<int>.Create(() => 11);
+			}
+
+			Assert.That(provider, Is.Not.Null);
+			Assert.That(provider.HasFun, Is.True);
+			Assert.That(provider.Fun, Is.Not.Null);
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Should_CreateGenericAsyncProvider_Return_Instance_With_GenericFunc(bool tokenAware)
+		{
+			FallbackBehavior<int> provider;
+			if (tokenAware)
+			{
+				provider = FallbackBehavior<int>.Create(async (_) => { await Task.Delay(1); return 22; });
+			}
+			else
+			{
+				provider = FallbackBehavior<int>.Create(async () => { await Task.Delay(1); return 22; });
+			}
+
+			Assert.That(provider, Is.Not.Null);
+			Assert.That(provider.HasAsyncFun, Is.True);
+			Assert.That(provider.AsyncFun, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_CreateGenericSyncProvider_WithCancellationType_Work()
+		{
+			var provider = FallbackBehavior<int>.Create(() => 33, CancellationType.Cancelable);
+			Assert.That(provider.HasFun, Is.True);
+			Assert.That(provider.Fun, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_CreateGenericAsyncProvider_WithCancellationType_Work()
+		{
+			var provider = FallbackBehavior<int>.Create(async () => { await Task.Delay(1); return 44; }, CancellationType.Cancelable);
+			Assert.That(provider.HasAsyncFun, Is.True);
+			Assert.That(provider.AsyncFun, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_CreateGenericProvider_ThrowArgumentNull_When_FallbackIsNull()
+		{
+			Func<int> syncFallback = null;
+			Func<CancellationToken, int> syncTokenFallback = null;
+			Func<Task<int>> asyncFallback = null;
+			Func<CancellationToken, Task<int>> asyncTokenFallback = null;
+
+			Assert.Throws<ArgumentNullException>(() => FallbackBehavior<int>.Create(syncFallback));
+			Assert.Throws<ArgumentNullException>(() => FallbackBehavior<int>.Create(syncTokenFallback));
+			Assert.Throws<ArgumentNullException>(() => FallbackBehavior<int>.Create(asyncFallback));
+			Assert.Throws<ArgumentNullException>(() => FallbackBehavior<int>.Create(asyncTokenFallback));
+		}
+
+		[Test]
+		[TestCase(true)]
+		[TestCase(false)]
 		public void Should_AddOrReplaceFallbackFunc_Work(bool funcWithToken)
 		{
 			var provider = FallbackFuncsProvider.Create();
