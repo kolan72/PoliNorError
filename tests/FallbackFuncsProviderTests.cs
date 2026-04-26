@@ -215,8 +215,8 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(provider, Is.Not.Null);
-			Assert.That(provider.HasFun, Is.True);
-			Assert.That(provider.Fun, Is.Not.Null);
+			Assert.That(provider.HasFallback, Is.True);
+			Assert.That(provider.Fallback, Is.Not.Null);
 		}
 
 		[Test]
@@ -235,24 +235,24 @@ namespace PoliNorError.Tests
 			}
 
 			Assert.That(provider, Is.Not.Null);
-			Assert.That(provider.HasAsyncFun, Is.True);
-			Assert.That(provider.AsyncFun, Is.Not.Null);
+			Assert.That(provider.HasAsyncFallback, Is.True);
+			Assert.That(provider.AsyncFallback, Is.Not.Null);
 		}
 
 		[Test]
 		public void Should_CreateGenericSyncProvider_WithCancellationType_Work()
 		{
 			var provider = FallbackBehavior<int>.Create(() => 33, CancellationType.Cancelable);
-			Assert.That(provider.HasFun, Is.True);
-			Assert.That(provider.Fun, Is.Not.Null);
+			Assert.That(provider.HasFallback, Is.True);
+			Assert.That(provider.Fallback, Is.Not.Null);
 		}
 
 		[Test]
 		public void Should_CreateGenericAsyncProvider_WithCancellationType_Work()
 		{
 			var provider = FallbackBehavior<int>.Create(async () => { await Task.Delay(1); return 44; }, CancellationType.Cancelable);
-			Assert.That(provider.HasAsyncFun, Is.True);
-			Assert.That(provider.AsyncFun, Is.Not.Null);
+			Assert.That(provider.HasAsyncFallback, Is.True);
+			Assert.That(provider.AsyncFallback, Is.Not.Null);
 		}
 
 		[Test]

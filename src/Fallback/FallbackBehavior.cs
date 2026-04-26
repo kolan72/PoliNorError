@@ -26,8 +26,8 @@ namespace PoliNorError
 			}
 
 			var provider = new FallbackBehavior<T>();
-			provider.Fun = (convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc();
-			provider.HasFun = true;
+			provider.Fallback = (convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc();
+			provider.HasFallback = true;
 			return provider;
 		}
 
@@ -45,8 +45,8 @@ namespace PoliNorError
 
 			return new FallbackBehavior<T>
 			{
-				Fun = fallbackFunc,
-				HasFun = true
+				Fallback = fallbackFunc,
+				HasFallback = true
 			};
 		}
 
@@ -65,8 +65,8 @@ namespace PoliNorError
 
 			return new FallbackBehavior<T>
 			{
-				AsyncFun = (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc(true) : fallbackAsync.ToCancelableFunc(),
-				HasAsyncFun = true
+				AsyncFallback = (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc(true) : fallbackAsync.ToCancelableFunc(),
+				HasAsyncFallback = true
 			};
 		}
 
@@ -84,29 +84,52 @@ namespace PoliNorError
 
 			return new FallbackBehavior<T>
 			{
-				AsyncFun = fallbackAsync,
-				HasAsyncFun = true
+				AsyncFallback = fallbackAsync,
+				HasAsyncFallback = true
 			};
 		}
 
 		/// <summary>
 		/// Gets the synchronous fallback delegate.
 		/// </summary>
-		public Func<CancellationToken, T> Fun { get; private set; }
+		public Func<CancellationToken, T> Fallback { get; private set; }
 
 		/// <summary>
 		/// Gets the asynchronous fallback delegate.
 		/// </summary>
-		public Func<CancellationToken, Task<T>> AsyncFun { get; private set; }
+		public Func<CancellationToken, Task<T>> AsyncFallback { get; private set; }
 
 		/// <summary>
 		/// Gets a value indicating whether this instance has a synchronous fallback delegate.
 		/// </summary>
-		public bool HasFun { get; private set; }
+		public bool HasFallback { get; private set; }
 
 		/// <summary>
 		/// Gets a value indicating whether this instance has an asynchronous fallback delegate.
 		/// </summary>
-		public bool HasAsyncFun { get; private set; }
+		public bool HasAsyncFallback { get; private set; }
+	}
+
+	/// <summary>
+	/// Specifies the execution mode(s) supported by a fallback behavior.
+	/// This enumeration supports bitwise combination of values.
+	/// </summary>
+	[Flags]
+	public enum FallbackExecutionMode
+	{
+		/// <summary>
+		/// No fallback delegate is configured.
+		/// </summary>
+		None = 0,
+
+		/// <summary>
+		/// A synchronous fallback delegate is configured.
+		/// </summary>
+		Sync = 1,
+
+		/// <summary>
+		/// An asynchronous fallback delegate is configured.
+		/// </summary>
+		Async = 2
 	}
 }
