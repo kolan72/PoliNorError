@@ -22,13 +22,14 @@ namespace PoliNorError
 		{
 			if (fallbackFunc == null)
 			{
-				throw new ArgumentNullException(nameof(fallbackFunc));
+				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
 			}
 
-			var provider = new FallbackBehavior<T>();
-			provider.Fallback = (convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc();
-			provider.HasFallback = true;
-			return provider;
+			return new FallbackBehavior<T>
+			{
+				Fallback = (convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc(),
+				ExecutionMode = FallbackExecutionMode.Sync
+			};
 		}
 
 		/// <summary>
@@ -40,13 +41,13 @@ namespace PoliNorError
 		{
 			if (fallbackFunc == null)
 			{
-				throw new ArgumentNullException(nameof(fallbackFunc));
+				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
 			}
 
 			return new FallbackBehavior<T>
 			{
 				Fallback = fallbackFunc,
-				HasFallback = true
+				ExecutionMode = FallbackExecutionMode.Sync
 			};
 		}
 
@@ -60,13 +61,13 @@ namespace PoliNorError
 		{
 			if (fallbackAsync == null)
 			{
-				throw new ArgumentNullException(nameof(fallbackAsync));
+				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
 			}
 
 			return new FallbackBehavior<T>
 			{
 				AsyncFallback = (convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc(true) : fallbackAsync.ToCancelableFunc(),
-				HasAsyncFallback = true
+				ExecutionMode = FallbackExecutionMode.Async
 			};
 		}
 
@@ -79,13 +80,13 @@ namespace PoliNorError
 		{
 			if (fallbackAsync == null)
 			{
-				throw new ArgumentNullException(nameof(fallbackAsync));
+				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
 			}
 
 			return new FallbackBehavior<T>
 			{
 				AsyncFallback = fallbackAsync,
-				HasAsyncFallback = true
+				ExecutionMode = FallbackExecutionMode.Async
 			};
 		}
 
@@ -99,15 +100,7 @@ namespace PoliNorError
 		/// </summary>
 		public Func<CancellationToken, Task<T>> AsyncFallback { get; private set; }
 
-		/// <summary>
-		/// Gets a value indicating whether this instance has a synchronous fallback delegate.
-		/// </summary>
-		public bool HasFallback { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether this instance has an asynchronous fallback delegate.
-		/// </summary>
-		public bool HasAsyncFallback { get; private set; }
+		public FallbackExecutionMode ExecutionMode { get; private set; }
 	}
 
 	/// <summary>
