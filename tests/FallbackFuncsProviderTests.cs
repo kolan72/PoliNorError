@@ -256,6 +256,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_FallbackBehavior_Has_ExecutionMode_None_When_Created_By_Null()
+		{
+			var provider1 = FallbackBehavior<int>.Create((Func<int>)null, CancellationType.Cancelable);
+			var provider2 = FallbackBehavior<int>.Create((Func<CancellationToken, int>)null);
+			var provider3 = FallbackBehavior<int>.Create((Func<Task<int>>)null, CancellationType.Cancelable);
+			var provider4 = FallbackBehavior<int>.Create((Func<CancellationToken, Task<int>>)null);
+
+			Assert.That(provider1.ExecutionMode, Is.EqualTo(FallbackExecutionMode.None));
+			Assert.That(provider2.ExecutionMode, Is.EqualTo(FallbackExecutionMode.None));
+			Assert.That(provider3.ExecutionMode, Is.EqualTo(FallbackExecutionMode.None));
+			Assert.That(provider4.ExecutionMode, Is.EqualTo(FallbackExecutionMode.None));
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_AddOrReplaceFallbackFunc_Work(bool funcWithToken)
