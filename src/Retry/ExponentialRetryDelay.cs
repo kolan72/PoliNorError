@@ -74,7 +74,7 @@ namespace PoliNorError
 			}
 			else
 			{
-				_adaptedMaxDelayMs = delayOptions.GetAdaptedMaxDelayMs();
+				_adaptedMaxDelayMs = MaxDelayHelper.GetAdaptedMaxDelayMs(delayOptions.MaxDelay);
 			}
 		}
 
