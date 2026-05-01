@@ -91,6 +91,36 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Creates a new instance of <see cref="FallbackBehavior{T}"/> from both synchronous and asynchronous
+		/// cancelable fallback delegates.
+		/// </summary>
+		/// <param name="fallbackFunc">A synchronous cancelable fallback delegate.</param>
+		/// <param name="fallbackAsync">An asynchronous cancelable fallback delegate.</param>
+		/// <returns>
+		/// A <see cref="FallbackBehavior{T}"/> configured with the provided delegates and corresponding
+		/// <see cref="ExecutionMode"/>.
+		/// </returns>
+		public static FallbackBehavior<T> Create(Func<CancellationToken, T> fallbackFunc, Func<CancellationToken, Task<T>> fallbackAsync)
+		{
+			FallbackExecutionMode executionMode = FallbackExecutionMode.None;
+			if (fallbackFunc != null)
+			{
+				executionMode |= FallbackExecutionMode.Sync;
+			}
+			if (fallbackAsync != null)
+			{
+				executionMode |= FallbackExecutionMode.Async;
+			}
+
+			return new FallbackBehavior<T>
+			{
+				Fallback = fallbackFunc,
+				AsyncFallback = fallbackAsync,
+				ExecutionMode = executionMode
+			};
+		}
+
+		/// <summary>
 		/// Gets the synchronous fallback delegate.
 		/// </summary>
 		public Func<CancellationToken, T> Fallback { get; private set; }

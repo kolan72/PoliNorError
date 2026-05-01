@@ -270,6 +270,53 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_CreateFallbackBehaviorWithSyncAndAsyncDelegates_SetExecutionModeNone_WhenBothDelegatesAreNull()
+		{
+			var behavior = FallbackBehavior<int>.Create(null, null);
+
+			Assert.That(behavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.None));
+			Assert.That(behavior.Fallback, Is.Null);
+			Assert.That(behavior.AsyncFallback, Is.Null);
+		}
+
+		[Test]
+		public void Should_CreateFallbackBehaviorWithSyncAndAsyncDelegates_SetExecutionModeSync_WhenOnlySyncDelegateProvided()
+		{
+			Func<CancellationToken, int> fallbackFunc = _ => 7;
+
+			var behavior = FallbackBehavior<int>.Create(fallbackFunc, null);
+
+			Assert.That(behavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.Sync));
+			Assert.That(behavior.Fallback, Is.SameAs(fallbackFunc));
+			Assert.That(behavior.AsyncFallback, Is.Null);
+		}
+
+		[Test]
+		public void Should_CreateFallbackBehaviorWithSyncAndAsyncDelegates_SetExecutionModeAsync_WhenOnlyAsyncDelegateProvided()
+		{
+			Func<CancellationToken, Task<int>> fallbackAsync = _ => Task.FromResult(8);
+
+			var behavior = FallbackBehavior<int>.Create(null, fallbackAsync);
+
+			Assert.That(behavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.Async));
+			Assert.That(behavior.Fallback, Is.Null);
+			Assert.That(behavior.AsyncFallback, Is.SameAs(fallbackAsync));
+		}
+
+		[Test]
+		public void Should_CreateFallbackBehaviorWithSyncAndAsyncDelegates_SetExecutionModeSyncAndAsync_WhenBothDelegatesProvided()
+		{
+			Func<CancellationToken, int> fallbackFunc = _ => 9;
+			Func<CancellationToken, Task<int>> fallbackAsync = _ => Task.FromResult(10);
+
+			var behavior = FallbackBehavior<int>.Create(fallbackFunc, fallbackAsync);
+
+			Assert.That(behavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.Sync | FallbackExecutionMode.Async));
+			Assert.That(behavior.Fallback, Is.SameAs(fallbackFunc));
+			Assert.That(behavior.AsyncFallback, Is.SameAs(fallbackAsync));
+		}
+
+		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_AddOrReplaceFallbackFunc_Work(bool funcWithToken)
