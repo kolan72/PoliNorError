@@ -314,9 +314,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					await SaveErrorAsync(result, ex, retryContext, configureAwait, token).ConfigureAwait(configureAwait);
-
-					if (await HandleErrorAsync(ex, result, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
+					if(await HandleExceptionAsync(ex,result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -365,9 +363,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					await SaveErrorAsync(result, ex, retryContext, configureAwait, token).ConfigureAwait(configureAwait);
-
-					if (await HandleErrorAsync(ex, result, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -417,8 +413,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					await SaveErrorAsync(result, ex, retryContext, configureAwait, token).ConfigureAwait(configureAwait);
-					if (await HandleErrorAsync(ex, result, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -467,8 +462,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					await SaveErrorAsync(result, ex, retryContext, configureAwait, token).ConfigureAwait(configureAwait);
-					if (await HandleErrorAsync(ex, result, retryDelay, handler, retryContext, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -552,18 +546,38 @@ namespace PoliNorError
 			DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, token);
 		}
 
-		private async Task<bool> HandleErrorAsync(Exception ex,
+		private async Task<bool> HandleExceptionAsync(
+							Exception ex,
 							PolicyResult result,
+							ErrorContext<RetryContext> errorContext,
 							RetryDelay retryDelay,
 							PolicyProcessorCatchBlockAsyncHandler<RetryContext> handler,
-							RetryErrorContext retryContext,
 							bool configureAwait,
 							CancellationToken token)
 		{
-			return !result.IsFailed
-						&& !result.WasResultSetToFailureByCatchBlock(await handler
-																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait))
-						&& !await DelayProvider.DelayAndCheckIfResultFailedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+			await SaveErrorAsync(result, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
+
+			if (result.IsFailed)
+				return false;
+
+			await HandleErrorAsync(ex, result, retryDelay, handler, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
+			return !result.IsFailed;
+		}
+
+		private async Task HandleErrorAsync(Exception ex,
+							PolicyResult result,
+							RetryDelay retryDelay,
+							PolicyProcessorCatchBlockAsyncHandler<RetryContext> handler,
+							ErrorContext<RetryContext> retryContext,
+							bool configureAwait,
+							CancellationToken token)
+		{
+			result.WasResultSetToFailureByCatchBlock(await handler
+																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
+			if (result.IsFailed)
+				return;
+
+			await DelayProvider.DelayAndCheckIfResultFailedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
