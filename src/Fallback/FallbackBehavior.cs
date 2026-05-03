@@ -130,7 +130,32 @@ namespace PoliNorError
 		/// </summary>
 		public Func<CancellationToken, Task<T>> AsyncFallback { get; private set; }
 
+		/// <summary>
+		/// Gets the execution mode(s) of the fallback behavior.
+		/// </summary>
+		/// <value>
+		/// A bitwise combination of <see cref="FallbackExecutionMode"/> values indicating
+		/// which fallback delegates are configured.
+		/// </value>
 		public FallbackExecutionMode ExecutionMode { get; private set; }
+
+		/// <summary>
+		/// Converts this <see cref="FallbackBehavior{T}"/> instance to a <see cref="FallbackPolicy"/>.
+		/// </summary>
+		/// <returns>A <see cref="FallbackPolicy"/> configured with the delegates from this behavior.</returns>
+		public FallbackPolicy ToFallbackPolicy()
+		{
+			var funcProvider = FallbackFuncsProvider.Create();
+			if (Fallback != null)
+			{
+				funcProvider.AddOrReplaceFallbackFunc(Fallback);
+			}
+			if (AsyncFallback != null)
+			{
+				funcProvider.AddOrReplaceAsyncFallbackFunc(AsyncFallback);
+			}
+			return funcProvider.ToFallbackPolicy();
+		}
 	}
 
 	/// <summary>

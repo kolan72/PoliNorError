@@ -450,6 +450,228 @@ namespace PoliNorError.Tests
 			Assert.That(resAllLines.Result.IsEmpty, Is.True);
 		}
 
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_SyncFallback_Is_Set()
+		{
+			const string expectedValue = "fallback value";
+			var behavior = FallbackBehavior<string>.Create(() => expectedValue);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<string>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_CancellationToken_SyncFallback_Is_Set()
+		{
+			const string expectedValue = "fallback value";
+			var behavior = FallbackBehavior<string>.Create((_) => expectedValue);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<string>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_ToFallbackPolicy_Return_FallbackPolicy_When_AsyncFallback_Is_Set()
+		{
+			const string expectedValue = "async fallback value";
+			var behavior = FallbackBehavior<string>.Create(() => Task.FromResult(expectedValue));
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = await policy.HandleAsync<string>((_) => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_ToFallbackPolicy_Return_FallbackPolicy_When_CancellationToken_AsyncFallback_Is_Set()
+		{
+			const string expectedValue = "async fallback value";
+			var behavior = FallbackBehavior<string>.Create((_) => Task.FromResult(expectedValue));
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = await policy.HandleAsync<string>((_) => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_Both_Sync_And_Async_Fallbacks_Are_Set()
+		{
+			const string syncValue = "sync fallback value";
+			const string asyncValue = "async fallback value";
+			var behavior = FallbackBehavior<string>.Create(
+				(_) => syncValue,
+				(_) => Task.FromResult(asyncValue)
+			);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<string>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(syncValue));
+		}
+
+		[Test]
+		public async Task Should_ToFallbackPolicy_Return_FallbackPolicy_When_Both_Sync_And_Async_Async_Fallbacks_Are_Set()
+		{
+			const string syncValue = "sync fallback value";
+			const string asyncValue = "async fallback value";
+			var behavior = FallbackBehavior<string>.Create(
+				(_) => syncValue,
+				async (_) => await Task.FromResult(asyncValue)
+			);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = await policy.HandleAsync<string>((_) => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(asyncValue));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_No_Fallback_Is_Set()
+		{
+			var behavior = FallbackBehavior<string>.Create((Func<string>)null);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_Only_AsyncFallback_Is_Null()
+		{
+			var behavior = FallbackBehavior<string>.Create(
+				(_) => "sync value",
+				null
+			);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<string>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo("sync value"));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_Only_SyncFallback_Is_Null()
+		{
+			var behavior = FallbackBehavior<string>.Create(
+				null,
+				(CancellationToken _) => Task.FromResult("async value")
+			);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<string>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo("async value"));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Work_With_Generic_Type()
+		{
+			var expectedValue = new CustomFallbackType { Id = 1, Name = "test" };
+			var behavior = FallbackBehavior<CustomFallbackType>.Create(() => expectedValue);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<CustomFallbackType>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result.Id, Is.EqualTo(expectedValue.Id));
+			Assert.That(result.Result.Name, Is.EqualTo(expectedValue.Name));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_SyncFallback_Returns_Default()
+		{
+			var behavior = FallbackBehavior<int>.Create(() => default(int), CancellationType.Precancelable);
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<int>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Return_FallbackPolicy_When_AsyncFallback_Returns_Default()
+		{
+			var behavior = FallbackBehavior<int>.Create((_) => Task.FromResult<int>(default));
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<int>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Handle_CancellationToken_SyncFallback()
+		{
+			var behavior = FallbackBehavior<int>.Create((ct) => ct.IsCancellationRequested ? -1 : 42);
+			var policy = behavior.ToFallbackPolicy();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var result = policy.Handle<int>(() => throw new Exception("test"), cts.Token);
+				Assert.That(result.IsFailed, Is.False);
+				Assert.That(result.Errors, Is.Not.Null);
+				Assert.That(result.Result, Is.EqualTo(42));
+			}
+		}
+
+		[Test]
+		public async Task Should_ToFallbackPolicy_HandleAsync_CancellationToken_AsyncFallback()
+		{
+			var behavior = FallbackBehavior<int>.Create((ct) => ct.IsCancellationRequested ? Task.FromResult(-1) : Task.FromResult(42));
+			var policy = behavior.ToFallbackPolicy();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var result = await policy.HandleAsync<int>((_) => throw new Exception("test"), cts.Token);
+
+				Assert.That(result.IsFailed, Is.False);
+				Assert.That(result.Errors, Is.Not.Null);
+				Assert.That(result.Result, Is.EqualTo(42));
+			}
+		}
+
+		[Test]
+		public void Should_ToFallbackPolicy_Work_With_AsyncFallback_And_CancellationToken()
+		{
+			const string expectedValue = "async with ct value";
+			var behavior = FallbackBehavior<string>.Create((_) => Task.FromResult(expectedValue));
+			var policy = behavior.ToFallbackPolicy();
+
+			var result = policy.Handle<string>(() => throw new Exception("test"));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Errors, Is.Not.Null);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,
@@ -481,6 +703,12 @@ namespace PoliNorError.Tests
 			{
 				SetAsyncFallbackFunc(func, convertType);
 			}
+		}
+
+		private class CustomFallbackType
+		{
+			public int Id { get; set; }
+			public string Name { get; set; }
 		}
 	}
 }
