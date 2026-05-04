@@ -116,6 +116,7 @@
     <Compile Include="FallbackFuncExtensionsTests.cs" />
     <Compile Include="ICanAddErrorFilterTests.cs" />
     <Compile Include="PipelineDelegateHolderWithIntermediateTests.cs" />
+    <Compile Include="PipelineFuncBuilderTests.cs" />
     <Compile Include="PipelineFuncExtensionsTests.cs" />
     <Compile Include="PolicyDelegateCollectionResultTests.cs" />
     <Compile Include="PipelineDelegateHolderTests.cs" />
