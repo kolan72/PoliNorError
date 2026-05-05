@@ -1543,5 +1543,39 @@ namespace PoliNorError.Tests
 				}
 			}
 		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Retry_ActionWithParam_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new DefaultRetryProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Retry(TaskWaitingDelegates.GetActionWithParamWithTaskWaitAll(cts, canceledOnLinkedSource), 4, 1, cts.Token);
+				}
+				else
+				{
+					pr = processor.Retry(TaskWaitingDelegates.GetActionWithParamWithTaskWait(cts, canceledOnLinkedSource), 4, 1, cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
 	}
 }
