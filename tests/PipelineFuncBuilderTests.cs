@@ -104,5 +104,19 @@ namespace PoliNorError.Tests
             Assert.That(receivedInfo, Is.Not.Null);
             Assert.That(receivedInfo.Param, Is.EqualTo(2));
         }
+
+        [Test]
+        public void Should_Create_PipelineFuncBuilder_When_Calling_StartWith_With_Valid_Func()
+        {
+            // Arrange
+            Func<int, string> func = input => input.ToString();
+
+            // Act
+            var result = PipelineFuncBuilder.StartWith(func);
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.InstanceOf<IPipelineWithHandlersBuilder<int, int, string>>());
+        }
     }
 }
