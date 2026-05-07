@@ -263,6 +263,53 @@ namespace PoliNorError.Tests
 			Assert.That(i, Is.EqualTo(errCanBeProcessed ? 1 : 0));
 		}
 
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public async Task Should_DefaultTypedErrorProcessor_Of_Func_With_TokenParam_Process_Only_Typed_Exception(bool errCanBeProcessed, bool isSync, bool withCancelType)
+		{
+			int i = 0;
+
+			DefaultTypedErrorProcessor<ArgumentException> processor;
+			if (withCancelType)
+			{
+				processor = new DefaultTypedErrorProcessor<ArgumentException>(async (ex, _) => { await Task.Delay(1); if (ex.ParamName == "Test") i++; }, CancellationType.Precancelable);
+			}
+			else
+			{
+				processor = new DefaultTypedErrorProcessor<ArgumentException>(async (ex, _) => { await Task.Delay(1); if (ex.ParamName == "Test") i++; });
+			}
+
+			Exception exToTest = null;
+
+			if (errCanBeProcessed)
+			{
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+				exToTest = new ArgumentException("", "Test");
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+			}
+			else
+			{
+				exToTest = new Exception("");
+			}
+
+			if (isSync)
+			{
+				processor.Process(exToTest, new ProcessingErrorInfo(PolicyAlias.NotSet));
+			}
+			else
+			{
+				await processor.ProcessAsync(exToTest, new ProcessingErrorInfo(PolicyAlias.NotSet));
+			}
+			Assert.That(i, Is.EqualTo(errCanBeProcessed ? 1 : 0));
+		}
+
 		#region DefaultErrorProcessorConstructorTests
 		[Test]
 		public void Should_DefaultErrorProcessor_Internal_Constructor_Create_Instance()

@@ -18,6 +18,16 @@ namespace PoliNorError
 			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(actionProcessor, cancellationType);
 		}
 
+		public DefaultTypedErrorProcessor(Func<TException, ProcessingErrorInfo, Task> funcProcessor)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(funcProcessor);
+		}
+
+		public DefaultTypedErrorProcessor(Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(funcProcessor, cancellationType);
+		}
+
 		public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
 			return _errorProcessor.Process(error, catchBlockProcessErrorInfo, cancellationToken);
@@ -46,6 +56,24 @@ namespace PoliNorError
 
 			var res = new DefaultTypedErrorProcessorT<TException>();
 			res.SetSyncRunner(action, cancellationType);
+			return res;
+		}
+
+		public static DefaultTypedErrorProcessorT<TException> Create(Func<TException, ProcessingErrorInfo, Task> funcProcessor)
+		{
+			var func = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetAsyncRunner(func);
+			return res;
+		}
+
+		public static DefaultTypedErrorProcessorT<TException> Create(Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType)
+		{
+			var func = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetAsyncRunner(func, cancellationType);
 			return res;
 		}
 
