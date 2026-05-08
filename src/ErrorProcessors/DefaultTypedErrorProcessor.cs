@@ -28,6 +28,11 @@ namespace PoliNorError
 			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(funcProcessor, cancellationType);
 		}
 
+		public DefaultTypedErrorProcessor(Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(funcProcessor);
+		}
+
 		public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
 		{
 			return _errorProcessor.Process(error, catchBlockProcessErrorInfo, cancellationToken);
@@ -74,6 +79,15 @@ namespace PoliNorError
 
 			var res = new DefaultTypedErrorProcessorT<TException>();
 			res.SetAsyncRunner(func, cancellationType);
+			return res;
+		}
+
+		public static DefaultTypedErrorProcessorT<TException> Create(Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor)
+		{
+			var func = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetAsyncRunner(func);
 			return res;
 		}
 

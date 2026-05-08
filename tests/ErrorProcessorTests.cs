@@ -310,6 +310,40 @@ namespace PoliNorError.Tests
 			Assert.That(i, Is.EqualTo(errCanBeProcessed ? 1 : 0));
 		}
 
+		[TestCase(true, true)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(false, false)]
+		public async Task Should_DefaultTypedErrorProcessor_Of_Func_With_CancelToken_Process_Only_Typed_Exception(bool errCanBeProcessed, bool isSync)
+		{
+			int i = 0;
+
+			var processor = new DefaultTypedErrorProcessor<ArgumentException>(async (ex, _,  __) => { await Task.Delay(1); if (ex.ParamName == "Test") i++; });
+
+			Exception exToTest = null;
+
+			if (errCanBeProcessed)
+			{
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+				exToTest = new ArgumentException("", "Test");
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+			}
+			else
+			{
+				exToTest = new Exception("");
+			}
+
+			if (isSync)
+			{
+				processor.Process(exToTest, new ProcessingErrorInfo(PolicyAlias.NotSet));
+			}
+			else
+			{
+				await processor.ProcessAsync(exToTest, new ProcessingErrorInfo(PolicyAlias.NotSet));
+			}
+			Assert.That(i, Is.EqualTo(errCanBeProcessed ? 1 : 0));
+		}
+
 		#region DefaultErrorProcessorConstructorTests
 		[Test]
 		public void Should_DefaultErrorProcessor_Internal_Constructor_Create_Instance()
