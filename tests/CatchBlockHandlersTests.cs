@@ -73,7 +73,7 @@ namespace PoliNorError.Tests
 																 bulkProcessor,
 																 default,
 																 filter.GetCanHandle(),
-																 (exCtx) => exCtx.Context.CurrentRetryCount < 2
+																 (exCtx, _) => exCtx.Context.CurrentRetryCount < 2
 																 );
 				ClassicAssert.AreEqual(result, handler.Handle(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
 			}
@@ -84,7 +84,7 @@ namespace PoliNorError.Tests
 															 false,
 															 default,
 															 filter.GetCanHandle(),
-															 (exCtx) => exCtx.Context.CurrentRetryCount < 2
+															 (exCtx, _) => exCtx.Context.CurrentRetryCount < 2
 															 );
 				ClassicAssert.AreEqual(result, await handler.HandleAsync(new Exception(), new RetryErrorContext(new RetryContext(retryCount))));
 			}

@@ -79,7 +79,7 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token.</param>
 		/// <param name="policyRuleFunc">Optional policy rule function to determine if the exception should be handled.</param>
 		/// <returns>A new instance of PolicyProcessorCatchBlockSyncHandler.</returns>
-		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null)
 		{
 			return new PolicyProcessorCatchBlockSyncHandler<T>(policyResult,
 																_bulkErrorProcessor,
@@ -88,7 +88,7 @@ namespace PoliNorError
 																policyRuleFunc);
 		}
 
-		internal PolicyProcessorCatchBlockAsyncHandler<T> GetCatchBlockAsyncHandler<T>(PolicyResult policyResult, bool configAwait, CancellationToken token, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+		internal PolicyProcessorCatchBlockAsyncHandler<T> GetCatchBlockAsyncHandler<T>(PolicyResult policyResult, bool configAwait, CancellationToken token, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null)
 		{
 			return new PolicyProcessorCatchBlockAsyncHandler<T>(policyResult,
 																_bulkErrorProcessor,

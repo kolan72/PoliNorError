@@ -8,7 +8,7 @@ namespace PoliNorError
 	{
 		private readonly bool _configAwait;
 
-		public PolicyProcessorCatchBlockAsyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, bool configAwait, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+		public PolicyProcessorCatchBlockAsyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, bool configAwait, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null)
 				: base(policyResult, bulkErrorProcessor, cancellationToken, errorFilterFunc, policyRuleFunc)
 		{
 			_configAwait = configAwait;
