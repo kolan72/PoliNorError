@@ -66,7 +66,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
+			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -92,7 +92,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -119,7 +119,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
+			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -146,7 +146,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -178,7 +178,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
+			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -205,7 +205,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -237,7 +237,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockSyncHandler(result, token, _policyRuleFunc.Apply(retryCountInfo));
+			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 			do
@@ -264,7 +264,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, retryDelay, handler, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -517,33 +517,28 @@ namespace PoliNorError
 
 		private bool HandleException(
 			Exception ex,
-			PolicyResult result,
+			PolicyResult policyResult,
 			ErrorContext<RetryContext> errorContext,
+			Func<ErrorContext<RetryContext>, CancellationToken, bool> policyRuleFunc,
 			RetryDelay retryDelay,
-			PolicyProcessorCatchBlockSyncHandler<RetryContext> handler,
 			CancellationToken token)
 		{
-			SaveError(result, ex, errorContext, token);
+			HandleException(
+				ex,
+				policyResult,
+				errorContext,
+				SaveError,
+				policyRuleFunc,
+				ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.EvaluateThenProcess,
+				ErrorProcessingCancellationEffect.Propagate,
+				token);
 
-			if (result.IsFailed)
+			if (policyResult.IsFailed)
 				return false;
 
-			HandleError(ex, result, retryDelay, handler, errorContext, token);
-			return !result.IsFailed;
-		}
-
-		private void HandleError(Exception ex,
-							PolicyResult result,
-							RetryDelay retryDelay,
-							PolicyProcessorCatchBlockSyncHandler<RetryContext> handler,
-							ErrorContext<RetryContext> retryContext,
-							CancellationToken token)
-		{
-			result.WasResultSetToFailureByCatchBlock(handler.Handle(ex, retryContext));
-			if (result.IsFailed)
-				return;
-
-			DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, token);
+			DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(errorContext.Context.CurrentRetryCount), policyResult, ex, token);
+			return !policyResult.IsFailed;
 		}
 
 		private async Task<bool> HandleExceptionAsync(
