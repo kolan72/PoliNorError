@@ -88,6 +88,10 @@ namespace PoliNorError
 		private readonly Dictionary<(Type ParamType, Type ReturnType), IFallbackParamGenericFuncHolder> _paramAsyncGenericFuncsHolder
 			= new Dictionary<(Type, Type), IFallbackParamGenericFuncHolder>();
 
+		// Keyed by TParam — stores Action<TParam, CancellationToken> delegates.
+		private readonly Dictionary<Type, IFallbackParamFuncHolder> _paramFallbackActionHolder
+			= new Dictionary<Type, IFallbackParamFuncHolder>();
+
 		private readonly Dictionary<Type, IFallbackGenericFuncHolder> _syncGenericFuncsHolder = new Dictionary<Type, IFallbackGenericFuncHolder>();
 		private readonly Dictionary<Type, IFallbackGenericFuncHolder> _asyncGenericFuncsHolder = new Dictionary<Type, IFallbackGenericFuncHolder>();
 
@@ -153,9 +157,36 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Adds or replaces a parameterized fallback action that accepts both the parameter and a
+		/// <see cref="CancellationToken"/> to the internal fallback delegate store.
+		/// </summary>
+		/// <typeparam name="TParam">The type of the parameter passed to the fallback action.</typeparam>
+		/// <param name="fallbackAction">A fallback action to store.</param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction)
+		{
+			SetFallbackAction(fallbackAction);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds or replaces a parameterized fallback action to the internal fallback delegate store,
+		/// pre-converting <paramref name="fallbackAction"/> to an <see cref="Action{TParam, CancellationToken}"/>
+		/// according to <paramref name="convertType"/>.
+		/// </summary>
+		/// <typeparam name="TParam">The type of the parameter passed to the fallback action.</typeparam>
+		/// <param name="fallbackAction">A fallback action to store.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceFallbackAction<TParam>(Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetFallbackAction(fallbackAction, convertType);
+			return this;
+		}
+
+		/// <summary>
 		/// Adds or replaces a generic async fallback delegate to the internal fallback delegate store, pre-converting it to the Func&lt;CancellationToken, &lt;Task&lt;T&gt;&gt; delegate.
 		/// </summary>
-		/// <typeparam name="T">A return type of fallback delegate.</typeparam>
 		/// <param name="fallbackAsync">A fallback delegate to store.</param>
 		/// <param name="convertType"><see cref="CancellationType"/></param>
 		/// <returns></returns>
@@ -256,6 +287,16 @@ namespace PoliNorError
 			_paramSyncGenericFuncsHolder[(typeof(TParam), typeof(T))] = new SyncFallbackParamGenericFuncHolder<TParam, T>(fallbackFunc);
 		}
 
+		internal void SetFallbackAction<TParam>(Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetFallbackAction((convertType == CancellationType.Precancelable) ? fallbackAction.ToPrecancelableAction() : fallbackAction.ToCancelableAction());
+		}
+
+		internal void SetFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction)
+		{
+			_paramFallbackActionHolder[typeof(TParam)] = new SyncFallbackParamActionHolder<TParam>(fallbackAction);
+		}
+
 		internal void SetAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			SetAsyncFallbackFunc((convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc(true) : fallbackAsync.ToCancelableFunc());
@@ -274,27 +315,6 @@ namespace PoliNorError
 		internal void SetAsyncFallbackFunc<TParam, T>(Func<TParam, CancellationToken, Task<T>> fallbackAsync)
 		{
 			_paramAsyncGenericFuncsHolder[(typeof(TParam), typeof(T))] = new AsyncFallbackParamGenericFuncHolder<TParam, T>(fallbackAsync);
-		}
-
-		internal Action<CancellationToken> GetFallbackAction()
-		{
-			Action<CancellationToken> curFallback = null;
-			if (Fallback == null)
-			{
-				if (HasAsyncFallbackFunc())
-				{
-					curFallback = FallbackAsync.ToSyncFunc();
-				}
-				else
-				{
-					curFallback = DefaultFallbackAction;
-				}
-			}
-			else
-			{
-				curFallback = Fallback;
-			}
-			return curFallback;
 		}
 
 		internal Func<CancellationToken, T> GetFallbackFunc<T>()
@@ -340,6 +360,41 @@ namespace PoliNorError
 				return ((SyncFallbackParamGenericFuncHolder<TParam, T>)holder).Fun.Apply(param);
 
 			return GetFallbackFunc<T>();
+		}
+
+		/// <summary>
+		/// Retrieves the stored <see cref="Action{TParam, CancellationToken}"/> fallback action with
+		/// <paramref name="param"/> applied, returning an <see cref="Action{CancellationToken}"/> ready
+		/// for execution. Falls back to the non-parameterized path when no parameterized action is
+		/// registered for <typeparamref name="TParam"/>.
+		/// </summary>
+		internal Action<CancellationToken> GetFallbackAction<TParam>(TParam param)
+		{
+			if (_paramFallbackActionHolder.TryGetValue(typeof(TParam), out var holder))
+				return ((SyncFallbackParamActionHolder<TParam>)holder).Action.Apply(param);
+
+			return GetFallbackAction();
+		}
+
+		internal Action<CancellationToken> GetFallbackAction()
+		{
+			Action<CancellationToken> curFallback = null;
+			if (Fallback == null)
+			{
+				if (HasAsyncFallbackFunc())
+				{
+					curFallback = FallbackAsync.ToSyncFunc();
+				}
+				else
+				{
+					curFallback = DefaultFallbackAction;
+				}
+			}
+			else
+			{
+				curFallback = Fallback;
+			}
+			return curFallback;
 		}
 
 		/// <summary>
@@ -412,6 +467,8 @@ namespace PoliNorError
 		internal bool HasFallbackFunc<T>() => _syncGenericFuncsHolder.ContainsKey(typeof(T));
 
 		internal bool HasParamFallbackFunc<TParam, T>() => _paramSyncGenericFuncsHolder.ContainsKey((typeof(TParam), typeof(T)));
+
+		internal bool HasParamFallbackAction<TParam>() => _paramFallbackActionHolder.ContainsKey(typeof(TParam));
 
 		internal bool HasAsyncParamFallbackFunc<TParam, T>() => _paramAsyncGenericFuncsHolder.ContainsKey((typeof(TParam), typeof(T)));
 
