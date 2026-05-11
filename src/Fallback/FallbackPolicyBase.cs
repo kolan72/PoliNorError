@@ -113,7 +113,7 @@ namespace PoliNorError
 			{
 				ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor processor);
 
-				Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
+				Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<TParam, T>(param);
 
 				var result = processor.Fallback(func, param, fallBackFunc, token)
 								  .SetPolicyName(PolicyName);
