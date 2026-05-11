@@ -926,6 +926,178 @@ namespace PoliNorError.Tests
 			Assert.That(func(CancellationToken.None), Is.EqualTo(5));
 		}
 
+		// -------------------------------------------------------------------------
+		// Tests for async TParam, T members
+		// -------------------------------------------------------------------------
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithCancelableParam_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithCancelableParam_ReturnSelf_ForChaining()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			var returned = provider.AddOrReplaceAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+
+			Assert.That(returned, Is.SameAs(provider));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithCancelableParam_Replace_ExistingEntry()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((_, __) => Task.FromResult(1));
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((_, __) => Task.FromResult(99));
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithNonCancelableParam_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((param) => Task.FromResult(param.Length));
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		[TestCase(CancellationType.Precancelable)]
+		[TestCase(CancellationType.Cancelable)]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithNonCancelableParam_ReturnSelf_ForChaining(CancellationType convertType)
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			var returned = provider.AddOrReplaceAsyncFallbackFunc<string, int>((param) => Task.FromResult(param.Length), convertType);
+
+			Assert.That(returned, Is.SameAs(provider));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_DifferentTParam_SameT_RegisterSeparateEntries()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+			provider.AddOrReplaceAsyncFallbackFunc<int, int>((param, _) => Task.FromResult(param * 2));
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+			Assert.That(provider.HasAsyncParamFallbackFunc<int, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_SameTParam_DifferentT_RegisterSeparateEntries()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+			provider.AddOrReplaceAsyncFallbackFunc<string, bool>((param, _) => Task.FromResult(param.Length > 0));
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, bool>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithCancelableParam_DoesNotAffect_NonParamAsyncEntry()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceAsyncFallbackFunc(async (_) => { await Task.Delay(1); return 42; });
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+
+			Assert.That(provider.HasAsyncFallbackFunc<int>(), Is.True);
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetAsyncFallbackFunc_WithCancelableParam_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetAsyncFallbackFunc_WithCancelableParam_Replace_ExistingEntry()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string, int>((_, __) => Task.FromResult(1));
+
+			provider.SetAsyncFallbackFunc<string, int>((_, __) => Task.FromResult(77));
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetAsyncFallbackFunc_WithNonCancelableParam_Precancelable_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetAsyncFallbackFunc<string, int>((param) => Task.FromResult(param.Length), CancellationType.Precancelable);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetAsyncFallbackFunc_WithNonCancelableParam_Cancelable_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetAsyncFallbackFunc<string, int>((param) => Task.FromResult(param.Length), CancellationType.Cancelable);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_HasAsyncParamFallbackFunc_ReturnFalse_WhenNotRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.False);
+		}
+
+		[Test]
+		public void Should_HasAsyncParamFallbackFunc_ReturnFalse_ForDifferentTParam_SameT()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+
+			// Registered for (string, int) but not (int, int).
+			Assert.That(provider.HasAsyncParamFallbackFunc<int, int>(), Is.False);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithNonCancelableParam_Precancelable_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((param) => Task.FromResult(param.Length), CancellationType.Precancelable);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_WithNonCancelableParam_Cancelable_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string, int>((param) => Task.FromResult(param.Length), CancellationType.Cancelable);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,

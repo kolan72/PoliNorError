@@ -44,6 +44,17 @@ namespace PoliNorError
 	}
 
 	/// <summary>
+	/// Holds an async delegate.
+	/// Stored in the <c>_paramAsyncGenericFuncsHolder</c> dictionary keyed by
+	/// <c>(typeof(TParam), typeof(T))</c>.
+	/// </summary>
+	internal class AsyncFallbackParamGenericFuncHolder<TParam, T> : IFallbackParamGenericFuncHolder
+	{
+		public AsyncFallbackParamGenericFuncHolder(Func<TParam, CancellationToken, Task<T>> asyncFun) => AsyncFun = asyncFun;
+		public Func<TParam, CancellationToken, Task<T>> AsyncFun { get; }
+	}
+
+	/// <summary>
 	/// Holds the non-generic <see cref="Action{CancellationToken}"/> fallback delegate,
 	/// stored under the <see cref="VoidType"/> key in <c>_syncGenericFuncsHolder</c>.
 	/// </summary>
