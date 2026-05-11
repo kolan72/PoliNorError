@@ -241,7 +241,7 @@ namespace PoliNorError
 			{
 				ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor processor);
 
-				Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
+				Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<TParam, T>(param, configureAwait);
 
 				var result = (await processor.FallbackAsync(func, param, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait))
 								  .SetPolicyName(PolicyName);

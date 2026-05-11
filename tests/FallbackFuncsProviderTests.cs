@@ -1098,6 +1098,69 @@ namespace PoliNorError.Tests
 			Assert.That(provider.HasAsyncParamFallbackFunc<string, int>(), Is.True);
 		}
 
+		// -------------------------------------------------------------------------
+		// Tests for GetAsyncFallbackFunc<TParam, T>
+		// -------------------------------------------------------------------------
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_WithParam_Return_CorrectValue()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string, int>((param, _) => Task.FromResult(param.Length));
+
+			var func = provider.GetAsyncFallbackFunc<string, int>("hello", false);
+
+			Assert.That(await func(CancellationToken.None), Is.EqualTo(5));
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_WithParam_Apply_Param_AtRetrievalTime()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<int, int>((param, _) => Task.FromResult(param * 3));
+
+			var func = provider.GetAsyncFallbackFunc<int, int>(7, false);
+
+			Assert.That(await func(CancellationToken.None), Is.EqualTo(21));
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_WithParam_Respect_CancellationToken()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string, int>((param, ct) => Task.FromResult(ct.IsCancellationRequested ? -1 : param.Length));
+
+			var func = provider.GetAsyncFallbackFunc<string, int>("hello", false);
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				Assert.That(await func(cts.Token), Is.EqualTo(-1));
+			}
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_WithParam_FallBack_ToNonParamAsyncEntry_WhenNotRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<int>(async (_) => { await Task.Delay(1); return 55; });
+
+			// No parameterized entry for (string, int) — should fall back to the non-param int async entry.
+			var func = provider.GetAsyncFallbackFunc<string, int>("anything", false);
+
+			Assert.That(await func(CancellationToken.None), Is.EqualTo(55));
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_WithParam_ReturnDefault_WhenNeitherParamNorNonParamRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			var func = provider.GetAsyncFallbackFunc<string, int>("x", false);
+
+			Assert.That(await func(CancellationToken.None), Is.EqualTo(default(int)));
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,

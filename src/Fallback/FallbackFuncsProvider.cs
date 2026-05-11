@@ -342,6 +342,20 @@ namespace PoliNorError
 			return GetFallbackFunc<T>();
 		}
 
+		/// <summary>
+		/// Retrieves the stored async fallback delegate with
+		/// <paramref name="param"/> applied, returning a async delegate ready
+		/// for execution. Falls back to the non-parameterized path when no parameterized delegate is
+		/// registered for the <c>(TParam, T)</c> combination.
+		/// </summary>
+		internal Func<CancellationToken, Task<T>> GetAsyncFallbackFunc<TParam, T>(TParam param, bool configureAwait)
+		{
+			if (_paramAsyncGenericFuncsHolder.TryGetValue((typeof(TParam), typeof(T)), out var holder))
+				return ((AsyncFallbackParamGenericFuncHolder<TParam, T>)holder).AsyncFun.Apply(param);
+
+			return GetAsyncFallbackFunc<T>(configureAwait);
+		}
+
 		internal Func<CancellationToken, Task> GetAsyncFallbackFunc()
 		{
 			Func<CancellationToken, Task> curFallbackAsync = null;
