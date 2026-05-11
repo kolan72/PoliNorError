@@ -43,6 +43,12 @@ namespace PoliNorError
 		internal Action<CancellationToken> Fallback { get; set; }
 		internal Func<CancellationToken, Task> FallbackAsync { get; set; }
 
+		// Keyed by (TParam, T) — stores Func<TParam, CancellationToken, T> delegates.
+		// Separate from _syncGenericFuncsHolder so parameterized and non-parameterized
+		// registrations for the same T coexist without ambiguity.
+		private readonly Dictionary<(Type ParamType, Type ReturnType), IFallbackParamGenericFuncHolder> _paramSyncGenericFuncsHolder
+			= new Dictionary<(Type, Type), IFallbackParamGenericFuncHolder>();
+
 		private readonly Dictionary<Type, IFallbackGenericFuncHolder> _syncGenericFuncsHolder = new Dictionary<Type, IFallbackGenericFuncHolder>();
 		private readonly Dictionary<Type, IFallbackGenericFuncHolder> _asyncGenericFuncsHolder = new Dictionary<Type, IFallbackGenericFuncHolder>();
 
@@ -74,6 +80,36 @@ namespace PoliNorError
 		public FallbackFuncsProvider AddOrReplaceFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc)
 		{
 			SetFallbackFunc(fallbackFunc);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds or replaces a parameterized generic fallback delegate that accepts both the parameter and a
+		/// <see cref="CancellationToken"/> to the internal fallback delegate store.
+		/// </summary>
+		/// <typeparam name="TParam">The type of the parameter passed to the fallback delegate.</typeparam>
+		/// <typeparam name="T">The return type of the fallback delegate.</typeparam>
+		/// <param name="fallbackFunc">A fallback delegate to store.</param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceFallbackFunc<TParam, T>(Func<TParam, CancellationToken, T> fallbackFunc)
+		{
+			SetFallbackFunc(fallbackFunc);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds or replaces a parameterized generic fallback delegate to the internal fallback delegate store,
+		/// pre-converting <paramref name="fallbackFunc"/> to a <see cref="Func{TParam, CancellationToken, T}"/>
+		/// according to <paramref name="convertType"/>.
+		/// </summary>
+		/// <typeparam name="TParam">The type of the parameter passed to the fallback delegate.</typeparam>
+		/// <typeparam name="T">The return type of the fallback delegate.</typeparam>
+		/// <param name="fallbackFunc">A fallback delegate to store.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceFallbackFunc<TParam, T>(Func<TParam, T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetFallbackFunc(fallbackFunc, convertType);
 			return this;
 		}
 
@@ -141,6 +177,16 @@ namespace PoliNorError
 			_syncGenericFuncsHolder[typeof(T)] = new SyncFallbackGenericFuncHolder<T>(fallbackFunc);
 		}
 
+		internal void SetFallbackFunc<TParam, T>(Func<TParam, T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable)
+		{
+			SetFallbackFunc((convertType == CancellationType.Precancelable) ? fallbackFunc.ToPrecancelableFunc(true) : fallbackFunc.ToCancelableFunc());
+		}
+
+		internal void SetFallbackFunc<TParam, T>(Func<TParam, CancellationToken, T> fallbackFunc)
+		{
+			_paramSyncGenericFuncsHolder[(typeof(TParam), typeof(T))] = new SyncFallbackParamGenericFuncHolder<TParam, T>(fallbackFunc);
+		}
+
 		internal void SetAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			SetAsyncFallbackFunc((convertType == CancellationType.Precancelable) ? fallbackAsync.ToPrecancelableFunc(true) : fallbackAsync.ToCancelableFunc());
@@ -203,6 +249,20 @@ namespace PoliNorError
 			}
 		}
 
+		/// <summary>
+		/// Retrieves the stored <see cref="Func{TParam, CancellationToken, T}"/> fallback delegate with
+		/// <paramref name="param"/> applied, returning a <see cref="Func{CancellationToken, T}"/> ready
+		/// for execution. Falls back to the non-parameterized path when no parameterized delegate is
+		/// registered for the <c>(TParam, T)</c> combination.
+		/// </summary>
+		internal Func<CancellationToken, T> GetFallbackFunc<TParam, T>(TParam param)
+		{
+			if (_paramSyncGenericFuncsHolder.TryGetValue((typeof(TParam), typeof(T)), out var holder))
+				return ((SyncFallbackParamGenericFuncHolder<TParam, T>)holder).Fun.Apply(param);
+
+			return GetFallbackFunc<T>();
+		}
+
 		internal Func<CancellationToken, Task> GetAsyncFallbackFunc()
 		{
 			Func<CancellationToken, Task> curFallbackAsync = null;
@@ -257,6 +317,8 @@ namespace PoliNorError
 		}
 
 		internal bool HasFallbackFunc<T>() => _syncGenericFuncsHolder.ContainsKey(typeof(T));
+
+		internal bool HasParamFallbackFunc<TParam, T>() => _paramSyncGenericFuncsHolder.ContainsKey((typeof(TParam), typeof(T)));
 
 		internal bool HasFallbackAction() => Fallback != null;
 

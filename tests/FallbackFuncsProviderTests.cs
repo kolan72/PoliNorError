@@ -672,6 +672,260 @@ namespace PoliNorError.Tests
 			Assert.That(result.Result, Is.EqualTo(expectedValue));
 		}
 
+		// -------------------------------------------------------------------------
+		// Tests for TParam, T members
+		// -------------------------------------------------------------------------
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithCancelableParam_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceFallbackFunc<string, int>((param, _) => param.Length);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithCancelableParam_ReturnSelf_ForChaining()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			var returned = provider.AddOrReplaceFallbackFunc<string, int>((param, _) => param.Length);
+
+			Assert.That(returned, Is.SameAs(provider));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithCancelableParam_Replace_ExistingEntry()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceFallbackFunc<string, int>((_, __) => 1);
+
+			provider.AddOrReplaceFallbackFunc<string, int>((_, __) => 99);
+
+			var result = provider.GetFallbackFunc<string, int>("x");
+			Assert.That(result(CancellationToken.None), Is.EqualTo(99));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithNonCancelableParam_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceFallbackFunc<string, int>((param) => param.Length);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		[TestCase(CancellationType.Precancelable)]
+		[TestCase(CancellationType.Cancelable)]
+		public void Should_AddOrReplaceFallbackFunc_WithNonCancelableParam_ReturnSelf_ForChaining(CancellationType convertType)
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			var returned = provider.AddOrReplaceFallbackFunc<string, int>((param) => param.Length, convertType);
+
+			Assert.That(returned, Is.SameAs(provider));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithNonCancelableParam_Replace_ExistingEntry()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceFallbackFunc<string, int>((_) => 1);
+
+			provider.AddOrReplaceFallbackFunc<string, int>((_) => 99);
+
+			var result = provider.GetFallbackFunc<string, int>("x");
+			Assert.That(result(CancellationToken.None), Is.EqualTo(99));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_DifferentTParam_SameT_RegisterSeparateEntries()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceFallbackFunc<string, int>((param, _) => param.Length);
+			provider.AddOrReplaceFallbackFunc<int, int>((param, _) => param * 2);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.True);
+			Assert.That(provider.HasParamFallbackFunc<int, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_SameTParam_DifferentT_RegisterSeparateEntries()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceFallbackFunc<string, int>((param, _) => param.Length);
+			provider.AddOrReplaceFallbackFunc<string, bool>((param, _) => param.Length > 0);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.True);
+			Assert.That(provider.HasParamFallbackFunc<string, bool>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithCancelableParam_DoesNotAffect_NonParamEntry()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceFallbackFunc<int>(_ => 42);
+
+			_ = provider.AddOrReplaceFallbackFunc<string, int>((param, _) => param.Length);
+
+			// Non-parameterized entry for int must still be present and unchanged.
+			Assert.That(provider.HasFallbackFunc<int>(), Is.True);
+			var nonParamResult = provider.GetFallbackFunc<int>()(CancellationToken.None);
+			Assert.That(nonParamResult, Is.EqualTo(42));
+		}
+
+		[Test]
+		public void Should_SetFallbackFunc_WithCancelableParam_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetFallbackFunc<string, int>((param, _) => param.Length);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetFallbackFunc_WithCancelableParam_Replace_ExistingEntry()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetFallbackFunc<string, int>((_, __) => 1);
+
+			provider.SetFallbackFunc<string, int>((_, __) => 77);
+
+			var result = provider.GetFallbackFunc<string, int>("hello");
+			Assert.That(result(CancellationToken.None), Is.EqualTo(77));
+		}
+
+		[Test]
+		public void Should_SetFallbackFunc_WithNonCancelableParam_Precancelable_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetFallbackFunc<string, int>((param) => param.Length, CancellationType.Precancelable);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetFallbackFunc_WithNonCancelableParam_Cancelable_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetFallbackFunc<string, int>((param) => param.Length, CancellationType.Cancelable);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_GetFallbackFunc_WithParam_Return_CorrectValue()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetFallbackFunc<string, int>((param, _) => param.Length);
+
+			var func = provider.GetFallbackFunc<string, int>("hello");
+
+			Assert.That(func(CancellationToken.None), Is.EqualTo(5));
+		}
+
+		[Test]
+		public void Should_GetFallbackFunc_WithParam_Apply_Param_AtRetrievalTime()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetFallbackFunc<int, int>((param, _) => param * 3);
+
+			var func = provider.GetFallbackFunc<int, int>(7);
+
+			Assert.That(func(CancellationToken.None), Is.EqualTo(21));
+		}
+
+		[Test]
+		public void Should_GetFallbackFunc_WithParam_Respect_CancellationToken()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetFallbackFunc<string, int>((param, ct) => ct.IsCancellationRequested ? -1 : param.Length);
+
+			var func = provider.GetFallbackFunc<string, int>("hello");
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				Assert.That(func(cts.Token), Is.EqualTo(-1));
+			}
+		}
+
+		[Test]
+		public void Should_GetFallbackFunc_WithParam_FallBack_ToNonParamEntry_WhenNotRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetFallbackFunc<int>(_ => 55);
+
+			// No parameterized entry for (string, int) — should fall back to the non-param int entry.
+			var func = provider.GetFallbackFunc<string, int>("anything");
+
+			Assert.That(func(CancellationToken.None), Is.EqualTo(55));
+		}
+
+		[Test]
+		public void Should_GetFallbackFunc_WithParam_ReturnDefault_WhenNeitherParamNorNonParamRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			var func = provider.GetFallbackFunc<string, int>("x");
+
+			Assert.That(func(CancellationToken.None), Is.EqualTo(default(int)));
+		}
+
+		[Test]
+		public void Should_HasParamFallbackFunc_ReturnFalse_WhenNotRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			Assert.That(provider.HasParamFallbackFunc<string, int>(), Is.False);
+		}
+
+		[Test]
+		public void Should_HasParamFallbackFunc_ReturnFalse_ForDifferentTParam_SameT()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetFallbackFunc<string, int>((param, _) => param.Length);
+
+			// Registered for (string, int) but not (int, int).
+			Assert.That(provider.HasParamFallbackFunc<int, int>(), Is.False);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithNonCancelableParam_Precancelable_ReturnDefault_WhenCanceled()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceFallbackFunc<string, int>((param) => param.Length, CancellationType.Precancelable);
+
+			var func = provider.GetFallbackFunc<string, int>("hello");
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				// Precancelable: returns default when token is already cancelled.
+				Assert.Throws<OperationCanceledException>(() => func(cts.Token));
+			}
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackFunc_WithNonCancelableParam_Precancelable_ExecuteFunc_WhenNotCanceled()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceFallbackFunc<string, int>((param) => param.Length, CancellationType.Precancelable);
+
+			var func = provider.GetFallbackFunc<string, int>("hello");
+
+			Assert.That(func(CancellationToken.None), Is.EqualTo(5));
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,
