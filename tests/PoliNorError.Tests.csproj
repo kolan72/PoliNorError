@@ -138,6 +138,7 @@
     <Compile Include="TryCatchTests.cs" />
     <Compile Include="UtilitiesTests.cs" />
     <Compile Include="FallbackFuncsProviderTests.cs" />
+    <Compile Include="FallbackPolicyBaseHandleTParamTTests.cs" />
     <Compile Include="FallbackPolicyTests.cs" />
     <Compile Include="FallbackTypeForTests.cs" />
     <Compile Include="FuncExtensionsTests.cs" />
