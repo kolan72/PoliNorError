@@ -89,4 +89,14 @@ namespace PoliNorError
 		public SyncFallbackParamActionHolder(Action<TParam, CancellationToken> action) => Action = action;
 		public Action<TParam, CancellationToken> Action { get; }
 	}
+
+	/// <summary>
+	/// Holds a <see cref="Func{TParam, CancellationToken, Task}"/> async fallback delegate.
+	/// Stored in <c>_paramAsyncFallbackFuncHolder</c> keyed by <c>typeof(TParam)</c>.
+	/// </summary>
+	internal class AsyncFallbackParamFuncHolder<TParam> : IFallbackParamFuncHolder
+	{
+		public AsyncFallbackParamFuncHolder(Func<TParam, CancellationToken, Task> func) => Func = func;
+		public Func<TParam, CancellationToken, Task> Func { get; }
+	}
 }
