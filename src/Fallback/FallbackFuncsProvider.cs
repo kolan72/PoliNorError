@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
@@ -40,8 +40,43 @@ namespace PoliNorError
 			OnlyGenericFallbackForGenericDelegate = onlyGenericFallbackForGenericDelegate;
 		}
 
-		internal Action<CancellationToken> Fallback { get; set; }
-		internal Func<CancellationToken, Task> FallbackAsync { get; set; }
+		internal Action<CancellationToken> Fallback
+		{
+			get
+			{
+				if (!_syncGenericFuncsHolder.TryGetValue(typeof(VoidType), out var holder))
+				{
+					return null;
+				}
+				return ((SyncFallbackActionHolder)holder).Action;
+			}
+			set
+			{
+				if (value == null)
+					_syncGenericFuncsHolder.Remove(typeof(VoidType));
+				else
+					_syncGenericFuncsHolder[typeof(VoidType)] = new SyncFallbackActionHolder(value);
+			}
+		}
+
+		internal Func<CancellationToken, Task> FallbackAsync
+		{
+			get
+			{
+				if (!_asyncGenericFuncsHolder.TryGetValue(typeof(VoidType), out var holder))
+				{
+					return null;
+				}
+				return ((AsyncFallbackFuncHolder)holder).Func;
+			}
+			set
+			{
+				if (value == null)
+					_asyncGenericFuncsHolder.Remove(typeof(VoidType));
+				else
+					_asyncGenericFuncsHolder[typeof(VoidType)] = new AsyncFallbackFuncHolder(value);
+			}
+		}
 
 		// Keyed by (TParam, T) — stores Func<TParam, CancellationToken, T> delegates.
 		// Separate from _syncGenericFuncsHolder so parameterized and non-parameterized
@@ -320,11 +355,11 @@ namespace PoliNorError
 
 		internal bool HasParamFallbackFunc<TParam, T>() => _paramSyncGenericFuncsHolder.ContainsKey((typeof(TParam), typeof(T)));
 
-		internal bool HasFallbackAction() => Fallback != null;
+		internal bool HasFallbackAction() => _syncGenericFuncsHolder.ContainsKey(typeof(VoidType));
 
 		internal bool HasAsyncFallbackFunc<T>() => _asyncGenericFuncsHolder.ContainsKey(typeof(T));
 
-		internal bool HasAsyncFallbackFunc() => FallbackAsync != null;
+		internal bool HasAsyncFallbackFunc() => _asyncGenericFuncsHolder.ContainsKey(typeof(VoidType));
 
 		internal bool OnlyGenericFallbackForGenericDelegate { get; }
 	}

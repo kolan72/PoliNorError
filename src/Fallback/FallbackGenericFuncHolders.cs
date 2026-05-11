@@ -4,6 +4,13 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Sentinel type used as the dictionary key in <c>_syncGenericFuncsHolder</c> and
+	/// <c>_asyncGenericFuncsHolder</c> to store the non-generic <see cref="FallbackFuncsProvider.Fallback"/>
+	/// and <see cref="FallbackFuncsProvider.FallbackAsync"/> delegates.
+	/// </summary>
+	internal struct VoidType { }
+
 	internal interface IFallbackGenericFuncHolder { }
 
 	/// <summary>
@@ -34,5 +41,25 @@ namespace PoliNorError
 	{
 		public AsyncFallbackGenericFuncHolder(Func<CancellationToken, Task<T>> asyncFun) => AsyncFun = asyncFun;
 		public Func<CancellationToken, Task<T>> AsyncFun { get; }
+	}
+
+	/// <summary>
+	/// Holds the non-generic <see cref="Action{CancellationToken}"/> fallback delegate,
+	/// stored under the <see cref="VoidType"/> key in <c>_syncGenericFuncsHolder</c>.
+	/// </summary>
+	internal class SyncFallbackActionHolder : IFallbackGenericFuncHolder
+	{
+		public SyncFallbackActionHolder(Action<CancellationToken> action) => Action = action;
+		public Action<CancellationToken> Action { get; }
+	}
+
+	/// <summary>
+	/// Holds the non-generic <see cref="Func{CancellationToken, Task}"/> fallback delegate,
+	/// stored under the <see cref="VoidType"/> key in <c>_asyncGenericFuncsHolder</c>.
+	/// </summary>
+	internal class AsyncFallbackFuncHolder : IFallbackGenericFuncHolder
+	{
+		public AsyncFallbackFuncHolder(Func<CancellationToken, Task> func) => Func = func;
+		public Func<CancellationToken, Task> Func { get; }
 	}
 }
