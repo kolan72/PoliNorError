@@ -76,7 +76,7 @@ namespace PoliNorError
 			{
 				ThrowIfProcessorIsNotDefault(out DefaultFallbackProcessor processor);
 
-				Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
+				Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction(param);
 
 				var result = processor.Fallback(action, param, curFallback, token)
 								  .SetPolicyName(PolicyName);
