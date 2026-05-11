@@ -178,6 +178,11 @@ namespace PoliNorError
 			return (ct) => fnTask().WithCancellation(ct);
 		}
 
+		public static Func<TParam, CancellationToken, Task<T>> ToCancelableFunc<TParam, T>(this Func<TParam, Task<T>> fnTask)
+		{
+			return (param, ct) => fnTask(param).WithCancellation(ct);
+		}
+
 		public static Func<CancellationToken, T> ToPrecancelableFunc<T>(this Func<T> fnTask, bool throwIfCanceled = false)
 		{
 			return (ct) =>
@@ -259,6 +264,18 @@ namespace PoliNorError
 					return Task.FromCanceled(ct);
 				}
 				return func(t);
+			};
+		}
+
+		public static Func<TParam, CancellationToken, Task<T>> ToPrecancelableFunc<TParam, T>(this Func<TParam, Task<T>> func)
+		{
+			return (param, ct) =>
+			{
+				if (ct.IsCancellationRequested)
+				{
+					return Task.FromCanceled<T>(ct);
+				}
+				return func(param);
 			};
 		}
 	}
