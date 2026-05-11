@@ -1384,6 +1384,230 @@ namespace PoliNorError.Tests
 			Assert.That(provider.HasParamFallbackAction<string>(), Is.True);
 		}
 
+		// -------------------------------------------------------------------------
+		// Tests for AddOrReplaceAsyncFallbackFunc<TParam>, SetAsyncFallbackFunc<TParam>,
+		// HasAsyncParamFallbackFunc<TParam>, GetAsyncFallbackFunc<TParam>
+		// -------------------------------------------------------------------------
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_TParam_WithCancelableParam_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string>((__, _) => Task.CompletedTask);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_TParam_WithCancelableParam_ReturnSelf_ForChaining()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			var returned = provider.AddOrReplaceAsyncFallbackFunc<string>((__, _) => Task.CompletedTask);
+
+			Assert.That(returned, Is.SameAs(provider));
+		}
+
+		[Test]
+		public async Task Should_AddOrReplaceAsyncFallbackFunc_TParam_WithCancelableParam_Replace_ExistingEntry()
+		{
+			var i = 0;
+			var provider = FallbackFuncsProvider.Create();
+			provider.AddOrReplaceAsyncFallbackFunc<string>((_, __) => { i = 1; return Task.CompletedTask; });
+
+			provider.AddOrReplaceAsyncFallbackFunc<string>((_, __) => { i = 99; return Task.CompletedTask; });
+			await provider.GetAsyncFallbackFunc("x")(CancellationToken.None);
+
+			Assert.That(i, Is.EqualTo(99));
+		}
+
+		[Test]
+		[TestCase(CancellationType.Precancelable)]
+		[TestCase(CancellationType.Cancelable)]
+		public void Should_AddOrReplaceAsyncFallbackFunc_TParam_WithNonCancelableParam_ReturnSelf_ForChaining(CancellationType convertType)
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			var returned = provider.AddOrReplaceAsyncFallbackFunc<string>((__) => Task.CompletedTask, convertType);
+
+			Assert.That(returned, Is.SameAs(provider));
+		}
+
+		[Test]
+		[TestCase(CancellationType.Precancelable)]
+		[TestCase(CancellationType.Cancelable)]
+		public void Should_AddOrReplaceAsyncFallbackFunc_TParam_WithNonCancelableParam_Register_Func(CancellationType convertType)
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string>((__) => Task.CompletedTask, convertType);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_TParam_WithNonCancelableParam_Register_Func()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string>((__) => Task.CompletedTask);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_TParam_DifferentTParam_RegisterSeparateEntries()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceAsyncFallbackFunc<string>((_, __) => Task.CompletedTask);
+			provider.AddOrReplaceAsyncFallbackFunc<int>((_, __) => Task.CompletedTask);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+			Assert.That(provider.HasAsyncParamFallbackFunc<int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceAsyncFallbackFunc_TParam_DoesNotAffect_NonParamAsyncFallbackFunc()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			provider.FallbackAsync = async (_) => await Task.Delay(1);
+
+			provider.AddOrReplaceAsyncFallbackFunc<string>((_, __) => Task.CompletedTask);
+
+			Assert.That(provider.HasAsyncFallbackFunc(), Is.True);
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetAsyncFallbackFunc_TParam_WithCancelableParam_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetAsyncFallbackFunc<string>((__, _) => Task.CompletedTask);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+		}
+
+		[Test]
+		public async Task Should_SetAsyncFallbackFunc_TParam_WithCancelableParam_Replace_ExistingEntry()
+		{
+			var i = 0;
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string>((_, __) => { i = 1; return Task.CompletedTask; });
+
+			provider.SetAsyncFallbackFunc<string>((_, __) => { i = 77; return Task.CompletedTask; });
+			await provider.GetAsyncFallbackFunc("hello")(CancellationToken.None);
+
+			Assert.That(i, Is.EqualTo(77));
+		}
+
+		[Test]
+		public void Should_SetAsyncFallbackFunc_TParam_WithNonCancelableParam_Precancelable_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetAsyncFallbackFunc<string>((_) => Task.CompletedTask, CancellationType.Precancelable);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+		}
+
+		[Test]
+		public void Should_SetAsyncFallbackFunc_TParam_WithNonCancelableParam_Cancelable_Register_Func()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			provider.SetAsyncFallbackFunc<string>((_) => Task.CompletedTask, CancellationType.Cancelable);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.True);
+		}
+
+		[Test]
+		public void Should_HasAsyncParamFallbackFunc_TParam_ReturnFalse_WhenNotRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			Assert.That(provider.HasAsyncParamFallbackFunc<string>(), Is.False);
+		}
+
+		[Test]
+		public void Should_HasAsyncParamFallbackFunc_TParam_ReturnFalse_ForDifferentTParam()
+		{
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string>((_, __) => Task.CompletedTask);
+
+			// Registered for string but not int.
+			Assert.That(provider.HasAsyncParamFallbackFunc<int>(), Is.False);
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_TParam_Return_CorrectValue()
+		{
+			var i = 0;
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string>((param, _) => { i = param.Length; return Task.CompletedTask; });
+
+			await provider.GetAsyncFallbackFunc("hello")(CancellationToken.None);
+
+			Assert.That(i, Is.EqualTo(5));
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_TParam_Apply_Param_AtRetrievalTime()
+		{
+			var captured = 0;
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<int>((param, _) => { captured = param * 3; return Task.CompletedTask; });
+
+			await provider.GetAsyncFallbackFunc(7)(CancellationToken.None);
+
+			Assert.That(captured, Is.EqualTo(21));
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_TParam_Respect_CancellationToken()
+		{
+			var tokenWasCanceled = false;
+			var provider = new FallbackFuncsProvider(false);
+			provider.SetAsyncFallbackFunc<string>((_, ct) => { tokenWasCanceled = ct.IsCancellationRequested; return Task.CompletedTask; });
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				await provider.GetAsyncFallbackFunc("hello")(cts.Token);
+			}
+
+			Assert.That(tokenWasCanceled, Is.True);
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_TParam_FallBack_ToNonParamAsyncFunc_WhenNotRegistered()
+		{
+			var i = 0;
+			var provider = new FallbackFuncsProvider(false)
+			{
+				FallbackAsync = async (_) => { await Task.Delay(1); i = 55; }
+			};
+
+			// No parameterized entry for string — should fall back to the non-param async func.
+			await provider.GetAsyncFallbackFunc("anything")(CancellationToken.None);
+
+			Assert.That(i, Is.EqualTo(55));
+		}
+
+		[Test]
+		public async Task Should_GetAsyncFallbackFunc_TParam_ReturnDefaultAsyncFunc_WhenNeitherParamNorNonParamRegistered()
+		{
+			var provider = new FallbackFuncsProvider(false);
+
+			// No fallback registered — GetAsyncFallbackFunc falls back to DefaultFallbackAsyncFunc (no-op Task).
+			var func = provider.GetAsyncFallbackFunc("x");
+
+			Assert.That(func, Is.Not.Null);
+			await func(CancellationToken.None); // should complete without throwing
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,
