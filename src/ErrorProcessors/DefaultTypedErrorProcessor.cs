@@ -8,6 +8,11 @@ namespace PoliNorError
 	{
 		private readonly DefaultTypedErrorProcessorT<TException> _errorProcessor;
 
+		public DefaultTypedErrorProcessor(Action<TException, ProcessingErrorInfo> actionProcessor)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(actionProcessor);
+		}
+
 		public DefaultTypedErrorProcessor(Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor)
 		{
 			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(actionProcessor);
@@ -46,6 +51,15 @@ namespace PoliNorError
 
 	internal class DefaultTypedErrorProcessorT<TException> : ErrorProcessorBase<ProcessingErrorInfo> where TException : Exception
 	{
+		public static DefaultTypedErrorProcessorT<TException> Create(Action<TException, ProcessingErrorInfo> actionProcessor)
+		{
+			var action = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetSyncRunner(action);
+			return res;
+		}
+
 		public static DefaultTypedErrorProcessorT<TException> Create(Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor)
 		{
 			var action = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
