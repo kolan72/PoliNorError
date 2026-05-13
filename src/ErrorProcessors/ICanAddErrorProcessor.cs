@@ -89,6 +89,9 @@ namespace PoliNorError
 		public static T WithErrorContextProcessor<T, TErrorContext>(this T policyProcessor, DefaultErrorProcessor<TErrorContext> errorProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor
 			=> WithErrorProcessor(policyProcessor, errorProcessor, action);
 
+		public static T WithTypedErrorProcessor<T, TException>(this T policyProcessor, DefaultTypedErrorProcessor<TException> errorProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+			=> WithErrorProcessor(policyProcessor, errorProcessor, action);
+
 		public static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException> actionProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
 			=> policyProcessor.WithErrorProcessorOf(actionProcessor.ToActionForInnerException(), action);
 
