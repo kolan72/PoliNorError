@@ -131,6 +131,29 @@ namespace PoliNorError.Tests
 			Assert.That(capturedErrorProcessor, Is.SameAs(typedProcessor));
 		}
 
+		[Test]
+		public void Should_WithTypedErrorProcessorOf_InvokeActionWithCorrectParameters()
+		{
+			// Arrange
+			var processor = new SimplePolicyProcessor();
+			ICanAddErrorProcessor capturedCanAdd = null;
+			IErrorProcessor capturedErrorProcessor = null;
+
+			// Act
+			processor.WithTypedErrorProcessorOf<SimplePolicyProcessor, InvalidOperationException>(
+				(_, __) => { },
+				(p, ep) =>
+				{
+					capturedCanAdd = p;
+					capturedErrorProcessor = ep;
+				});
+
+			// Assert
+			Assert.That(capturedCanAdd, Is.SameAs(processor));
+			Assert.That(capturedErrorProcessor, Is.Not.Null);
+			Assert.That(capturedErrorProcessor, Is.InstanceOf<DefaultTypedErrorProcessor<InvalidOperationException>>());
+		}
+
 		internal enum TestType
 		{
 			PolicyProc,

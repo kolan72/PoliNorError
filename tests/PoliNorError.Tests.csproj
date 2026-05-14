@@ -118,7 +118,6 @@
     <Compile Include="FallbackPolicyBaseHandleAsyncTParamTTests.cs" />
     <Compile Include="FallbackPolicyBaseHandleTParamTests.cs" />
     <Compile Include="ICanAddErrorFilterTests.cs" />
-    <Compile Include="ICanAddErrorProcessorExtensionsWithTypedErrorProcessorTests.cs" />
     <Compile Include="PipelineDelegateHolderWithIntermediateTests.cs" />
     <Compile Include="PipelineFuncBuilderTests.cs" />
     <Compile Include="PipelineFuncExtensionsTests.cs" />
