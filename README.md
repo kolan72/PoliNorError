@@ -1140,6 +1140,138 @@ Since _version_ 2.20.0, you can use the `InvokeWithTryCatch(-Async)` extension m
 
 `TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
 
+### PipelineFuncBuilder (since _version_ 2.25.0)
+The `PipelineFuncBuilder` provides a fluent API for building resilient function pipelines with error handling at each step. It allows you to chain multiple functions together and attach error processors to handle exceptions that occur at any stage of the pipeline.
+
+#### Creating a Pipeline
+Start a pipeline using the `PipelineFuncBuilder.StartWith<TIn, TOut>` method:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.Build();
+
+var result = pipeline("hello", CancellationToken.None);
+// result.Result == 5
+```
+
+#### Chaining Functions
+Add additional transformation steps using the `AddFunc` method:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.AddFunc(length => length * 2)
+	.AddFunc(doubled => $"Result: {doubled}")
+	.Build();
+
+var result = pipeline("hello", CancellationToken.None);
+// result.Result == "Result: 10"
+```
+
+#### Adding Error Handlers
+Attach error handlers to any step in the pipeline using the `OnError` method. Error handlers receive the exception and a `ProcessingErrorInfo<T>` object containing the input parameter for that step:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Error processing string: {Input}", pi.Param))
+	.AddFunc(length => length * 2)
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Error doubling value: {Input}", pi.Param))
+	.AddFunc(doubled => $"Result: {doubled}")
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Error formatting result: {Input}", pi.Param))
+	.Build();
+
+var result = pipeline("hello", CancellationToken.None);
+```
+
+#### Async Error Handlers
+Error handlers can be asynchronous:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.OnError(async (ex, pi) =>
+	{
+		await errorRepository.SaveErrorAsync(ex, pi.Param);
+		logger.LogError(ex, "Error at step with input: {Input}", pi.Param);
+	})
+	.AddFunc(length => length * 2)
+	.Build();
+```
+
+#### Error Handling Behavior
+- If an exception occurs at any step, the pipeline stops executing subsequent steps
+- Error handlers for that step are invoked
+- The `PipelineResult<T>` will have `IsFailed` set to `true`
+- The exception is available in the result for inspection
+
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<int, int>(i => i / 0) // Will throw DivideByZeroException
+	.OnError((ex, pi) => 
+		Console.WriteLine($"Error: {ex.Message}"))
+	.AddFunc(result => result * 2) // This step won't execute
+	.Build();
+
+var result = pipeline(10, CancellationToken.None);
+// result.IsFailed == true
+// Error handler prints: "Error: Attempted to divide by zero."
+```
+
+#### PipelineResult
+The `Build()` method returns a function that produces a `PipelineResult<T>`:
+- `IsFailed` - indicates if the pipeline failed due to an exception
+- `IsCanceled` - indicates if the pipeline was canceled
+- `IsSuccess` - indicates successful completion (no failure and no cancellation)
+- `Result` - the final result if successful, or `default(T)` if failed
+
+#### Real-World Example
+Here's a complete example of processing user data through multiple validation and transformation steps:
+```csharp
+var userProcessingPipeline = PipelineFuncBuilder
+	.StartWith<string, User>(userId => userRepository.GetUser(userId))
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Failed to fetch user {UserId}", pi.Param))
+	
+	.AddFunc(user => ValidateUser(user))
+	.OnError((ex, pi) => 
+		logger.LogWarning(ex, "User validation failed for {UserName}", pi.Param.Name))
+	
+	.AddFunc(user => EnrichUserData(user))
+	.OnError(async (ex, pi) =>
+	{
+		await auditLog.LogAsync($"Enrichment failed for user {pi.Param.Id}");
+		logger.LogError(ex, "Failed to enrich user data");
+	})
+	
+	.AddFunc(user => user.ToDto())
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Failed to convert user to DTO"))
+	
+	.Build();
+
+// Use the pipeline
+var result = await Task.Run(() => 
+	userProcessingPipeline("user-123", cancellationToken));
+
+if (result.IsSuccess)
+{
+	return Ok(result.Result);
+}
+else
+{
+	return StatusCode(500, "User processing failed");
+}
+```
+
+#### Key Benefits
+- **Composability**: Build complex data transformation pipelines from simple functions
+- **Error Isolation**: Handle errors at each step independently
+- **Type Safety**: Full type inference through the pipeline chain
+- **Context Preservation**: Error handlers receive the input parameter for their step
+- **Fluent API**: Readable, declarative pipeline construction
+- **Cancellation Support**: Built-in cancellation token support
+
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
 Each method calls corresponding policy method behind the scenes.  
