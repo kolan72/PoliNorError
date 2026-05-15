@@ -1444,6 +1444,12 @@ For quick, one-off error handling without complex logic, a policy processor is o
 
 - **Building Policy Chains:** Utilize `WrapPolicy` or `WrapUp` to create nested policy chains. The `WrapUp` method, in particular, provides a fluent, bottom-up approach to constructing these chains.
 
+### PipelineFuncBuilder
+
+- **Use for multi-step transformations**: When you have a series of functions that transform data step-by-step, `PipelineFuncBuilder` provides a clean, composable way to chain them with error handling at each stage.
+- **Leverage context in error handlers**: The `ProcessingErrorInfo<T>` parameter contains the input to that specific step (`pi.Param`), making it easy to log which input caused the failure.
+- **Check `PipelineResult.IsFailed`** before accessing `Result` to avoid working with default values from failed pipelines.
+
 ### Handling `PolicyResult`
 
 - **Chain with `SetFailed()` in result handlers** to pass control to the next delegate in the collection intentionally.
