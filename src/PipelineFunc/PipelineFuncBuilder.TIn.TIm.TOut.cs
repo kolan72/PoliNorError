@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public class PipelineFuncBuilder<TIn, TIm, TOut> : IPipelineWithHandlersBuilder<TIn, TIm, TOut>
+	public class PipelineFuncBuilder<TIn, TIm, TOut> : IPipelineFuncStepBuilder<TIn, TIm, TOut>
 	{
 		private readonly IPipelineDelegateHolder<TIn, TOut> _delegateHolder;
 
@@ -13,7 +13,7 @@ namespace PoliNorError
 			_delegateHolder = delegateHolder;
 		}
 
-		public IPipelineWithHandlersBuilder<TIn, TOut, TNext> AddFunc<TNext>(Func<TOut, TNext> fNext)
+		public IPipelineFuncStepBuilder<TIn, TOut, TNext> AddFunc<TNext>(Func<TOut, TNext> fNext)
 		{
 			var pdh = new PipelineDelegateHolder<TIn, TOut, TNext>(_delegateHolder.GetPipelineDelegate(), fNext);
 			return new PipelineFuncBuilder<TIn, TOut, TNext>(pdh);
