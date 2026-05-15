@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -108,15 +109,764 @@ namespace PoliNorError.Tests
         [Test]
         public void Should_Create_PipelineFuncBuilder_When_Calling_StartWith_With_Valid_Func()
         {
-            // Arrange
-            Func<int, string> func = input => input.ToString();
+			// Arrange
+			string func(int input) => input.ToString();
 
-            // Act
-            var result = PipelineFuncBuilder.StartWith(func);
+			// Act
+			var result = PipelineFuncBuilder.StartWith((Func<int, string>)func);
 
             // Assert
             Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.InstanceOf<IPipelineWithHandlersBuilder<int, int, string>>());
+            Assert.That(result, Is.InstanceOf<IPipelineFuncStepBuilder<int, int, string>>());
         }
-    }
+
+#pragma warning disable RCS1194 // Implement exception constructors.
+#pragma warning disable S3871 // Exception types should be "public"
+		private class TestException : Exception
+		{
+			public TestException(string message) : base(message) { }
+		}
+#pragma warning restore S3871 // Exception types should be "public"
+#pragma warning restore RCS1194 // Implement exception constructors.
+
+		#region Build Tests
+
+		[Test]
+		public void Should_Build_ReturnFuncThatExecutesInitialFunction()
+		{
+			// Arrange
+			int func(string s) => s.Length;
+			var builder = PipelineFuncBuilder.StartWith((Func<string, int>)func);
+
+			// Act
+			var pipeline = builder.Build();
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(5));
+		}
+
+		[Test]
+		public void Should_Build_ReturnFuncThatCanBeCalledMultipleTimes()
+		{
+			// Arrange
+			int func(int i) => i * 2;
+			var builder = PipelineFuncBuilder.StartWith((Func<int, int>)func);
+			var pipeline = builder.Build();
+
+			// Act
+			var result1 = pipeline(5, CancellationToken.None);
+			var result2 = pipeline(10, CancellationToken.None);
+
+			// Assert
+			Assert.That(result1.Result, Is.EqualTo(10));
+			Assert.That(result2.Result, Is.EqualTo(20));
+		}
+
+		[Test]
+		public void Should_Build_ReturnFuncThatHandlesExceptions()
+		{
+			// Arrange
+			int func(string _) => throw new TestException("test error");
+			var builder = PipelineFuncBuilder.StartWith((Func<string, int>)func);
+
+			// Act
+			var pipeline = builder.Build();
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		#endregion
+
+		#region AddFunc Tests
+
+		[Test]
+		public void Should_AddFunc_ChainFunctions()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+			string func2(int i) => $"Length: {i}";
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.AddFunc(func2)
+				.Build();
+
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("Length: 5"));
+		}
+
+		[Test]
+		public void Should_AddFunc_ChainMultipleFunctions()
+		{
+			// Arrange
+			int func1(int i) => i + 10;
+			int func2(int i) => i * 2;
+			string func3(int i) => $"Result: {i}";
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)func1)
+				.AddFunc(func2)
+				.AddFunc(func3)
+				.Build();
+
+			var result = pipeline(5, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("Result: 30"));
+		}
+
+		[Test]
+		public void Should_AddFunc_NotExecuteNextFunc_WhenPreviousFuncThrows()
+		{
+			// Arrange
+			bool func2Called = false;
+			int func1(int _) => throw new TestException("error in func1");
+			string func2(int i)
+			{
+				func2Called = true;
+				return i.ToString();
+			}
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)func1)
+				.AddFunc(func2)
+				.Build();
+
+			var result = pipeline(5, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(func2Called, Is.False);
+		}
+
+		[Test]
+		public void Should_AddFunc_ExecuteInCorrectOrder()
+		{
+			// Arrange
+			var executionOrder = new List<int>();
+			int func1(int i) { executionOrder.Add(1); return i + 1; }
+			int func2(int i) { executionOrder.Add(2); return i + 1; }
+			int func3(int i) { executionOrder.Add(3); return i + 1; }
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)func1)
+				.AddFunc(func2)
+				.AddFunc(func3)
+				.Build();
+
+			pipeline(0, CancellationToken.None);
+
+			// Assert
+			Assert.That(executionOrder, Is.EqualTo(new[] { 1, 2, 3 }));
+		}
+
+		[Test]
+		public void Should_AddFunc_TransformTypesThroughPipeline()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+			double func2(int i) => i * 1.5;
+			bool func3(double d) => d > 5.0;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.AddFunc(func2)
+				.AddFunc(func3)
+				.Build();
+
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.True);
+		}
+
+		#endregion
+
+		#region OnError Tests - Sync Action
+
+		[Test]
+		public void Should_OnError_SyncAction_CaptureException()
+		{
+			// Arrange
+			Exception capturedException = null;
+			var expectedException = new TestException("test error");
+
+			int func1(string _) => throw expectedException;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((ex, _) => capturedException = ex)
+				.Build();
+
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedException, Is.SameAs(expectedException));
+		}
+
+		[Test]
+		public void Should_OnError_SyncAction_CaptureProcessingErrorInfo()
+		{
+			// Arrange
+			ProcessingErrorInfo<string> capturedInfo = null;
+
+			int func1(string _) => throw new TestException("test error");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, pi) => capturedInfo = pi)
+				.Build();
+
+			var result = pipeline("test-input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedInfo, Is.Not.Null);
+			Assert.That(capturedInfo.Param, Is.EqualTo("test-input"));
+		}
+
+		[Test]
+		public void Should_OnError_SyncAction_NotExecute_WhenNoException()
+		{
+			// Arrange
+			bool errorHandlerCalled = false;
+
+			int func1(string s) => s.Length;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, __) => errorHandlerCalled = true)
+				.Build();
+
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(errorHandlerCalled, Is.False);
+		}
+
+		[Test]
+		public void Should_OnError_SyncAction_HandleExceptionInMiddleOfPipeline()
+		{
+			// Arrange
+			Exception capturedException = null;
+			var expectedException = new TestException("error in func2");
+
+			int func1(int i) => i + 10;
+			int func2(int _) => throw expectedException;
+			string func3(int i) => i.ToString();
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)func1)
+				.AddFunc(func2)
+				.OnError((ex, _) => capturedException = ex)
+				.AddFunc(func3)
+				.Build();
+
+			var result = pipeline(5, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedException, Is.SameAs(expectedException));
+		}
+
+		[Test]
+		public void Should_OnError_SyncAction_ReturnFluentInterface()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+
+			// Act
+			var builder = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, __) => { });
+
+			// Assert
+			Assert.That(builder, Is.InstanceOf<IPipelineFuncBuilder<string, int>>());
+		}
+
+		#endregion
+
+		#region OnError Tests - Async Action
+
+		[Test]
+		public void Should_OnError_AsyncAction_CaptureException()
+		{
+			// Arrange
+			Exception capturedException = null;
+			var expectedException = new TestException("async test error");
+
+			int func1(string _) => throw expectedException;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError(async (ex, _) =>
+				{
+					await Task.Delay(1);
+					capturedException = ex;
+				})
+				.Build();
+
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedException, Is.SameAs(expectedException));
+		}
+
+		[Test]
+		public void Should_OnError_AsyncAction_CaptureProcessingErrorInfo()
+		{
+			// Arrange
+			ProcessingErrorInfo<string> capturedInfo = null;
+
+			int func1(string _) => throw new TestException("async test error");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError(async (_, pi) =>
+				{
+					await Task.Delay(1);
+					capturedInfo = pi;
+				})
+				.Build();
+
+			var result = pipeline("async-input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedInfo, Is.Not.Null);
+			Assert.That(capturedInfo.Param, Is.EqualTo("async-input"));
+		}
+
+		[Test]
+		public void Should_OnError_AsyncAction_NotExecute_WhenNoException()
+		{
+			// Arrange
+			bool errorHandlerCalled = false;
+
+			int func1(string s) => s.Length;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError(async (_, __) =>
+				{
+					await Task.Delay(1);
+					errorHandlerCalled = true;
+				})
+				.Build();
+
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(errorHandlerCalled, Is.False);
+		}
+
+		[Test]
+		public void Should_OnError_AsyncAction_ReturnFluentInterface()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+
+			// Act
+			var builder = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError(async (_, __) => await Task.Delay(1));
+
+			// Assert
+			Assert.That(builder, Is.InstanceOf<IPipelineFuncBuilder<string, int>>());
+		}
+
+		#endregion
+
+		#region Complex Pipeline Tests
+
+		[Test]
+		public void Should_ComplexPipeline_ExecuteAllStepsSuccessfully()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+			int func2(int i) => i * 2;
+			string func3(int i) => $"Result: {i}";
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, __) => { /* error handler 1 */ })
+				.AddFunc(func2)
+				.OnError((_, __) => { /* error handler 2 */ })
+				.AddFunc(func3)
+				.OnError((_, __) => { /* error handler 3 */ })
+				.Build();
+
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("Result: 10"));
+		}
+
+		[Test]
+		public void Should_ComplexPipeline_HandleErrorInFirstStep()
+		{
+			// Arrange
+			Exception capturedException = null;
+			var expectedException = new TestException("error in step 1");
+
+			int func1(string _) => throw expectedException;
+			int func2(int i) => i * 2;
+			string func3(int i) => $"Result: {i}";
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((ex, _) => capturedException = ex)
+				.AddFunc(func2)
+				.OnError((_, __) => { })
+				.AddFunc(func3)
+				.OnError((_, __) => { })
+				.Build();
+
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedException, Is.SameAs(expectedException));
+		}
+
+		[Test]
+		public void Should_ComplexPipeline_HandleErrorInMiddleStep()
+		{
+			// Arrange
+			Exception capturedException = null;
+			var expectedException = new TestException("error in step 2");
+
+			int func1(string s) => s.Length;
+			int func2(int _) => throw expectedException;
+			string func3(int i) => $"Result: {i}";
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, __) => { })
+				.AddFunc(func2)
+				.OnError((ex, _) => capturedException = ex)
+				.AddFunc(func3)
+				.OnError((_, __) => { })
+				.Build();
+
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedException, Is.SameAs(expectedException));
+		}
+
+		[Test]
+		public void Should_ComplexPipeline_HandleErrorInLastStep()
+		{
+			// Arrange
+			Exception capturedException = null;
+			var expectedException = new TestException("error in step 3");
+
+			int func1(string s) => s.Length;
+			int func2(int i) => i * 2;
+			string func3(int _) => throw expectedException;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, __) => { })
+				.AddFunc(func2)
+				.OnError((_, __) => { })
+				.AddFunc(func3)
+				.OnError((ex, _) => capturedException = ex)
+				.Build();
+
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedException, Is.SameAs(expectedException));
+		}
+
+		[Test]
+		public void Should_ComplexPipeline_MixSyncAndAsyncErrorHandlers()
+		{
+			// Arrange
+			var exceptions = new List<Exception>();
+			var expectedException = new TestException("test error");
+
+			int func1(string _) => throw expectedException;
+			int func2(int i) => i * 2;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((ex, _) =>  exceptions.Add(ex))
+				.AddFunc(func2)
+				.OnError(async (ex, _) =>
+				{
+					await Task.Delay(1);
+					exceptions.Add(ex);
+				})
+				.Build();
+
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(exceptions.Count, Is.EqualTo(1));
+			Assert.That(exceptions[0], Is.SameAs(expectedException));
+		}
+
+		#endregion
+
+		#region ProcessingErrorInfo Tests
+
+		[Test]
+		public void Should_ProcessingErrorInfo_ContainCorrectInputParameter()
+		{
+			// Arrange
+			string capturedParam = null;
+
+			int func1(string _) => throw new TestException("error");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, pi) => capturedParam = pi.Param)
+				.Build();
+
+			pipeline("test-parameter", CancellationToken.None);
+
+			// Assert
+			Assert.That(capturedParam, Is.EqualTo("test-parameter"));
+		}
+
+		[Test]
+		public void Should_ProcessingErrorInfo_ContainCorrectIntermediateParameter()
+		{
+			// Arrange
+			int capturedParam = 0;
+
+			int func1(string s) => s.Length;
+			string func2(int _) => throw new TestException("error");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.AddFunc(func2)
+				.OnError((_, pi) => capturedParam = pi.Param)
+				.Build();
+
+			pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(capturedParam, Is.EqualTo(5));
+		}
+
+		[Test]
+		public void Should_ProcessingErrorInfo_HaveErrorContext()
+		{
+			// Arrange
+			ProcessingErrorContext capturedContext = null;
+
+			int func1(string _) => throw new TestException("error");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.OnError((_, pi) => capturedContext = pi.CurrentContext)
+				.Build();
+
+			pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(capturedContext, Is.Not.Null);
+		}
+
+		#endregion
+
+		#region Edge Cases
+
+		[Test]
+		public void Should_Pipeline_HandleNullInput()
+		{
+			// Arrange
+			int func1(string s) => s?.Length ?? 0;
+			var pipeline = PipelineFuncBuilder.StartWith((Func<string, int>)func1).Build();
+
+			var result = pipeline(null, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_Pipeline_HandleDefaultValueTypes()
+		{
+			// Arrange
+			int func1(int i) => i + 1;
+			var pipeline = PipelineFuncBuilder.StartWith((Func<int, int>)func1).Build();
+
+			var result = pipeline(0, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_Pipeline_WorkWithComplexTypes()
+		{
+			// Arrange
+			int func1(List<int> list) => list.Count;
+			string func2(int count) => $"Count: {count}";
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<List<int>, int>)func1)
+				.AddFunc(func2)
+				.Build();
+
+			var result = pipeline(new List<int> { 1, 2, 3 }, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("Count: 3"));
+		}
+		#endregion
+
+		#region CancellationToken Tests
+
+		[Test]
+		public void Should_Pipeline_AcceptCancellationToken()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.Build();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				// Act
+				var result = pipeline("hello", cts.Token);
+
+				// Assert
+				Assert.That(result.IsFailed, Is.False);
+				Assert.That(result.Result, Is.EqualTo(5));
+			}
+		}
+
+		[Test]
+		public void Should_Pipeline_WorkWithNoneCancellationToken()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+			var pipeline = PipelineFuncBuilder.StartWith((Func<string, int>)func1).Build();
+
+			// Act
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(5));
+		}
+
+		#endregion
+
+		#region Result Tests
+
+		[Test]
+		public void Should_PipelineResult_HaveIsFalseWhenSuccessful()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+			var pipeline = PipelineFuncBuilder.StartWith((Func<string, int>)func1).Build();
+
+			// Act
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+		}
+
+		[Test]
+		public void Should_PipelineResult_HaveIsFailedTrueWhenException()
+		{
+			// Arrange
+			int func1(string _) => throw new TestException("error");
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.Build();
+
+			// Act
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		public void Should_PipelineResult_ContainCorrectResultValue()
+		{
+			// Arrange
+			string func1(int i) => $"Value: {i}";
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.Build();
+
+			// Act
+			var result = pipeline(42, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.Result, Is.EqualTo("Value: 42"));
+		}
+
+		[Test]
+		public void Should_PipelineResult_ReturnDefaultWhenFailed()
+		{
+			// Arrange
+			int func1(string _) => throw new TestException("error");
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.Build();
+
+			// Act
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.Result, Is.EqualTo(default(int)));
+		}
+
+		#endregion
+
+	}
 }
