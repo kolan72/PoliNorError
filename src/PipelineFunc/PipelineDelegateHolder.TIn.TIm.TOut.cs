@@ -21,9 +21,20 @@ namespace PoliNorError
 		/// <param name="prevFunc">The previous function in the pipeline.</param>
 		/// <param name="fNext">The next function to add to the pipeline.</param>
 		public PipelineDelegateHolder(Func<TIn, CancellationToken, PipelineResult<TIm>> prevFunc, Func<TIm, TOut> fNext)
+			: this(prevFunc, fNext, null)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TIm, TOut}"/> class with a specific policy.
+		/// </summary>
+		/// <param name="prevFunc">The previous function in the pipeline.</param>
+		/// <param name="fNext">The next function to add to the pipeline.</param>
+		/// <param name="policy">The policy to use for error handling. If null, a SimplePolicy will be created.</param>
+		public PipelineDelegateHolder(Func<TIn, CancellationToken, PipelineResult<TIm>> prevFunc, Func<TIm, TOut> fNext, IPolicyBase policy)
 		{
 			_prevFunc = prevFunc;
-			_pipelineDelegate = new PipelineDelegateHolder<TIm, TOut>(fNext);
+			_pipelineDelegate = new PipelineDelegateHolder<TIm, TOut>(fNext, policy);
 		}
 
 		/// <summary>
