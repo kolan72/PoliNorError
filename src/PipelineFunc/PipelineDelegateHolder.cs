@@ -3,22 +3,39 @@ using System.Threading;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Holds and manages a pipeline delegate for a single function.
+	/// </summary>
+	/// <typeparam name="TIn">The input type.</typeparam>
+	/// <typeparam name="TOut">The output type.</typeparam>
 	internal class PipelineDelegateHolder<TIn, TOut> : IPipelineDelegateHolder<TIn, TOut>
 	{
 		private Action<BulkErrorProcessor> _configureProcessors;
 
 		private readonly Func<TIn, TOut> _func;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TOut}"/> class.
+		/// </summary>
+		/// <param name="func">The function to wrap in the pipeline.</param>
 		public PipelineDelegateHolder(Func<TIn, TOut> func)
 		{
 			_func = func;
 		}
 
+		/// <summary>
+		/// Sets the configuration action for error processors.
+		/// </summary>
+		/// <param name="configureProcessors">The action to configure bulk error processors.</param>
 		public void SetConfigure(Action<BulkErrorProcessor> configureProcessors)
 		{
 			_configureProcessors = configureProcessors;
 		}
 
+		/// <summary>
+		/// Gets the pipeline delegate function.
+		/// </summary>
+		/// <returns>A function that processes input and returns a pipeline result.</returns>
 		public Func<TIn, CancellationToken, PipelineResult<TOut>> GetPipelineDelegate()
 		{
 			return (t, ct) =>
