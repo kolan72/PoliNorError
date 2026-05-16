@@ -13,14 +13,25 @@ namespace PoliNorError
 		private Action<BulkErrorProcessor> _configureProcessors;
 
 		private readonly Func<TIn, TOut> _func;
+		private readonly IPolicyBase _policy;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TOut}"/> class.
 		/// </summary>
 		/// <param name="func">The function to wrap in the pipeline.</param>
-		public PipelineDelegateHolder(Func<TIn, TOut> func)
+		public PipelineDelegateHolder(Func<TIn, TOut> func) : this(func, null)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TOut}"/> class with a specific policy.
+		/// </summary>
+		/// <param name="func">The function to wrap in the pipeline.</param>
+		/// <param name="policy">The policy to use for error handling. If null, a SimplePolicy will be created.</param>
+		public PipelineDelegateHolder(Func<TIn, TOut> func, IPolicyBase policy)
 		{
 			_func = func;
+			_policy = policy;
 		}
 
 		/// <summary>
@@ -43,10 +54,33 @@ namespace PoliNorError
 				var bp = new BulkErrorProcessor();
 				_configureProcessors?.Invoke(bp);
 
-				var policy = new SimplePolicy(bp);
-				var res = policy.Handle(_func, t, ct);
+				var policy = _policy ?? new SimplePolicy();
 
-				if (!res.NoError || res.IsCanceled)
+				// Apply custom error processors to the provided policy
+				foreach (var processor in bp)
+				{
+					policy.PolicyProcessor.WithErrorProcessor(processor);
+				}
+
+				PolicyResult<TOut> res = null;
+				switch (policy)
+				{
+					case RetryPolicy rp:
+						res = rp.Handle(_func, t, ct);
+						break;
+					case FallbackPolicy fp:
+						res = fp.Handle(_func, t, ct);
+						break;
+					case SimplePolicy sp:
+						res = sp.Handle(_func, t, ct);
+						break;
+					default:
+						res = new PolicyResult<TOut>();
+						res.AddError(new NotImplementedException());
+						break;
+				}
+
+				if (((policy is SimplePolicy) ? !res.NoError : res.IsFailed) || res.IsCanceled)
 				{
 					return PipelineResult<TOut>.Failure(res);
 				}
