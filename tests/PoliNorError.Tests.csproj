@@ -131,6 +131,7 @@
     <Compile Include="InnerErrorProcessorTests.cs" />
     <Compile Include="PipelineDelegateHolderWithIntermediateTests.cs" />
     <Compile Include="PipelineFuncBuilderPolicyTests.cs" />
+    <Compile Include="PipelineFuncBuilderStartWithInfiniteRetryTests.cs" />
     <Compile Include="PipelineFuncBuilderTests.cs" />
     <Compile Include="PipelineFuncExtensionsTests.cs" />
     <Compile Include="PolicyDelegateCollectionResultTests.cs" />
