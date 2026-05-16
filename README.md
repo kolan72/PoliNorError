@@ -1141,136 +1141,162 @@ Since _version_ 2.20.0, you can use the `InvokeWithTryCatch(-Async)` extension m
 `TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
 
 ### PipelineFuncBuilder (since _version_ 2.25.0)
-The `PipelineFuncBuilder` provides a fluent API for building resilient function pipelines with error handling at each step. It allows you to chain multiple functions together and attach error processors to handle exceptions that occur at any stage of the pipeline.
+The `PipelineFuncBuilder` provides a fluent API for building resilient function pipelines with error handling at each step. It allows you to chain multiple functions together, apply resilience policies, and attach error processors.
 
-#### Creating a Pipeline
-Start a pipeline using the `PipelineFuncBuilder.StartWith<TIn, TOut>` method:
+#### Basic Usage
 ```csharp
 var pipeline = PipelineFuncBuilder
-	.StartWith<string, int>(s => s.Length)
+	.StartWith<string, User>(userId => userRepository.GetUser(userId))
+	.AddFunc(user => user.Validate())
+	.AddFunc(user => user.ToDto())
 	.Build();
 
-var result = pipeline("hello", CancellationToken.None);
-// result.Result == 5
+var result = pipeline("user-123", cancellationToken);
 ```
 
-#### Chaining Functions
-Add additional transformation steps using the `AddFunc` method:
+#### Starting with Policies
+Apply resilience policies at the pipeline entry point:
+
+**With Retry:**
 ```csharp
 var pipeline = PipelineFuncBuilder
-	.StartWith<string, int>(s => s.Length)
-	.AddFunc(length => length * 2)
-	.AddFunc(doubled => $"Result: {doubled}")
+	.StartWithRetry<string, ApiResponse>(
+		customerId => apiClient.GetCustomerData(customerId),
+		retryCount: 3,
+		retryDelay: new ExponentialRetryDelay(TimeSpan.FromSeconds(1)))
+	.AddFunc(response => response.MapToCustomer())
 	.Build();
-
-var result = pipeline("hello", CancellationToken.None);
-// result.Result == "Result: 10"
 ```
 
-#### Adding Error Handlers
-Attach error handlers to any step in the pipeline using the `OnError` method. Error handlers receive the exception and a `ProcessingErrorInfo<T>` object containing the input parameter for that step:
+**With Infinite Retry:**
 ```csharp
 var pipeline = PipelineFuncBuilder
-	.StartWith<string, int>(s => s.Length)
-	.OnError((ex, pi) => 
-		logger.LogError(ex, "Error processing string: {Input}", pi.Param))
-	.AddFunc(length => length * 2)
-	.OnError((ex, pi) => 
-		logger.LogError(ex, "Error doubling value: {Input}", pi.Param))
-	.AddFunc(doubled => $"Result: {doubled}")
-	.OnError((ex, pi) => 
-		logger.LogError(ex, "Error formatting result: {Input}", pi.Param))
+	.StartWithInfiniteRetry<Message, QueueResult>(
+		message => messageQueue.Enqueue(message),
+		retryDelay: new LinearRetryDelay(TimeSpan.FromSeconds(5)))
+	.AddFunc(queueResult => auditLog.Record(queueResult))
 	.Build();
-
-var result = pipeline("hello", CancellationToken.None);
 ```
 
-#### Async Error Handlers
-Error handlers can be asynchronous:
+**With Fallback:**
 ```csharp
 var pipeline = PipelineFuncBuilder
-	.StartWith<string, int>(s => s.Length)
+	.StartWithFallback<string, UserProfile>(
+		userId => database.GetUserProfile(userId),
+		fallbackFunc: () => cache.GetCachedProfile())
+	.AddFunc(profile => profile.Sanitize())
+	.Build();
+```
+
+**With Custom Policy:**
+```csharp
+var dbPolicy = new RetryPolicy(5)
+	.IncludeError<SqlException>(ex => ex.Number == 1205) // Deadlock
+	.WithWait(TimeSpan.FromSeconds(1));
+
+var pipeline = PipelineFuncBuilder
+	.StartWith<int, Order>(orderId => repository.GetOrder(orderId), dbPolicy)
+	.AddFunc(order => order.Process())
+	.Build();
+```
+
+#### Adding Steps with Policies
+Each pipeline step can have its own resilience policy:
+
+```csharp
+var pipeline = PipelineFuncBuilder
+	// Step 1: Validate (no retry, fail fast)
+	.StartWith<OrderRequest, ValidatedOrder>(request => validator.Validate(request))
+	.OnError((ex, pi) => logger.LogError(ex, "Validation failed"))
+	
+	// Step 2: Reserve inventory with retry
+	.AddFuncWithRetry(
+		order => inventoryService.Reserve(order),
+		retryCount: 3,
+		retryDelay: new LinearRetryDelay(TimeSpan.FromMilliseconds(500)))
+	.OnError((ex, pi) => logger.LogWarning(ex, "Reservation failed, retrying"))
+	
+	// Step 3: Process payment with fallback
+	.AddFuncWithFallback(
+		reservation => primaryPaymentGateway.Charge(reservation),
+		fallbackFunc: () => secondaryPaymentGateway.Charge(reservation))
+	.OnError((ex, pi) => logger.LogWarning(ex, "Using fallback payment gateway"))
+	
+	// Step 4: Save to database with infinite retry
+	.AddFuncWithInfiniteRetry(
+		payment => database.SaveOrder(payment),
+		retryDelay: new ExponentialRetryDelay(TimeSpan.FromSeconds(2)))
+	.OnError((ex, pi) => logger.LogError(ex, "Database save failed, retrying"))
+	
+	.Build();
+```
+
+#### Error Handling
+Error handlers receive the exception and a `ProcessingErrorInfo<T>` containing the input parameter:
+
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWithRetry<string, RawData>(
+		fileId => fileStorage.Download(fileId),
+		retryCount: 3,
+		retryDelay: new ExponentialRetryDelay(TimeSpan.FromSeconds(1)))
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Failed to download file {FileId}", pi.Param))
+	
+	.AddFunc(rawData => parser.Parse(rawData))
 	.OnError(async (ex, pi) =>
 	{
-		await errorRepository.SaveErrorAsync(ex, pi.Param);
-		logger.LogError(ex, "Error at step with input: {Input}", pi.Param);
+		await errorRepository.SaveParseError(pi.Param, ex);
+		logger.LogError(ex, "Parse failed for {Size} bytes", pi.Param.Size);
 	})
-	.AddFunc(length => length * 2)
+	
 	.Build();
-```
-
-#### Error Handling Behavior
-- If an exception occurs at any step, the pipeline stops executing subsequent steps
-- Error handlers for that step are invoked
-- The `PipelineResult<T>` will have `IsFailed` set to `true`
-- The exception is available in the result for inspection
-
-```csharp
-var pipeline = PipelineFuncBuilder
-	.StartWith<int, int>(i => i / 0) // Will throw DivideByZeroException
-	.OnError((ex, pi) => 
-		Console.WriteLine($"Error: {ex.Message}"))
-	.AddFunc(result => result * 2) // This step won't execute
-	.Build();
-
-var result = pipeline(10, CancellationToken.None);
-// result.IsFailed == true
-// Error handler prints: "Error: Attempted to divide by zero."
 ```
 
 #### PipelineResult
 The `Build()` method returns a function that produces a `PipelineResult<T>`:
-- `IsFailed` - indicates if the pipeline failed due to an exception
-- `IsCanceled` - indicates if the pipeline was canceled
-- `IsSuccess` - indicates successful completion (no failure and no cancellation)
+- `IsFailed` - pipeline failed due to an exception
+- `IsCanceled` - pipeline was canceled
+- `IsSuccess` - successful completion (no failure and no cancellation)
 - `Result` - the final result if successful, or `default(T)` if failed
 
-#### Real-World Example
-Here's a complete example of processing user data through multiple validation and transformation steps:
 ```csharp
-var userProcessingPipeline = PipelineFuncBuilder
-	.StartWith<string, User>(userId => userRepository.GetUser(userId))
-	.OnError((ex, pi) => 
-		logger.LogError(ex, "Failed to fetch user {UserId}", pi.Param))
-	
-	.AddFunc(user => ValidateUser(user))
-	.OnError((ex, pi) => 
-		logger.LogWarning(ex, "User validation failed for {UserName}", pi.Param.Name))
-	
-	.AddFunc(user => EnrichUserData(user))
-	.OnError(async (ex, pi) =>
-	{
-		await auditLog.LogAsync($"Enrichment failed for user {pi.Param.Id}");
-		logger.LogError(ex, "Failed to enrich user data");
-	})
-	
-	.AddFunc(user => user.ToDto())
-	.OnError((ex, pi) => 
-		logger.LogError(ex, "Failed to convert user to DTO"))
-	
-	.Build();
-
-// Use the pipeline
-var result = await Task.Run(() => 
-	userProcessingPipeline("user-123", cancellationToken));
+var result = pipeline(input, cancellationToken);
 
 if (result.IsSuccess)
 {
-	return Ok(result.Result);
+	return result.Result;
+}
+else if (result.IsCanceled)
+{
+	logger.LogInformation("Pipeline was canceled");
 }
 else
 {
-	return StatusCode(500, "User processing failed");
+	logger.LogError("Pipeline failed");
+	throw new PipelineException("Processing failed", result.Errors);
 }
 ```
 
-#### Key Benefits
-- **Composability**: Build complex data transformation pipelines from simple functions
-- **Error Isolation**: Handle errors at each step independently
-- **Type Safety**: Full type inference through the pipeline chain
-- **Context Preservation**: Error handlers receive the input parameter for their step
-- **Fluent API**: Readable, declarative pipeline construction
-- **Cancellation Support**: Built-in cancellation token support
+#### Available Methods
+**Starting methods:**
+- `StartWith<TIn, TOut>(func)` - start with SimplePolicy (default)
+- `StartWith<TIn, TOut>(func, policy)` - start with custom policy
+- `StartWithRetry<TIn, TOut>(func, retryCount, retryDelay)` - start with RetryPolicy
+- `StartWithInfiniteRetry<TIn, TOut>(func, retryDelay)` - start with infinite RetryPolicy
+- `StartWithFallback<TIn, TOut>(func, fallbackFunc)` - start with FallbackPolicy
+
+**Adding steps:**
+- `AddFunc<TNext>(func)` - add step with SimplePolicy (default)
+- `AddFunc<TNext>(func, policy)` - add step with custom policy
+- `AddFuncWithRetry<TNext>(func, retryCount, retryDelay)` - add step with RetryPolicy
+- `AddFuncWithInfiniteRetry<TNext>(func, retryDelay)` - add step with infinite RetryPolicy
+- `AddFuncWithFallback<TNext>(func, fallbackFunc)` - add step with FallbackPolicy
+
+**Error handling:**
+- `OnError(Action<Exception, ProcessingErrorInfo<T>>)` - add synchronous error handler
+- `OnError(Func<Exception, ProcessingErrorInfo<T>, Task>)` - add asynchronous error handler
+- `OnError(Func<Exception, ProcessingErrorInfo<T>, CancellationToken, Task>)` - add async error handler with cancellation
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
