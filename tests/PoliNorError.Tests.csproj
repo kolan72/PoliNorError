@@ -119,6 +119,7 @@
     <Compile Include="FallbackPolicyBaseHandleTParamTests.cs" />
     <Compile Include="ICanAddErrorFilterTests.cs" />
     <Compile Include="PipelineDelegateHolderWithIntermediateTests.cs" />
+    <Compile Include="PipelineFuncBuilderAddFuncWithInfiniteRetryTests.cs" />
     <Compile Include="PipelineFuncBuilderPolicyTests.cs" />
     <Compile Include="PipelineFuncBuilderStartWithInfiniteRetryTests.cs" />
     <Compile Include="PipelineFuncBuilderTests.cs" />

@@ -63,6 +63,114 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_UseFallbackWithCancellationToken_WhenTokenIsNotCanceled()
+		{
+			// Arrange
+			bool tokenWasCanceled = false;
+			int func1(string s) => s.Length;
+			int func2(int _) => throw new InvalidOperationException("Main failed");
+			int fallback(CancellationToken ct)
+			{
+				tokenWasCanceled = ct.IsCancellationRequested;
+				return 555;
+			}
+
+			using (var cts = new CancellationTokenSource())
+			{
+				// Act
+				var pipeline = PipelineFuncBuilder
+					.StartWith<string, int>(func1)
+					.AddFuncWithFallback(func2, fallback)
+					.Build();
+
+				var result = pipeline("test", cts.Token);
+
+				// Assert
+				Assert.That(result.IsFailed, Is.False);
+				Assert.That(result.Result, Is.EqualTo(555));
+				Assert.That(tokenWasCanceled, Is.False);
+			}
+		}
+
+		[Test]
+		public void Should_PassCancellationTokenToFallback_WhenFallbackIsInvoked()
+		{
+			// Arrange
+			CancellationToken capturedToken = default;
+			int func1(string s) => s.Length;
+			int func2(int _) => throw new InvalidOperationException("Main function failed");
+			int fallback(CancellationToken ct)
+			{
+				capturedToken = ct;
+				return 100;
+			}
+
+			using (var cts = new CancellationTokenSource())
+			{
+				// Act
+				var pipeline = PipelineFuncBuilder
+					.StartWith<string, int>(func1)
+					.AddFuncWithFallback(func2, fallback)
+					.Build();
+
+				var result = pipeline("test", cts.Token);
+
+				// Assert
+				Assert.That(result.IsFailed, Is.False);
+				Assert.That(result.Result, Is.EqualTo(100));
+				Assert.That(capturedToken, Is.EqualTo(cts.Token));
+			}
+		}
+
+		[Test]
+		public void Should_WorkWithDifferentTypes_WhenTransformingData()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+			string func2(int _) => throw new InvalidOperationException("Main failed");
+			string fallback(CancellationToken _) => "fallback-value";
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith<string, int>(func1)
+				.AddFuncWithFallback(func2, fallback)
+				.Build();
+
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("fallback-value"));
+		}
+
+		[Test]
+		public void Should_NotInvokeFallback_WhenMainFunctionSucceeds()
+		{
+			// Arrange
+			bool fallbackCalled = false;
+			int func1(string s) => s.Length;
+			int func2(int i) => i * 2;
+			int fallback(CancellationToken _)
+			{
+				fallbackCalled = true;
+				return -1;
+			}
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith<string, int>(func1)
+				.AddFuncWithFallback(func2, fallback)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(8));
+			Assert.That(fallbackCalled, Is.False);
+		}
+
+		[Test]
 		public void Should_AddFunc_WithCustomPolicy_UseProvidedPolicy()
 		{
 			// Arrange
@@ -128,7 +236,7 @@ namespace PoliNorError.Tests
 		public void Should_StartWithFallback_ApplyFallbackToFirstStep()
 		{
 			// Arrange
-			int func1(string s) => throw new InvalidOperationException("Always fails");
+			int func1(string _) => throw new InvalidOperationException("Always fails");
 			int fallback() => 99;
 
 			// Act
@@ -158,7 +266,7 @@ namespace PoliNorError.Tests
 				return s.Length;
 			}
 
-			int func2(int x) => throw new InvalidOperationException("Use fallback");
+			int func2(int _) => throw new InvalidOperationException("Use fallback");
 			int fallback() => 100;
 
 			// Act
