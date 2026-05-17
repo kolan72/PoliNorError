@@ -92,12 +92,12 @@ namespace PoliNorError
 			=> InvokeWithFallbackAsync(func, errorContext, fallback, policyParams, false, token);
 
 		public static Task<PolicyResult> InvokeWithFallbackAsync<TErrorContext>(this Func<CancellationToken, Task> func, TErrorContext errorContext, Func<CancellationToken, Task> fallback, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token)
-			=> policyParams.ToFallbackPolicy(fallback).HandleAsync(func, errorContext, configureAwait, token);
+			=> policyParams.ToFallbackPolicyWithAsyncFunc(fallback).HandleAsync(func, errorContext, configureAwait, token);
 
 		public static Task<PolicyResult> InvokeWithFallbackAsync<TErrorContext>(this Func<CancellationToken, Task> func, TErrorContext errorContext, Func<Task> fallback, ErrorProcessorParam policyParams, CancellationType convertType, CancellationToken token = default)
 			=> InvokeWithFallbackAsync(func, errorContext, fallback, policyParams, false, convertType, token);
 
 		public static Task<PolicyResult> InvokeWithFallbackAsync<TErrorContext>(this Func<CancellationToken, Task> func, TErrorContext errorContext, Func<Task> fallback, ErrorProcessorParam policyParams, bool configureAwait, CancellationType convertType, CancellationToken token)
-			=> policyParams.ToFallbackPolicy(fallback, convertType).HandleAsync(func, errorContext, configureAwait, token);
+			=> policyParams.ToFallbackPolicyWithAsyncFunc(fallback, convertType).HandleAsync(func, errorContext, configureAwait, token);
 	}
 }
