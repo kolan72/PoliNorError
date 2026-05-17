@@ -96,6 +96,7 @@
     <Compile Include="ConvertExceptionDelegatesTests.cs" />
     <Compile Include="DefaultFallbackProcessorAsyncTests.cs" />
     <Compile Include="DefaultFallbackProcessorTests.cs" />
+    <Compile Include="DefaultInnerErrorProcessorTests.cs" />
     <Compile Include="DefaultRetryProcessorAsyncTests.cs" />
     <Compile Include="DefaultRetryProcessorTests.cs" />
     <Compile Include="DelayProviderTests.cs" />
