@@ -117,7 +117,7 @@ namespace PoliNorError
 			=> InvokeWithFallbackAsync(func, fallbackAsync, policyParams, false, convertType, token);
 
 		public static Task<PolicyResult> InvokeWithFallbackAsync(this Func<CancellationToken, Task> func, Func<Task> fallbackAsync, ErrorProcessorParam policyParams, bool configureAwait, CancellationType convertType, CancellationToken token)
-			=> policyParams.ToFallbackPolicy(fallbackAsync, convertType).HandleAsync(func, configureAwait, token);
+			=> policyParams.ToFallbackPolicyWithAsyncFunc(fallbackAsync, convertType).HandleAsync(func, configureAwait, token);
 
 		public static Task<PolicyResult> InvokeWithFallbackAsync(this Func<CancellationToken, Task> func, Func<CancellationToken, Task> fallbackAsync, CancellationToken token = default)
 			=> InvokeWithFallbackAsync(func, fallbackAsync, null, token);

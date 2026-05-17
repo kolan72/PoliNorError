@@ -62,12 +62,12 @@ namespace PoliNorError
 
 		public static T WithFallbackInner<T>(this T t, Func<Task> fallbackAsync, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable, bool onlyGenericFallbackForGenericDelegate = false) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToFallbackPolicy(fallbackAsync, convertType, onlyGenericFallbackForGenericDelegate));
+			return t.WithPolicy(policyParams.ToFallbackPolicyWithAsyncFunc(fallbackAsync, convertType, onlyGenericFallbackForGenericDelegate));
 		}
 
 		public static T WithFallbackInner<T>(this T t, Func<CancellationToken, Task> fallbackAsync, ErrorProcessorParam policyParams = null, bool onlyGenericFallbackForGenericDelegate = false) where T : IWithPolicy<T>
 		{
-			return t.WithPolicy(policyParams.ToFallbackPolicy(fallbackAsync, onlyGenericFallbackForGenericDelegate));
+			return t.WithPolicy(policyParams.ToFallbackPolicyWithAsyncFunc(fallbackAsync, onlyGenericFallbackForGenericDelegate));
 		}
 
 		public static T WithFallbackInner<T, U>(this T t, Func<CancellationToken, U> fallbackAsync, ErrorProcessorParam policyParams = null) where T : IWithPolicy<T>
