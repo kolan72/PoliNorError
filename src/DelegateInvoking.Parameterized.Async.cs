@@ -98,26 +98,9 @@ namespace PoliNorError
 		// Fallback policy methods for Func<TParam, CancellationToken, Task>
 
 		public static Task<PolicyResult> InvokeWithFallbackAsync<TParam>(this Func<TParam, CancellationToken, Task> func, TParam param, Func<TParam, CancellationToken, Task> fallback, CancellationToken token = default)
-			=> InvokeWithFallbackAsync(func, param, fallback, null, token);
-
-		public static Task<PolicyResult> InvokeWithFallbackAsync<TParam>(this Func<TParam, CancellationToken, Task> func, TParam param, Func<TParam, CancellationToken, Task> fallback, ErrorProcessorParam policyParams, CancellationToken token = default)
-			=> InvokeWithFallbackAsync(func, param, fallback, policyParams, false, token);
+			=> func.InvokeWithFallbackAsync(param, fallback, null, false, token);
 
 		public static Task<PolicyResult> InvokeWithFallbackAsync<TParam>(this Func<TParam, CancellationToken, Task> func, TParam param, Func<TParam, CancellationToken, Task> fallback, ErrorProcessorParam policyParams, bool configureAwait, CancellationToken token)
-		{
-			var fallbackProvider = FallbackFuncsProvider.Create().AddOrReplaceAsyncFallbackFunc(fallback);
-			var policy = new FallbackPolicy(fallbackProvider);
-			if (policyParams != null)
-			{
-				policy = (FallbackPolicy)policyParams.GetValueOrDefault().ConfigurePolicy(policy);
-			}
-			return policy.HandleAsync(func, param, configureAwait, token);
-		}
-
-		public static Task<PolicyResult> InvokeWithFallbackAsync<TParam>(this Func<TParam, CancellationToken, Task> func, TParam param, Func<TParam, CancellationToken, Task> fallback, ErrorProcessorParam policyParams, CancellationType convertType, CancellationToken token)
-			=> InvokeWithFallbackAsync(func, param, fallback, policyParams, false, convertType, token);
-
-		public static Task<PolicyResult> InvokeWithFallbackAsync<TParam>(this Func<TParam, CancellationToken, Task> func, TParam param, Func<TParam, CancellationToken, Task> fallback, ErrorProcessorParam policyParams, bool configureAwait, CancellationType convertType, CancellationToken token)
 		{
 			var fallbackProvider = FallbackFuncsProvider.Create().AddOrReplaceAsyncFallbackFunc(fallback);
 			var policy = new FallbackPolicy(fallbackProvider);

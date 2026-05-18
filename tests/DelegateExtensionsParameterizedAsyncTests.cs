@@ -126,17 +126,17 @@ namespace PoliNorError.Tests
                 throw new Exception("fallback");
             };
 
-            Func<int, CancellationToken, Task> fallback = (p, token) =>
-            {
-                fallbackCalls++;
-                fallbackParam = p;
-                fallbackTokenCancelable = token.CanBeCanceled;
-                return Task.CompletedTask;
-            };
+			Task fallback(int p, CancellationToken token)
+			{
+				fallbackCalls++;
+				fallbackParam = p;
+				fallbackTokenCancelable = token.CanBeCanceled;
+				return Task.CompletedTask;
+			}
 
-            using (var cts = new CancellationTokenSource())
+			using (var cts = new CancellationTokenSource())
             {
-                var result = await func.InvokeWithFallbackAsync(input, fallback, ErrorProcessorParam.From((Exception _) => errorCalls++), token: cts.Token);
+                var result = await func.InvokeWithFallbackAsync(input, fallback, ErrorProcessorParam.From((Exception _) => errorCalls++), false, token: cts.Token);
 
                 Assert.That(calls, Is.EqualTo(1));
                 Assert.That(fallbackCalls, Is.EqualTo(1));
