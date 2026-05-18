@@ -806,7 +806,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Handle_Sync_Generic_ByFallbackAsync_If_Error()
 		{
-			var fallback = new FallbackPolicy().WithAsyncFallbackFunc<int>(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); });
+			var fallback = new FallbackPolicy().WithAsyncFallbackFunc(async (_) => { await Task.Delay(1); throw new Exception("HandleAsync"); });
 			var polResult = fallback.Handle<int>(() => throw new Exception("Handle sync by async fallback"));
 
 			ClassicAssert.IsTrue(polResult.IsFailed);

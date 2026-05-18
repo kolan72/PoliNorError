@@ -292,9 +292,25 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicyBase, T>(fallbackFunc);
 
+		public FallbackPolicyBase WithFallbackFunc<TParam, T>(Func<TParam, T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackFunc<FallbackPolicyBase, TParam, T>(fallbackFunc, convertType);
+
+		public FallbackPolicyBase WithFallbackFunc<TParam, T>(Func<TParam, CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicyBase, TParam, T>(fallbackFunc);
+
 		public FallbackPolicyBase WithAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) => this.WithAsyncFallbackFunc<FallbackPolicyBase, T>(fallbackAsync, convertType);
 
 		public FallbackPolicyBase WithAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicyBase, T>(fallbackAsync);
+
+		public FallbackPolicyBase WithAsyncFallbackFunc<TParam, T>(Func<TParam, Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) => this.WithAsyncFallbackFunc<FallbackPolicyBase, TParam, T>(fallbackAsync, convertType);
+
+		public FallbackPolicyBase WithAsyncFallbackFunc<TParam, T>(Func<TParam, CancellationToken, Task<T>> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicyBase, TParam, T>(fallbackAsync);
+
+		public FallbackPolicyBase WithAsyncFallbackFunc<TParam>(Func<TParam, Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) => this.WithAsyncFallbackFunc<FallbackPolicyBase, TParam>(fallbackAsync, convertType);
+
+		public FallbackPolicyBase WithAsyncFallbackFunc<TParam>(Func<TParam, CancellationToken, Task> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicyBase, TParam>(fallbackAsync);
+
+		public FallbackPolicyBase WithFallbackAction<TParam>(Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackAction<FallbackPolicyBase, TParam>(fallbackAction, convertType);
+
+		public FallbackPolicyBase WithFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction) => this.WithFallbackAction<FallbackPolicyBase, TParam>(fallbackAction);
 
 		public FallbackPolicyBase IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicyBase, TException>(func);
 

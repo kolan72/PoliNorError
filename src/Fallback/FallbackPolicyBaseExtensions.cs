@@ -18,6 +18,30 @@ namespace PoliNorError
 			return fallback;
 		}
 
+		internal static TFallback WithFallbackFunc<TFallback, TParam, T>(this TFallback fallback, Func<TParam, T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetFallbackFunc(fallbackFunc, convertType);
+			return fallback;
+		}
+
+		internal static TFallback WithFallbackFunc<TFallback, TParam, T>(this TFallback fallback, Func<TParam, CancellationToken, T> fallbackFunc) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetFallbackFunc(fallbackFunc);
+			return fallback;
+		}
+
+		internal static TFallback WithFallbackAction<TFallback, TParam>(this TFallback fallback, Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetFallbackAction(fallbackAction, convertType);
+			return fallback;
+		}
+
+		internal static TFallback WithFallbackAction<TFallback, TParam>(this TFallback fallback, Action<TParam, CancellationToken> fallbackAction) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetFallbackAction(fallbackAction);
+			return fallback;
+		}
+
 		internal static TFallback WithAsyncFallbackFunc<TFallback, T>(this TFallback fallback, Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
 		{
 			fallback._fallbackFuncsProvider.SetAsyncFallbackFunc(fallbackAsync, convertType);
@@ -25,6 +49,30 @@ namespace PoliNorError
 		}
 
 		internal static TFallback WithAsyncFallbackFunc<TFallback, T>(this TFallback fallback, Func<CancellationToken, Task<T>> fallbackAsync) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetAsyncFallbackFunc(fallbackAsync);
+			return fallback;
+		}
+
+		internal static TFallback WithAsyncFallbackFunc<TFallback, TParam, T>(this TFallback fallback, Func<TParam, Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetAsyncFallbackFunc(fallbackAsync, convertType);
+			return fallback;
+		}
+
+		internal static TFallback WithAsyncFallbackFunc<TFallback, TParam, T>(this TFallback fallback, Func<TParam, CancellationToken, Task<T>> fallbackAsync) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetAsyncFallbackFunc(fallbackAsync);
+			return fallback;
+		}
+
+		internal static TFallback WithAsyncFallbackFunc<TFallback, TParam>(this TFallback fallback, Func<TParam, Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.SetAsyncFallbackFunc(fallbackAsync, convertType);
+			return fallback;
+		}
+
+		internal static TFallback WithAsyncFallbackFunc<TFallback, TParam>(this TFallback fallback, Func<TParam, CancellationToken, Task> fallbackAsync) where TFallback : FallbackPolicyBase
 		{
 			fallback._fallbackFuncsProvider.SetAsyncFallbackFunc(fallbackAsync);
 			return fallback;
