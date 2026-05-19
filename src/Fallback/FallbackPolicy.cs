@@ -46,6 +46,10 @@ namespace PoliNorError
 			return fallbackPolicyWithAction;
 		}
 
+		public new FallbackPolicy WithFallbackAction<TParam>(Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackAction<FallbackPolicy, TParam>(fallbackAction, convertType);
+
+		public new FallbackPolicy WithFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction) => this.WithFallbackAction<FallbackPolicy, TParam>(fallbackAction);
+
 		public FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc(Func<Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return WithAsyncFallbackFunc(fallbackAsync.ToCancelableFunc(convertType, true));
@@ -77,10 +81,6 @@ namespace PoliNorError
 		public new FallbackPolicy WithFallbackFunc<TParam, T>(Func<TParam, T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackFunc<FallbackPolicy, TParam, T>(fallbackFunc, convertType);
 
 		public new FallbackPolicy WithFallbackFunc<TParam, T>(Func<TParam, CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicy, TParam, T>(fallbackFunc);
-
-		public new FallbackPolicy WithFallbackAction<TParam>(Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackAction<FallbackPolicy, TParam>(fallbackAction, convertType);
-
-		public new FallbackPolicy WithFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction) => this.WithFallbackAction<FallbackPolicy, TParam>(fallbackAction);
 
 		public new FallbackPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicy>(expression);
 

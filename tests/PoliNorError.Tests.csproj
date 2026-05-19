@@ -123,6 +123,7 @@
     <Compile Include="ExceptionExtensionsTests.cs" />
     <Compile Include="ExpressionHelperTests.cs" />
     <Compile Include="FallbackFuncExtensionsTests.cs" />
+    <Compile Include="FallbackPolicyBaseExtensionsTests.cs" />
     <Compile Include="FallbackPolicyBaseHandleAsyncTParamTests.cs" />
     <Compile Include="FallbackPolicyBaseHandleAsyncTParamTTests.cs" />
     <Compile Include="FallbackPolicyBaseHandleTParamTests.cs" />

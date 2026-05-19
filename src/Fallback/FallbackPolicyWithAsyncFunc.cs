@@ -26,6 +26,10 @@ namespace PoliNorError
 			return this;
 		}
 
+		public new FallbackPolicyWithAsyncFunc WithFallbackAction<TParam>(Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackAction<FallbackPolicyWithAsyncFunc, TParam>(fallbackAction, convertType);
+
+		public new FallbackPolicyWithAsyncFunc WithFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction) => this.WithFallbackAction<FallbackPolicyWithAsyncFunc, TParam>(fallbackAction);
+
 		public new FallbackPolicyWithAsyncFunc WithFallbackFunc<T>(Func<CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicyWithAsyncFunc, T>(fallbackFunc);
 
 		public new FallbackPolicyWithAsyncFunc WithFallbackFunc<T>(Func<T> fallbackFunc, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackFunc<FallbackPolicyWithAsyncFunc, T>(fallbackFunc, convertType);
@@ -45,10 +49,6 @@ namespace PoliNorError
 		public new FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc<TParam>(Func<TParam, Task> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) => this.WithAsyncFallbackFunc<FallbackPolicyWithAsyncFunc, TParam>(fallbackAsync, convertType);
 
 		public new FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc<TParam>(Func<TParam, CancellationToken, Task> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicyWithAsyncFunc, TParam>(fallbackAsync);
-
-		public new FallbackPolicyWithAsyncFunc WithFallbackAction<TParam>(Action<TParam> fallbackAction, CancellationType convertType = CancellationType.Precancelable) => this.WithFallbackAction<FallbackPolicyWithAsyncFunc, TParam>(fallbackAction, convertType);
-
-		public new FallbackPolicyWithAsyncFunc WithFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction) => this.WithFallbackAction<FallbackPolicyWithAsyncFunc, TParam>(fallbackAction);
 
 		public new FallbackPolicyWithAsyncFunc IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicyWithAsyncFunc, TException>(func);
 
