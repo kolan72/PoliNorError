@@ -711,6 +711,306 @@ namespace PoliNorError.Tests
 
 		#endregion
 
+		#region OnError(Action<BulkErrorProcessor>) Tests
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_ReturnIPipelineFuncBuilder()
+		{
+			// Arrange
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 1));
+
+			// Act
+			var result = builder.OnError((BulkErrorProcessor _) => { });
+
+			// Assert
+			Assert.That(result, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());
+		}
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_NotThrow_WhenConfigureIsEmpty()
+		{
+			// Arrange
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw new InvalidOperationException("fail")));
+
+			// Act
+			var pipeline = builder
+				.OnError((BulkErrorProcessor _) => { })
+				.Build();
+
+			var result = pipeline(1, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+		}
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_InvokeConfigureAction_WhenExceptionOccurs()
+		{
+			// Arrange
+			bool configureWasCalled = false;
+			int processorCallCount = 0;
+
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw new InvalidOperationException("fail")));
+
+			var pipeline = builder
+				.OnError(bep =>
+				{
+					configureWasCalled = true;
+					bep.WithErrorProcessorOf(_ => processorCallCount++);
+				})
+				.Build();
+
+			// Act
+			var result = pipeline(5, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(configureWasCalled, Is.True);
+			Assert.That(processorCallCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_NotInvokeConfigureAction_WhenNoException()
+		{
+			// Arrange
+			int processorCallCount = 0;
+
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x * 2));
+
+			var pipeline = builder
+				.OnError(bep => bep.WithErrorProcessorOf(_ => processorCallCount++))
+				.Build();
+
+			// Act
+			var result = pipeline(3, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(6));
+			Assert.That(processorCallCount, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_AddMultipleProcessors_AllInvokedOnError()
+		{
+			// Arrange
+			int firstProcessorCount = 0;
+			int secondProcessorCount = 0;
+
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw new InvalidOperationException("fail")));
+
+			var pipeline = builder
+				.OnError(bep =>
+				{
+					bep.WithErrorProcessorOf(_ => firstProcessorCount++);
+					bep.WithErrorProcessorOf(_ => secondProcessorCount++);
+				})
+				.Build();
+
+			// Act
+			var result = pipeline(1, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(firstProcessorCount, Is.EqualTo(1));
+			Assert.That(secondProcessorCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_ReceiveCorrectException_InProcessor()
+		{
+			// Arrange
+			var expected = new InvalidOperationException("expected-error");
+			Exception captured = null;
+
+			var builder = new PipelineFuncBuilder<string, string, int>(new PipelineDelegateHolder<string, int>(_ => throw expected));
+
+			var pipeline = builder
+				.OnError(bep => bep.WithErrorProcessorOf(ex => captured = ex))
+				.Build();
+
+			// Act
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(captured, Is.SameAs(expected));
+		}
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_InvokeProcessorOnEachCall_WhenPipelineCalledMultipleTimes()
+		{
+			// Arrange
+			int processorCallCount = 0;
+
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw new InvalidOperationException("fail")));
+
+			var pipeline = builder
+				.OnError(bep => bep.WithErrorProcessorOf(_ => processorCallCount++))
+				.Build();
+
+			// Act
+			pipeline(1, CancellationToken.None);
+			pipeline(2, CancellationToken.None);
+			pipeline(3, CancellationToken.None);
+
+			// Assert
+			Assert.That(processorCallCount, Is.EqualTo(3));
+		}
+
+		[Test]
+		public void PipelineFuncBuilder_StartWith_OnError_BulkErrorProcessorConfigure_InvokesProcessor_WhenStepThrows()
+		{
+			// Arrange
+			int processorCallCount = 0;
+			var expected = new TestException("step-error");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)(_ => throw expected))
+				.OnError(bep => bep.WithErrorProcessorOf(_ => processorCallCount++))
+				.Build();
+
+			var result = pipeline("input", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(processorCallCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void PipelineFuncBuilder_StartWith_OnError_BulkErrorProcessorConfigure_OnlyAffectsItsOwnStep()
+		{
+			// Arrange
+			int firstStepProcessorCount = 0;
+			int secondStepProcessorCount = 0;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)(x => x + 1))
+				.OnError(bep => bep.WithErrorProcessorOf(_ => firstStepProcessorCount++))
+				.AddFunc<int>((int _) => throw new TestException("second-step-error"))
+				.OnError(bep => bep.WithErrorProcessorOf(_ => secondStepProcessorCount++))
+				.Build();
+
+			var result = pipeline(0, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(firstStepProcessorCount, Is.EqualTo(0));
+			Assert.That(secondStepProcessorCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_OnError_BulkErrorProcessorConfigure_NotAffectSuccessfulResult()
+		{
+			// Arrange
+			var builder = new PipelineFuncBuilder<int, int, string>(new PipelineDelegateHolder<int, string>(x => $"value:{x}"));
+
+			var pipeline = builder
+				.OnError(bep => bep.WithErrorProcessorOf(_ => { }))
+				.Build();
+
+			// Act
+			var result = pipeline(42, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("value:42"));
+		}
+
+		#endregion
+
+		#region OnError(Action<ContextErrorProcessors<TIm>>) Tests
+
+		[Test]
+		public void Should_OnError_ContextErrorProcessorsConfigure_ReturnIPipelineFuncBuilder()
+		{
+			// Arrange
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 1));
+
+			// Act
+			var result = builder.OnError((ContextErrorProcessors<int> _) => { });
+
+			// Assert
+			Assert.That(result, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());
+		}
+
+		[Test]
+		public void Should_OnError_ContextErrorProcessorsConfigure_NotInvokeConfiguredProcessor_WhenNoException()
+		{
+			// Arrange
+			int processorCallCount = 0;
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x * 3));
+
+			var pipeline = builder
+				.OnError(cep => cep.Add((_, __) => processorCallCount++))
+				.Build();
+
+			// Act
+			var result = pipeline(4, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(12));
+			Assert.That(processorCallCount, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_OnError_ContextErrorProcessorsConfigure_InvokeAllConfiguredProcessors_WhenExceptionOccurs()
+		{
+			// Arrange
+			int firstProcessorCount = 0;
+			int secondProcessorCount = 0;
+
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw new InvalidOperationException("fail")));
+			var pipeline = builder
+				.OnError(cep =>
+				{
+					cep.Add((_, __) => firstProcessorCount++);
+					cep.Add((_, __) => secondProcessorCount++);
+				})
+				.Build();
+
+			// Act
+			var result = pipeline(10, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(firstProcessorCount, Is.EqualTo(1));
+			Assert.That(secondProcessorCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_OnError_ContextErrorProcessorsConfigure_PassTypedIntermediateParamToProcessor()
+		{
+			// Arrange
+			int capturedParam = -1;
+			var expected = new InvalidOperationException("mid-step-failure");
+
+			int func1(string s) => s.Length;
+			string func2(int _) => throw expected;
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1)
+				.AddFunc(func2)
+				.OnError(cep => cep.Add((ex, pi) =>
+				{
+					capturedParam = pi.Param;
+					Assert.That(ex, Is.SameAs(expected));
+				}))
+				.Build();
+
+			// Act
+			var result = pipeline("hello", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedParam, Is.EqualTo(5));
+		}
+
+		#endregion
+
 		#region Edge Cases
 
 		[Test]

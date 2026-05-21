@@ -146,10 +146,11 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Enumerate_AddedProcessors_InInsertionOrder()
 		{
-			var sut = new ContextErrorProcessors<int>();
-
-			sut.Add((_, __) => { });
-			sut.Add((_, __) => { }, CancellationType.Precancelable);
+			var sut = new ContextErrorProcessors<int>
+			{
+				(_, __) => { },
+				{ (_, __) => { }, CancellationType.Precancelable }
+			};
 
 			var processors = sut.ToList();
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace PoliNorError
 {
@@ -111,26 +110,23 @@ namespace PoliNorError
 			return AddFunc(fNext, fallbackPolicy);
 		}
 
-		/// <summary>
-		/// Configures synchronous error handling for this pipeline step.
-		/// </summary>
-		/// <param name="actionProcessor">The action to execute when an error occurs.</param>
-		/// <returns>The pipeline builder for further configuration.</returns>
-		public IPipelineFuncBuilder<TIn, TOut> OnError(Action<Exception, ProcessingErrorInfo<TIm>> actionProcessor)
+		public IPipelineFuncBuilder<TIn, TOut> OnError(Action<BulkErrorProcessor> configure)
 		{
-			void action(BulkErrorProcessor bep) => bep.WithErrorContextProcessorOf(actionProcessor);
-			_delegateHolder.SetConfigure(action);
+			_delegateHolder.SetConfigure(configure);
 			return this;
 		}
 
-		/// <summary>
-		/// Configures asynchronous error handling for this pipeline step.
-		/// </summary>
-		/// <param name="actionProcessor">The async function to execute when an error occurs.</param>
-		/// <returns>The pipeline builder for further configuration.</returns>
-		public IPipelineFuncBuilder<TIn, TOut> OnError(Func<Exception, ProcessingErrorInfo<TIm>, Task> actionProcessor)
+		public IPipelineFuncBuilder<TIn, TOut> OnError(Action<ContextErrorProcessors<TIm>> configure)
 		{
-			void action(BulkErrorProcessor bep) => bep.WithErrorContextProcessorOf(actionProcessor);
+			void action(BulkErrorProcessor bep)
+			{
+				var processors = new ContextErrorProcessors<TIm>();
+				configure(processors);
+				foreach(var p in processors)
+				{
+					bep.AddProcessor(p);
+				}
+			}
 			_delegateHolder.SetConfigure(action);
 			return this;
 		}
