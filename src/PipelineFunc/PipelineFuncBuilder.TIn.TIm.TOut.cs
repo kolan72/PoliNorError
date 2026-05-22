@@ -110,12 +110,6 @@ namespace PoliNorError
 			return AddFunc(fNext, fallbackPolicy);
 		}
 
-		public IPipelineFuncBuilder<TIn, TOut> OnError(Action<BulkErrorProcessor> configure)
-		{
-			_delegateHolder.SetConfigure(configure);
-			return this;
-		}
-
 		public IPipelineFuncBuilder<TIn, TOut> OnError(Action<ContextErrorProcessors<TIm>> configure)
 		{
 			void action(BulkErrorProcessor bep)
@@ -123,6 +117,21 @@ namespace PoliNorError
 				var processors = new ContextErrorProcessors<TIm>();
 				configure(processors);
 				foreach(var p in processors)
+				{
+					bep.AddProcessor(p);
+				}
+			}
+			_delegateHolder.SetConfigure(action);
+			return this;
+		}
+
+		public IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ErrorProcessors> configure)
+		{
+			void action(BulkErrorProcessor bep)
+			{
+				var processors = new ErrorProcessors();
+				configure(processors);
+				foreach (var p in processors)
 				{
 					bep.AddProcessor(p);
 				}
