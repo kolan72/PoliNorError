@@ -720,7 +720,7 @@ namespace PoliNorError.Tests
 			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 1));
 
 			// Act
-			var result = builder.OnError((ContextErrorProcessors<int> _) => { });
+			var result = builder.ConfigureErrorProcessors((ContextErrorProcessors<int> _) => { });
 
 			// Assert
 			Assert.That(result, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());
@@ -734,7 +734,7 @@ namespace PoliNorError.Tests
 			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x * 3));
 
 			var pipeline = builder
-				.OnError(cep => cep.Add((_, __) => processorCallCount++))
+				.ConfigureErrorProcessors(cep => cep.Add((Exception _, ProcessingErrorInfo<int> __) => processorCallCount++))
 				.Build();
 
 			// Act
@@ -755,10 +755,10 @@ namespace PoliNorError.Tests
 
 			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw new InvalidOperationException("fail")));
 			var pipeline = builder
-				.OnError(cep =>
+				.ConfigureErrorProcessors(cep =>
 				{
-					cep.Add((_, __) => firstProcessorCount++);
-					cep.Add((_, __) => secondProcessorCount++);
+					cep.Add((Exception _, ProcessingErrorInfo<int> __) => firstProcessorCount++);
+					cep.Add((Exception _, ProcessingErrorInfo<int> __) => secondProcessorCount++);
 				})
 				.Build();
 
@@ -784,7 +784,7 @@ namespace PoliNorError.Tests
 			var pipeline = PipelineFuncBuilder
 				.StartWith((Func<string, int>)func1)
 				.AddFunc(func2)
-				.OnError(cep => cep.Add((ex, pi) =>
+				.ConfigureErrorProcessors(cep => cep.Add((ex, pi) =>
 				{
 					capturedParam = pi.Param;
 					Assert.That(ex, Is.SameAs(expected));
@@ -810,7 +810,7 @@ namespace PoliNorError.Tests
 			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 1));
 
 			// Act
-			var result = builder.ConfigureErrorProcessors(_ => { });
+			var result = builder.ConfigureErrorProcessors((ErrorProcessors _) => { });
 
 			// Assert
 			Assert.That(result, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());

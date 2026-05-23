@@ -12,6 +12,6 @@ namespace PoliNorError
 	{
 		IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ErrorProcessors> configure);
 
-		IPipelineFuncBuilder<TIn, TOut> OnError(Action<ContextErrorProcessors<TMid>> configure);
+		IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ContextErrorProcessors<TMid>> configure);
 	}
 }
