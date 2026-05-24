@@ -125,21 +125,6 @@ namespace PoliNorError
 			return this;
 		}
 
-		public IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ErrorProcessors> configure)
-		{
-			void action(BulkErrorProcessor bep)
-			{
-				var processors = new ErrorProcessors();
-				configure(processors);
-				foreach (var p in processors)
-				{
-					bep.AddProcessor(p);
-				}
-			}
-			_delegateHolder.SetConfigure(action);
-			return this;
-		}
-
 		/// <summary>
 		/// Builds the pipeline function.
 		/// </summary>

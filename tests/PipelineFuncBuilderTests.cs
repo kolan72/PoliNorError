@@ -804,19 +804,6 @@ namespace PoliNorError.Tests
 		#region ConfigureErrorProcessors(Action<ErrorProcessors>) Tests
 
 		[Test]
-		public void Should_ConfigureErrorProcessors_ReturnIPipelineFuncBuilder()
-		{
-			// Arrange
-			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 1));
-
-			// Act
-			var result = builder.ConfigureErrorProcessors((ErrorProcessors _) => { });
-
-			// Assert
-			Assert.That(result, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());
-		}
-
-		[Test]
 		public void Should_ConfigureErrorProcessors_NotInvokeConfiguredProcessor_WhenNoException()
 		{
 			// Arrange
@@ -873,13 +860,12 @@ namespace PoliNorError.Tests
 		public void Should_ConfigureErrorProcessors_AddWithInfo_PassProcessingErrorInfoParam()
 		{
 			// Arrange
-			var capturedPi = new ProcessingErrorInfo(PolicyAlias.NotSet);
-			ProcessingErrorInfo capturedParam = null;
+			ProcessingErrorInfo<int> capturedParam = null;
 			var expected = new InvalidOperationException("fail-with-info");
 			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw expected));
 			var pipeline = builder
 				.ConfigureErrorProcessors(ep =>
-					ep.AddWithInfo((ex, _) =>
+					ep.Add((Exception ex, ProcessingErrorInfo<int> capturedPi) =>
 					{
 						capturedParam = capturedPi;
 						Assert.That(ex, Is.SameAs(expected));
@@ -891,7 +877,7 @@ namespace PoliNorError.Tests
 
 			// Assert
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(capturedParam, Is.EqualTo(capturedPi));
+			Assert.That(capturedParam.Param, Is.EqualTo(42));
 		}
 
 		#endregion

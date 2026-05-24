@@ -11,9 +11,45 @@ namespace PoliNorError
 	/// with fluent factory methods that mirror each constructor of <see cref="DefaultErrorProcessor{TParam}"/>.
 	/// </summary>
 	/// <typeparam name="TContext">The type of the parameter carried by <see cref="ProcessingErrorInfo{TParam}"/>.</typeparam>
-	public class ContextErrorProcessors<TContext> : IEnumerable<DefaultErrorProcessor<TContext>>
+	public class ContextErrorProcessors<TContext> : IEnumerable<IErrorProcessor>
 	{
-		private readonly List<DefaultErrorProcessor<TContext>> _processors = new List<DefaultErrorProcessor<TContext>>();
+		private readonly List<IErrorProcessor> _processors = new List<IErrorProcessor>();
+
+		public ContextErrorProcessors<TContext> Add(Action<Exception> actionProcessor)
+		{
+			_processors.Add(new DefaultErrorProcessor(actionProcessor.ToErrorProcessorFunc()));
+			return this;
+		}
+
+		public ContextErrorProcessors<TContext> Add(Action<Exception> actionProcessor, CancellationType actionCancellationType)
+		{
+			_processors.Add(new DefaultErrorProcessor(actionProcessor.ToErrorProcessorFunc(), actionCancellationType));
+			return this;
+		}
+
+		public ContextErrorProcessors<TContext> Add(Action<Exception, CancellationToken> actionProcessor)
+		{
+			_processors.Add(new DefaultErrorProcessor(actionProcessor.ToErrorProcessorFunc()));
+			return this;
+		}
+
+		public ContextErrorProcessors<TContext> Add(Func<Exception, Task> funcProcessor)
+		{
+			_processors.Add(new DefaultErrorProcessor(funcProcessor.ToErrorProcessorFunc()));
+			return this;
+		}
+
+		public ContextErrorProcessors<TContext> Add(Func<Exception, Task> funcProcessor, CancellationType actionCancellationType)
+		{
+			_processors.Add(new DefaultErrorProcessor(funcProcessor.ToErrorProcessorFunc(), actionCancellationType));
+			return this;
+		}
+
+		public ContextErrorProcessors<TContext> Add(Func<Exception, CancellationToken, Task> funcProcessor)
+		{
+			_processors.Add(new DefaultErrorProcessor(funcProcessor.ToErrorProcessorFunc()));
+			return this;
+		}
 
 		/// <summary>
 		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from a synchronous action that receives
@@ -95,7 +131,7 @@ namespace PoliNorError
 		public int Count => _processors.Count;
 
 		/// <inheritdoc/>
-		public IEnumerator<DefaultErrorProcessor<TContext>> GetEnumerator() => _processors.GetEnumerator();
+		public IEnumerator<IErrorProcessor> GetEnumerator() => _processors.GetEnumerator();
 
 		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

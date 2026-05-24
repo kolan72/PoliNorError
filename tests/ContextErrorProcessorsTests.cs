@@ -146,10 +146,11 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Enumerate_AddedProcessors_InInsertionOrder()
 		{
+			ProcessingErrorInfo<int> obj;
 			var sut = new ContextErrorProcessors<int>
 			{
-				(_, __) => { },
-				{ (_, __) => { }, CancellationType.Precancelable }
+				(_,  pi) => obj = pi ,
+				{(_) => { }, CancellationType.Precancelable }
 			};
 
 			var processors = sut.ToList();
@@ -157,6 +158,140 @@ namespace PoliNorError.Tests
 			Assert.That(sut.Count, Is.EqualTo(2));
 			Assert.That(processors.Count, Is.EqualTo(2));
 			Assert.That(ReferenceEquals(processors[0], processors[1]), Is.False);
+		}
+
+		[Test]
+		public void Should_Add_BasicActionProcessor_And_ReturnSameInstance()
+		{
+			var sut = new ContextErrorProcessors<int>();
+			var error = new Exception("test");
+			bool invoked = false;
+
+			var returned = sut.Add(ex =>
+			{
+				invoked = true;
+				Assert.That(ex, Is.SameAs(error));
+			});
+
+			Assert.That(returned, Is.SameAs(sut));
+			Assert.That(sut.Count, Is.EqualTo(1));
+
+			sut.First().Process(error);
+
+			Assert.That(invoked, Is.True);
+		}
+
+		[Test]
+		public void Should_Add_BasicActionProcessorWithCancellationType_And_InvokeProcessor()
+		{
+			var sut = new ContextErrorProcessors<int>();
+			var error = new Exception("test");
+			bool invoked = false;
+
+			sut.Add(ex =>
+			{
+				invoked = true;
+				Assert.That(ex, Is.SameAs(error));
+			}, CancellationType.Precancelable);
+
+			Assert.That(sut.Count, Is.EqualTo(1));
+
+			sut.First().Process(error);
+
+			Assert.That(invoked, Is.True);
+		}
+
+		[Test]
+		public void Should_Add_BasicActionProcessorWithToken_And_UsePassedCancellationToken()
+		{
+			var sut = new ContextErrorProcessors<int>();
+			var error = new Exception("test");
+			using (var tokenSource = new CancellationTokenSource())
+			{
+				var token = tokenSource.Token;
+				bool invoked = false;
+
+				sut.Add((Exception ex, CancellationToken ct) =>
+				{
+					invoked = true;
+					Assert.That(ex, Is.SameAs(error));
+					Assert.That(ct, Is.EqualTo(token));
+				});
+
+				Assert.That(sut.Count, Is.EqualTo(1));
+
+				sut.First().Process(error, cancellationToken: token);
+
+				Assert.That(invoked, Is.True);
+			}
+		}
+
+		[Test]
+		public async Task Should_Add_BasicAsyncProcessor_And_InvokeWithProcessAsync()
+		{
+			var sut = new ContextErrorProcessors<int>();
+			var error = new Exception("test");
+			bool invoked = false;
+
+			sut.Add(async ex =>
+			{
+				await Task.Delay(1);
+				invoked = true;
+				Assert.That(ex, Is.SameAs(error));
+			});
+
+			Assert.That(sut.Count, Is.EqualTo(1));
+
+			await sut.First().ProcessAsync(error);
+
+			Assert.That(invoked, Is.True);
+		}
+
+		[Test]
+		public async Task Should_Add_BasicAsyncProcessorWithCancellationType_And_InvokeWithProcessAsync()
+		{
+			var sut = new ContextErrorProcessors<int>();
+			var error = new Exception("test");
+			bool invoked = false;
+
+			sut.Add(async ex =>
+			{
+				await Task.Delay(1);
+				invoked = true;
+				Assert.That(ex, Is.SameAs(error));
+			}, CancellationType.Precancelable);
+
+			Assert.That(sut.Count, Is.EqualTo(1));
+
+			await sut.First().ProcessAsync(error);
+
+			Assert.That(invoked, Is.True);
+		}
+
+		[Test]
+		public async Task Should_Add_BasicAsyncProcessorWithToken_And_UsePassedCancellationToken()
+		{
+			var sut = new ContextErrorProcessors<int>();
+			var error = new Exception("test");
+			using (var source = new CancellationTokenSource())
+			{
+				var token = source.Token;
+				bool invoked = false;
+
+				sut.Add(async (Exception ex, CancellationToken ct) =>
+				{
+					await Task.Delay(1);
+					invoked = true;
+					Assert.That(ex, Is.SameAs(error));
+					Assert.That(ct, Is.EqualTo(token));
+				});
+
+				Assert.That(sut.Count, Is.EqualTo(1));
+
+				await sut.First().ProcessAsync(error, cancellationToken: token);
+
+				Assert.That(invoked, Is.True);
+			}
 		}
 	}
 }
