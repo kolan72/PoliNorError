@@ -10,6 +10,15 @@ namespace PoliNorError
 	/// <typeparam name="TOut">The output type for the pipeline.</typeparam>
 	public interface IPipelineFuncStepBuilder<TIn, TMid, TOut> : IPipelineFuncBuilder<TIn, TOut>
 	{
+		/// <summary>
+		/// Configures error processors for the current pipeline step.
+		/// </summary>
+		/// <param name="configure">
+		/// An action that configures the collection of error processors for the current pipeline step.
+		/// </param>
+		/// <returns>
+		/// An <see cref="IPipelineFuncBuilder{TIn, TOut}"/> for further pipeline configuration.
+		/// </returns>
 		IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ContextErrorProcessors<TMid>> configure);
 	}
 }

@@ -7,44 +7,82 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// A generic collection of <see cref="DefaultErrorProcessor{TParam}"/> instances
-	/// with fluent factory methods that mirror each constructor of <see cref="DefaultErrorProcessor{TParam}"/>.
+	/// Represents a generic collection of <see cref="DefaultErrorProcessor"/> and
+	/// <see cref="DefaultErrorProcessor{TParam}"/> instances for pipeline configuration,
+	/// providing fluent factory methods that mirror the constructors of
+	/// <see cref="DefaultErrorProcessor"/> and <see cref="DefaultErrorProcessor{TParam}"/>.
 	/// </summary>
 	/// <typeparam name="TContext">The type of the parameter carried by <see cref="ProcessingErrorInfo{TParam}"/>.</typeparam>
 	public class ContextErrorProcessors<TContext> : IEnumerable<IErrorProcessor>
 	{
 		private readonly List<IErrorProcessor> _processors = new List<IErrorProcessor>();
 
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that receives the exception.
+		/// </summary>
+		/// <param name="actionProcessor">The action to execute when an error occurs.</param>
+		/// <returns>The current collection instance.</returns>
 		public ContextErrorProcessors<TContext> Add(Action<Exception> actionProcessor)
 		{
 			_processors.Add(new DefaultErrorProcessor(actionProcessor.ToErrorProcessorFunc()));
 			return this;
 		}
 
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that receives the exception,
+		/// with a specified cancellation type.
+		/// </summary>
+		/// <param name="actionProcessor">The action to execute when an error occurs.</param>
+		/// <param name="actionCancellationType">Specifies how cancellation is handled for the action.</param>
+		/// <returns>The current collection instance.</returns>
 		public ContextErrorProcessors<TContext> Add(Action<Exception> actionProcessor, CancellationType actionCancellationType)
 		{
 			_processors.Add(new DefaultErrorProcessor(actionProcessor.ToErrorProcessorFunc(), actionCancellationType));
 			return this;
 		}
 
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that receives the exception
+		/// and a cancellation token.
+		/// </summary>
+		/// <param name="actionProcessor">The action to execute when an error occurs.</param>
+		/// <returns>The current collection instance.</returns>
 		public ContextErrorProcessors<TContext> Add(Action<Exception, CancellationToken> actionProcessor)
 		{
 			_processors.Add(new DefaultErrorProcessor(actionProcessor.ToErrorProcessorFunc()));
 			return this;
 		}
 
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that receives the exception.
+		/// </summary>
+		/// <param name="funcProcessor">The asynchronous function to execute when an error occurs.</param>
+		/// <returns>The current collection instance.</returns>
 		public ContextErrorProcessors<TContext> Add(Func<Exception, Task> funcProcessor)
 		{
 			_processors.Add(new DefaultErrorProcessor(funcProcessor.ToErrorProcessorFunc()));
 			return this;
 		}
 
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that receives the exception,
+		/// with a specified cancellation type.
+		/// </summary>
+		/// <param name="funcProcessor">The asynchronous function to execute when an error occurs.</param>
+		/// <param name="actionCancellationType">Specifies how cancellation is handled for the function.</param>
+		/// <returns>The current collection instance.</returns>
 		public ContextErrorProcessors<TContext> Add(Func<Exception, Task> funcProcessor, CancellationType actionCancellationType)
 		{
 			_processors.Add(new DefaultErrorProcessor(funcProcessor.ToErrorProcessorFunc(), actionCancellationType));
 			return this;
 		}
 
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that receives the exception
+		/// and a cancellation token.
+		/// </summary>
+		/// <param name="funcProcessor">The asynchronous function to execute when an error occurs.</param>
+		/// <returns>The current collection instance.</returns>
 		public ContextErrorProcessors<TContext> Add(Func<Exception, CancellationToken, Task> funcProcessor)
 		{
 			_processors.Add(new DefaultErrorProcessor(funcProcessor.ToErrorProcessorFunc()));

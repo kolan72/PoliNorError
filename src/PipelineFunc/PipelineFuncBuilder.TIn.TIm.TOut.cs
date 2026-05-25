@@ -110,6 +110,7 @@ namespace PoliNorError
 			return AddFunc(fNext, fallbackPolicy);
 		}
 
+		/// <inheritdoc/>
 		public IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ContextErrorProcessors<TIm>> configure)
 		{
 			void action(BulkErrorProcessor bep)
