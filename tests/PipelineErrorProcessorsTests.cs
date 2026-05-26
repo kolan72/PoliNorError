@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
-	public class ContextErrorProcessorsTests
+	public class PipelineErrorProcessorsTests
 	{
 		[Test]
 		public void Should_Add_ActionProcessor_And_ReturnSameInstance()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var errorInfo = new ProcessingErrorInfo<int>(PolicyAlias.Simple, new ProcessingErrorContext<int>(PolicyAlias.Simple, 7));
 			var error = new Exception("test");
 			bool invoked = false;
@@ -34,7 +34,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Add_ActionProcessorWithToken_And_UsePassedCancellationToken()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var errorInfo = new ProcessingErrorInfo<int>(PolicyAlias.Simple, new ProcessingErrorContext<int>(PolicyAlias.Simple, 3));
 			var error = new Exception("test");
 			var token = new CancellationTokenSource().Token;
@@ -57,7 +57,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Add_ActionProcessorWithCancellationType_And_AppendProcessor()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var errorInfo = new ProcessingErrorInfo<int>(PolicyAlias.Simple, new ProcessingErrorContext<int>(PolicyAlias.Simple, 5));
 			var error = new Exception("test");
 			bool invoked = false;
@@ -78,7 +78,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_Add_AsyncProcessor_And_InvokeWithProcessAsync()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var errorInfo = new ProcessingErrorInfo<int>(PolicyAlias.Simple, new ProcessingErrorContext<int>(PolicyAlias.Simple, 9));
 			var error = new Exception("test");
 			bool invoked = false;
@@ -100,7 +100,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_Add_AsyncProcessorWithToken_And_UsePassedCancellationToken()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var errorInfo = new ProcessingErrorInfo<int>(PolicyAlias.Simple, new ProcessingErrorContext<int>(PolicyAlias.Simple, 11));
 			var error = new Exception("test");
 			var token = new CancellationTokenSource().Token;
@@ -124,7 +124,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_Add_AsyncProcessorWithCancellationType_And_AppendProcessor()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var errorInfo = new ProcessingErrorInfo<int>(PolicyAlias.Simple, new ProcessingErrorContext<int>(PolicyAlias.Simple, 13));
 			var error = new Exception("test");
 			bool invoked = false;
@@ -147,7 +147,7 @@ namespace PoliNorError.Tests
 		public void Should_Enumerate_AddedProcessors_InInsertionOrder()
 		{
 			ProcessingErrorInfo<int> obj;
-			var sut = new ContextErrorProcessors<int>
+			var sut = new PipelineErrorProcessors<int>
 			{
 				(_,  pi) => obj = pi ,
 				{(_) => { }, CancellationType.Precancelable }
@@ -163,7 +163,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Add_BasicActionProcessor_And_ReturnSameInstance()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var error = new Exception("test");
 			bool invoked = false;
 
@@ -184,7 +184,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Add_BasicActionProcessorWithCancellationType_And_InvokeProcessor()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var error = new Exception("test");
 			bool invoked = false;
 
@@ -204,7 +204,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Add_BasicActionProcessorWithToken_And_UsePassedCancellationToken()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var error = new Exception("test");
 			using (var tokenSource = new CancellationTokenSource())
 			{
@@ -229,7 +229,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_Add_BasicAsyncProcessor_And_InvokeWithProcessAsync()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var error = new Exception("test");
 			bool invoked = false;
 
@@ -250,7 +250,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_Add_BasicAsyncProcessorWithCancellationType_And_InvokeWithProcessAsync()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var error = new Exception("test");
 			bool invoked = false;
 
@@ -271,7 +271,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_Add_BasicAsyncProcessorWithToken_And_UsePassedCancellationToken()
 		{
-			var sut = new ContextErrorProcessors<int>();
+			var sut = new PipelineErrorProcessors<int>();
 			var error = new Exception("test");
 			using (var source = new CancellationTokenSource())
 			{

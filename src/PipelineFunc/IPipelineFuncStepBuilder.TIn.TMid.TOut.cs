@@ -19,6 +19,6 @@ namespace PoliNorError
 		/// <returns>
 		/// An <see cref="IPipelineFuncBuilder{TIn, TOut}"/> for further pipeline configuration.
 		/// </returns>
-		IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ContextErrorProcessors<TMid>> configure);
+		IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<PipelineErrorProcessors<TMid>> configure);
 	}
 }

@@ -111,11 +111,11 @@ namespace PoliNorError
 		}
 
 		/// <inheritdoc/>
-		public IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<ContextErrorProcessors<TIm>> configure)
+		public IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<PipelineErrorProcessors<TIm>> configure)
 		{
 			void action(BulkErrorProcessor bep)
 			{
-				var processors = new ContextErrorProcessors<TIm>();
+				var processors = new PipelineErrorProcessors<TIm>();
 				configure(processors);
 				foreach(var p in processors)
 				{

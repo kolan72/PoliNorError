@@ -720,7 +720,7 @@ namespace PoliNorError.Tests
 			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 1));
 
 			// Act
-			var result = builder.ConfigureErrorProcessors((ContextErrorProcessors<int> _) => { });
+			var result = builder.ConfigureErrorProcessors((PipelineErrorProcessors<int> _) => { });
 
 			// Assert
 			Assert.That(result, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());
