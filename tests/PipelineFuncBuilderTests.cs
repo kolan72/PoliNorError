@@ -1144,5 +1144,121 @@ namespace PoliNorError.Tests
 
 			Assert.That(builder, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());
 		}
+
+		[Test]
+		public void Should_OnError_AsyncWithCancellationToken_InvokeProcessor_WhenStepThrows()
+		{
+			var expected = new InvalidOperationException("async-fail");
+			Exception capturedException = null;
+			ProcessingErrorInfo<int> capturedInfo = null;
+			CancellationToken capturedToken = default;
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)(_ => throw expected))
+				.OnError(async (Exception ex, ProcessingErrorInfo<int> info, CancellationToken token) =>
+				{
+					await Task.Delay(1);
+					capturedException = ex;
+					capturedInfo = info;
+					capturedToken = token;
+				})
+				.Build();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var result = pipeline(7, cts.Token);
+
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(capturedException, Is.SameAs(expected));
+				Assert.That(capturedInfo, Is.Not.Null);
+				Assert.That(capturedInfo.Param, Is.EqualTo(7));
+				Assert.That(capturedToken, Is.EqualTo(cts.Token));
+			}
+		}
+
+		[Test]
+		public void Should_OnError_AsyncWithCancellationToken_NotInvokeProcessor_WhenNoException()
+		{
+			var wasCalled = false;
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)(x => x + 1))
+				.OnError(async (Exception _, ProcessingErrorInfo<int> __, CancellationToken ___) =>
+				{
+					await Task.Delay(1);
+					wasCalled = true;
+				})
+				.Build();
+
+			var result = pipeline(3, CancellationToken.None);
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(4));
+			Assert.That(wasCalled, Is.False);
+		}
+
+		[Test]
+		public void Should_OnError_AsyncWithCancellationToken_ReceiveCanceledToken()
+		{
+			var expected = new InvalidOperationException("async-boom");
+			CancellationToken capturedToken = default;
+			var tokenWasCanceled = false;
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var pipeline = PipelineFuncBuilder
+					.StartWith((Func<int, int>)(_ => throw expected))
+					.OnError(async (Exception _, ProcessingErrorInfo<int> __, CancellationToken token) =>
+					{
+						//HACK
+						await Task.Delay(1);
+
+						cts.Cancel();
+
+						capturedToken = token;
+						tokenWasCanceled = token.IsCancellationRequested;
+					})
+					.Build();
+
+				var result = pipeline(1, cts.Token);
+
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(capturedToken, Is.EqualTo(cts.Token));
+				Assert.That(tokenWasCanceled, Is.True);
+			}
+		}
+
+		[Test]
+		public void Should_OnError_AsyncWithCancellationToken_WorkForIntermediateStepError()
+		{
+			var expected = new InvalidOperationException("async-middle-step-failure");
+			int capturedIntermediate = -1;
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)(s => s.Length))
+				.AddFunc((Func<int, string>)(_ => throw expected))
+				.OnError(async (Exception ex, ProcessingErrorInfo<int> info, CancellationToken _) =>
+				{
+					await Task.Delay(1);
+					Assert.That(ex, Is.SameAs(expected));
+					capturedIntermediate = info.Param;
+				})
+				.Build();
+
+			var result = pipeline("hello", CancellationToken.None);
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedIntermediate, Is.EqualTo(5));
+		}
+
+		[Test]
+		public void Should_OnError_AsyncWithCancellationToken_ReturnFluentBuilder()
+		{
+			var builder = PipelineFuncBuilder
+				.StartWith((Func<int, int>)(x => x))
+				.OnError((Exception _, ProcessingErrorInfo<int> __, CancellationToken ___) => Task.CompletedTask);
+
+			Assert.That(builder, Is.InstanceOf<IPipelineFuncBuilder<int, int>>());
+		}
 	}
 }
