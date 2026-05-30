@@ -95,6 +95,18 @@ namespace PoliNorError
 		public static T WithTypedErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException, ProcessingErrorInfo> actionProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
 			=> WithTypedErrorProcessor(policyProcessor, new DefaultTypedErrorProcessor<TException>(actionProcessor), action);
 
+		public static T WithTypedErrorProcessorOf<T, TException>(this T policyProcessor, Action<TException, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+			=> WithTypedErrorProcessor(policyProcessor, new DefaultTypedErrorProcessor<TException>(actionProcessor, cancellationType), action);
+
+		public static T WithTypedErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, ProcessingErrorInfo, Task> funcProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+			=> WithTypedErrorProcessor(policyProcessor, new DefaultTypedErrorProcessor<TException>(funcProcessor), action);
+
+		public static T WithTypedErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+			=> WithTypedErrorProcessor(policyProcessor, new DefaultTypedErrorProcessor<TException>(funcProcessor, cancellationType), action);
+
+		public static T WithTypedErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
+			=> WithTypedErrorProcessor(policyProcessor, new DefaultTypedErrorProcessor<TException>(funcProcessor), action);
+
 		public static T WithTypedErrorProcessor<T, TException>(this T policyProcessor, DefaultTypedErrorProcessor<TException> errorProcessor, Action<ICanAddErrorProcessor, IErrorProcessor> action) where T : ICanAddErrorProcessor where TException : Exception
 			=> WithErrorProcessor(policyProcessor, errorProcessor, action);
 

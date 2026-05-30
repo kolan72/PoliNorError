@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using NUnit.Framework.Legacy;
 using System;
 using System.Linq.Expressions;
 using System.Threading;
@@ -47,67 +46,67 @@ namespace PoliNorError.Tests
 			}
 
 			v.WithErrorProcessorOf((Exception _, CancellationToken __) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __, CancellationToken ___) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf((Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf((Exception _) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf((Exception _) => Expression.Empty(), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1));
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1), (_) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, CancellationToken __) => await Task.Delay(1), (_) => Expression.Empty(), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1));
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __, CancellationToken ___) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1));
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), (Exception _, ProcessingErrorInfo __) => Expression.Empty(), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _, ProcessingErrorInfo __) => await Task.Delay(1), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1));
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), (_) => Expression.Empty());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), (_) => Expression.Empty(), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessor(new DefaultErrorProcessor());
-			ClassicAssert.AreEqual(errorProcessorsCount++, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount++));
 
 			v.WithErrorProcessorOf(async (Exception _) => await Task.Delay(1), CancellationType.Precancelable);
-			ClassicAssert.AreEqual(errorProcessorsCount, v.Count);
+			Assert.That(v.Count, Is.EqualTo(errorProcessorsCount));
 		}
 
 		[Test]
@@ -155,6 +154,30 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_WithTypedErrorProcessorOf_With_CancellationType_InvokeActionWithCorrectParameters()
+		{
+			// Arrange
+			var processor = new SimplePolicyProcessor();
+			ICanAddErrorProcessor capturedCanAdd = null;
+			IErrorProcessor capturedErrorProcessor = null;
+
+			// Act
+			processor.WithTypedErrorProcessorOf<SimplePolicyProcessor, InvalidOperationException>(
+				(_, __) => { },
+				CancellationType.Precancelable,
+				(p, ep) =>
+				{
+					capturedCanAdd = p;
+					capturedErrorProcessor = ep;
+				});
+
+			// Assert
+			Assert.That(capturedCanAdd, Is.SameAs(processor));
+			Assert.That(capturedErrorProcessor, Is.Not.Null);
+			Assert.That(capturedErrorProcessor, Is.InstanceOf<DefaultTypedErrorProcessor<InvalidOperationException>>());
+		}
+
+		[Test]
 		public void Should_WithTypedErrorProcessorOf_With_CancelTokenParam_InvokeActionWithCorrectParameters()
 		{
 			// Arrange
@@ -165,6 +188,76 @@ namespace PoliNorError.Tests
 			// Act
 			processor.WithTypedErrorProcessorOf<SimplePolicyProcessor, InvalidOperationException>(
 				(_, __, ___) => { },
+				(p, ep) =>
+				{
+					capturedCanAdd = p;
+					capturedErrorProcessor = ep;
+				});
+
+			// Assert
+			Assert.That(capturedCanAdd, Is.SameAs(processor));
+			Assert.That(capturedErrorProcessor, Is.Not.Null);
+			Assert.That(capturedErrorProcessor, Is.InstanceOf<DefaultTypedErrorProcessor<InvalidOperationException>>());
+		}
+
+		[Test]
+		public void Should_WithTypedErrorProcessorOf_With_AsyncFunc_InvokeActionWithCorrectParameters()
+		{
+			// Arrange
+			var processor = new SimplePolicyProcessor();
+			ICanAddErrorProcessor capturedCanAdd = null;
+			IErrorProcessor capturedErrorProcessor = null;
+
+			// Act
+			processor.WithTypedErrorProcessorOf<SimplePolicyProcessor, InvalidOperationException>(
+				(_, __) => Task.CompletedTask,
+				(p, ep) =>
+				{
+					capturedCanAdd = p;
+					capturedErrorProcessor = ep;
+				});
+
+			// Assert
+			Assert.That(capturedCanAdd, Is.SameAs(processor));
+			Assert.That(capturedErrorProcessor, Is.Not.Null);
+			Assert.That(capturedErrorProcessor, Is.InstanceOf<DefaultTypedErrorProcessor<InvalidOperationException>>());
+		}
+
+		[Test]
+		public void Should_WithTypedErrorProcessorOf_With_AsyncFunc_And_CancellationType_InvokeActionWithCorrectParameters()
+		{
+			// Arrange
+			var processor = new SimplePolicyProcessor();
+			ICanAddErrorProcessor capturedCanAdd = null;
+			IErrorProcessor capturedErrorProcessor = null;
+
+			// Act
+			processor.WithTypedErrorProcessorOf<SimplePolicyProcessor, InvalidOperationException>(
+				(_, __) => Task.CompletedTask,
+				CancellationType.Precancelable,
+				(p, ep) =>
+				{
+					capturedCanAdd = p;
+					capturedErrorProcessor = ep;
+				});
+
+			// Assert
+			Assert.That(capturedCanAdd, Is.SameAs(processor));
+			Assert.That(capturedErrorProcessor, Is.Not.Null);
+			Assert.That(capturedErrorProcessor, Is.InstanceOf<DefaultTypedErrorProcessor<InvalidOperationException>>());
+		}
+
+		[Test]
+		public void Should_WithTypedErrorProcessorOf_With_AsyncFunc_And_CancelTokenParam_InvokeActionWithCorrectParameters()
+		{
+			// Arrange
+			var processor = new SimplePolicyProcessor();
+			ICanAddErrorProcessor capturedCanAdd = null;
+			IErrorProcessor capturedErrorProcessor = null;
+
+			// Act
+			processor.WithTypedErrorProcessorOf<SimplePolicyProcessor, InvalidOperationException>(
+				(_, __, ___) => Task.CompletedTask,
 				(p, ep) =>
 				{
 					capturedCanAdd = p;
