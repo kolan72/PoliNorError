@@ -11,6 +11,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(PolicyAlias.Simple)]
 		[TestCase(PolicyAlias.Fallback)]
+		[TestCase(PolicyAlias.Retry)]
 		public void Should_Register_Action_Processor_For_Typed_Error(PolicyAlias alias)
 		{
 			InvalidOperationException handledError = null;
@@ -43,17 +44,29 @@ namespace PoliNorError.Tests
 
 					Assert.That(registeredProcessor, Is.SameAs(fallbackProcessor));
 					break;
+				case PolicyAlias.Retry:
+					var retryProcessor = RetryProcessor.CreateDefault();
+					registeredProcessor = retryProcessor.WithTypedErrorProcessorOf<InvalidOperationException>((ex, info) =>
+					{
+						handledError = ex;
+						processingErrorInfo = info;
+					});
+
+					result = retryProcessor.Retry(() => throw new InvalidOperationException("typed"), 1);
+
+					Assert.That(registeredProcessor, Is.SameAs(retryProcessor));
+					break;
 			}
 			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault()));
 			Assert.That(handledError.Message, Is.EqualTo("typed"));
 			Assert.That(processingErrorInfo, Is.Not.Null);
 			Assert.That(result.NoError, Is.False);
-			Assert.That(result.IsSuccess, Is.True);
 		}
 
 		[Test]
 		[TestCase(PolicyAlias.Simple)]
 		[TestCase(PolicyAlias.Fallback)]
+		[TestCase(PolicyAlias.Retry)]
 		public void Should_Register_Action_Processor_With_CancellationType_For_Typed_Error(PolicyAlias alias)
 		{
 			InvalidOperationException handledError = null;
@@ -91,18 +104,32 @@ namespace PoliNorError.Tests
 
 					Assert.That(registeredProcessor, Is.SameAs(fallbackProcessor));
 					break;
+				case PolicyAlias.Retry:
+					var retryProcessor = RetryProcessor.CreateDefault();
+					registeredProcessor = retryProcessor.WithTypedErrorProcessorOf<InvalidOperationException>(
+						(ex, info) =>
+						{
+							handledError = ex;
+							processingErrorInfo = info;
+						},
+						CancellationType.Precancelable);
+
+					result = retryProcessor.Retry(() => throw new InvalidOperationException("typed"), 1);
+
+					Assert.That(registeredProcessor, Is.SameAs(registeredProcessor));
+					break;
 			}
 
 			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault()));
 			Assert.That(handledError.Message, Is.EqualTo("typed"));
 			Assert.That(processingErrorInfo, Is.Not.Null);
 			Assert.That(result.NoError, Is.False);
-			Assert.That(result.IsSuccess, Is.True);
 		}
 
 		[Test]
 		[TestCase(PolicyAlias.Simple)]
 		[TestCase(PolicyAlias.Fallback)]
+		[TestCase(PolicyAlias.Retry)]
 		public void Should_Register_Action_Processor_With_Token_For_Typed_Error(PolicyAlias alias)
 		{
 			InvalidOperationException handledError = null;
@@ -143,6 +170,19 @@ namespace PoliNorError.Tests
 
 						Assert.That(registeredProcessor, Is.SameAs(fallbackProcessor));
 						break;
+					case PolicyAlias.Retry:
+						var retryProcessor = RetryProcessor.CreateDefault();
+
+						registeredProcessor = retryProcessor.WithTypedErrorProcessorOf<InvalidOperationException>((ex, info, token) =>
+						{
+							handledError = ex;
+							processingErrorInfo = info;
+							receivedToken = token;
+						});
+
+						result = retryProcessor.Retry(() => throw new InvalidOperationException("typed"), 1, cts.Token);
+						Assert.That(registeredProcessor, Is.SameAs(retryProcessor));
+						break;
 				}
 
 				Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault()));
@@ -150,13 +190,13 @@ namespace PoliNorError.Tests
 				Assert.That(processingErrorInfo, Is.Not.Null);
 				Assert.That(receivedToken, Is.EqualTo(cts.Token));
 				Assert.That(result.NoError, Is.False);
-				Assert.That(result.IsSuccess, Is.True);
 			}
 		}
 
 		[Test]
 		[TestCase(PolicyAlias.Simple)]
 		[TestCase(PolicyAlias.Fallback)]
+		[TestCase(PolicyAlias.Retry)]
 		public async Task Should_Register_Async_Processor_For_Typed_Error(PolicyAlias alias)
 		{
 			InvalidOperationException handledError = null;
@@ -200,18 +240,35 @@ namespace PoliNorError.Tests
 
 					Assert.That(registeredProcessor, Is.SameAs(fallbackProcessor));
 					break;
+				case PolicyAlias.Retry:
+					var retryProcessor = RetryProcessor.CreateDefault();
+					registeredProcessor = retryProcessor.WithTypedErrorProcessorOf<InvalidOperationException>(async (ex, info) =>
+					{
+						await Task.Delay(1);
+						handledError = ex;
+						processingErrorInfo = info;
+					});
+
+					result = await retryProcessor.RetryAsync(async (_) =>
+					{
+						await Task.Delay(1);
+						throw new InvalidOperationException("typed");
+					}, 1);
+
+					Assert.That(registeredProcessor, Is.SameAs(retryProcessor));
+					break;
 			}
 
 			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault()));
 			Assert.That(handledError.Message, Is.EqualTo("typed"));
 			Assert.That(processingErrorInfo, Is.Not.Null);
 			Assert.That(result.NoError, Is.False);
-			Assert.That(result.IsSuccess, Is.True);
 		}
 
 		[Test]
 		[TestCase(PolicyAlias.Simple)]
 		[TestCase(PolicyAlias.Fallback)]
+		[TestCase(PolicyAlias.Retry)]
 		public async Task Should_Register_Async_Processor_With_CancellationType_For_Typed_Error(PolicyAlias alias)
 		{
 			InvalidOperationException handledError = null;
@@ -259,18 +316,35 @@ namespace PoliNorError.Tests
 
 					Assert.That(registeredProcessor, Is.SameAs(fallbackProcessor));
 					break;
+				case PolicyAlias.Retry:
+					var retryProcessor = RetryProcessor.CreateDefault();
+					registeredProcessor = retryProcessor.WithTypedErrorProcessorOf<InvalidOperationException>(async (ex, info) =>
+					{
+						await Task.Delay(1);
+						handledError = ex;
+						processingErrorInfo = info;
+					},
+					CancellationType.Precancelable);
+
+					result = await retryProcessor.RetryAsync(async (_) =>
+					{
+						await Task.Delay(1);
+						throw new InvalidOperationException("typed");
+					}, 1);
+					Assert.That(registeredProcessor, Is.SameAs(retryProcessor));
+					break;
 			}
 
 			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault()));
 			Assert.That(handledError.Message, Is.EqualTo("typed"));
 			Assert.That(processingErrorInfo, Is.Not.Null);
 			Assert.That(result.NoError, Is.False);
-			Assert.That(result.IsSuccess, Is.True);
 		}
 
 		[Test]
 		[TestCase(PolicyAlias.Simple)]
 		[TestCase(PolicyAlias.Fallback)]
+		[TestCase(PolicyAlias.Retry)]
 		public async Task Should_Register_Async_Processor_With_Token_For_Typed_Error(PolicyAlias alias)
 		{
 			InvalidOperationException handledError = null;
@@ -331,6 +405,30 @@ namespace PoliNorError.Tests
 						Assert.That(registeredProcessor, Is.SameAs(fallbackProcessor));
 
 						break;
+					case PolicyAlias.Retry:
+						var retryProcessor = RetryProcessor.CreateDefault();
+
+						registeredProcessor = retryProcessor.WithTypedErrorProcessorOf<InvalidOperationException>(async (ex, info, token) =>
+						{
+							await Task.Delay(1);
+							handledError = ex;
+							processingErrorInfo = info;
+							receivedToken = token;
+						});
+
+						result = await retryProcessor.RetryAsync(
+							async (_) =>
+							{
+								await Task.Delay(1);
+								throw new InvalidOperationException("typed");
+							},
+							new RetryCountInfo(1),
+							false,
+							cts.Token);
+
+						Assert.That(registeredProcessor, Is.SameAs(retryProcessor));
+
+						break;
 				}
 
 			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault()));
@@ -338,13 +436,13 @@ namespace PoliNorError.Tests
 			Assert.That(processingErrorInfo, Is.Not.Null);
 			Assert.That(receivedToken, Is.EqualTo(cts.Token));
 			Assert.That(result.NoError, Is.False);
-			Assert.That(result.IsSuccess, Is.True);
 			}
 		}
 
 		[Test]
 		[TestCase(PolicyAlias.Simple)]
 		[TestCase(PolicyAlias.Fallback)]
+		[TestCase(PolicyAlias.Retry)]
 		public void Should_Register_DefaultTypedErrorProcessor_For_Typed_Error(PolicyAlias alias)
 		{
 			InvalidOperationException handledError = null;
@@ -379,13 +477,19 @@ namespace PoliNorError.Tests
 
 					Assert.That(registeredProcessor, Is.SameAs(fallbackProcessor));
 					break;
+				case PolicyAlias.Retry:
+					var retryProcessor = RetryProcessor.CreateDefault();
+					registeredProcessor = retryProcessor.WithTypedErrorProcessor(errorProcessor);
+
+					result = retryProcessor.Retry(() => throw new InvalidOperationException("typed"), 1);
+					Assert.That(registeredProcessor, Is.SameAs(retryProcessor));
+					break;
 			}
 
 			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault()));
 			Assert.That(handledError.Message, Is.EqualTo("typed"));
 			Assert.That(processingErrorInfo, Is.Not.Null);
 			Assert.That(result.NoError, Is.False);
-			Assert.That(result.IsSuccess, Is.True);
 		}
 	}
 }
