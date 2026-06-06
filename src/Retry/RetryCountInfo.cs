@@ -21,12 +21,17 @@ namespace PoliNorError
 			RetryCount = IsLimited ? CorrectRetries(retryCount) : REAL_INFINITE_RETRY_COUNT;
 			StartTryCount = startTryCount;
 
-			_canRetryFunc = canRetryInner ?? CreateDefaultRetryFunc(startTryCount, RetryCount);
+			_canRetryFunc = canRetryInner ?? (startTryCount == 0 ? CreateDefaultRetryFunc(RetryCount) : CreateDefaultRetryFunc(startTryCount, RetryCount));
 		}
 
 		private static Func<int, bool> CreateDefaultRetryFunc(int startTryCount, int retryCount)
 		{
 			return nr => (nr - startTryCount) < retryCount && nr < REAL_INFINITE_RETRY_COUNT;
+		}
+
+		private static Func<int, bool> CreateDefaultRetryFunc(int retryCount)
+		{
+			return nr => nr < retryCount;
 		}
 
 		/// <summary>
@@ -49,7 +54,7 @@ namespace PoliNorError
 		{
 			return GetCountInfo(CorrectRetries(REAL_INFINITE_RETRY_COUNT), action);
 		}
-
+		
 		private static RetryCountInfo GetCountInfo(int realCount,  Action<RetryCountInfoOptions> action = null)
 		{
 			var rco = new RetryCountInfoOptions();
