@@ -18,23 +18,15 @@ namespace PoliNorError
 			IsInfinite = retryCount >= REAL_INFINITE_RETRY_COUNT;
 			IsLimited = !IsInfinite;
 
-			var innerRetryCount = RetryCount = CorrectRetryCount(IsLimited);
-
+			RetryCount = IsLimited ? CorrectRetries(retryCount) : REAL_INFINITE_RETRY_COUNT;
 			StartTryCount = startTryCount;
 
-			_canRetryFunc = GetRetryInnerFunc(startTryCount, innerRetryCount, canRetryInner);
-
-			int CorrectRetryCount(bool isLimited)
-			{
-				return isLimited ? CorrectRetries(retryCount) : REAL_INFINITE_RETRY_COUNT;
-			}
+			_canRetryFunc = canRetryInner ?? CreateDefaultRetryFunc(startTryCount, RetryCount);
 		}
 
-		private static Func<int, bool> GetRetryInnerFunc(int startTryCount, int retryCount, Func<int, bool> canRetryInner = null)
+		private static Func<int, bool> CreateDefaultRetryFunc(int startTryCount, int retryCount)
 		{
-			bool func(int nr) { return (nr - startTryCount) < retryCount && nr < REAL_INFINITE_RETRY_COUNT; }
-
-			return canRetryInner ?? func;
+			return nr => (nr - startTryCount) < retryCount && nr < REAL_INFINITE_RETRY_COUNT;
 		}
 
 		/// <summary>
