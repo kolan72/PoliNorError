@@ -54,7 +54,7 @@ namespace PoliNorError
 		{
 			return GetCountInfo(CorrectRetries(REAL_INFINITE_RETRY_COUNT), action);
 		}
-		
+
 		private static RetryCountInfo GetCountInfo(int realCount,  Action<RetryCountInfoOptions> action = null)
 		{
 			var rco = new RetryCountInfoOptions();
