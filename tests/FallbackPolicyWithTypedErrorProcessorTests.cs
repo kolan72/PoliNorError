@@ -12,6 +12,7 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator)]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public void Should_Register_Action_Processor_For_Typed_Error(FallbackTypeForTests fallbackType)
 		{
 			InvalidOperationException handledError = null;
@@ -21,6 +22,7 @@ namespace PoliNorError.Tests
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
 			FallbackPolicyWithAction fallbackPolicyWithAction = null;
+			FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc = null;
 
 			switch (fallbackType)
 			{
@@ -56,6 +58,17 @@ namespace PoliNorError.Tests
 					fallbackPolicyBase = fallbackPolicyWithAction;
 					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
 					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
+					var registeredPolicyWithAsyncFunc = fallbackPolicyWithAsyncFunc.WithTypedErrorProcessorOf<InvalidOperationException>((ex, info) =>
+					{
+						handledError = ex;
+						processingErrorInfo = info;
+					});
+					Assert.That(registeredPolicyWithAsyncFunc, Is.SameAs(fallbackPolicyWithAsyncFunc));
+					fallbackPolicyBase = fallbackPolicyWithAsyncFunc;
+					Assert.That(registeredPolicyWithAsyncFunc, Is.AssignableTo<FallbackPolicyWithAsyncFunc>());
+					break;
 			}
 
 			result = fallbackPolicyBase.Handle(() => throw new InvalidOperationException("typed"));
@@ -73,6 +86,7 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator)]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public void Should_Register_Action_Processor_With_CancellationType_For_Typed_Error(FallbackTypeForTests fallbackType)
 		{
 			InvalidOperationException handledError = null;
@@ -82,6 +96,7 @@ namespace PoliNorError.Tests
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
 			FallbackPolicyWithAction fallbackPolicyWithAction = null;
+			FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc = null;
 
 			switch (fallbackType)
 			{
@@ -123,6 +138,19 @@ namespace PoliNorError.Tests
 					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
 					fallbackPolicyBase = fallbackPolicyWithAction;
 					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
+					var registeredPolicyWithAsyncFunc = fallbackPolicyWithAsyncFunc.WithTypedErrorProcessorOf<InvalidOperationException>(
+						(ex, info) =>
+						{
+							handledError = ex;
+							processingErrorInfo = info;
+						},
+						CancellationType.Precancelable);
+					Assert.That(registeredPolicyWithAsyncFunc, Is.SameAs(fallbackPolicyWithAsyncFunc));
+					Assert.That(registeredPolicyWithAsyncFunc, Is.AssignableTo<FallbackPolicyWithAsyncFunc>());
+					fallbackPolicyBase = fallbackPolicyWithAsyncFunc;
+					break;
 			}
 
 			result = fallbackPolicyBase.Handle(() => throw new InvalidOperationException("typed"));
@@ -140,6 +168,7 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator)]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public void Should_Register_Action_Processor_With_Token_For_Typed_Error(FallbackTypeForTests fallbackType)
 		{
 			InvalidOperationException handledError = null;
@@ -150,6 +179,7 @@ namespace PoliNorError.Tests
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
 			FallbackPolicyWithAction fallbackPolicyWithAction = null;
+			FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc = null;
 
 			using (var cts = new CancellationTokenSource())
 			{
@@ -190,6 +220,18 @@ namespace PoliNorError.Tests
 						Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
 						fallbackPolicyBase = fallbackPolicyWithAction;
 						break;
+					case FallbackTypeForTests.WithAsyncFunc:
+						fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
+						var registeredPolicyWithAsyncFunc = fallbackPolicyWithAsyncFunc.WithTypedErrorProcessorOf<InvalidOperationException>((ex, info, token) =>
+						{
+							handledError = ex;
+							processingErrorInfo = info;
+							receivedToken = token;
+						});
+						Assert.That(registeredPolicyWithAsyncFunc, Is.SameAs(fallbackPolicyWithAsyncFunc));
+						Assert.That(registeredPolicyWithAsyncFunc, Is.AssignableTo<FallbackPolicyWithAsyncFunc>());
+						fallbackPolicyBase = fallbackPolicyWithAsyncFunc;
+						break;
 				}
 				result = fallbackPolicyBase.Handle(() => throw new InvalidOperationException("typed"), cts.Token);
 
@@ -208,6 +250,7 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator)]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public async Task Should_Register_Async_Processor_For_Typed_Error(FallbackTypeForTests fallbackType)
 		{
 			InvalidOperationException handledError = null;
@@ -217,6 +260,7 @@ namespace PoliNorError.Tests
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
 			FallbackPolicyWithAction fallbackPolicyWithAction = null;
+			FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc = null;
 
 			switch (fallbackType)
 			{
@@ -255,6 +299,18 @@ namespace PoliNorError.Tests
 					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
 					fallbackPolicyBase = fallbackPolicyWithAction;
 					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
+					var registeredPolicyWithAsyncFunc = fallbackPolicyWithAsyncFunc.WithTypedErrorProcessorOf<InvalidOperationException>(async (ex, info) =>
+					{
+						await Task.Delay(1);
+						handledError = ex;
+						processingErrorInfo = info;
+					});
+					Assert.That(registeredPolicyWithAsyncFunc, Is.SameAs(fallbackPolicyWithAsyncFunc));
+					Assert.That(registeredPolicyWithAsyncFunc, Is.AssignableTo<FallbackPolicyWithAsyncFunc>());
+					fallbackPolicyBase = fallbackPolicyWithAsyncFunc;
+					break;
 			}
 
 			result = await fallbackPolicyBase.HandleAsync(async _ =>
@@ -273,6 +329,7 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator)]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public async Task Should_Register_Async_Processor_With_CancellationType_For_Typed_Error(FallbackTypeForTests fallbackType)
 		{
 			InvalidOperationException handledError = null;
@@ -282,6 +339,7 @@ namespace PoliNorError.Tests
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
 			FallbackPolicyWithAction fallbackPolicyWithAction = null;
+			FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc = null;
 
 			switch (fallbackType)
 			{
@@ -326,7 +384,20 @@ namespace PoliNorError.Tests
 					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
 					fallbackPolicyBase = fallbackPolicyWithAction;
 					break;
-
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
+					var registeredPolicyWithAsyncFunc = fallbackPolicyWithAsyncFunc.WithTypedErrorProcessorOf<InvalidOperationException>(
+						async (ex, info) =>
+						{
+							await Task.Delay(1);
+							handledError = ex;
+							processingErrorInfo = info;
+						},
+						CancellationType.Precancelable);
+					Assert.That(registeredPolicyWithAsyncFunc, Is.SameAs(fallbackPolicyWithAsyncFunc));
+					Assert.That(registeredPolicyWithAsyncFunc, Is.AssignableTo<FallbackPolicyWithAsyncFunc>());
+					fallbackPolicyBase = fallbackPolicyWithAsyncFunc;
+					break;
 			}
 
 			result = await fallbackPolicyBase.HandleAsync(async _ =>
@@ -345,6 +416,7 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator)]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public async Task Should_Register_Async_Processor_With_Token_For_Typed_Error(FallbackTypeForTests fallbackType)
 		{
 			InvalidOperationException handledError = null;
@@ -355,6 +427,7 @@ namespace PoliNorError.Tests
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
 			FallbackPolicyWithAction fallbackPolicyWithAction = null;
+			FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc = null;
 
 			using (var cts = new CancellationTokenSource())
 			{
@@ -387,7 +460,7 @@ namespace PoliNorError.Tests
 						Assert.That(registeredPolicyBase, Is.AssignableTo<FallbackPolicyBase>());
 						break;
 					case FallbackTypeForTests.WithAction:
-						fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { }); ;
+						fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { });
 						var registeredPolicyWithAction = fallbackPolicyWithAction.WithTypedErrorProcessorOf<InvalidOperationException>(async (ex, info, token) =>
 						{
 							await Task.Delay(1);
@@ -398,6 +471,19 @@ namespace PoliNorError.Tests
 						Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
 						Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
 						fallbackPolicyBase = fallbackPolicyWithAction;
+						break;
+					case FallbackTypeForTests.WithAsyncFunc:
+						fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
+						var registeredPolicyWithAsyncFunc = fallbackPolicyWithAsyncFunc.WithTypedErrorProcessorOf<InvalidOperationException>(async (ex, info, token) =>
+						{
+							await Task.Delay(1);
+							handledError = ex;
+							processingErrorInfo = info;
+							receivedToken = token;
+						});
+						Assert.That(registeredPolicyWithAsyncFunc, Is.SameAs(fallbackPolicyWithAsyncFunc));
+						Assert.That(registeredPolicyWithAsyncFunc, Is.AssignableTo<FallbackPolicyWithAsyncFunc>());
+						fallbackPolicyBase = fallbackPolicyWithAsyncFunc;
 						break;
 				}
 
@@ -422,6 +508,7 @@ namespace PoliNorError.Tests
 		[TestCase(FallbackTypeForTests.Creator)]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.WithAction)]
+		[TestCase(FallbackTypeForTests.WithAsyncFunc)]
 		public void Should_Register_DefaultTypedErrorProcessor_For_Typed_Error(FallbackTypeForTests fallbackType)
 		{
 			InvalidOperationException handledError = null;
@@ -437,6 +524,7 @@ namespace PoliNorError.Tests
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
 			FallbackPolicyWithAction fallbackPolicyWithAction = null;
+			FallbackPolicyWithAsyncFunc fallbackPolicyWithAsyncFunc = null;
 
 			switch (fallbackType)
 			{
@@ -462,6 +550,14 @@ namespace PoliNorError.Tests
 					Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
 					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
 					fallbackPolicyBase = fallbackPolicyWithAction;
+					break;
+				case FallbackTypeForTests.WithAsyncFunc:
+					fallbackPolicyWithAsyncFunc = new FallbackPolicy().WithAsyncFallbackFunc((_) => Task.CompletedTask);
+					var registeredPolicyWithAsyncFunc = fallbackPolicyWithAsyncFunc.WithTypedErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicyWithAsyncFunc, Is.SameAs(fallbackPolicyWithAsyncFunc));
+					Assert.That(registeredPolicyWithAsyncFunc, Is.AssignableTo<FallbackPolicyWithAsyncFunc>());
+					fallbackPolicyBase = fallbackPolicyWithAsyncFunc;
 					break;
 			}
 
