@@ -153,5 +153,17 @@ namespace PoliNorError
 		{
 			return policyProcessor.WithInnerErrorProcessorOf(funcProcessor, _addErrorProcessorAction);
 		}
+
+		/// <summary>
+		/// Adds a inner error processor implementation to the bulk error processor.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="policyProcessor">The bulk error processor to add the error processor to.</param>
+		/// <param name="innerErrorProcessor">The inner error processor to add.</param>
+		/// <returns>The bulk error processor with the typed error processor added.</returns>
+		public static BulkErrorProcessor WithInnerErrorProcessor<TException>(this BulkErrorProcessor policyProcessor, DefaultInnerErrorProcessor<TException> innerErrorProcessor) where TException : Exception
+		{
+			return policyProcessor.WithInnerErrorProcessor(innerErrorProcessor, _addErrorProcessorAction);
+		}
 	}
 }

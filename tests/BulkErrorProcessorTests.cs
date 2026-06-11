@@ -1033,6 +1033,152 @@ namespace PoliNorError.Tests
 		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
 		}
 
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Only_Inner_Exception_Of_Specified_Type()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var innerExceptionHandled = false;
+
+			// Create an exception with a specific inner exception type
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+
+			// Act - Add processor for InvalidOperationException
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						innerExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+					}));
+
+			// Process exception with matching inner exception type
+			var result1 = bulkProcessor.Process(mainException);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result1.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public async Task Should_WithInnerErrorProcessor_Async_Handle_Only_Inner_Exception_Of_Specified_Type()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var innerExceptionHandled = false;
+
+			// Create an exception with a specific inner exception type
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+
+			// Act - Add async processor for InvalidOperationException
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						await Task.Delay(1);
+						innerExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+					}));
+
+			// Process exception with matching inner exception type
+			var result = await bulkProcessor.ProcessAsync(mainException);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Exception_Without_Matching_Inner_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var processorCalled = false;
+
+			// Create an exception without the target inner exception type
+			var nonMatchingInnerException = new ArgumentException("Wrong type");
+			var mainException = new AggregateException("Main exception", nonMatchingInnerException);
+
+			// Act - Add processor for InvalidOperationException (but we have ArgumentException as inner)
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException _, ProcessingErrorInfo __) =>
+					{
+						processorCalled = true; // Should not be called
+					}));
+
+			// Process exception with non-matching inner exception type
+			var result = bulkProcessor.Process(mainException);
+
+			// Assert - Processor should not be called since inner exception type doesn't match
+			Assert.That(processorCalled, Is.False);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Exception_Without_Inner_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var processorCalled = false;
+
+			// Create an exception without any inner exception
+			var mainException = new InvalidOperationException("Main exception without inner");
+
+			// Act - Add processor for any type (it shouldn't be called since there's no inner exception)
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<ArgumentException>(
+					(ArgumentException _, ProcessingErrorInfo __) =>
+					{
+						processorCalled = true; // Should not be called
+					}));
+
+			// Process exception without inner exception
+			bulkProcessor.Process(mainException);
+
+			// Assert - Processor should not be called since there's no inner exception of the target type
+			Assert.That(processorCalled, Is.False);
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Work_With_Multiple_Inner_Exception_Types()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var invalidOperationExceptionHandled = false;
+			var argumentExceptionHandled = false;
+
+			// Create an exception with multiple inner exceptions where only one matches
+			var innerException1 = new InvalidOperationException("First inner");
+			var mainException = new AggregateException("Main exception", innerException1);
+
+			// Act - Add processors for both types
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						invalidOperationExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("First inner"));
+					}));
+
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<ArgumentException>(
+					(ArgumentException _, ProcessingErrorInfo __) =>
+					{
+						argumentExceptionHandled = true; // Should not be called
+					}));
+
+			// Process exception with matching inner exception type
+			var result = bulkProcessor.Process(mainException);
+
+			// Assert - Only the matching processor should be called
+			Assert.That(invalidOperationExceptionHandled, Is.True);
+			Assert.That(argumentExceptionHandled, Is.False);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
 		internal class TestErrorProcessor : IErrorProcessor
 		{
 			public List<Exception> ProcessedExceptions { get; } = new List<Exception>();
