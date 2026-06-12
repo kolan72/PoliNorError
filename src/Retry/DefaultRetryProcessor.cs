@@ -291,7 +291,10 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
+			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
+			{
+				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
+			}
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -314,7 +317,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if(await HandleExceptionAsync(ex,result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -341,7 +344,10 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
+			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
+			{
+				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
+			}
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -363,7 +369,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -389,7 +395,10 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
+			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
+			{
+				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
+			}
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -413,7 +422,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -439,9 +448,13 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var handler = GetCatchBlockAsyncHandler(result, configureAwait, token, _policyRuleFunc.Apply(retryCountInfo));
+			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
+			{
+				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
+			}
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
+
 			do
 			{
 				try
@@ -462,7 +475,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, retryDelay, handler, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
@@ -515,6 +528,35 @@ namespace PoliNorError
 
 		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
 
+
+		private async Task<bool> HandleExceptionAsync(
+							Exception ex,
+							PolicyResult policyResult,
+							ErrorContext<RetryContext> errorContext,
+							Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleFunc,
+							RetryDelay retryDelay,
+							bool configureAwait,
+							CancellationToken token)
+		{
+			await HandleExceptionAsync(
+				ex,
+				policyResult,
+				errorContext,
+				SaveErrorAsync,
+				policyRuleFunc,
+				ExceptionHandlingBehavior.Handle,
+				ProcessingOrder.EvaluateThenProcess,
+				ErrorProcessingCancellationEffect.Propagate,
+				configureAwait,
+				token).ConfigureAwait(configureAwait);
+
+			if (policyResult.IsFailed)
+				return false;
+
+			await DelayProvider.DelayAndCheckIfResultFailedAsync(retryDelay?.GetDelay(errorContext.Context.CurrentRetryCount), policyResult, ex, configureAwait, token).ConfigureAwait(configureAwait);
+			return !policyResult.IsFailed;
+		}
+
 		private bool HandleException(
 			Exception ex,
 			PolicyResult policyResult,
@@ -539,40 +581,6 @@ namespace PoliNorError
 
 			DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(errorContext.Context.CurrentRetryCount), policyResult, ex, token);
 			return !policyResult.IsFailed;
-		}
-
-		private async Task<bool> HandleExceptionAsync(
-							Exception ex,
-							PolicyResult result,
-							ErrorContext<RetryContext> errorContext,
-							RetryDelay retryDelay,
-							PolicyProcessorCatchBlockAsyncHandler<RetryContext> handler,
-							bool configureAwait,
-							CancellationToken token)
-		{
-			await SaveErrorAsync(result, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
-
-			if (result.IsFailed)
-				return false;
-
-			await HandleErrorAsync(ex, result, retryDelay, handler, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
-			return !result.IsFailed;
-		}
-
-		private async Task HandleErrorAsync(Exception ex,
-							PolicyResult result,
-							RetryDelay retryDelay,
-							PolicyProcessorCatchBlockAsyncHandler<RetryContext> handler,
-							ErrorContext<RetryContext> retryContext,
-							bool configureAwait,
-							CancellationToken token)
-		{
-			result.WasResultSetToFailureByCatchBlock(await handler
-																.HandleAsync(ex, retryContext).ConfigureAwait(configureAwait));
-			if (result.IsFailed)
-				return;
-
-			await DelayProvider.DelayAndCheckIfResultFailedAsync(retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount), result, ex, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
