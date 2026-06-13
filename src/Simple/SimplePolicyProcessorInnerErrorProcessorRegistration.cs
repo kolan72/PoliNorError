@@ -129,5 +129,8 @@ namespace PoliNorError
 		/// <returns>A processor for Simple policy.</returns>
 		public static ISimplePolicyProcessor WithInnerErrorProcessorOf<TException>(this ISimplePolicyProcessor simplePolicyProcessor, Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor) where TException : Exception
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(funcProcessor);
+
+		public static ISimplePolicyProcessor WithInnerErrorProcessor<TException>(this ISimplePolicyProcessor simplePolicyProcessor, DefaultInnerErrorProcessor<TException> innerErrorProcessor) where TException : Exception
+			=> simplePolicyProcessor.WithInnerErrorProcessor<ISimplePolicyProcessor, TException>(innerErrorProcessor);
 	}
 }

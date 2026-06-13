@@ -41,5 +41,8 @@ namespace PoliNorError
 
 		internal static T WithInnerErrorProcessorOf<T, TException>(this T policyProcessor, Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor) where T : IPolicyProcessor where TException : Exception
 			=> policyProcessor.WithInnerErrorProcessorOf(funcProcessor, _addErrorProcessorAction);
+
+		internal static T WithInnerErrorProcessor<T, TException>(this T policyProcessor, DefaultInnerErrorProcessor<TException> innerErrorProcessor) where T : IPolicyProcessor where TException : Exception
+			=> policyProcessor.WithInnerErrorProcessor(innerErrorProcessor, _addErrorProcessorAction);
 	}
 }
