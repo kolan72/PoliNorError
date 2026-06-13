@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
@@ -78,6 +80,191 @@ namespace PoliNorError.Tests
 		public async Task Handle<T>(T policy, bool sync, bool withCancellationType) where T : FallbackPolicyBase, IWithInnerErrorProcessor<T>
 		{
 			await PolicyWithInnerErrorProcessorForTest.Handle(policy, sync, withCancellationType);
+		}
+
+		[Test]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Sync_Handle_Matching_Inner_Exception()
+		{
+			var policy = new SimplePolicy();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				(InvalidOperationException ex, ProcessingErrorInfo _) =>
+				{
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				});
+
+			policy.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_Handle_Matching_Inner_Exception()
+		{
+			var policy = new SimplePolicy();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+				{
+					await Task.Delay(1);
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				});
+
+			policy.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Not_Handle_When_Inner_Exception_Type_Does_Not_Match()
+		{
+			var policy = new SimplePolicy();
+			var processorCalled = false;
+
+			var nonMatchingInnerException = new ArgumentException("Wrong type");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				(InvalidOperationException _, ProcessingErrorInfo __) => processorCalled = true);
+
+			policy.WithInnerErrorProcessor(innerErrorProcessor);
+			policy.Handle(() => throw new AggregateException("Main exception", nonMatchingInnerException));
+
+			Assert.That(processorCalled, Is.False);
+		}
+
+		[Test]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Not_Handle_When_No_Inner_Exception()
+		{
+			var policy = new SimplePolicy();
+			var processorCalled = false;
+
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+				(ArgumentException _, ProcessingErrorInfo __) => processorCalled = true);
+
+			policy.WithInnerErrorProcessor(innerErrorProcessor);
+			policy.Handle(() => throw new InvalidOperationException("Exception without inner exception"));
+
+			Assert.That(processorCalled, Is.False);
+		}
+
+		[Test]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Work_With_Multiple_Inner_Exception_Types()
+		{
+			var policy = new SimplePolicy();
+			var invalidOperationExceptionHandled = false;
+			var argumentExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("First inner");
+
+			policy.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						invalidOperationExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("First inner"));
+					}));
+
+			policy.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<ArgumentException>(
+					(ArgumentException _, ProcessingErrorInfo __) => argumentExceptionHandled = true));
+
+			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+			Assert.That(invalidOperationExceptionHandled, Is.True);
+			Assert.That(argumentExceptionHandled, Is.False);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Handle_Exception_From_Inner_Processor()
+		{
+			var policy = new SimplePolicy();
+			var processorException = new ArgumentException("Processor error");
+
+			var innerException = new InvalidOperationException("Inner exception");
+
+			policy.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException _, ProcessingErrorInfo __) => throw processorException));
+
+			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+			Assert.That(result.CatchBlockErrors.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Sync_With_CancellationToken_Handle_Matching_Inner_Exception()
+		{
+			var policy = new SimplePolicy();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				(InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
+				{
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				});
+
+			policy.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_With_CancellationToken_Handle_Matching_Inner_Exception()
+		{
+			var policy = new SimplePolicy();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				async (InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
+				{
+					await Task.Delay(1);
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				});
+
+			policy.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_With_CancellationType_Handle_Matching_Inner_Exception()
+		{
+			var policy = new SimplePolicy();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+				{
+					await Task.Delay(1);
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				},
+				CancellationType.Precancelable);
+
+			policy.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
 		}
 	}
 }

@@ -77,5 +77,11 @@ namespace PoliNorError
 			errorPolicyBase.PolicyProcessor.WithInnerErrorProcessorOf(funcProcessor);
 			return errorPolicyBase;
 		}
+
+		internal static T WithInnerErrorProcessor<T, TException>(this T errorPolicyBase, DefaultInnerErrorProcessor<TException> innerErrorProcessor) where T : IPolicyBase where TException : Exception
+		{
+			errorPolicyBase.PolicyProcessor.WithInnerErrorProcessor(innerErrorProcessor);
+			return errorPolicyBase;
+		}
 	}
 }
