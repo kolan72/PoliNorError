@@ -130,6 +130,13 @@ namespace PoliNorError
 		public static ISimplePolicyProcessor WithInnerErrorProcessorOf<TException>(this ISimplePolicyProcessor simplePolicyProcessor, Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor) where TException : Exception
 			=> simplePolicyProcessor.WithInnerErrorProcessorOf<ISimplePolicyProcessor, TException>(funcProcessor);
 
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="simplePolicyProcessor">A processor for Simple policy.</param>
+		/// <param name="innerErrorProcessor">An inner error processor.</param>
+		/// <returns>A processor for Simple policy.</returns>
 		public static ISimplePolicyProcessor WithInnerErrorProcessor<TException>(this ISimplePolicyProcessor simplePolicyProcessor, DefaultInnerErrorProcessor<TException> innerErrorProcessor) where TException : Exception
 			=> simplePolicyProcessor.WithInnerErrorProcessor<ISimplePolicyProcessor, TException>(innerErrorProcessor);
 	}
