@@ -11,7 +11,6 @@ Reliable, composable error handling policies that let developers control exactly
 ## Requirements
 
 ### Validated
-
 - ✓ Retry policy with configurable retry count, delay types (constant, linear, exponential, time series), and jitter — existing
 - ✓ Fallback policy for graceful degradation — existing
 - ✓ Simple policy for basic error handling — existing
@@ -26,6 +25,7 @@ Reliable, composable error handling policies that let developers control exactly
 - ✓ Parameterized delegate support (Action<TParam>, Func<TParam, T>, etc.) — existing
 - ✓ Pipeline composition via PipelineFuncBuilder — existing
 - ✓ CatchBlockHandlers for sync/async handler creation — existing
+- ✓ Error processing time limit for RetryPolicy — implemented in v1 milestone
 
 ### Active
 
@@ -37,10 +37,9 @@ Reliable, composable error handling policies that let developers control exactly
 - [ ] Both sync and async path support for time limit
 
 ### Out of Scope
-
-- Per-attempt time limits — only total budget across all retry attempts is in scope
-- New PolicyResultFailedReason enum value — use existing PolicyProcessorFailed
-- Exception-based halt behavior — PolicyResult.SetFailed() without exception
+- Per-attempt time limits — only total budget across all retry attempts was implemented
+- New PolicyResultFailedReason enum value — used existing PolicyProcessorFailed
+- Exception-based halt behavior — implemented SetFailed() without exception
 - CancellationToken-based halt for time limit — separate mechanism from cancellation
 
 ## Context
@@ -63,11 +62,13 @@ Reliable, composable error handling policies that let developers control exactly
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Stopwatch-based time budget | System.Diagnostics.Stopwatch is available in netstandard2.0 and provides high-resolution timing | — Pending |
-| Total budget (not per-attempt) | User wants to limit total error processing time across all retries | — Pending |
-| SetFailed() without exception | User explicitly requested no exception on timeout | — Pending |
-| Existing PolicyProcessorFailed reason | No need to distinguish timeout from other processor failures | — Pending |
-| Fluent API on RetryPolicy | Consistent with existing WithWait, WithErrorProcessor patterns | — Pending |
+| Stopwatch-based time budget | System.Diagnostics.Stopwatch is available in netstandard2.0 and provides high-resolution timing | ✓ Implemented in v1 |
+| Total budget (not per-attempt) | User wants to limit total error processing time across all retries | ✓ Implemented in v1 |
+| SetFailed() without exception | User explicitly requested no exception on timeout | ✓ Implemented in v1 |
+| Existing PolicyProcessorFailed reason | No need to distinguish timeout from other processor failures | ✓ Implemented in v1 |
+| Fluent API on RetryPolicy | Consistent with existing WithWait, WithErrorProcessor patterns | ✓ Implemented in v1 |
+| TimeSpan? nullable storage | Consistent with existing optional parameter patterns | ✓ Implemented in v1 |
+| Property on RetryPolicy (not constructor) | Matches Delay property pattern for optional features | ✓ Implemented in v1 |
 
 ## Evolution
 

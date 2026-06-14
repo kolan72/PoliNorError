@@ -1,0 +1,12 @@
+﻿- [x] RETRY-EP-01: DefaultRetryProcessor accepts optional TimeSpan? errorProcessingTimeLimit parameter
+- [x] RETRY-EP-02: RetryInternal starts Stopwatch at method entry
+- [x] RETRY-EP-03: Elapsed time checked before BulkErrorProcessor processor calls
+- [x] RETRY-EP-04: Elapsed time checked before each retry-cycle iteration
+- [x] RETRY-EP-05: Failed PolicyResult when time exceeded, no exception/cancellation
+- [x] RETRY-EP-06: TimeSpan? nullable storage (null = disabled)
+- [x] RETRY-EP-07: RetryPolicy fluent API for time limit
+- [x] RETRY-EP-08: Time limit propagates to DefaultRetryProcessor
+- [x] RETRY-EP-09: SetFailed() used, no timeout exception
+- [x] RETRY-EP-10: Sync retry tests verify timeout stops retry path
+- [x] RETRY-EP-11: Async retry tests verify timeout stops retry path
+- [x] RETRY-EP-12: Null limit tests verify existing behavior preserved
