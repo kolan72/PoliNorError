@@ -1668,6 +1668,48 @@ namespace PoliNorError.Tests
 			}
 		}
 
+		[Test]
+		public void Should_ErrorProcessingTimeLimit_BeNull_ByDefault()
+		{
+			var policy = new RetryPolicy(1);
+			ClassicAssert.IsNull(policy.ErrorProcessingTimeLimit);
+			ClassicAssert.IsNull(((DefaultRetryProcessor)policy.RetryProcessor).ErrorProcessingTimeLimit);
+		}
+
+		[Test]
+		public void Should_WithErrorProcessingTimeLimit_BeFluent_AndRetainLimit()
+		{
+			var policy = new RetryPolicy(1);
+			var limit = TimeSpan.FromSeconds(3);
+			Assert.That(policy.WithErrorProcessingTimeLimit(limit), Is.SameAs(policy));
+			Assert.That(policy.ErrorProcessingTimeLimit, Is.EqualTo(limit));
+		}
+
+		[Test]
+		public void Should_WithErrorProcessingTimeLimit_Propagate_To_DefaultRetryProcessor()
+		{
+			var limit = TimeSpan.FromMilliseconds(125);
+			var policy = new RetryPolicy(1).WithErrorProcessingTimeLimit(limit);
+			ClassicAssert.AreEqual(limit, ((DefaultRetryProcessor)policy.RetryProcessor).ErrorProcessingTimeLimit);
+		}
+
+		[Test]
+		public void Should_WithErrorProcessingTimeLimit_NotThrow_ForCustomRetryProcessor()
+		{
+			var policy = new RetryPolicy(new TestRetryProcessor(), 1);
+			var returnedPolicy = policy.WithErrorProcessingTimeLimit(TimeSpan.FromMilliseconds(50));
+			Assert.That(returnedPolicy, Is.SameAs(policy));
+			Assert.That(policy.ErrorProcessingTimeLimit, Is.EqualTo(TimeSpan.FromMilliseconds(50)));
+		}
+
+		[Test]
+		public void Should_WithNoErrorProcessingTimeLimit_LeaveProcessorLimitNull()
+		{
+			var policy = new RetryPolicy(1);
+			ClassicAssert.IsNull(policy.ErrorProcessingTimeLimit);
+			ClassicAssert.IsNull(((DefaultRetryProcessor)policy.RetryProcessor).ErrorProcessingTimeLimit);
+		}
+
 		private class TestDelayErrorProcessor : DelayErrorProcessor
 		{
 			public TestDelayErrorProcessor(TimeSpan timeSpan) : base(timeSpan) { }

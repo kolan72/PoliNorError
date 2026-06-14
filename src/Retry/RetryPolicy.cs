@@ -25,6 +25,7 @@ namespace PoliNorError
 			: this(new DefaultRetryProcessor(bulkErrorProcessor, failedIfSaveErrorThrows, delayProvider), retryCountInfo)
 		{
 			Delay = retryDelay;
+			ErrorProcessingTimeLimit = null;
 		}
 
 		internal RetryPolicy(IRetryProcessor retryProcessor, RetryCountInfo retryCountInfo) : base(retryProcessor) => (RetryInfo, RetryProcessor) = (retryCountInfo, retryProcessor);
@@ -572,9 +573,21 @@ namespace PoliNorError
 
 		internal IRetryProcessor RetryProcessor { get; }
 
+		internal TimeSpan? ErrorProcessingTimeLimit { get; set; }
+
 		public RetryCountInfo RetryInfo { get; }
 
 		internal RetryDelay Delay { get; }
+
+		public RetryPolicy WithErrorProcessingTimeLimit(TimeSpan errorProcessingTimeLimit)
+		{
+			ErrorProcessingTimeLimit = errorProcessingTimeLimit;
+			if (RetryProcessor is DefaultRetryProcessor processor)
+			{
+				processor.ErrorProcessingTimeLimit = errorProcessingTimeLimit;
+			}
+			return this;
+		}
 
 		private void ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor proc)
 		{

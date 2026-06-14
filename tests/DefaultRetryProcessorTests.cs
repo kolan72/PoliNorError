@@ -1577,5 +1577,122 @@ namespace PoliNorError.Tests
 				}
 			}
 		}
+
+		[Test]
+		public void Should_ErrorProcessingTimeLimit_BeNull_ByDefault()
+		{
+			var processor = new DefaultRetryProcessor();
+			ClassicAssert.IsNull(processor.ErrorProcessingTimeLimit);
+		}
+
+		[Test]
+		public void Should_ErrorProcessingTimeLimit_StoreSuppliedBudget()
+		{
+			var limit = TimeSpan.FromMilliseconds(250);
+			var processor = new DefaultRetryProcessor(errorProcessingTimeLimit: limit);
+			ClassicAssert.AreEqual(limit, processor.ErrorProcessingTimeLimit);
+		}
+
+		[Test]
+		public void Should_ErrorProcessingTimeLimit_StoreNull_WhenExplicitlyNull()
+		{
+			var processor = new DefaultRetryProcessor(errorProcessingTimeLimit: null);
+			ClassicAssert.IsNull(processor.ErrorProcessingTimeLimit);
+		}
+
+		[Test]
+		public void Should_ErrorProcessingTimeLimit_StoreSuppliedBudget_WithBulkProcessor()
+		{
+			var limit = TimeSpan.FromMilliseconds(125);
+			var processor = new DefaultRetryProcessor(new BulkErrorProcessor(), false, limit);
+			ClassicAssert.AreEqual(limit, processor.ErrorProcessingTimeLimit);
+		}
+
+		[Test]
+		public void Should_TimeLimit_Stop_Sync_Retry_WhenExceeded()
+		{
+			var limit = TimeSpan.FromMilliseconds(50);
+
+			var processor = new DefaultRetryProcessor(errorProcessingTimeLimit: limit);
+			var attemptCount = 0;
+			void action()
+			{
+				attemptCount++;
+				Task.Delay(100).GetAwaiter().GetResult();
+				throw new Exception("Test");
+			}
+			var result = processor.Retry(action, 5);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.IsFalse(result.IsCanceled);
+			ClassicAssert.LessOrEqual(attemptCount, 3);
+		}
+
+		[Test]
+		public async Task Should_TimeLimit_Stop_Async_Retry_WhenExceeded()
+		{
+			var limit = TimeSpan.FromMilliseconds(50);
+			var processor = new DefaultRetryProcessor(errorProcessingTimeLimit: limit);
+			var attemptCount = 0;
+			async Task action(CancellationToken _)
+			{
+				attemptCount++;
+				await Task.Delay(100);
+				throw new Exception("Test");
+			}
+			var result = await processor.RetryAsync(action, 5);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.IsFalse(result.IsCanceled);
+			ClassicAssert.LessOrEqual(attemptCount, 3);
+		}
+
+		[Test]
+		public void Should_TimeLimit_SkipChecks_WhenNull()
+		{
+			var processor = new DefaultRetryProcessor(errorProcessingTimeLimit: null);
+			var attemptCount = 0;
+			void action()
+			{
+				attemptCount++;
+				throw new Exception("Test");
+			}
+			var result = processor.Retry(action, 2);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.AreEqual(3, attemptCount);
+		}
+
+		[Test]
+		public void Should_TimeLimit_SetFailed_WithoutException()
+		{
+			var limit = TimeSpan.FromMilliseconds(50);
+			var processor = new DefaultRetryProcessor(errorProcessingTimeLimit: limit);
+			var result = processor.Retry(() => throw new Exception("Test"), 5);
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.IsFalse(result.IsCanceled);
+			ClassicAssert.IsNull(result.PolicyCanceledError);
+		}
+
+		[Test]
+		public void Should_TimeLimit_Stop_AtExact_Boundary()
+		{
+			var sw = Stopwatch.StartNew();
+			var limit = TimeSpan.FromMilliseconds(100);
+			var processor = new DefaultRetryProcessor(errorProcessingTimeLimit: limit);
+			var result = processor.Retry(() =>
+			{
+				Task.Delay(TimeSpan.FromMilliseconds(1)).GetAwaiter().GetResult();
+				throw new Exception("Test");
+			}, 5);
+			ClassicAssert.IsTrue(result.IsFailed);
+			Assert.That(sw.Elapsed, Is.GreaterThanOrEqualTo(limit));
+		}
+
+		[Test]
+		public async Task Should_TimeLimit_Work_WithRetryPolicy()
+		{
+			var policy = new RetryPolicy(5).WithErrorProcessingTimeLimit(TimeSpan.FromMilliseconds(50));
+			var result = await policy.HandleAsync(async (_) => { await Task.Delay(100); throw new Exception("Test"); });
+			ClassicAssert.IsTrue(result.IsFailed);
+			ClassicAssert.IsFalse(result.IsCanceled);
+		}
 	}
 }

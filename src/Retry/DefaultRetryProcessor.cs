@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,24 +11,33 @@ namespace PoliNorError
 		private readonly bool _failedIfSaveErrorThrows;
 		private IDelayProvider _delayProvider;
 
+		internal TimeSpan? ErrorProcessingTimeLimit { get; set; }
+
 		private static readonly Func<int, RetryErrorContext> _retryErrorContextCreator = (tryCount) => new RetryErrorContext(tryCount);
 
 		private static readonly Func<RetryCountInfo, ErrorContext<RetryContext>, CancellationToken, bool> _policyRuleFunc = (retryCountInfo, exCtx, _) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 
-		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
+		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows, null, null) { }
 
 		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false)
-			: this(bulkErrorProcessor, failedIfSaveErrorThrows, null)
+			: this(bulkErrorProcessor, failedIfSaveErrorThrows, null, null)
 		{}
 
-		internal DefaultRetryProcessor(IDelayProvider delayProvider): this(null, false, delayProvider) {}
+		internal DefaultRetryProcessor(IDelayProvider delayProvider) : this(null, false, delayProvider, null) { }
 
-		internal DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows, IDelayProvider delayProvider = null)
+		internal DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows, IDelayProvider delayProvider = null, TimeSpan? errorProcessingTimeLimit = null)
 			: base(bulkErrorProcessor)
 		{
 			_failedIfSaveErrorThrows = failedIfSaveErrorThrows;
 			_delayProvider = delayProvider;
+			ErrorProcessingTimeLimit = errorProcessingTimeLimit;
 		}
+
+		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows, TimeSpan? errorProcessingTimeLimit)
+			: this(bulkErrorProcessor, failedIfSaveErrorThrows, null, errorProcessingTimeLimit) { }
+
+		public DefaultRetryProcessor(TimeSpan? errorProcessingTimeLimit)
+			: this(null, false, null, errorProcessingTimeLimit) { }
 
 		public PolicyResult Retry(Action action, RetryCountInfo retryCountInfo, CancellationToken token = default)
 		{
@@ -67,10 +77,15 @@ namespace PoliNorError
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
-
+			var stopwatch = Stopwatch.StartNew();
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					action();
@@ -92,13 +107,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token, stopwatch))
 					{
 						retryContext.IncrementCount();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -120,11 +136,15 @@ namespace PoliNorError
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
 			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
-
+			var stopwatch = Stopwatch.StartNew();
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
-
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					action(param);
@@ -146,13 +166,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token, stopwatch))
 					{
 						retryContext.IncrementCount();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -177,12 +198,17 @@ namespace PoliNorError
 			result.SetExecuted();
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
-
+			var stopwatch = Stopwatch.StartNew();
 			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					var res = func();
@@ -205,13 +231,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token, stopwatch))
 					{
 						retryContext.IncrementCount();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -236,12 +263,17 @@ namespace PoliNorError
 			result.SetExecuted();
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
-
+			var stopwatch = Stopwatch.StartNew();
 			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					var res = func(param);
@@ -264,13 +296,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token, stopwatch))
 					{
 						retryContext.IncrementCount();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -297,9 +330,14 @@ namespace PoliNorError
 			}
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
-
+			var stopwatch = Stopwatch.StartNew();
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					await func(param, token).ConfigureAwait(configureAwait);
@@ -317,13 +355,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token, stopwatch).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -350,8 +389,14 @@ namespace PoliNorError
 			}
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
+			var stopwatch = Stopwatch.StartNew();
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					await func(token).ConfigureAwait(configureAwait);
@@ -369,13 +414,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token, stopwatch).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -401,9 +447,14 @@ namespace PoliNorError
 			}
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
-
+			var stopwatch = Stopwatch.StartNew();
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					var res = await func(param, token).ConfigureAwait(configureAwait);
@@ -422,13 +473,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token, stopwatch).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -454,9 +506,14 @@ namespace PoliNorError
 			}
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
-
+			var stopwatch = Stopwatch.StartNew();
 			do
 			{
+				if (errorProcessingTimeLimitExceeded(stopwatch))
+				{
+					result.SetFailed();
+					break;
+				}
 				try
 				{
 					var res = await func(token).ConfigureAwait(configureAwait);
@@ -475,13 +532,14 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token, stopwatch).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCountAtomic();
 					}
 				}
 			}
 			while (!result.IsFailed);
+			stopwatch.Stop();
 			return result;
 		}
 
@@ -536,8 +594,14 @@ namespace PoliNorError
 							Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleFunc,
 							RetryDelay retryDelay,
 							bool configureAwait,
-							CancellationToken token)
+							CancellationToken token,
+							Stopwatch stopwatch)
 		{
+			if (errorProcessingTimeLimitExceeded(stopwatch))
+			{
+				policyResult.SetFailed();
+				return false;
+			}
 			await HandleExceptionAsync(
 				ex,
 				policyResult,
@@ -563,8 +627,14 @@ namespace PoliNorError
 			ErrorContext<RetryContext> errorContext,
 			Func<ErrorContext<RetryContext>, CancellationToken, bool> policyRuleFunc,
 			RetryDelay retryDelay,
-			CancellationToken token)
+			CancellationToken token,
+			Stopwatch stopwatch)
 		{
+			if (errorProcessingTimeLimitExceeded(stopwatch))
+			{
+				policyResult.SetFailed();
+				return false;
+			}
 			HandleException(
 				ex,
 				policyResult,
@@ -656,5 +726,16 @@ namespace PoliNorError
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
 		}
+
+		private bool errorProcessingTimeLimitExceeded(Stopwatch stopwatch)
+		{
+			return ErrorProcessingTimeLimit.HasValue && stopwatch.Elapsed >= ErrorProcessingTimeLimit.Value;
+		}
 	}
 }
+
+
+
+
+
+
