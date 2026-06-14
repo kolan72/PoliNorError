@@ -79,6 +79,9 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token.</param>
 		/// <param name="policyRuleFunc">Optional policy rule function to determine if the exception should be handled.</param>
 		/// <returns>A new instance of PolicyProcessorCatchBlockSyncHandler.</returns>
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal PolicyProcessorCatchBlockSyncHandler<T> GetCatchBlockSyncHandler<T>(PolicyResult policyResult, CancellationToken token, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null)
 		{
 			return new PolicyProcessorCatchBlockSyncHandler<T>(policyResult,
@@ -88,6 +91,9 @@ namespace PoliNorError
 																policyRuleFunc);
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal PolicyProcessorCatchBlockAsyncHandler<T> GetCatchBlockAsyncHandler<T>(PolicyResult policyResult, bool configAwait, CancellationToken token, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null)
 		{
 			return new PolicyProcessorCatchBlockAsyncHandler<T>(policyResult,
