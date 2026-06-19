@@ -83,11 +83,11 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Sync_Handle_Matching_Inner_Exception()
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Sync_Handle_Matching_Inner_Exception(PolicyAlias policyAlias)
 		{
-			var policy = new SimplePolicy();
 			var innerExceptionHandled = false;
-
 			var innerException = new InvalidOperationException("Inner exception");
 			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
 				(InvalidOperationException ex, ProcessingErrorInfo _) =>
@@ -96,17 +96,38 @@ namespace PoliNorError.Tests
 					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
 				});
 
-			policy.WithInnerErrorProcessor(innerErrorProcessor);
-			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					var simplePolicy = new SimplePolicy();
+
+					simplePolicy.WithInnerErrorProcessor(innerErrorProcessor);
+
+					result = simplePolicy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+					Assert.That(result.Errors.Count(), Is.EqualTo(1));
+					break;
+
+				case PolicyAlias.Retry:
+					var retryPolicy = new RetryPolicy(1);
+
+					retryPolicy.WithInnerErrorProcessor(innerErrorProcessor);
+
+					result = retryPolicy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+					Assert.That(result.Errors.Count(), Is.EqualTo(2));
+					break;
+			}
 
 			Assert.That(innerExceptionHandled, Is.True);
-			Assert.That(result.Errors.Count(), Is.EqualTo(1));
 		}
 
 		[Test]
-		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_Handle_Matching_Inner_Exception()
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_Handle_Matching_Inner_Exception(PolicyAlias policyAlias)
 		{
-			var policy = new SimplePolicy();
 			var innerExceptionHandled = false;
 
 			var innerException = new InvalidOperationException("Inner exception");
@@ -118,153 +139,376 @@ namespace PoliNorError.Tests
 					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
 				});
 
-			policy.WithInnerErrorProcessor(innerErrorProcessor);
-			var result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+			PolicyResult result;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					var simplePolicy = new SimplePolicy();
+					simplePolicy.WithInnerErrorProcessor(innerErrorProcessor);
+					result = await simplePolicy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
 
+					Assert.That(result.Errors.Count(), Is.EqualTo(1));
+					break;
+				case PolicyAlias.Retry:
+					var retryPolicy = new RetryPolicy(1);
+					retryPolicy.WithInnerErrorProcessor(innerErrorProcessor);
+					result = await retryPolicy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+					Assert.That(result.Errors.Count(), Is.EqualTo(2));
+					break;
+			}
 			Assert.That(innerExceptionHandled, Is.True);
-			Assert.That(result.Errors.Count(), Is.EqualTo(1));
 		}
 
 		[Test]
-		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Not_Handle_When_Inner_Exception_Type_Does_Not_Match()
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Not_Handle_When_Inner_Exception_Type_Does_Not_Match(PolicyAlias policyAlias)
 		{
-			var policy = new SimplePolicy();
-			var processorCalled = false;
-
-			var nonMatchingInnerException = new ArgumentException("Wrong type");
-			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
-				(InvalidOperationException _, ProcessingErrorInfo __) => processorCalled = true);
-
-			policy.WithInnerErrorProcessor(innerErrorProcessor);
-			policy.Handle(() => throw new AggregateException("Main exception", nonMatchingInnerException));
-
-			Assert.That(processorCalled, Is.False);
-		}
-
-		[Test]
-		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Not_Handle_When_No_Inner_Exception()
-		{
-			var policy = new SimplePolicy();
-			var processorCalled = false;
-
-			var innerErrorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
-				(ArgumentException _, ProcessingErrorInfo __) => processorCalled = true);
-
-			policy.WithInnerErrorProcessor(innerErrorProcessor);
-			policy.Handle(() => throw new InvalidOperationException("Exception without inner exception"));
-
-			Assert.That(processorCalled, Is.False);
-		}
-
-		[Test]
-		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Work_With_Multiple_Inner_Exception_Types()
-		{
-			var policy = new SimplePolicy();
-			var invalidOperationExceptionHandled = false;
-			var argumentExceptionHandled = false;
-
-			var innerException = new InvalidOperationException("First inner");
-
-			policy.WithInnerErrorProcessor(
-				new DefaultInnerErrorProcessor<InvalidOperationException>(
-					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
 					{
-						invalidOperationExceptionHandled = true;
-						Assert.That(ex.Message, Is.EqualTo("First inner"));
-					}));
+						var policy = new SimplePolicy();
+						var processorCalled = false;
 
-			policy.WithInnerErrorProcessor(
-				new DefaultInnerErrorProcessor<ArgumentException>(
-					(ArgumentException _, ProcessingErrorInfo __) => argumentExceptionHandled = true));
+						var nonMatchingInnerException = new ArgumentException("Wrong type");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							(InvalidOperationException _, ProcessingErrorInfo __) => processorCalled = true);
 
-			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = policy.Handle(() => throw new AggregateException("Main exception", nonMatchingInnerException));
 
-			Assert.That(invalidOperationExceptionHandled, Is.True);
-			Assert.That(argumentExceptionHandled, Is.False);
-			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						Assert.That(processorCalled, Is.False);
+						Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						break;
+					}
+				case PolicyAlias.Retry:
+					{
+						var policy = new RetryPolicy(1);
+						var processorCalled = false;
+
+						var nonMatchingInnerException = new ArgumentException("Wrong type");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							(InvalidOperationException _, ProcessingErrorInfo __) => processorCalled = true);
+
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = policy.Handle(() => throw new AggregateException("Main exception", nonMatchingInnerException));
+
+						Assert.That(processorCalled, Is.False);
+						Assert.That(result.Errors.Count(), Is.EqualTo(2));
+						break;
+					}
+			}
 		}
 
 		[Test]
-		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Handle_Exception_From_Inner_Processor()
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Not_Handle_When_No_Inner_Exception(PolicyAlias policyAlias)
 		{
-			var policy = new SimplePolicy();
-			var processorException = new ArgumentException("Processor error");
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					{
+						var policy = new SimplePolicy();
+						var processorCalled = false;
 
-			var innerException = new InvalidOperationException("Inner exception");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+							(ArgumentException _, ProcessingErrorInfo __) => processorCalled = true);
 
-			policy.WithInnerErrorProcessor(
-				new DefaultInnerErrorProcessor<InvalidOperationException>(
-					(InvalidOperationException _, ProcessingErrorInfo __) => throw processorException));
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = policy.Handle(() => throw new InvalidOperationException("Exception without inner exception"));
 
-			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+						Assert.That(processorCalled, Is.False);
+						Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						break;
+					}
+				case PolicyAlias.Retry:
+					{
+						var policy = new RetryPolicy(1);
+						var processorCalled = false;
 
-			Assert.That(result.CatchBlockErrors.Count(), Is.EqualTo(1));
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+							(ArgumentException _, ProcessingErrorInfo __) => processorCalled = true);
+
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = policy.Handle(() => throw new InvalidOperationException("Exception without inner exception"));
+
+						Assert.That(processorCalled, Is.False);
+						Assert.That(result.Errors.Count(), Is.EqualTo(2));
+						break;
+					}
+			}
 		}
 
 		[Test]
-		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Sync_With_CancellationToken_Handle_Matching_Inner_Exception()
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Work_With_Multiple_Inner_Exception_Types(PolicyAlias policyAlias)
 		{
-			var policy = new SimplePolicy();
-			var innerExceptionHandled = false;
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					{
+						var policy = new SimplePolicy();
+						var invalidOperationExceptionHandled = false;
+						var argumentExceptionHandled = false;
 
-			var innerException = new InvalidOperationException("Inner exception");
-			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
-				(InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
-				{
-					innerExceptionHandled = true;
-					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
-				});
+						var innerException = new InvalidOperationException("First inner");
 
-			policy.WithInnerErrorProcessor(innerErrorProcessor);
-			var result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+						policy.WithInnerErrorProcessor(
+							new DefaultInnerErrorProcessor<InvalidOperationException>(
+								(InvalidOperationException ex, ProcessingErrorInfo _) =>
+								{
+									invalidOperationExceptionHandled = true;
+									Assert.That(ex.Message, Is.EqualTo("First inner"));
+								}));
 
-			Assert.That(innerExceptionHandled, Is.True);
-			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						policy.WithInnerErrorProcessor(
+							new DefaultInnerErrorProcessor<ArgumentException>(
+								(ArgumentException _, ProcessingErrorInfo __) => argumentExceptionHandled = true));
+
+						result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+						Assert.That(invalidOperationExceptionHandled, Is.True);
+						Assert.That(argumentExceptionHandled, Is.False);
+						Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						break;
+					}
+				case PolicyAlias.Retry:
+					{
+						var policy = new RetryPolicy(1);
+						var invalidOperationExceptionHandled = false;
+						var argumentExceptionHandled = false;
+
+						var innerException = new InvalidOperationException("First inner");
+
+						policy.WithInnerErrorProcessor(
+							new DefaultInnerErrorProcessor<InvalidOperationException>(
+								(InvalidOperationException ex, ProcessingErrorInfo _) =>
+								{
+									invalidOperationExceptionHandled = true;
+									Assert.That(ex.Message, Is.EqualTo("First inner"));
+								}));
+
+						policy.WithInnerErrorProcessor(
+							new DefaultInnerErrorProcessor<ArgumentException>(
+								(ArgumentException _, ProcessingErrorInfo __) => argumentExceptionHandled = true));
+
+						result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+						Assert.That(invalidOperationExceptionHandled, Is.True);
+						Assert.That(argumentExceptionHandled, Is.False);
+						Assert.That(result.Errors.Count(), Is.EqualTo(2));
+						break;
+					}
+			}
 		}
 
 		[Test]
-		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_With_CancellationToken_Handle_Matching_Inner_Exception()
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Handle_Exception_From_Inner_Processor(PolicyAlias policyAlias)
 		{
-			var policy = new SimplePolicy();
-			var innerExceptionHandled = false;
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					{
+						var policy = new SimplePolicy();
+						var processorException = new ArgumentException("Processor error");
 
-			var innerException = new InvalidOperationException("Inner exception");
-			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
-				async (InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
-				{
-					await Task.Delay(1);
-					innerExceptionHandled = true;
-					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
-				});
+						var innerException = new InvalidOperationException("Inner exception");
 
-			policy.WithInnerErrorProcessor(innerErrorProcessor);
-			var result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+						policy.WithInnerErrorProcessor(
+							new DefaultInnerErrorProcessor<InvalidOperationException>(
+								(InvalidOperationException _, ProcessingErrorInfo __) => throw processorException));
 
-			Assert.That(innerExceptionHandled, Is.True);
-			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+						Assert.That(result.CatchBlockErrors.Count(), Is.EqualTo(1));
+						break;
+					}
+				case PolicyAlias.Retry:
+					{
+						var policy = new RetryPolicy(1);
+						var processorException = new ArgumentException("Processor error");
+
+						var innerException = new InvalidOperationException("Inner exception");
+
+						policy.WithInnerErrorProcessor(
+							new DefaultInnerErrorProcessor<InvalidOperationException>(
+								(InvalidOperationException _, ProcessingErrorInfo __) => throw processorException));
+
+						result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+						Assert.That(result.CatchBlockErrors.Count(), Is.EqualTo(1));
+						break;
+					}
+			}
 		}
 
 		[Test]
-		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_With_CancellationType_Handle_Matching_Inner_Exception()
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static void Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Sync_With_CancellationToken_Handle_Matching_Inner_Exception(PolicyAlias policyAlias)
 		{
-			var policy = new SimplePolicy();
-			var innerExceptionHandled = false;
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					{
+						var policy = new SimplePolicy();
+						var innerExceptionHandled = false;
 
-			var innerException = new InvalidOperationException("Inner exception");
-			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
-				async (InvalidOperationException ex, ProcessingErrorInfo _) =>
-				{
-					await Task.Delay(1);
-					innerExceptionHandled = true;
-					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
-				},
-				CancellationType.Precancelable);
+						var innerException = new InvalidOperationException("Inner exception");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							(InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
+							{
+								innerExceptionHandled = true;
+								Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+							});
 
-			policy.WithInnerErrorProcessor(innerErrorProcessor);
-			var result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
 
-			Assert.That(innerExceptionHandled, Is.True);
-			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						Assert.That(innerExceptionHandled, Is.True);
+						Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						break;
+					}
+				case PolicyAlias.Retry:
+					{
+						var policy = new RetryPolicy(1);
+						var innerExceptionHandled = false;
+
+						var innerException = new InvalidOperationException("Inner exception");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							(InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
+							{
+								innerExceptionHandled = true;
+								Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+							});
+
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = policy.Handle(() => throw new AggregateException("Main exception", innerException));
+
+						Assert.That(innerExceptionHandled, Is.True);
+						Assert.That(result.Errors.Count(), Is.EqualTo(2));
+						break;
+					}
+			}
+		}
+
+		[Test]
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_With_CancellationToken_Handle_Matching_Inner_Exception(PolicyAlias policyAlias)
+		{
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					{
+						var policy = new SimplePolicy();
+						var innerExceptionHandled = false;
+
+						var innerException = new InvalidOperationException("Inner exception");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							async (InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
+							{
+								await Task.Delay(1);
+								innerExceptionHandled = true;
+								Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+							});
+
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+						Assert.That(innerExceptionHandled, Is.True);
+						Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						break;
+					}
+				case PolicyAlias.Retry:
+					{
+						var policy = new RetryPolicy(1);
+						var innerExceptionHandled = false;
+
+						var innerException = new InvalidOperationException("Inner exception");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							async (InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken __) =>
+							{
+								await Task.Delay(1);
+								innerExceptionHandled = true;
+								Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+							});
+
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+						Assert.That(innerExceptionHandled, Is.True);
+						Assert.That(result.Errors.Count(), Is.EqualTo(2));
+						break;
+					}
+			}
+		}
+
+		[Test]
+		[TestCase(PolicyAlias.Simple)]
+		[TestCase(PolicyAlias.Retry)]
+		public static async Task Should_WithInnerErrorProcessor_DefaultInnerErrorProcessor_Async_With_CancellationType_Handle_Matching_Inner_Exception(PolicyAlias policyAlias)
+		{
+			PolicyResult result = null;
+			switch (policyAlias)
+			{
+				case PolicyAlias.Simple:
+					{
+						var policy = new SimplePolicy();
+						var innerExceptionHandled = false;
+
+						var innerException = new InvalidOperationException("Inner exception");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+							{
+								await Task.Delay(1);
+								innerExceptionHandled = true;
+								Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+							},
+							CancellationType.Precancelable);
+
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+						Assert.That(innerExceptionHandled, Is.True);
+						Assert.That(result.Errors.Count(), Is.EqualTo(1));
+						break;
+					}
+				case PolicyAlias.Retry:
+					{
+						var policy = new RetryPolicy(1);
+						var innerExceptionHandled = false;
+
+						var innerException = new InvalidOperationException("Inner exception");
+						var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+							async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+							{
+								await Task.Delay(1);
+								innerExceptionHandled = true;
+								Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+							},
+							CancellationType.Precancelable);
+
+						policy.WithInnerErrorProcessor(innerErrorProcessor);
+						result = await policy.HandleAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); });
+
+						Assert.That(innerExceptionHandled, Is.True);
+						Assert.That(result.Errors.Count(), Is.EqualTo(2));
+						break;
+					}
+			}
 		}
 	}
 }

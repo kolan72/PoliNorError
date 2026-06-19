@@ -65,5 +65,16 @@ namespace PoliNorError
 		{
 			return this.WithInnerErrorProcessorOf<RetryPolicy, TException>(funcProcessor);
 		}
+
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="innerErrorProcessor">An inner error processor.</param>
+		/// <returns>Current Retry policy.</returns>
+		public RetryPolicy WithInnerErrorProcessor<TException>(DefaultInnerErrorProcessor<TException> innerErrorProcessor) where TException : Exception
+		{
+			return this.WithInnerErrorProcessor<RetryPolicy, TException>(innerErrorProcessor);
+		}
 	}
 }
