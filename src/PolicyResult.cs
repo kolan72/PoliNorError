@@ -190,6 +190,7 @@ namespace PoliNorError
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
 		{
 			IsFailed = true;
@@ -201,42 +202,50 @@ namespace PoliNorError
 			throw new NotImplementedException();
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddError(Exception exception)
 		{
 			_errors.Add(exception);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddCatchBlockError(CatchBlockException catchBlockException)
 		{
 			_catchBlockErrors.Add(catchBlockException);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddCatchBlockErrors(IEnumerable<CatchBlockException> catchBlockExceptions)
 		{
 			_catchBlockErrors.AddRange(catchBlockExceptions);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddHandleResultError(PolicyResultHandlingException handlePolicyResultException)
 		{
 			_handleResultErrors.Add(handlePolicyResultException);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddHandleResultErrors(IEnumerable<PolicyResultHandlingException> handlePolicyResultExceptions)
 		{
 			_handleResultErrors.AddRange(handlePolicyResultExceptions);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetOk()
 		{
 			NoError = true;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetFailedAndCanceled()
 		{
 			SetCanceled();
 			SetFailedInner();
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetFailedAndCanceled(OperationCanceledException exception)
 		{
 			SetCanceled();
@@ -244,23 +253,27 @@ namespace PoliNorError
 			PolicyCanceledError = exception;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetFailedAndFilterUnsatisfied()
 		{
 			ErrorFilterUnsatisfied = true;
 			SetFailedInner();
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetCanceled()
 		{
 			IsCanceled = true;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetCanceledEarly()
 		{
 			IsCanceled = true;
 			NoError = true;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetExecuted()
 		{
 			_executed = true;
@@ -298,11 +311,13 @@ namespace PoliNorError
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal virtual PolicyResult GetLastWrappedPolicyResult()
 		{
 			return WrappedPolicyResults?.LastOrDefault()?.Result;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
 
@@ -324,6 +339,7 @@ namespace PoliNorError
 		///<inheritdoc cref = "PolicyResult(bool)"/>
 		public PolicyResult(bool forAsync = false) : base(forAsync){}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetResult(T result)
 		{
 			Result = result;
@@ -340,11 +356,13 @@ namespace PoliNorError
 		/// </summary>
 		public new IEnumerable<PolicyDelegateResult<T>> WrappedPolicyResults { get; internal set; }
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal override PolicyResult GetLastWrappedPolicyResult()
 		{
 			return WrappedPolicyResults?.LastOrDefault()?.Result;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal override IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 	}
 
