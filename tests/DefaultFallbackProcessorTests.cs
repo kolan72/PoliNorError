@@ -853,5 +853,119 @@ namespace PoliNorError.Tests
 				}
 			}
 		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Matching_Inner_Exception()
+		{
+			var processor = new DefaultFallbackProcessor();
+			int handlerCalled = 0;
+			string capturedMessage = null;
+
+			var innerProcessor = new DefaultInnerErrorProcessor<TestInnerException>(
+				(ex, _) => { handlerCalled++; capturedMessage = ex.Message; });
+
+			var result = processor.WithInnerErrorProcessor(innerProcessor)
+								  .Fallback(ActionWithInner, (_) => { });
+
+			Assert.That(handlerCalled, Is.EqualTo(1));
+			Assert.That(capturedMessage, Is.Not.Null.And.Not.Empty);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Not_Handle_Wrong_Exception_Type()
+		{
+			var processor = new DefaultFallbackProcessor();
+			int handlerCalled = 0;
+
+			var innerProcessor = new DefaultInnerErrorProcessor<TestInnerException>(
+				(_, __) => handlerCalled++);
+
+			var result = processor.WithInnerErrorProcessor(innerProcessor)
+								  .Fallback(Action, (_) => { });
+
+			Assert.That(handlerCalled, Is.EqualTo(0));
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Not_Handle_Without_Inner_Exception()
+		{
+			var processor = new DefaultFallbackProcessor();
+			int handlerCalled = 0;
+
+			var innerProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+				(_, __) => handlerCalled++);
+
+			var result = processor.WithInnerErrorProcessor(innerProcessor)
+								  .Fallback(Action, (_) => { });
+
+			Assert.That(handlerCalled, Is.EqualTo(0));
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Chain_Multiple_Processors()
+		{
+			var processor = new DefaultFallbackProcessor();
+			int firstHandler = 0;
+			int secondHandler = 0;
+
+			var innerProcessor1 = new DefaultInnerErrorProcessor<TestInnerException>(
+				(_, __) =>  firstHandler++);
+
+			var innerProcessor2 = new DefaultInnerErrorProcessor<TestInnerException>(
+				(_, __) => secondHandler++);
+
+			processor.WithInnerErrorProcessor(innerProcessor1)
+					 .WithInnerErrorProcessor(innerProcessor2)
+					 .Fallback(ActionWithInner, (_) => { });
+
+			Assert.That(firstHandler, Is.EqualTo(1));
+			Assert.That(secondHandler, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Different_Type_Doesnt_Interfere()
+		{
+			var processor = new DefaultFallbackProcessor();
+			int testInnerHandler = 0;
+			int argExHandler = 0;
+
+			var testInnerProcessor = new DefaultInnerErrorProcessor<TestInnerException>(
+				(_, __) => testInnerHandler++);
+
+			var argExProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+				(_, __) => argExHandler++);
+
+			processor.WithInnerErrorProcessor(testInnerProcessor)
+					 .WithInnerErrorProcessor(argExProcessor)
+					 .Fallback(ActionWithInner, (_) => { });
+
+			Assert.That(testInnerHandler, Is.EqualTo(1));
+			Assert.That(argExHandler, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Receives_Cancellation_Token()
+		{
+			var processor = new DefaultFallbackProcessor();
+			TokenReceivingHandler handler = new TokenReceivingHandler();
+
+			var innerProcessor = new DefaultInnerErrorProcessor<TestInnerException>(
+				(_, __, ct) => { handler.Called = true; handler.TokenReceived = ct; });
+
+			var result = processor.WithInnerErrorProcessor(innerProcessor)
+								  .Fallback(ActionWithInner, (_) => { });
+
+			Assert.That(handler.Called, Is.True);
+			Assert.That(result.IsSuccess, Is.True);
+		}
+
+		private class TokenReceivingHandler
+		{
+			public bool Called { get; set; }
+			public CancellationToken TokenReceived { get; set; }
+		}
 	}
 }

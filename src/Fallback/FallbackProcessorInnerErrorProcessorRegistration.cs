@@ -129,5 +129,15 @@ namespace PoliNorError
 		/// <returns>A processor for Fallback policy.</returns>
 		public static IFallbackProcessor WithInnerErrorProcessorOf<TException>(this IFallbackProcessor fallbackProcessor, Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor) where TException : Exception
 			=> fallbackProcessor.WithInnerErrorProcessorOf<IFallbackProcessor, TException>(funcProcessor);
+
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="fallbackProcessor">A processor for Fallback policy.</param>
+		/// <param name="innerErrorProcessor">An inner error processor.</param>
+		/// <returns>A processor for Fallback policy.</returns>
+		public static IFallbackProcessor WithInnerErrorProcessor<TException>(this IFallbackProcessor fallbackProcessor, DefaultInnerErrorProcessor<TException> innerErrorProcessor) where TException : Exception
+			=> fallbackProcessor.WithInnerErrorProcessor<IFallbackProcessor, TException>(innerErrorProcessor);
 	}
 }
