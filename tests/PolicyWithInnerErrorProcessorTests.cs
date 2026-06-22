@@ -510,5 +510,217 @@ namespace PoliNorError.Tests
 					}
 			}
 		}
+
+		[Test]
+		public void Should_FallbackPolicy_Register_Action_Processor_For_Inner_Error()
+		{
+			ArgumentException handledError = null;
+			ProcessingErrorInfo processingErrorInfo = null;
+			PolicyResult result = null;
+
+			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+
+			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>((ex, info) =>
+			{
+				handledError = ex;
+				processingErrorInfo = info;
+			});
+
+			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+
+			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
+			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+
+			result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")));
+
+			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault().InnerException));
+
+			Assert.That(handledError.Message, Is.EqualTo("inner"));
+			Assert.That(processingErrorInfo, Is.Not.Null);
+			Assert.That(result.NoError, Is.False);
+		}
+
+		[Test]
+		public void Should_FallbackPolicy_Register_Action_Processor_With_CancellationType_For_Inner_Error()
+		{
+			ArgumentException handledError = null;
+			ProcessingErrorInfo processingErrorInfo = null;
+			PolicyResult result = null;
+
+			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+
+			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+				(ex, info) =>
+				{
+					handledError = ex;
+					processingErrorInfo = info;
+				},
+				CancellationType.Precancelable);
+
+			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+
+			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
+			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+
+			result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")));
+
+			Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault().InnerException));
+			if (result.Errors.Any())
+			{
+				Assert.That(handledError.Message, Is.EqualTo("inner"));
+			}
+			Assert.That(processingErrorInfo, Is.Not.Null);
+			Assert.That(result.NoError, Is.False);
+		}
+
+		[Test]
+		public void Should_FallbackPolicy_Register_Action_Processor_With_Token_For_Inner_Error()
+		{
+			ArgumentException handledError = null;
+			ProcessingErrorInfo processingErrorInfo = null;
+			CancellationToken receivedToken = default;
+			PolicyResult result = null;
+
+			using (var cts = new CancellationTokenSource())
+			{
+				FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+
+				var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>((ex, info, token) =>
+				{
+					handledError = ex;
+					processingErrorInfo = info;
+					receivedToken = token;
+				});
+
+				var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+
+				Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
+				Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+
+				result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")), cts.Token);
+
+				Assert.That(handledError, Is.SameAs(result.Errors.FirstOrDefault().InnerException));
+				if (result.Errors.Any())
+				{
+					Assert.That(handledError.Message, Is.EqualTo("inner"));
+				}
+				Assert.That(processingErrorInfo, Is.Not.Null);
+				Assert.That(receivedToken, Is.EqualTo(cts.Token));
+				Assert.That(result.NoError, Is.False);
+			}
+		}
+
+		[Test]
+		public async Task Should_FallbackPolicy_Register_Async_Processor_For_Inner_Error()
+		{
+			ArgumentException handledError = null;
+			ProcessingErrorInfo processingErrorInfo = null;
+			PolicyResult result = null;
+
+			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+
+			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(async (ex, info) =>
+			{
+				await Task.Delay(1);
+				handledError = ex;
+				processingErrorInfo = info;
+			});
+
+			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+
+			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
+			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+
+			result = await fallbackPolicyBase.HandleAsync(async _ =>
+			{
+				await Task.Delay(1);
+				throw new InvalidCastException("", new ArgumentException("inner"));
+			});
+
+			Assert.That(result.Errors.Any(), Is.True);
+			Assert.That(handledError, Is.SameAs(result.Errors.First().InnerException));
+			Assert.That(handledError.Message, Is.EqualTo("inner"));
+			Assert.That(processingErrorInfo, Is.Not.Null);
+			Assert.That(result.NoError, Is.False);
+		}
+
+		[Test]
+		public async Task Should_FallbackPolicy_Register_Async_Processor_With_CancellationType_For_Inner_Error()
+		{
+			ArgumentException handledError = null;
+			ProcessingErrorInfo processingErrorInfo = null;
+			PolicyResult result = null;
+
+			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+
+			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+				async (ex, info) =>
+				{
+					await Task.Delay(1);
+					handledError = ex;
+					processingErrorInfo = info;
+				},
+				CancellationType.Precancelable);
+
+			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+
+			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
+			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+
+			result = await fallbackPolicyBase.HandleAsync(async _ =>
+			{
+				await Task.Delay(1);
+				throw new InvalidCastException("", new ArgumentException("inner"));
+			});
+
+			Assert.That(result.Errors.Any(), Is.True);
+			Assert.That(handledError, Is.SameAs(result.Errors.First().InnerException));
+			Assert.That(handledError.Message, Is.EqualTo("inner"));
+			Assert.That(processingErrorInfo, Is.Not.Null);
+			Assert.That(result.NoError, Is.False);
+		}
+
+		[Test]
+		public async Task Should_FallbackPolicy_Register_Async_Processor_With_Token_For_Inner_Error()
+		{
+			ArgumentException handledError = null;
+			ProcessingErrorInfo processingErrorInfo = null;
+			CancellationToken receivedToken = default;
+			PolicyResult result = null;
+
+			using (var cts = new CancellationTokenSource())
+			{
+				FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+
+				var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(async (ex, info, token) =>
+				{
+					await Task.Delay(1);
+					handledError = ex;
+					processingErrorInfo = info;
+					receivedToken = token;
+				});
+
+				var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+
+				Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
+				Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+
+				result = await fallbackPolicyBase.HandleAsync(
+					async _ =>
+					{
+						await Task.Delay(1);
+						throw new InvalidCastException("", new ArgumentException("inner"));
+					},
+					false,
+					cts.Token);
+
+				Assert.That(result.Errors.Any(), Is.True);
+				Assert.That(handledError, Is.SameAs(result.Errors.First().InnerException));
+				Assert.That(handledError.Message, Is.EqualTo("inner"));
+				Assert.That(receivedToken, Is.EqualTo(cts.Token));
+				Assert.That(processingErrorInfo, Is.Not.Null);
+				Assert.That(result.NoError, Is.False);
+			}
+		}
 	}
 }
