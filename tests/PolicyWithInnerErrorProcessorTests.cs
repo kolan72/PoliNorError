@@ -512,13 +512,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FallbackPolicy_Register_Action_Processor_For_Inner_Error()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		public void Should_FallbackPolicy_Register_Action_Processor_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
 			ProcessingErrorInfo processingErrorInfo = null;
 			PolicyResult result = null;
 
-			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+			FallbackPolicyBase fallbackPolicyBase = null;
+			FallbackPolicy fallbackPolicy = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>((ex, info) =>
 			{
@@ -526,10 +529,26 @@ namespace PoliNorError.Tests
 				processingErrorInfo = info;
 			});
 
-			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+					var registeredPolicyBase = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
 
-			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
-			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+					Assert.That(registeredPolicyBase, Is.SameAs(fallbackPolicyBase));
+					Assert.That(registeredPolicyBase, Is.AssignableTo<FallbackPolicyBase>());
+
+					break;
+				case FallbackTypeForTests.Creator:
+					fallbackPolicy = new FallbackPolicy();
+					var registeredPolicy = fallbackPolicy.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicy, Is.SameAs(fallbackPolicy));
+					Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicy>());
+
+					fallbackPolicyBase = fallbackPolicy;
+					break;
+			}
 
 			result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")));
 
@@ -541,13 +560,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FallbackPolicy_Register_Action_Processor_With_CancellationType_For_Inner_Error()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		public void Should_FallbackPolicy_Register_Action_Processor_With_CancellationType_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
 			ProcessingErrorInfo processingErrorInfo = null;
 			PolicyResult result = null;
 
-			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+			FallbackPolicyBase fallbackPolicyBase = null;
+			FallbackPolicy fallbackPolicy = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
 				(ex, info) =>
@@ -557,10 +579,25 @@ namespace PoliNorError.Tests
 				},
 				CancellationType.Precancelable);
 
-			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+					var registeredPolicyBase = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
 
-			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
-			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+					Assert.That(registeredPolicyBase, Is.SameAs(fallbackPolicyBase));
+					Assert.That(registeredPolicyBase, Is.AssignableTo<FallbackPolicyBase>());
+					break;
+				case FallbackTypeForTests.Creator:
+					fallbackPolicy = new FallbackPolicy();
+					var registeredPolicy = fallbackPolicy.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicy, Is.SameAs(fallbackPolicy));
+					Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicy>());
+
+					fallbackPolicyBase = fallbackPolicy;
+					break;
+			}
 
 			result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")));
 
@@ -574,17 +611,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FallbackPolicy_Register_Action_Processor_With_Token_For_Inner_Error()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		public void Should_FallbackPolicy_Register_Action_Processor_With_Token_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
 			ProcessingErrorInfo processingErrorInfo = null;
 			CancellationToken receivedToken = default;
 			PolicyResult result = null;
 
+			FallbackPolicyBase fallbackPolicyBase = null;
+			FallbackPolicy fallbackPolicy = null;
+
 			using (var cts = new CancellationTokenSource())
 			{
-				FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
-
 				var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>((ex, info, token) =>
 				{
 					handledError = ex;
@@ -592,10 +632,25 @@ namespace PoliNorError.Tests
 					receivedToken = token;
 				});
 
-				var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+				switch (fallbackType)
+				{
+					case FallbackTypeForTests.BaseClass:
+						fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+						var registeredPolicyBase = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
 
-				Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
-				Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+						Assert.That(registeredPolicyBase, Is.SameAs(fallbackPolicyBase));
+						Assert.That(registeredPolicyBase, Is.AssignableTo<FallbackPolicyBase>());
+						break;
+					case FallbackTypeForTests.Creator:
+						fallbackPolicy = new FallbackPolicy();
+						var registeredPolicy = fallbackPolicy.WithInnerErrorProcessor(errorProcessor);
+
+						Assert.That(registeredPolicy, Is.SameAs(fallbackPolicy));
+						Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicy>());
+
+						fallbackPolicyBase = fallbackPolicy;
+						break;
+				}
 
 				result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")), cts.Token);
 
@@ -611,13 +666,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_FallbackPolicy_Register_Async_Processor_For_Inner_Error()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		public async Task Should_FallbackPolicy_Register_Async_Processor_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
 			ProcessingErrorInfo processingErrorInfo = null;
 			PolicyResult result = null;
 
-			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+			FallbackPolicyBase fallbackPolicyBase = null;
+			FallbackPolicy fallbackPolicy = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(async (ex, info) =>
 			{
@@ -626,10 +684,25 @@ namespace PoliNorError.Tests
 				processingErrorInfo = info;
 			});
 
-			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+					var registeredPolicyBase = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
 
-			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
-			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+					Assert.That(registeredPolicyBase, Is.SameAs(fallbackPolicyBase));
+					Assert.That(registeredPolicyBase, Is.AssignableTo<FallbackPolicyBase>());
+					break;
+				case FallbackTypeForTests.Creator:
+					fallbackPolicy = new FallbackPolicy();
+					var registeredPolicy = fallbackPolicy.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicy, Is.SameAs(fallbackPolicy));
+					Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicy>());
+
+					fallbackPolicyBase = fallbackPolicy;
+					break;
+			}
 
 			result = await fallbackPolicyBase.HandleAsync(async _ =>
 			{
@@ -645,13 +718,16 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_FallbackPolicy_Register_Async_Processor_With_CancellationType_For_Inner_Error()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		public async Task Should_FallbackPolicy_Register_Async_Processor_With_CancellationType_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
 			ProcessingErrorInfo processingErrorInfo = null;
 			PolicyResult result = null;
 
-			FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+			FallbackPolicyBase fallbackPolicyBase = null;
+			FallbackPolicy fallbackPolicy = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
 				async (ex, info) =>
@@ -662,10 +738,25 @@ namespace PoliNorError.Tests
 				},
 				CancellationType.Precancelable);
 
-			var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+			switch (fallbackType)
+			{
+				case FallbackTypeForTests.BaseClass:
+					fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+					var registeredPolicyBase = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
 
-			Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
-			Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+					Assert.That(registeredPolicyBase, Is.SameAs(fallbackPolicyBase));
+					Assert.That(registeredPolicyBase, Is.AssignableTo<FallbackPolicyBase>());
+					break;
+				case FallbackTypeForTests.Creator:
+					fallbackPolicy = new FallbackPolicy();
+					var registeredPolicy = fallbackPolicy.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicy, Is.SameAs(fallbackPolicy));
+					Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicy>());
+
+					fallbackPolicyBase = fallbackPolicy;
+					break;
+			}
 
 			result = await fallbackPolicyBase.HandleAsync(async _ =>
 			{
@@ -681,17 +772,20 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_FallbackPolicy_Register_Async_Processor_With_Token_For_Inner_Error()
+		[TestCase(FallbackTypeForTests.BaseClass)]
+		[TestCase(FallbackTypeForTests.Creator)]
+		public async Task Should_FallbackPolicy_Register_Async_Processor_With_Token_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
 			ProcessingErrorInfo processingErrorInfo = null;
 			CancellationToken receivedToken = default;
 			PolicyResult result = null;
 
+			FallbackPolicyBase fallbackPolicyBase = null;
+			FallbackPolicy fallbackPolicy = null;
+
 			using (var cts = new CancellationTokenSource())
 			{
-				FallbackPolicyBase fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
-
 				var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(async (ex, info, token) =>
 				{
 					await Task.Delay(1);
@@ -700,10 +794,25 @@ namespace PoliNorError.Tests
 					receivedToken = token;
 				});
 
-				var registeredPolicy = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
+				switch (fallbackType)
+				{
+					case FallbackTypeForTests.BaseClass:
+						fallbackPolicyBase = new FallbackPolicy().WithAsyncFallbackFunc(_ => Task.CompletedTask).WithFallbackAction(() => { });
+						var registeredPolicyBase = fallbackPolicyBase.WithInnerErrorProcessor(errorProcessor);
 
-				Assert.That(registeredPolicy, Is.SameAs(fallbackPolicyBase));
-				Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicyBase>());
+						Assert.That(registeredPolicyBase, Is.SameAs(fallbackPolicyBase));
+						Assert.That(registeredPolicyBase, Is.AssignableTo<FallbackPolicyBase>());
+						break;
+					case FallbackTypeForTests.Creator:
+						fallbackPolicy = new FallbackPolicy();
+						var registeredPolicy = fallbackPolicy.WithInnerErrorProcessor(errorProcessor);
+
+						Assert.That(registeredPolicy, Is.SameAs(fallbackPolicy));
+						Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicy>());
+
+						fallbackPolicyBase = fallbackPolicy;
+						break;
+				}
 
 				result = await fallbackPolicyBase.HandleAsync(
 					async _ =>
