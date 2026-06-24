@@ -514,6 +514,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAction)]
 		public void Should_FallbackPolicy_Register_Action_Processor_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
@@ -522,6 +523,7 @@ namespace PoliNorError.Tests
 
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
+			FallbackPolicyWithAction fallbackPolicyWithAction = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>((ex, info) =>
 			{
@@ -548,6 +550,15 @@ namespace PoliNorError.Tests
 
 					fallbackPolicyBase = fallbackPolicy;
 					break;
+				case FallbackTypeForTests.WithAction:
+					fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { });
+					var registeredPolicyWithAction = fallbackPolicyWithAction.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
+					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
+
+					fallbackPolicyBase = fallbackPolicyWithAction;
+					break;
 			}
 
 			result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")));
@@ -562,6 +573,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAction)]
 		public void Should_FallbackPolicy_Register_Action_Processor_With_CancellationType_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
@@ -570,6 +582,7 @@ namespace PoliNorError.Tests
 
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
+			FallbackPolicyWithAction fallbackPolicyWithAction = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
 				(ex, info) =>
@@ -597,6 +610,15 @@ namespace PoliNorError.Tests
 
 					fallbackPolicyBase = fallbackPolicy;
 					break;
+				case FallbackTypeForTests.WithAction:
+					fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { });
+					var registeredPolicyWithAction = fallbackPolicyWithAction.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
+					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
+
+					fallbackPolicyBase = fallbackPolicyWithAction;
+					break;
 			}
 
 			result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")));
@@ -613,6 +635,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAction)]
 		public void Should_FallbackPolicy_Register_Action_Processor_With_Token_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
@@ -622,6 +645,7 @@ namespace PoliNorError.Tests
 
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
+			FallbackPolicyWithAction fallbackPolicyWithAction = null;
 
 			using (var cts = new CancellationTokenSource())
 			{
@@ -650,6 +674,15 @@ namespace PoliNorError.Tests
 
 						fallbackPolicyBase = fallbackPolicy;
 						break;
+					case FallbackTypeForTests.WithAction:
+						fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { });
+						var registeredPolicyWithAction = fallbackPolicyWithAction.WithInnerErrorProcessor(errorProcessor);
+
+						Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
+						Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
+
+						fallbackPolicyBase = fallbackPolicyWithAction;
+						break;
 				}
 
 				result = fallbackPolicyBase.Handle(() => throw new InvalidCastException("", new ArgumentException("inner")), cts.Token);
@@ -668,6 +701,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAction)]
 		public async Task Should_FallbackPolicy_Register_Async_Processor_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
@@ -676,6 +710,7 @@ namespace PoliNorError.Tests
 
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
+			FallbackPolicyWithAction fallbackPolicyWithAction = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(async (ex, info) =>
 			{
@@ -702,6 +737,15 @@ namespace PoliNorError.Tests
 
 					fallbackPolicyBase = fallbackPolicy;
 					break;
+				case FallbackTypeForTests.WithAction:
+					fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { });
+					var registeredPolicyWithAction = fallbackPolicyWithAction.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
+					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
+
+					fallbackPolicyBase = fallbackPolicyWithAction;
+					break;
 			}
 
 			result = await fallbackPolicyBase.HandleAsync(async _ =>
@@ -720,6 +764,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAction)]
 		public async Task Should_FallbackPolicy_Register_Async_Processor_With_CancellationType_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
@@ -728,6 +773,7 @@ namespace PoliNorError.Tests
 
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
+			FallbackPolicyWithAction fallbackPolicyWithAction = null;
 
 			var errorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
 				async (ex, info) =>
@@ -756,6 +802,15 @@ namespace PoliNorError.Tests
 
 					fallbackPolicyBase = fallbackPolicy;
 					break;
+				case FallbackTypeForTests.WithAction:
+					fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { });
+					var registeredPolicyWithAction = fallbackPolicyWithAction.WithInnerErrorProcessor(errorProcessor);
+
+					Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
+					Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
+
+					fallbackPolicyBase = fallbackPolicyWithAction;
+					break;
 			}
 
 			result = await fallbackPolicyBase.HandleAsync(async _ =>
@@ -774,6 +829,7 @@ namespace PoliNorError.Tests
 		[Test]
 		[TestCase(FallbackTypeForTests.BaseClass)]
 		[TestCase(FallbackTypeForTests.Creator)]
+		[TestCase(FallbackTypeForTests.WithAction)]
 		public async Task Should_FallbackPolicy_Register_Async_Processor_With_Token_For_Inner_Error(FallbackTypeForTests fallbackType)
 		{
 			ArgumentException handledError = null;
@@ -783,6 +839,7 @@ namespace PoliNorError.Tests
 
 			FallbackPolicyBase fallbackPolicyBase = null;
 			FallbackPolicy fallbackPolicy = null;
+			FallbackPolicyWithAction fallbackPolicyWithAction = null;
 
 			using (var cts = new CancellationTokenSource())
 			{
@@ -811,6 +868,15 @@ namespace PoliNorError.Tests
 						Assert.That(registeredPolicy, Is.AssignableTo<FallbackPolicy>());
 
 						fallbackPolicyBase = fallbackPolicy;
+						break;
+					case FallbackTypeForTests.WithAction:
+						fallbackPolicyWithAction = new FallbackPolicy().WithFallbackAction(() => { });
+						var registeredPolicyWithAction = fallbackPolicyWithAction.WithInnerErrorProcessor(errorProcessor);
+
+						Assert.That(registeredPolicyWithAction, Is.SameAs(fallbackPolicyWithAction));
+						Assert.That(registeredPolicyWithAction, Is.AssignableTo<FallbackPolicyWithAction>());
+
+						fallbackPolicyBase = fallbackPolicyWithAction;
 						break;
 				}
 
