@@ -882,7 +882,633 @@ namespace PoliNorError.Tests
 
 		#endregion
 
-		#region Edge Cases
+		#region ConfigureErrorProcessors(PipelineErrorProcessors<TIm>.AddForInnerException) Tests
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithAction_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner failure");
+			bool invoked = false;
+			ArgumentException capturedEx = null;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(ex => { invoked = true; capturedEx = ex; })
+				)
+				.Build();
+
+			// Act
+			var result = pipeline(42, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(invoked, Is.True);
+			Assert.That(capturedEx, Is.SameAs(innerEx));
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithAction_NotProcessNonMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new InvalidOperationException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new Exception("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(_ => invoked = true)
+				)
+				.Build();
+
+			// Act
+			var result = pipeline(42, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithAction_NotProcessWhenNoInnerException()
+		{
+			// Arrange
+			bool invoked = false;
+			var directEx = new ArgumentException("no inner");
+
+			string func1(int _) => throw directEx;
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(_ => invoked = true)
+				)
+				.Build();
+
+			// Act
+			var result = pipeline(42, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndCancellationType_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(_ => invoked = true, CancellationType.Precancelable)
+				)
+				.Build();
+
+			// Act
+			var result = pipeline(42, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(invoked, Is.True);
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndCancellationType_NotProcessWhenPrecancelled()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(_ => invoked = true, CancellationType.Precancelable)
+				)
+				.Build();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+
+				// Act
+				pipeline(42, cts.Token);
+			}
+
+			// Assert
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndCancellationToken_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			CancellationToken receivedToken = default;
+			bool invoked = false;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var pipeline = PipelineFuncBuilder
+					.StartWith((Func<int, string>)func1)
+					.ConfigureErrorProcessors(cep =>
+						cep.AddForInnerException((ArgumentException _, CancellationToken token) => { invoked = true; receivedToken = token; })
+					)
+					.Build();
+
+				// Act
+				var result = pipeline(42, cts.Token);
+
+				// Assert
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(invoked, Is.True);
+				Assert.That(receivedToken, Is.EqualTo(cts.Token));
+			}
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndCancellationToken_NotProcessNonMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new InvalidOperationException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new Exception("outer", innerEx);
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var pipeline = PipelineFuncBuilder
+					.StartWith((Func<int, string>)func1)
+					.ConfigureErrorProcessors(cep =>
+						cep.AddForInnerException((Action<ArgumentException, CancellationToken>)((_, __) => invoked = true))
+					)
+					.Build();
+
+				// Act
+				pipeline(42, cts.Token);
+
+				// Assert
+				Assert.That(invoked, Is.False);
+			}
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFunc_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+			ArgumentException capturedEx = null;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(async ex => { invoked = true; capturedEx = ex; await Task.CompletedTask; })
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(42, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.True);
+			Assert.That(capturedEx, Is.SameAs(innerEx));
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFunc_NotProcessNonMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new InvalidOperationException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new Exception("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(async _ => { invoked = true; await Task.CompletedTask; })
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(42, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFunc_NotProcessWhenNoInnerException()
+		{
+			// Arrange
+			bool invoked = false;
+			var directEx = new ArgumentException("no inner");
+
+			string func1(int _) => throw directEx;
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(async _ => { invoked = true; await Task.CompletedTask; })
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(42, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndCancellationToken_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			CancellationToken receivedToken = default;
+			bool invoked = false;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			using (var cts = new CancellationTokenSource())
+			{
+				const int param = 42;
+				CancellationToken ctoken = cts.Token;
+
+				var pipeline = PipelineFuncBuilder
+					.StartWith((Func<int, string>)func1)
+					.ConfigureErrorProcessors(cep =>
+						cep.AddForInnerException(async (
+							ArgumentException _,
+							CancellationToken token) => { invoked = true; receivedToken = token; await Task.CompletedTask; })
+					)
+					.Build();
+
+				// Act
+				await Task.Run(() => pipeline(param, ctoken));
+
+				// Assert
+				Assert.That(invoked, Is.True);
+				Assert.That(receivedToken, Is.EqualTo(ctoken));
+			}
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndCancellationToken_NotProcessNonMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new InvalidOperationException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new Exception("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException(async (ArgumentException _, CancellationToken __) => { invoked = true; await Task.CompletedTask; })
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(42, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndCancellationType_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+			ArgumentException capturedEx = null;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(async ex => { invoked = true; capturedEx = ex; await Task.CompletedTask; }, CancellationType.Precancelable)
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(42, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.True);
+			Assert.That(capturedEx, Is.SameAs(innerEx));
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndProcessingErrorInfo_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+			ArgumentException capturedEx = null;
+			int? capturedParam = null;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>((ex, info) => { invoked = true; capturedEx = ex; capturedParam = info.Param; })
+				)
+				.Build();
+
+			// Act
+			var result = pipeline(99, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(invoked, Is.True);
+			Assert.That(capturedEx, Is.SameAs(innerEx));
+			Assert.That(capturedParam, Is.EqualTo(99));
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndProcessingErrorInfo_NotProcessNonMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new InvalidOperationException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new Exception("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException((Action<ArgumentException, ProcessingErrorInfo<int> >)((_, __) => invoked = true))
+				)
+				.Build();
+
+			// Act
+			pipeline(42, CancellationToken.None);
+
+			// Assert
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndProcessingErrorInfoAndCancellationToken_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			CancellationToken receivedToken = default;
+			bool invoked = false;
+			int capturedParam = -1;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var pipeline = PipelineFuncBuilder
+					.StartWith((Func<int, string>)func1)
+					.ConfigureErrorProcessors(cep =>
+						cep.AddForInnerException((Action<ArgumentException, ProcessingErrorInfo<int>, CancellationToken>)((_, info, token) => { invoked = true; receivedToken = token; capturedParam = info.Param; }))
+					)
+					.Build();
+
+				// Act
+				var result = pipeline(17, cts.Token);
+
+				// Assert
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(invoked, Is.True);
+				Assert.That(capturedParam, Is.EqualTo(17));
+				Assert.That(receivedToken, Is.EqualTo(cts.Token));
+			}
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndProcessingErrorInfoAndCancellationType_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+			int capturedParam = -1;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>((_, info) => { invoked = true; capturedParam = info.Param; }, CancellationType.Precancelable)
+				)
+				.Build();
+
+			// Act
+			var result = pipeline(55, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(invoked, Is.True);
+			Assert.That(capturedParam, Is.EqualTo(55));
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithActionAndProcessingErrorInfoAndCancellationType_NotProcessWhenPrecancelled()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException(
+						(Action<ArgumentException, ProcessingErrorInfo<int>>)((_, __) => invoked = true),
+						CancellationType.Precancelable)
+				)
+				.Build();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var result = pipeline(42, cts.Token);
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsFailed, Is.True);
+			}
+
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndProcessingErrorInfo_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+			ArgumentException capturedEx = null;
+			int capturedParam = -1;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException<ArgumentException>(async (ex, info) => { invoked = true; capturedEx = ex; capturedParam = info.Param; await Task.CompletedTask; })
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(77, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.True);
+			Assert.That(capturedEx, Is.SameAs(innerEx));
+			Assert.That(capturedParam, Is.EqualTo(77));
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndProcessingErrorInfo_NotProcessNonMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new InvalidOperationException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new Exception("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException(async (
+						ArgumentException _,
+						ProcessingErrorInfo<int> __) => { invoked = true; await Task.CompletedTask; })
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(42, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndProcessingErrorInfoAndCancellationToken_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			CancellationToken receivedToken = default;
+			bool invoked = false;
+			int capturedParam = -1;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			using (var cts = new CancellationTokenSource())
+			{
+				var pipeline = PipelineFuncBuilder
+					.StartWith((Func<int, string>)func1)
+					.ConfigureErrorProcessors(cep =>
+						cep.AddForInnerException(async (
+							ArgumentException _,
+							ProcessingErrorInfo<int> info,
+							CancellationToken token) => { invoked = true; capturedParam = info.Param; receivedToken = token; await Task.CompletedTask; })
+					)
+					.Build();
+
+				// Act
+				await Task.Run(() => pipeline(33, cts.Token));
+
+				// Assert
+				Assert.That(invoked, Is.True);
+				Assert.That(capturedParam, Is.EqualTo(33));
+				Assert.That(receivedToken, Is.EqualTo(cts.Token));
+			}
+		}
+
+		[Test]
+		public async Task Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndProcessingErrorInfoAndCancellationType_ProcessMatchingInnerException()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+			int capturedParam = -1;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException(
+						async (
+							ArgumentException _,
+							ProcessingErrorInfo<int> info) => { invoked = true; capturedParam = info.Param; await Task.CompletedTask; },
+						CancellationType.Precancelable)
+				)
+				.Build();
+
+			// Act
+			await Task.Run(() => pipeline(88, CancellationToken.None));
+
+			// Assert
+			Assert.That(invoked, Is.True);
+			Assert.That(capturedParam, Is.EqualTo(88));
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_WithFuncAndProcessingErrorInfoAndCancellationType_NotProcessWhenPrecancelled()
+		{
+			// Arrange
+			var innerEx = new ArgumentException("inner");
+			bool invoked = false;
+
+			string func1(int _) => throw new InvalidOperationException("outer", innerEx);
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.ConfigureErrorProcessors(cep =>
+					cep.AddForInnerException(async (ArgumentException _, ProcessingErrorInfo<int> __) => { invoked = true; await Task.CompletedTask; }, CancellationType.Precancelable)
+				)
+				.Build();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+				var result = pipeline(42, cts.Token);
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.IsFailed, Is.True);
+			}
+
+			Assert.That(invoked, Is.False);
+		}
+
+		[Test]
+		public void Should_ConfigureErrorProcessors_AddForInnerException_ReturnFluentBuilder()
+		{
+			// Arrange
+			var builder = new PipelineFuncBuilder<int, int, string>(new PipelineDelegateHolder<int, string>(x => x.ToString()));
+
+			// Act
+			var result = builder.ConfigureErrorProcessors(cep => cep.AddForInnerException<ArgumentException>(_ => { }));
+
+			// Assert
+			Assert.That(result, Is.InstanceOf<IPipelineFuncBuilder<int, string>>());
+		}
+
+		#endregion
 
 		[Test]
 		public void Should_Pipeline_HandleNullInput()
@@ -931,7 +1557,6 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsFailed, Is.False);
 			Assert.That(result.Result, Is.EqualTo("Count: 3"));
 		}
-		#endregion
 
 		#region CancellationToken Tests
 

@@ -164,6 +164,219 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that processes
+		/// inner exceptions of the specified type.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Action<TException> actionProcessor)
+			where TException : Exception
+		{
+			var converted = actionProcessor.ToActionForInnerException();
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that processes
+		/// inner exceptions of the specified type and receives a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Action<TException, CancellationToken> actionProcessor)
+			where TException : Exception
+		{
+			var converted = actionProcessor.ToActionForInnerException();
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that processes
+		/// inner exceptions of the specified type, with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="actionCancellationType">Specifies how cancellation is handled for the action.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Action<TException> actionProcessor, CancellationType actionCancellationType)
+			where TException : Exception
+		{
+			var converted = actionProcessor.ToActionForInnerException();
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc, actionCancellationType);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that processes
+		/// inner exceptions of the specified type.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Func<TException, Task> funcProcessor)
+			where TException : Exception
+		{
+			var converted = funcProcessor.ToFuncForInnerException();
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that processes
+		/// inner exceptions of the specified type and receives a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Func<TException, CancellationToken, Task> funcProcessor)
+			where TException : Exception
+		{
+			var converted = funcProcessor.ToFuncForInnerException();
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that processes
+		/// inner exceptions of the specified type, with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="funcCancellationType">Specifies how cancellation is handled for the function.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Func<TException, Task> funcProcessor, CancellationType funcCancellationType)
+			where TException : Exception
+		{
+			var converted = funcProcessor.ToFuncForInnerException();
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc, funcCancellationType);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from a synchronous action that processes
+		/// inner exceptions of the specified type and receives the typed processing error info.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Action<TException, ProcessingErrorInfo<TContext>> actionProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+			{
+				if (ConvertExceptionDelegates.ToInnerException(ex, out TException inner))
+					actionProcessor(inner, info);
+			}));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from a synchronous action that processes
+		/// inner exceptions of the specified type and receives the typed processing error info and a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Action<TException, ProcessingErrorInfo<TContext>, CancellationToken> actionProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info, token) =>
+			{
+				if (ConvertExceptionDelegates.ToInnerException(ex, out TException inner))
+					actionProcessor(inner, info, token);
+			}));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from a synchronous action that processes
+		/// inner exceptions of the specified type and receives the typed processing error info,
+		/// with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="cancellationType">Specifies how cancellation is handled for the action.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Action<TException, ProcessingErrorInfo<TContext>> actionProcessor, CancellationType cancellationType)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+			{
+				if (ConvertExceptionDelegates.ToInnerException(ex, out TException inner))
+					actionProcessor(inner, info);
+			}, cancellationType));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from an asynchronous function that processes
+		/// inner exceptions of the specified type and receives the typed processing error info.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Func<TException, ProcessingErrorInfo<TContext>, Task> funcProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+				ConvertExceptionDelegates.ToInnerException(ex, out TException inner)
+					? funcProcessor(inner, info)
+					: Task.CompletedTask));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from an asynchronous function that processes
+		/// inner exceptions of the specified type and receives the typed processing error info and a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Func<TException, ProcessingErrorInfo<TContext>, CancellationToken, Task> funcProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info, token) =>
+				ConvertExceptionDelegates.ToInnerException(ex, out TException inner)
+					? funcProcessor(inner, info, token)
+					: Task.CompletedTask));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from an asynchronous function that processes
+		/// inner exceptions of the specified type and receives the typed processing error info,
+		/// with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The type of inner exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an inner exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="cancellationType">Specifies how cancellation is handled for the function.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForInnerException<TException>(Func<TException, ProcessingErrorInfo<TContext>, Task> funcProcessor, CancellationType cancellationType)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+				ConvertExceptionDelegates.ToInnerException(ex, out TException inner)
+					? funcProcessor(inner, info)
+					: Task.CompletedTask, cancellationType));
+			return this;
+		}
+
+		/// <summary>
 		/// Gets the number of processors currently in the collection.
 		/// </summary>
 		public int Count => _processors.Count;
