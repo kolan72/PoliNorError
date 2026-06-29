@@ -6,61 +6,137 @@ namespace PoliNorError
 {
 	public sealed partial class FallbackPolicy : IWithInnerErrorProcessor<FallbackPolicy>
 	{
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="actionProcessor">An inner error processor action.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Action<TException> actionProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(actionProcessor);
 		}
 
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="actionProcessor">An inner error processor action with cancellation token.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Action<TException, CancellationToken> actionProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(actionProcessor);
 		}
 
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="actionProcessor">An inner error processor action.</param>
+		/// <param name="cancellationType">Cancellation type to use.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Action<TException> actionProcessor, CancellationType cancellationType) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(actionProcessor, cancellationType);
 		}
 
+		/// <summary>
+		/// Adds an async error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="funcProcessor">An async inner error processor function.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Func<TException, Task> funcProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(funcProcessor);
 		}
 
+		/// <summary>
+		/// Adds an async error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="funcProcessor">An async inner error processor function.</param>
+		/// <param name="cancellationType">Cancellation type to use.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Func<TException, Task> funcProcessor, CancellationType cancellationType) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(funcProcessor, cancellationType);
 		}
 
+		/// <summary>
+		/// Adds an async error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="funcProcessor">An async inner error processor function with cancellation token.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Func<TException, CancellationToken, Task> funcProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(funcProcessor);
 		}
 
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="actionProcessor">An inner error processor action with processing error info.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Action<TException, ProcessingErrorInfo> actionProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(actionProcessor);
 		}
 
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="actionProcessor">An inner error processor action with processing error info and cancellation token.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(actionProcessor);
 		}
 
+		/// <summary>
+		/// Adds an error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="actionProcessor">An inner error processor action with processing error info.</param>
+		/// <param name="cancellationType">Cancellation type to use.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Action<TException, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(actionProcessor, cancellationType);
 		}
 
+		/// <summary>
+		/// Adds an async error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="funcProcessor">An async inner error processor function with processing error info.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Func<TException, ProcessingErrorInfo, Task> funcProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(funcProcessor);
 		}
 
+		/// <summary>
+		/// Adds an async error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="funcProcessor">An async inner error processor function with processing error info.</param>
+		/// <param name="cancellationType">Cancellation type to use.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(funcProcessor, cancellationType);
 		}
 
+		/// <summary>
+		/// Adds an async error processor for handling inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="funcProcessor">An async inner error processor function with processing error info and cancellation token.</param>
+		/// <returns>Current Fallback policy.</returns>
 		public new FallbackPolicy WithInnerErrorProcessorOf<TException>(Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor) where TException : Exception
 		{
 			return this.WithInnerErrorProcessorOf<FallbackPolicy, TException>(funcProcessor);
