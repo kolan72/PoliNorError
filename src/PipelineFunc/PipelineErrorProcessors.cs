@@ -18,6 +18,17 @@ namespace PoliNorError
 		private readonly List<IErrorProcessor> _processors = new List<IErrorProcessor>();
 
 		/// <summary>
+		/// Adds an <see cref="IErrorProcessor"/> instance to the collection.
+		/// </summary>
+		/// <param name="errorProcessor">The error processor to add.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> Add(IErrorProcessor errorProcessor)
+		{
+			_processors.Add(errorProcessor);
+			return this;
+		}
+
+		/// <summary>
 		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that receives the exception.
 		/// </summary>
 		/// <param name="actionProcessor">The action to execute when an error occurs.</param>
