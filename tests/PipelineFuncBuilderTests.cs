@@ -1802,6 +1802,38 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_OnError_AsyncWithCancellationToken_InvokeProcessorOnlyOnce_WhenStepThrows()
+		{
+			var expected = new InvalidOperationException("async-fail");
+			Exception capturedException = null;
+			ProcessingErrorInfo<int> capturedInfo = null;
+			int count = 0;
+
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, int>)(_ => throw expected))
+				.OnError(async (Exception ex, ProcessingErrorInfo<int> info, CancellationToken _) =>
+				{
+					await Task.Delay(1);
+					capturedException = ex;
+					capturedInfo = info;
+					count++;
+				})
+				.Build();
+
+			var result = pipeline(7, default);
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(capturedException, Is.SameAs(expected));
+			Assert.That(capturedInfo, Is.Not.Null);
+			Assert.That(capturedInfo.Param, Is.EqualTo(7));
+			Assert.That(count, Is.EqualTo(1));
+
+			count = 0;
+			_ = pipeline(7, default);
+			Assert.That(count, Is.EqualTo(1));
+		}
+
+		[Test]
 		public void Should_OnError_AsyncWithCancellationToken_NotInvokeProcessor_WhenNoException()
 		{
 			var wasCalled = false;

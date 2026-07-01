@@ -10,8 +10,6 @@ namespace PoliNorError
 	/// <typeparam name="TOut">The output type.</typeparam>
 	internal class PipelineDelegateHolder<TIn, TOut> : IPipelineDelegateHolder<TIn, TOut>
 	{
-		private Action<BulkErrorProcessor> _configureProcessors;
-
 		private readonly Func<TIn, TOut> _func;
 		private readonly IPolicyBase _policy;
 
@@ -31,7 +29,7 @@ namespace PoliNorError
 		public PipelineDelegateHolder(Func<TIn, TOut> func, IPolicyBase policy)
 		{
 			_func = func;
-			_policy = policy;
+			_policy = policy ?? new SimplePolicy();
 		}
 
 		/// <summary>
@@ -40,7 +38,14 @@ namespace PoliNorError
 		/// <param name="configureProcessors">The action to configure bulk error processors.</param>
 		public void SetConfigure(Action<BulkErrorProcessor> configureProcessors)
 		{
-			_configureProcessors = configureProcessors;
+			var bp = new BulkErrorProcessor();
+			configureProcessors?.Invoke(bp);
+
+			// Apply custom error processors to the provided policy
+			foreach (var processor in bp)
+			{
+				_policy.PolicyProcessor.WithErrorProcessor(processor);
+			}
 		}
 
 		/// <summary>
@@ -51,19 +56,8 @@ namespace PoliNorError
 		{
 			return (t, ct) =>
 			{
-				var bp = new BulkErrorProcessor();
-				_configureProcessors?.Invoke(bp);
-
-				var policy = _policy ?? new SimplePolicy();
-
-				// Apply custom error processors to the provided policy
-				foreach (var processor in bp)
-				{
-					policy.PolicyProcessor.WithErrorProcessor(processor);
-				}
-
 				PolicyResult<TOut> res = null;
-				switch (policy)
+				switch (_policy)
 				{
 					case RetryPolicy rp:
 						res = rp.Handle(_func, t, ct);
@@ -80,7 +74,7 @@ namespace PoliNorError
 						break;
 				}
 
-				if (((policy is SimplePolicy) ? !res.NoError : res.IsFailed) || res.IsCanceled)
+				if (((_policy is SimplePolicy) ? !res.NoError : res.IsFailed) || res.IsCanceled)
 				{
 					return PipelineResult<TOut>.Failure(res);
 				}
