@@ -19,15 +19,6 @@ namespace PoliNorError
 		IPipelineFuncStepBuilder<TIn, TOut, TNext> AddFunc<TNext>(Func<TOut, TNext> fNext);
 
 		/// <summary>
-		/// Adds a function to the pipeline that transforms the output using a specified policy.
-		/// </summary>
-		/// <typeparam name="TNext">The type of the next step's output.</typeparam>
-		/// <param name="fNext">The function to add to the pipeline.</param>
-		/// <param name="policy">The policy to use for error handling. If null, a SimplePolicy will be created.</param>
-		/// <returns>A step builder for the next pipeline stage.</returns>
-		IPipelineFuncStepBuilder<TIn, TOut, TNext> AddFunc<TNext>(Func<TOut, TNext> fNext, IPolicyBase policy);
-
-		/// <summary>
 		/// Adds a function to the pipeline with retry policy.
 		/// </summary>
 		/// <typeparam name="TNext">The type of the next step's output.</typeparam>

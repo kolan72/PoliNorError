@@ -171,40 +171,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_AddFunc_WithCustomPolicy_UseProvidedPolicy()
-		{
-			// Arrange
-			int callCount = 0;
-
-			string func0(int i) => i.ToString();
-
-			int func1(string s)
-			{
-				callCount++;
-				if (callCount < 2)
-				{
-					throw new InvalidOperationException("Simulated failure");
-				}
-				return s.Length;
-			}
-
-			var retryPolicy = new RetryPolicy(5); // 5 retries
-
-			// Act
-			var pipeline = PipelineFuncBuilder
-				.StartWith((Func<int, string>)func0)
-				.AddFunc(func1, retryPolicy)
-				.Build();
-
-			var result = pipeline(10, CancellationToken.None);
-
-			// Assert
-			Assert.That(result.IsFailed, Is.False);
-			Assert.That(result.Result, Is.EqualTo(2));
-			Assert.That(callCount, Is.EqualTo(2)); // Initial + 1 retry
-		}
-
-		[Test]
 		public void Should_StartWithRetry_ApplyRetryToFirstStep()
 		{
 			// Arrange
