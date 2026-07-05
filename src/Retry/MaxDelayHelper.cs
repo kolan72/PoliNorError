@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -20,6 +21,7 @@ namespace PoliNorError
 		/// <paramref name="adaptedMaxDelayMs"/>; otherwise converts <paramref name="ms"/>
 		/// to a <see cref="TimeSpan"/>.
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static TimeSpan LimitToMaxDelay(double ms, double adaptedMaxDelayMs, TimeSpan maxDelay)
 		{
 			return (ms >= adaptedMaxDelayMs) ? maxDelay : TimeSpan.FromMilliseconds(ms);
