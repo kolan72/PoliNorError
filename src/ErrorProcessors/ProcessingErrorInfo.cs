@@ -24,6 +24,9 @@ namespace PoliNorError
 #pragma warning restore S1133 // Deprecated code should be removed
 		public int CurrentRetryCount { get; protected set; } = -1;
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static ProcessingErrorInfo FromRetry(int retryAttempt)
 		{
 			return new RetryProcessingErrorInfo(retryAttempt);
