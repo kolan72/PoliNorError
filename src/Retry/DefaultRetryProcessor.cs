@@ -319,7 +319,7 @@ namespace PoliNorError
 				{
 					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
-						retryContext.IncrementCountAtomic();
+						retryContext.IncrementCount();
 					}
 				}
 			}
@@ -371,7 +371,7 @@ namespace PoliNorError
 				{
 					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
-						retryContext.IncrementCountAtomic();
+						retryContext.IncrementCount();
 					}
 				}
 			}
@@ -424,7 +424,7 @@ namespace PoliNorError
 				{
 					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
-						retryContext.IncrementCountAtomic();
+						retryContext.IncrementCount();
 					}
 				}
 			}
@@ -477,7 +477,7 @@ namespace PoliNorError
 				{
 					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
-						retryContext.IncrementCountAtomic();
+						retryContext.IncrementCount();
 					}
 				}
 			}
