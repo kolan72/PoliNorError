@@ -388,6 +388,219 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that processes
+		/// exceptions of the exact specified type.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Action<TException> actionProcessor)
+			where TException : Exception
+		{
+			var converted = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that processes
+		/// exceptions of the exact specified type and receives a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Action<TException, CancellationToken> actionProcessor)
+			where TException : Exception
+		{
+			var converted = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from a synchronous action that processes
+		/// exceptions of the exact specified type, with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="actionCancellationType">Specifies how cancellation is handled for the action.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Action<TException> actionProcessor, CancellationType actionCancellationType)
+			where TException : Exception
+		{
+			var converted = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc, actionCancellationType);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that processes
+		/// exceptions of the exact specified type.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Func<TException, Task> funcProcessor)
+			where TException : Exception
+		{
+			var converted = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that processes
+		/// exceptions of the exact specified type and receives a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Func<TException, CancellationToken, Task> funcProcessor)
+			where TException : Exception
+		{
+			var converted = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor"/> built from an asynchronous function that processes
+		/// exceptions of the exact specified type, with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="funcCancellationType">Specifies how cancellation is handled for the function.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Func<TException, Task> funcProcessor, CancellationType funcCancellationType)
+			where TException : Exception
+		{
+			var converted = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+			var errorProcessorFunc = converted.ToErrorProcessorFunc();
+			var processor = new DefaultErrorProcessor(errorProcessorFunc, funcCancellationType);
+			_processors.Add(processor);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from a synchronous action that processes
+		/// exceptions of the exact specified type and receives the typed processing error info.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Action<TException, ProcessingErrorInfo<TContext>> actionProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+			{
+				if (ConvertExceptionDelegates.TryAsExact(ex, out TException typedException))
+					actionProcessor(typedException, info);
+			}));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from a synchronous action that processes
+		/// exceptions of the exact specified type and receives the typed processing error info and a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Action<TException, ProcessingErrorInfo<TContext>, CancellationToken> actionProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info, token) =>
+			{
+				if (ConvertExceptionDelegates.TryAsExact(ex, out TException typedException))
+					actionProcessor(typedException, info, token);
+			}));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from a synchronous action that processes
+		/// exceptions of the exact specified type and receives the typed processing error info,
+		/// with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="actionProcessor">The action to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="cancellationType">Specifies how cancellation is handled for the action.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Action<TException, ProcessingErrorInfo<TContext>> actionProcessor, CancellationType cancellationType)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+			{
+				if (ConvertExceptionDelegates.TryAsExact(ex, out TException typedException))
+					actionProcessor(typedException, info);
+			}, cancellationType));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from an asynchronous function that processes
+		/// exceptions of the exact specified type and receives the typed processing error info.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Func<TException, ProcessingErrorInfo<TContext>, Task> funcProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+				ConvertExceptionDelegates.TryAsExact(ex, out TException typedException)
+					? funcProcessor(typedException, info)
+					: Task.CompletedTask));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from an asynchronous function that processes
+		/// exceptions of the exact specified type and receives the typed processing error info and a cancellation token.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Func<TException, ProcessingErrorInfo<TContext>, CancellationToken, Task> funcProcessor)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info, token) =>
+				ConvertExceptionDelegates.TryAsExact(ex, out TException typedException)
+					? funcProcessor(typedException, info, token)
+					: Task.CompletedTask));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds a <see cref="DefaultErrorProcessor{TParam}"/> built from an asynchronous function that processes
+		/// exceptions of the exact specified type and receives the typed processing error info,
+		/// with a specified cancellation type.
+		/// </summary>
+		/// <typeparam name="TException">The exact type of exception to process.</typeparam>
+		/// <param name="funcProcessor">The asynchronous function to execute when an exception of type <typeparamref name="TException"/> occurs.</param>
+		/// <param name="cancellationType">Specifies how cancellation is handled for the function.</param>
+		/// <returns>The current collection instance.</returns>
+		public PipelineErrorProcessors<TContext> AddForException<TException>(Func<TException, ProcessingErrorInfo<TContext>, Task> funcProcessor, CancellationType cancellationType)
+			where TException : Exception
+		{
+			_processors.Add(new DefaultErrorProcessor<TContext>((ex, info) =>
+				ConvertExceptionDelegates.TryAsExact(ex, out TException typedException)
+					? funcProcessor(typedException, info)
+					: Task.CompletedTask, cancellationType));
+			return this;
+		}
+
+		/// <summary>
 		/// Gets the number of processors currently in the collection.
 		/// </summary>
 		public int Count => _processors.Count;
