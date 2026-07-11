@@ -2,6 +2,9 @@
 
 namespace PoliNorError
 {
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This class is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal static class FallbackFuncExecResultExtensions
 	{
 		internal static void ChangePolicyResult(this FallbackFuncExecResult funcExecResult, PolicyResult policyResult, Exception ex)
