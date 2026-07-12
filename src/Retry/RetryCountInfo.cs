@@ -24,6 +24,9 @@ namespace PoliNorError
 			_canRetryFunc = canRetryInner ?? (startTryCount == 0 ? CreateDefaultRetryFunc(RetryCount) : CreateDefaultRetryFunc(startTryCount, RetryCount));
 		}
 
+		// Property to safely access the retry function, handling the default struct initialization case
+		private Func<int, bool> CanRetryFunc => _canRetryFunc ?? CreateDefaultRetryFunc(RetryCount > 0 ? RetryCount : DEFAULT_RETRY_COUNT);
+
 		private static Func<int, bool> CreateDefaultRetryFunc(int startTryCount, int retryCount)
 		{
 			return nr => (nr - startTryCount) < retryCount && nr < REAL_INFINITE_RETRY_COUNT;
@@ -67,7 +70,7 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="numOfCurRetry">Number of retries</param>
 		/// <returns></returns>
-		public bool CanRetry(int numOfCurRetry) => _canRetryFunc(numOfCurRetry);
+		public bool CanRetry(int numOfCurRetry) => CanRetryFunc(numOfCurRetry);
 
 		/// <summary>
 		/// Number of retries

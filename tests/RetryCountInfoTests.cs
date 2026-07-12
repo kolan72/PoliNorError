@@ -183,5 +183,20 @@ namespace PoliNorError.Tests
             Assert.That(retryInfo.CanRetry(int.MaxValue - 2), Is.True);
             Assert.That(retryInfo.CanRetry(int.MaxValue - 1), Is.False);
         }
+
+
+        [Test]
+        public void Should_CreateDefaultInstance_WithCorrectValues()
+        {
+            var retryInfo = new RetryCountInfo();
+
+            Assert.That(retryInfo.RetryCount, Is.EqualTo(0));
+            Assert.That(retryInfo.StartTryCount, Is.EqualTo(0));
+            Assert.That(retryInfo.IsInfinite, Is.False);
+            Assert.That(retryInfo.CanRetry(0), Is.True);
+            Assert.That(retryInfo.CanRetry(1), Is.False);
+            Assert.That(retryInfo.CanRetry(2), Is.False);
+            Assert.That(retryInfo.CanRetry(int.MaxValue), Is.False);
+        }
     }
 }
