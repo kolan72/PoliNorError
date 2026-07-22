@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public static class SimplePolicyProcessorTypedErrorProcessorRegistration
+	public static partial class ErrorProcessorRegistration
 	{
 		/// <summary>
 		/// Adds a typed error processor to the simple policy processor.
