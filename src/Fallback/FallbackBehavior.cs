@@ -13,6 +13,11 @@ namespace PoliNorError
 		private FallbackBehavior() { }
 
 		/// <summary>
+		/// A singleton instance with no configured fallback delegates (<see cref="ExecutionMode"/> = <see cref="FallbackExecutionMode.None"/>).
+		/// </summary>
+		private static readonly FallbackBehavior<T> _noneMode = new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
+
+		/// <summary>
 		/// Creates a new instance of <see cref="FallbackBehavior{T}"/> from a synchronous fallback delegate.
 		/// </summary>
 		/// <param name="fallbackFunc">A fallback delegate.</param>
@@ -22,7 +27,7 @@ namespace PoliNorError
 		{
 			if (fallbackFunc == null)
 			{
-				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
+				return _noneMode;
 			}
 
 			return new FallbackBehavior<T>
@@ -41,7 +46,7 @@ namespace PoliNorError
 		{
 			if (fallbackFunc == null)
 			{
-				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
+				return _noneMode;
 			}
 
 			return new FallbackBehavior<T>
@@ -61,7 +66,7 @@ namespace PoliNorError
 		{
 			if (fallbackAsync == null)
 			{
-				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
+				return _noneMode;
 			}
 
 			return new FallbackBehavior<T>
@@ -80,7 +85,7 @@ namespace PoliNorError
 		{
 			if (fallbackAsync == null)
 			{
-				return new FallbackBehavior<T>() { ExecutionMode = FallbackExecutionMode.None };
+				return _noneMode;
 			}
 
 			return new FallbackBehavior<T>
