@@ -308,34 +308,11 @@ namespace PoliNorError
 		private (ExceptionHandlingResult, Exception) EvaluateExceptionFilter(PolicyResult policyResult, Exception ex, ExceptionHandlingBehavior handlingBehavior)
 		{
 			var (filterPassed, error) = RunErrorFilterFunc();
-			return (FailPolicyResultIfRequired(), error);
-			ExceptionHandlingResult FailPolicyResultIfRequired()
-			{
-				if (!filterPassed)
-				{
-					switch (handlingBehavior)
-					{
-						case ExceptionHandlingBehavior.ConditionalRethrow when !(error is null):
-							policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
-							policyResult.SetFailedAndFilterUnsatisfied();
-							return ExceptionHandlingResult.Handled;
-						case ExceptionHandlingBehavior.ConditionalRethrow:
-							return ExceptionHandlingResult.Rethrow;
-						case ExceptionHandlingBehavior.Handle:
-							if (!(error is null))
-							{
-								policyResult.AddCatchBlockError(new CatchBlockException(error, ex, CatchBlockExceptionSource.ErrorFilter, true));
-							}
-							policyResult.SetFailedAndFilterUnsatisfied();
-							return ExceptionHandlingResult.Handled;
-						default:
-							policyResult.AddCatchBlockError(new CatchBlockException(new NotSupportedException(), ex, CatchBlockExceptionSource.ErrorFilter, true));
-							policyResult.SetFailedAndFilterUnsatisfied();
-							return ExceptionHandlingResult.Handled;
-					}
-				}
-				return ExceptionHandlingResult.Accepted;
-			}
+
+			if (filterPassed)
+				return (ExceptionHandlingResult.Accepted, error);
+
+			return (HandleFilterFailure(policyResult, ex, error, handlingBehavior), error);
 
 			(bool, Exception) RunErrorFilterFunc()
 			{
@@ -347,6 +324,24 @@ namespace PoliNorError
 				{
 					return (false, exIn);
 				}
+			}
+
+			ExceptionHandlingResult HandleFilterFailure(PolicyResult pr, Exception originalEx, Exception filterError, ExceptionHandlingBehavior behavior)
+			{
+				// For ConditionalRethrow behavior with no filter error, return Rethrow
+				if (behavior == ExceptionHandlingBehavior.ConditionalRethrow && filterError == null)
+				{
+					return ExceptionHandlingResult.Rethrow;
+				}
+
+				// Add the error to catch block errors if there was an error from the filter
+				if (filterError != null)
+				{
+					pr.AddCatchBlockError(new CatchBlockException(filterError, originalEx, CatchBlockExceptionSource.ErrorFilter, true));
+				}
+
+				pr.SetFailedAndFilterUnsatisfied();
+				return ExceptionHandlingResult.Handled;
 			}
 		}
 
