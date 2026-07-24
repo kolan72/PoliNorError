@@ -349,6 +349,78 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_AddOrReplaceFallbackBehavior_Work_With_SyncAndAsync_Fallbacks()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			var behavior = FallbackBehavior<int>.CreateBoth(42);
+
+			provider.AddOrReplaceFallbackBehavior(behavior);
+
+			Assert.That(provider.HasFallbackFunc<int>(), Is.True);
+			Assert.That(provider.HasAsyncFallbackFunc<int>(), Is.True);
+
+			var fallbackFunc = provider.GetFallbackFunc<int>();
+			var asyncFallbackFunc = provider.GetAsyncFallbackFunc<int>(false);
+
+			Assert.That(fallbackFunc(CancellationToken.None), Is.EqualTo(42));
+			Assert.That(asyncFallbackFunc(CancellationToken.None).Result, Is.EqualTo(42));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackBehavior_Work_With_SyncFallback_Only()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			var behavior = FallbackBehavior<int>.Create(42);
+
+			provider.AddOrReplaceFallbackBehavior(behavior);
+
+			Assert.That(provider.HasFallbackFunc<int>(), Is.True);
+			Assert.That(provider.HasAsyncFallbackFunc<int>(), Is.False);
+
+			var fallbackFunc = provider.GetFallbackFunc<int>();
+
+			Assert.That(fallbackFunc(CancellationToken.None), Is.EqualTo(42));
+		}
+
+		[Test]
+		public async Task Should_AddOrReplaceFallbackBehavior_Work_With_AsyncFallback_Only()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			var behavior = FallbackBehavior<int>.CreateAsync(42);
+
+			provider.AddOrReplaceFallbackBehavior(behavior);
+
+			Assert.That(provider.HasFallbackFunc<int>(), Is.False);
+			Assert.That(provider.HasAsyncFallbackFunc<int>(), Is.True);
+
+			var asyncFallbackFunc = provider.GetAsyncFallbackFunc<int>(false);
+
+			Assert.That(await asyncFallbackFunc(CancellationToken.None), Is.EqualTo(42));
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackBehavior_With_Null_Behavior_DoesNothing()
+		{
+			var provider = FallbackFuncsProvider.Create();
+
+			provider.AddOrReplaceFallbackBehavior<int>(null);
+
+			Assert.That(provider.HasFallbackFunc<int>(), Is.False);
+			Assert.That(provider.HasAsyncFallbackFunc<int>(), Is.False);
+		}
+
+		[Test]
+		public void Should_AddOrReplaceFallbackBehavior_Returns_Same_Provider_For_Chaining()
+		{
+			var provider = FallbackFuncsProvider.Create();
+			var behavior = FallbackBehavior<int>.Create(42);
+
+			var result = provider.AddOrReplaceFallbackBehavior(behavior);
+
+			Assert.That(result, Is.SameAs(provider));
+		}
+
+		[Test]
 		public void Should_SetFallbackAction_Work()
 		{
 			void act1(CancellationToken _)

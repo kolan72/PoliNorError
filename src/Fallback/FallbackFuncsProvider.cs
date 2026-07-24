@@ -279,6 +279,32 @@ namespace PoliNorError
 			return new FallbackPolicy(this);
 		}
 
+		/// <summary>
+		/// Adds or replaces a generic fallback delegate from a <see cref="FallbackBehavior{T}"/>.
+		/// </summary>
+		/// <typeparam name="T">A return type of fallback delegate.</typeparam>
+		/// <param name="fallbackBehavior">A <see cref="FallbackBehavior{T}"/> containing the fallback delegates to add.</param>
+		/// <returns></returns>
+		public FallbackFuncsProvider AddOrReplaceFallbackBehavior<T>(FallbackBehavior<T> fallbackBehavior)
+		{
+			if (fallbackBehavior == null)
+			{
+				return this;
+			}
+
+			if (fallbackBehavior.Fallback != null)
+			{
+				SetFallbackFunc(fallbackBehavior.Fallback);
+			}
+
+			if (fallbackBehavior.AsyncFallback != null)
+			{
+				SetAsyncFallbackFunc(fallbackBehavior.AsyncFallback);
+			}
+
+			return this;
+		}
+
 		protected void SetFallbackAction(Action action, CancellationType convertType = CancellationType.Precancelable)
 		{
 			SetFallbackAction(convertType == CancellationType.Precancelable ? action.ToPrecancelableAction(true) : action.ToCancelableAction());
