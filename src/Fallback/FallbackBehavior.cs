@@ -126,6 +126,61 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Creates a new instance of <see cref="FallbackBehavior{T}"/> from a fallback value.
+		/// The fallback value will be returned as-is when the fallback is triggered.
+		/// </summary>
+		/// <param name="fallbackValue">A fallback value.</param>
+		/// <returns>
+		/// A <see cref="FallbackBehavior{T}"/> configured with the provided value as a synchronous fallback.
+		/// </returns>
+		public static FallbackBehavior<T> Create(T fallbackValue)
+		{
+			return new FallbackBehavior<T>
+			{
+				Fallback = (_) => fallbackValue,
+				ExecutionMode = FallbackExecutionMode.Sync
+			};
+		}
+
+		/// <summary>
+		/// Creates a new instance of <see cref="FallbackBehavior{T}"/> from a fallback value
+		/// that will be returned asynchronously when the fallback is triggered.
+		/// </summary>
+		/// <param name="fallbackValue">A fallback value.</param>
+		/// <returns>
+		/// A <see cref="FallbackBehavior{T}"/> configured with the provided value as an asynchronous fallback.
+		/// </returns>
+#pragma warning disable RCS1047 // Non-asynchronous method name should not end with 'Async'.
+		public static FallbackBehavior<T> CreateAsync(T fallbackValue)
+#pragma warning restore RCS1047 // Non-asynchronous method name should not end with 'Async'.
+		{
+			return new FallbackBehavior<T>
+			{
+				AsyncFallback = (_) => Task.FromResult(fallbackValue),
+				ExecutionMode = FallbackExecutionMode.Async
+			};
+		}
+
+		/// <summary>
+		/// Creates a new instance of <see cref="FallbackBehavior{T}"/> from a fallback value
+		/// that will be used for both synchronous and asynchronous fallback execution.
+		/// </summary>
+		/// <param name="fallbackValue">A fallback value.</param>
+		/// <returns>
+		/// A <see cref="FallbackBehavior{T}"/> configured with the provided value for both
+		/// synchronous and asynchronous fallback execution.
+		/// </returns>
+		public static FallbackBehavior<T> CreateBoth(T fallbackValue)
+		{
+			return new FallbackBehavior<T>
+			{
+				Fallback = (_) => fallbackValue,
+				AsyncFallback = (_) => Task.FromResult(fallbackValue),
+				ExecutionMode = FallbackExecutionMode.Sync | FallbackExecutionMode.Async
+			};
+		}
+
+		/// <summary>
 		/// Gets the synchronous fallback delegate.
 		/// </summary>
 		public Func<CancellationToken, T> Fallback { get; private set; }

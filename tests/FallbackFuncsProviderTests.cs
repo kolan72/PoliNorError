@@ -1608,6 +1608,194 @@ namespace PoliNorError.Tests
 			await func(CancellationToken.None); // should complete without throwing
 		}
 
+		// -------------------------------------------------------------------------
+		// Tests for FallbackBehavior<T>.Create(T), CreateAsync(T), CreateBoth(T)
+		// -------------------------------------------------------------------------
+
+		[Test]
+		public void Should_Create_From_Value_Set_Sync_ExecutionMode()
+		{
+			var behavior = FallbackBehavior<int>.Create(42);
+
+			Assert.That(behavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.Sync));
+		}
+
+		[Test]
+		public void Should_Create_From_Value_Set_FallbackDelegate()
+		{
+			const int expectedValue = 100;
+			var behavior = FallbackBehavior<int>.Create(expectedValue);
+
+			Assert.That(behavior.Fallback, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_Create_From_Value_Return_Correct_Value()
+		{
+			const int expectedValue = 77;
+			var behavior = FallbackBehavior<int>.Create(expectedValue);
+
+			var result = behavior.Fallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void Should_Create_From_StringValue_Return_Correct_Value()
+		{
+			const string expectedValue = "fallback";
+			var behavior = FallbackBehavior<string>.Create(expectedValue);
+
+			var result = behavior.Fallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void Should_Create_From_Value_DoesNot_Affect_AsyncFallback()
+		{
+			var behavior = FallbackBehavior<int>.Create(42);
+
+			Assert.That(behavior.AsyncFallback, Is.Null);
+		}
+
+		[Test]
+		public void Should_CreateAsync_From_Value_Set_Async_ExecutionMode()
+		{
+			var behavior = FallbackBehavior<int>.CreateAsync(42);
+
+			Assert.That(behavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.Async));
+		}
+
+		[Test]
+		public void Should_CreateAsync_From_Value_Set_AsyncFallbackDelegate()
+		{
+			const int expectedValue = 100;
+			var behavior = FallbackBehavior<int>.CreateAsync(expectedValue);
+
+			Assert.That(behavior.AsyncFallback, Is.Not.Null);
+		}
+
+		[Test]
+		public async Task Should_CreateAsync_From_Value_Return_Correct_Value()
+		{
+			const int expectedValue = 77;
+			var behavior = FallbackBehavior<int>.CreateAsync(expectedValue);
+
+			var result = await behavior.AsyncFallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_CreateAsync_From_StringValue_Return_Correct_Value()
+		{
+			const string expectedValue = "async fallback";
+			var behavior = FallbackBehavior<string>.CreateAsync(expectedValue);
+
+			var result = await behavior.AsyncFallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_CreateAsync_From_NullReferenceType_Return_Default()
+		{
+			var behavior = FallbackBehavior<string>.CreateAsync(null);
+			var result = await behavior.AsyncFallback(CancellationToken.None);
+
+			Assert.That(result, Is.Null);
+		}
+
+		[Test]
+		public void Should_CreateAsync_From_Value_DoesNot_Affect_Fallback()
+		{
+			var behavior = FallbackBehavior<int>.CreateAsync(42);
+
+			Assert.That(behavior.Fallback, Is.Null);
+		}
+
+		[Test]
+		public void Should_CreateBoth_From_Value_Set_SyncAndAsync_ExecutionMode()
+		{
+			var behavior = FallbackBehavior<int>.CreateBoth(42);
+
+			Assert.That(behavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.Sync | FallbackExecutionMode.Async));
+		}
+
+		[Test]
+		public void Should_CreateBoth_From_Value_Set_FallbackDelegate()
+		{
+			const int expectedValue = 100;
+			var behavior = FallbackBehavior<int>.CreateBoth(expectedValue);
+
+			Assert.That(behavior.Fallback, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_CreateBoth_From_Value_Set_AsyncFallbackDelegate()
+		{
+			const int expectedValue = 100;
+			var behavior = FallbackBehavior<int>.CreateBoth(expectedValue);
+
+			Assert.That(behavior.AsyncFallback, Is.Not.Null);
+		}
+
+		[Test]
+		public void Should_CreateBoth_From_Value_Return_Correct_Sync_Value()
+		{
+			const int expectedValue = 77;
+			var behavior = FallbackBehavior<int>.CreateBoth(expectedValue);
+
+			var result = behavior.Fallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_CreateBoth_From_Value_Return_Correct_Async_Value()
+		{
+			const int expectedValue = 77;
+			var behavior = FallbackBehavior<int>.CreateBoth(expectedValue);
+
+			var result = await behavior.AsyncFallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void Should_CreateBoth_From_StringValue_Return_Correct_Sync_Value()
+		{
+			const string expectedValue = "both fallback";
+			var behavior = FallbackBehavior<string>.CreateBoth(expectedValue);
+
+			var result = behavior.Fallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_CreateBoth_From_StringValue_Return_Correct_Async_Value()
+		{
+			const string expectedValue = "both async fallback";
+			var behavior = FallbackBehavior<string>.CreateBoth(expectedValue);
+
+			var result = await behavior.AsyncFallback(CancellationToken.None);
+
+			Assert.That(result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_CreateBoth_From_NullReferenceType_Return_Default()
+		{
+			var behavior = FallbackBehavior<string>.CreateBoth(null);
+			var syncResult = behavior.Fallback(CancellationToken.None);
+			var asyncResult = await behavior.AsyncFallback(CancellationToken.None);
+
+			Assert.That(syncResult, Is.Null);
+			Assert.That(asyncResult, Is.Null);
+		}
+
 		internal enum TestFallbackFuncType
 		{
 			NoFuncs,
