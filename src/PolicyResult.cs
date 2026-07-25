@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -230,6 +230,16 @@ namespace PoliNorError
 		internal void AddHandleResultErrors(IEnumerable<PolicyResultHandlingException> handlePolicyResultExceptions)
 		{
 			_handleResultErrors.AddRange(handlePolicyResultExceptions);
+		}
+
+		internal void SaveFilterCatchAndMarkFailed(Exception ex, Exception filterError)
+		{
+			if (!(filterError is null))
+			{
+				AddCatchBlockError(new CatchBlockException(filterError, ex, CatchBlockExceptionSource.ErrorFilter, true));
+			}
+			SetFailedAndFilterUnsatisfied();
+			AddError(ex);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

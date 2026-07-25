@@ -345,6 +345,20 @@ namespace PoliNorError
 			}
 		}
 
+		protected internal bool TryRunErrorFilter(Exception originalEx, out Exception filterError)
+		{
+			filterError = null;
+			try
+			{
+				return ErrorFilter.GetCanHandle()(originalEx);
+			}
+			catch (Exception fe)
+			{
+				filterError = fe;
+				return false;
+			}
+		}
+
 		/// <summary>
 		/// Evaluates a policy rule synchronously to determine if an exception should be handled.
 		/// </summary>

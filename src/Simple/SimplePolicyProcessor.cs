@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -89,14 +89,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				HandleException(ex, result, emptyErrorContext, token);
 			}
 			return result;
 		}
@@ -129,14 +133,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				HandleException(ex, result, emptyErrorContext, token);
 			}
 			return result;
 		}
@@ -187,14 +195,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				HandleException(ex, result, emptyErrorContext, token);
 			}
 			return result;
 		}
@@ -228,14 +240,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				HandleException(ex, result, emptyErrorContext, token);
 			}
 			return result;
 		}
@@ -489,14 +505,14 @@ namespace PoliNorError
 			return this;
 		}
 
-		private ExceptionHandlingResult HandleException(
+		private void HandleException(
 			Exception ex,
 			PolicyResult policyResult,
 			EmptyErrorContext errorContext,
 			CancellationToken token)
 
 		{
-			return HandleException(
+			HandleException(
 				ex,
 				policyResult,
 				errorContext,
