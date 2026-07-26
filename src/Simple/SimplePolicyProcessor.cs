@@ -89,7 +89,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
 				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
@@ -133,7 +133,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
 				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
@@ -195,7 +195,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
 				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
@@ -240,7 +240,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!TryRunErrorFilter(ex, out Exception filterError))
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
 				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
@@ -307,14 +307,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -343,14 +347,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -407,14 +415,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -444,14 +456,18 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!TryMatchErrorFilter(ex, out Exception filterError))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterError is null && _rethrowIfErrorFilterUnsatisfied)
 				{
 					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
 					throw;
 				}
+				result.SaveFilterCatchAndMarkFailed(ex, filterError);
+			}
+			catch (Exception ex)
+			{
+				await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 			return result;
 		}
@@ -524,7 +540,7 @@ namespace PoliNorError
 				token);
 		}
 
-		private Task<ExceptionHandlingResult> HandleExceptionAsync(
+		private async Task HandleExceptionAsync(
 			Exception ex,
 			PolicyResult policyResult,
 			EmptyErrorContext errorContext,
@@ -532,7 +548,7 @@ namespace PoliNorError
 			CancellationToken token)
 
 		{
-			return HandleExceptionAsync(
+			await HandleExceptionAsync(
 				ex,
 				policyResult,
 				errorContext,
@@ -542,7 +558,7 @@ namespace PoliNorError
 				ProcessingOrder.EvaluateThenProcess,
 				ErrorProcessingCancellationEffect.Propagate,
 				configAwait,
-				token);
+				token).ConfigureAwait(configAwait);
 		}
 	}
 }

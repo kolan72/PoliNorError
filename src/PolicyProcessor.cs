@@ -345,7 +345,7 @@ namespace PoliNorError
 			}
 		}
 
-		protected internal bool TryRunErrorFilter(Exception originalEx, out Exception filterError)
+		protected bool TryMatchErrorFilter(Exception originalEx, out Exception filterError)
 		{
 			filterError = null;
 			try
