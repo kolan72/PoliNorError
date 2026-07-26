@@ -359,6 +359,38 @@ namespace PoliNorError
 			}
 		}
 
+		protected bool ShouldPropagateFilterUnsatisfied(Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
+		{
+			filterAccepted = false;
+			try
+			{
+				var filterResult = ErrorFilter.GetCanHandle()(originalEx);
+				if (!filterResult)
+				{
+					if (rethrowIfErrorFilterUnsatisfied)
+					{
+						originalEx.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						return true;
+					}
+					else
+					{
+						result.SaveFilterCatchAndMarkFailed(originalEx, null);
+						return false;
+					}
+				}
+				else
+				{
+					filterAccepted = true;
+					return false;
+				}
+			}
+			catch (Exception fe)
+			{
+				result.SaveFilterCatchAndMarkFailed(originalEx, fe);
+				return false;
+			}
+		}
+
 		/// <summary>
 		/// Evaluates a policy rule synchronously to determine if an exception should be handled.
 		/// </summary>
