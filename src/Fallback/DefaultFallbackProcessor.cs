@@ -56,9 +56,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					HandleException(fallback, emptyErrorContext, result, ex, token);
+				}
 			}
 			return result;
 		}
@@ -91,9 +94,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					HandleException(fallback, emptyErrorContext, result, ex, token);
+				}
 			}
 			return result;
 		}
@@ -143,9 +149,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					HandleException(fallback, emptyErrorContext, result, ex, token);
+				}
 			}
 			return result;
 		}
@@ -179,9 +188,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					HandleException(fallback, emptyErrorContext, result, ex, token);
+				}
 			}
 			return result;
 		}
