@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -91,6 +92,7 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="attempt">The current retry.</param>
 		/// <returns></returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public virtual TimeSpan GetDelay(int attempt)
 		{
 			return DelayValueProvider(attempt);

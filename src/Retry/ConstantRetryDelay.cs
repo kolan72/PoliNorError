@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -58,6 +59,7 @@ namespace PoliNorError
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		protected override TimeSpan GetBaseDelay(int attempt)
 		{
 			return _delayOptions.BaseDelay;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -128,6 +129,7 @@ namespace PoliNorError
 			return MaxDelayHelper.LimitToMaxDelay(StandardJitter.AddJitter(GetDelayInner(attempt).TotalMilliseconds), _adaptedMaxDelayMs, _maxDelay);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private TimeSpan GetDelayInner(int attempt)
 		{
 			return _times[(uint)attempt <= (uint)_maxIndex ? attempt : _maxIndex];

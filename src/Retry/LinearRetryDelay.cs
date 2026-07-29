@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -76,6 +77,7 @@ namespace PoliNorError
 			return MaxDelayHelper.LimitToMaxDelay(StandardJitter.AddJitter(GetDelayValueInMs(attempt, _delayOptions)), _adaptedMaxDelayMs, _delayOptions.MaxDelay);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static double GetDelayValueInMs(int attempt, LinearRetryDelayOptions options)
 		{
 			return (attempt + 1) * options.SlopeFactor * options.BaseDelay.TotalMilliseconds;

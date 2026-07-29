@@ -9,6 +9,7 @@ namespace PoliNorError
 		/// Returns the effective maximum delay in milliseconds, clamped to avoid overflow
 		/// when converting from <see cref="TimeSpan"/> to <see langword="double"/>.
 		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static double GetAdaptedMaxDelayMs(TimeSpan maxDelay)
 		{
 			return maxDelay.TotalMilliseconds > RetryDelayConstants.MaxTimeSpanMs
