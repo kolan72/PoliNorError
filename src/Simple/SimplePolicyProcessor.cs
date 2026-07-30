@@ -492,7 +492,7 @@ namespace PoliNorError
 				token);
 		}
 
-		private async Task HandleExceptionAsync(
+		private Task HandleExceptionAsync(
 			Exception ex,
 			PolicyResult policyResult,
 			EmptyErrorContext errorContext,
@@ -500,7 +500,7 @@ namespace PoliNorError
 			CancellationToken token)
 
 		{
-			await HandleExceptionAsync(
+			return HandleExceptionAsync(
 				ex,
 				policyResult,
 				errorContext,
@@ -510,7 +510,7 @@ namespace PoliNorError
 				ProcessingOrder.EvaluateThenProcess,
 				ErrorProcessingCancellationEffect.Propagate,
 				configAwait,
-				token).ConfigureAwait(configAwait);
+				token);
 		}
 	}
 }
