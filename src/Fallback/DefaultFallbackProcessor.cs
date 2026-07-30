@@ -248,9 +248,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
@@ -279,9 +282,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
@@ -492,7 +498,7 @@ namespace PoliNorError
 			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		private async Task<ExceptionHandlingResult> HandleExceptionAsync(
+		private async Task HandleExceptionAsync(
 			Func<CancellationToken, Task> fallback,
 			EmptyErrorContext emptyErrorContext,
 			PolicyResult result,
@@ -506,7 +512,7 @@ namespace PoliNorError
 				return true;
 			}
 
-			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+			await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		private Task<ExceptionHandlingResult> HandleExceptionAsync(
