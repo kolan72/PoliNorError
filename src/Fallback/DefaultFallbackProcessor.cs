@@ -28,7 +28,7 @@ namespace PoliNorError
 			return Fallback(action, fallback, emptyContext, token);
 		}
 
-		private PolicyResult Fallback<TParam>(Action<TParam> action, TParam param, Action<CancellationToken> fallback, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		private PolicyResult Fallback<TParam>(Action<TParam> action, TParam param, Action<CancellationToken> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
 		{
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
@@ -120,7 +120,7 @@ namespace PoliNorError
 			return Fallback(func, fallback, emptyContext, token);
 		}
 
-		private PolicyResult<T> Fallback<TParam, T>(Func<TParam, T> func, TParam param, Func<CancellationToken, T> fallback, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		private PolicyResult<T> Fallback<TParam, T>(Func<TParam, T> func, TParam param, Func<CancellationToken, T> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -224,7 +224,7 @@ namespace PoliNorError
 			return await FallbackAsync(func, fallback, emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		private async Task<PolicyResult> FallbackAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, Func<CancellationToken, Task> fallback, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult> FallbackAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, Func<CancellationToken, Task> fallback, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
@@ -318,7 +318,7 @@ namespace PoliNorError
 			return await FallbackAsync(func, fallback, emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		private async Task<PolicyResult<T>> FallbackAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, Func<CancellationToken, Task<T>> fallback, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult<T>> FallbackAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, Func<CancellationToken, Task<T>> fallback, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
