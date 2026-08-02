@@ -184,7 +184,6 @@ namespace PoliNorError.Tests
             Assert.That(retryInfo.CanRetry(int.MaxValue - 1), Is.False);
         }
 
-
         [Test]
         public void Should_CreateDefaultInstance_WithCorrectValues()
         {

@@ -13,6 +13,26 @@ namespace PoliNorError
 	public sealed partial class FallbackPolicy : FallbackPolicyBase, IWithErrorFilter<FallbackPolicy>, IWithInnerErrorFilter<FallbackPolicy>, ICanAddErrorFilter<FallbackPolicy>
 	{
 		/// <summary>
+		/// Creates a new <see cref="FallbackPolicy"/> that returns the specified value when an error occurs.
+		/// </summary>
+		/// <typeparam name="T">The type of the fallback value.</typeparam>
+		/// <param name="value">The value to return as fallback.</param>
+		/// <returns>A new <see cref="FallbackPolicy"/> configured with the specified fallback value.</returns>
+		/// <example>
+		/// <code>
+		/// var policy = FallbackPolicy.FromValue(...);
+		/// var result = policy.Handle(() => GetValue()); // Returns 42 on error
+		/// </code>
+		/// </example>
+		public static FallbackPolicy FromValue<T>(T value)
+		{
+			var policy = new FallbackPolicy();
+			policy._fallbackFuncsProvider.SetFallbackFunc<T>(() => value);
+			policy._fallbackFuncsProvider.SetAsyncFallbackFunc<T>(() => Task.FromResult(value));
+			return policy;
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="FallbackPolicy"/>.
 		/// </summary>
 		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>

@@ -2388,6 +2388,190 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsPolicySuccess, Is.True);
 		}
 
+		[Test]
+		public void Should_FromValue_Return_New_FallbackPolicy()
+		{
+			var policy = FallbackPolicy.FromValue(42);
+
+			Assert.That(policy, Is.Not.Null);
+			Assert.That(policy, Is.InstanceOf<FallbackPolicy>());
+		}
+
+		[Test]
+		public void Should_FromValue_SetSyncFallbackFunc_WhenCalled()
+		{
+			var policy = FallbackPolicy.FromValue(42);
+
+			Assert.That(policy._fallbackFuncsProvider.HasFallbackFunc<int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_FromValue_SetAsyncFallbackFunc_WhenCalled()
+		{
+			var policy = FallbackPolicy.FromValue(42);
+
+			Assert.That(policy._fallbackFuncsProvider.HasAsyncFallbackFunc<int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_FromValue_HandledSyncFuncWithError_ReturnFallbackValue()
+		{
+			const int expectedValue = 42;
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = policy.Handle((Func<int>)(() => throw new Exception("fail")));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_FromValue_HandledAsyncFuncWithError_ReturnFallbackValue()
+		{
+			const int expectedValue = 42;
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception("fail"); });
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void Should_FromValue_NoException_DoesNotCallFallback()
+		{
+			var policy = FallbackPolicy.FromValue(42);
+
+			var result = policy.Handle(() => 10);
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.IsSuccess, Is.True);
+			Assert.That(result.Result, Is.EqualTo(10));
+		}
+
+		[Test]
+		public void Should_FromValue_WorkWithStringValue()
+		{
+			const string expectedValue = "fallback-string";
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = policy.Handle((Func<string>)(() => throw new Exception("fail")));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public void Should_FromValue_WorkWithNullValue()
+		{
+			const string expectedValue = null;
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = policy.Handle((Func<string>)(() => throw new Exception("fail")));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.Null);
+		}
+
+		[Test]
+		public void Should_FromValue_WorkWithBoolValue()
+		{
+			const bool expectedValue = true;
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = policy.Handle((Func<bool>)(() => throw new Exception("fail")));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void Should_FromValue_WorkWithDoubleValue()
+		{
+			const double expectedValue = 3.14;
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = policy.Handle((Func<double>)(() => throw new Exception("fail")));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(3.14));
+		}
+
+		[Test]
+		public void Should_FromValue_WorkWithListValue()
+		{
+			var expectedValue = new List<int> { 1, 2, 3 };
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = policy.Handle((Func<List<int>>)(() => throw new Exception("fail")));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result.Count, Is.EqualTo(3));
+			Assert.That(result.Result[0], Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_FromValue_ChainMultipleCalls()
+		{
+			var policy = FallbackPolicy.FromValue(1)
+				.WithFallbackFunc(() => 99);
+
+			var result = policy.Handle((Func<int>)(() => throw new Exception("fail")));
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(99));
+		}
+
+		[Test]
+		public async Task Should_FromValue_AsynchronousReturnValue_IsCorrect_TypeInt()
+		{
+			const int expectedValue = 123;
+			var policy = FallbackPolicy.FromValue(expectedValue);
+
+			var result = await policy.HandleAsync<int>(async (_) => { await Task.Delay(1); throw new Exception(); });
+
+			Assert.That(result.Result, Is.EqualTo(expectedValue));
+		}
+
+		[Test]
+		public async Task Should_FromValue_AsynchronousReturnValue_IsCorrect_TypeNull()
+		{
+			var policy = FallbackPolicy.FromValue<string>(null);
+
+			var result = await policy.HandleAsync<string>(async (_) => { await Task.Delay(1); throw new Exception(); });
+
+			Assert.That(result.Result, Is.Null);
+		}
+
+		[Test]
+		public void Should_FromValue_MultipleTypeGenerations_CreateIndependentPolicies()
+		{
+			var intPolicy = FallbackPolicy.FromValue(100);
+			var stringPolicy = FallbackPolicy.FromValue("independent");
+
+			var intResult = intPolicy.Handle((Func<int>)(() => throw new Exception()));
+			var stringResult = stringPolicy.Handle((Func<string>)(() => throw new Exception()));
+
+			Assert.That(intResult.Result, Is.EqualTo(100));
+			Assert.That(stringResult.Result, Is.EqualTo("independent"));
+		}
+
+		[Test]
+		public void Should_FromValue_SameInstanceCreatedTwice_ReturnSameValue()
+		{
+			const int initialValue = 55;
+			var policy1 = FallbackPolicy.FromValue(initialValue);
+			var policy2 = FallbackPolicy.FromValue(initialValue);
+
+			var result1 = policy1.Handle((Func<int>)(() => throw new Exception()));
+			var result2 = policy2.Handle((Func<int>)(() => throw new Exception()));
+
+			Assert.That(result1.Result, Is.EqualTo(initialValue));
+			Assert.That(result2.Result, Is.EqualTo(initialValue));
+		}
+
 		public class TestFallbackPolicy : FallbackPolicyBase
 		{
 			public TestFallbackPolicy() : base(FallbackFuncsProvider.Create()) { }
