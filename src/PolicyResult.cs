@@ -329,6 +329,19 @@ namespace PoliNorError
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal void SetResultBasedOnCancellation(OperationCanceledException oe)
+		{
+			if (oe is null)
+			{
+				SetOk();
+			}
+			else
+			{
+				SetFailedAndCanceled(oe);
+			}
+		}
 	}
 
 	/// <summary>
