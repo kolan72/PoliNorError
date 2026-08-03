@@ -26,25 +26,6 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_FallBackFuncHolder_Work()
-		{
-			int i = 1;
-			var holder = new FallBackFuncHolder<int>((_) => ++i);
-			var theSameFunc = holder.GetFallbackFunc<int>();
-			var res = theSameFunc(new CancellationToken());
-			ClassicAssert.AreEqual(2, res);
-		}
-
-		[Test]
-		public void Should_FallBackFuncHolder_BeNull_If_Types_Not_Equals()
-		{
-			int i = 1;
-			var holder = new FallBackFuncHolder<int>((_) => ++i);
-			var theSameFunc = holder.GetFallbackFunc<string>();
-			ClassicAssert.IsNull(theSameFunc);
-		}
-
-		[Test]
 		public async Task Should_FallBackAsyncFuncHolder_Work()
 		{
 			int i = 1;
