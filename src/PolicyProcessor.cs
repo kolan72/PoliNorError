@@ -116,7 +116,7 @@ namespace PoliNorError
 				bool configureAwait,
 				CancellationToken token)
 		{
-			var saver = errorSaver ?? CreateDefaultAsyncErrorSaver<T>();
+			var saver = errorSaver ?? AsyncErrorSaver<T>.Default;
 			if (handlingBehavior != ExceptionHandlingBehavior.ConditionalRethrow)
 			{
 				await saver(policyResult, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
@@ -189,7 +189,7 @@ namespace PoliNorError
 			ErrorProcessingCancellationEffect cancellationEffect,
 			CancellationToken token)
 		{
-			var saver = errorSaver ?? CreateDefaultErrorSaver<T>();
+			var saver = errorSaver ?? ErrorSaver<T>.Default;
 			if (handlingBehavior != ExceptionHandlingBehavior.ConditionalRethrow)
 			{
 				saver(policyResult, ex, errorContext, token);
@@ -513,6 +513,16 @@ namespace PoliNorError
 		/// </summary>
 		/// <returns>An enumerator that can be used to iterate through the collection.</returns>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+		private static class ErrorSaver<T>
+		{
+			internal readonly static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> Default = (pr, e, _, __) => pr.AddError(e);
+		}
+
+		private static class AsyncErrorSaver<T>
+		{
+			internal readonly static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> Default = (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
+		}
 	}
 
 	/// <summary>
