@@ -343,9 +343,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
@@ -375,9 +378,12 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
