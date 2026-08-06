@@ -78,14 +78,10 @@ namespace PoliNorError
 
 			try
 			{
-				action(param);
-				result.SetOk();
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(action, param, token);
+				result.SetResultBasedOnCancellation(oe);
 			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
-			}
-			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			catch (AggregateException ae) when (token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
@@ -118,6 +114,10 @@ namespace PoliNorError
 			{
 				var oe = CancellationAwareInvocation.InvokeCapturingCancel(action, token);
 				result.SetResultBasedOnCancellation(oe);
+			}
+			catch (AggregateException ae) when (token.IsCancellationRequested)
+			{
+				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
 			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{

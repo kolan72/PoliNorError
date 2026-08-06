@@ -18,10 +18,6 @@ namespace PoliNorError
 			{
 				return oe;
 			}
-			catch (AggregateException ae) when (token.IsCancellationRequested)
-			{
-				return ae.GetCancellationException(token);
-			}
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -35,10 +31,6 @@ namespace PoliNorError
 			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 			{
 				return oe;
-			}
-			catch (AggregateException ae) when (token.IsCancellationRequested)
-			{
-				return ae.GetCancellationException(token);
 			}
 		}
 
