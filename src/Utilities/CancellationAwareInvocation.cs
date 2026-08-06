@@ -24,5 +24,23 @@ namespace PoliNorError
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static OperationCanceledException InvokeCapturingCancel<TParam>(Action<TParam> action, TParam param, CancellationToken token)
+		{
+			try
+			{
+				action(param);
+				return null;
+			}
+			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
+			{
+				return oe;
+			}
+			catch (AggregateException ae) when (token.IsCancellationRequested)
+			{
+				return ae.GetCancellationException(token);
+			}
+		}
+
 	}
 }
