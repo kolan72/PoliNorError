@@ -66,7 +66,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
+			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -92,7 +92,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -119,7 +119,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
+			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -146,7 +146,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -178,7 +178,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
+			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -205,7 +205,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -237,7 +237,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			var policyRule = _policyRuleFunc.Apply(retryCountInfo);
+			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 			do
@@ -264,7 +264,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (HandleException(ex, result, retryContext, policyRule, retryDelay, token))
+					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -291,10 +291,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
-			{
-				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
-			}
+			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -317,7 +314,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -344,10 +341,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
-			{
-				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
-			}
+			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 			do
@@ -369,7 +363,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -395,10 +389,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
-			{
-				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
-			}
+			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -422,7 +413,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -448,10 +439,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> policyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct)
-			{
-				return Task.FromResult(_policyRuleFunc.Apply(retryCountInfo)(context, ct));
-			}
+			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
@@ -475,7 +463,7 @@ namespace PoliNorError
 				}
 				catch (Exception ex)
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, policyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
