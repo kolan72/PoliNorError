@@ -16,6 +16,9 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static bool WasResultSetToFailureByCatchBlock(this PolicyResult policyResult, HandleCatchBlockResult canHandleResult)
 		{
 			switch (canHandleResult)
