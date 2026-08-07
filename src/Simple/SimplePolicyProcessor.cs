@@ -163,13 +163,8 @@ namespace PoliNorError
 
 			try
 			{
-				var resAction = func(param);
-				result.SetOk();
-				result.SetResult(resAction);
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(func, param, token, out T outcome);
+				result.SetResultBasedOnCancellation(oe, outcome);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
@@ -202,13 +197,8 @@ namespace PoliNorError
 
 			try
 			{
-				var resAction = func();
-				result.SetOk();
-				result.SetResult(resAction);
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(func, token, out T outcome);
+				result.SetResultBasedOnCancellation(oe, outcome);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
