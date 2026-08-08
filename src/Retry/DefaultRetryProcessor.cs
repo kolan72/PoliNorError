@@ -90,9 +90,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
+					if (filterAccepted && HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -144,9 +144,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
+					if (filterAccepted && HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -203,9 +203,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
+					if (filterAccepted && HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -262,9 +262,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
+					if (filterAccepted && HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -312,9 +312,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -361,9 +361,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -411,9 +411,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -461,9 +461,9 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
