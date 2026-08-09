@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddForInnerExceptionTests.cs" />
+    <Compile Include="BasicHandlerTests.cs" />
     <Compile Include="BulkErrorProcessorTests.cs" />
     <Compile Include="BulkProcessResultTests.cs" />
     <Compile Include="CancellationTests.cs" />

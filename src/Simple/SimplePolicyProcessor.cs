@@ -123,7 +123,15 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(ex, result, emptyErrorContext, token);
+					BasicHandler.EvaluateRuleThenProcessException(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultErrorSaver,
+						DefaultPolicyRule,
+						_bulkErrorProcessor,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
