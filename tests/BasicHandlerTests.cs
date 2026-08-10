@@ -75,11 +75,14 @@ namespace PoliNorError.Tests
                 // Assert
                 Assert.That(policyResult.IsFailed, Is.True);
                 Assert.That(policyResult.IsCanceled, Is.True);
+                Assert.That(savedCancellationEx, Is.Not.Null);
             }
         }
 
         [Test]
-        public void Should_DontCallRuleFuncIfTokenCancelledBeforeEvaluation()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_DontCallRuleFuncIfTokenCancelledBeforeEvaluation(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -95,8 +98,21 @@ namespace PoliNorError.Tests
 					return true;
 				}
 
-				// Act
-				BasicHandler.EvaluateRuleThenProcessException(
+                // Act
+                if (withDefaultSaver)
+                {
+                    BasicHandler.EvaluateRuleThenProcessException(
+                    exception,
+                    policyResult,
+                    errorContext,
+                    ruleFunc,
+                    CreateEmptyBulkProcessor(),
+                    ErrorProcessingCancellationEffect.Ignore,
+                    cts.Token);
+                }
+                else
+                {
+                    BasicHandler.EvaluateRuleThenProcessException(
                     exception,
                     policyResult,
                     errorContext,
@@ -105,16 +121,20 @@ namespace PoliNorError.Tests
                     CreateEmptyBulkProcessor(),
                     ErrorProcessingCancellationEffect.Ignore,
                     cts.Token);
+                }
 
                 // Assert
                 Assert.That(policyResult.IsFailed, Is.True);
                 Assert.That(policyResult.IsCanceled, Is.True);
                 Assert.That(ruleInvoked, Is.False);
+                Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
             }
         }
 
         [Test]
-        public void Should_ProcessViaBulkProcessor_WhenRuleReturnsTrue()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_ProcessViaBulkProcessor_WhenRuleReturnsTrue(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -129,8 +149,21 @@ namespace PoliNorError.Tests
 
 			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => true;
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
+                ex,
+                policyResult,
+                errorContext,
+                ruleFunc,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+            }
+            else
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -139,6 +172,7 @@ namespace PoliNorError.Tests
                 bulkProcessor,
                 ErrorProcessingCancellationEffect.Ignore,
                 CancellationToken.None);
+            }
 
             // Assert
             Assert.That(bulkProcessed, Is.True);
@@ -146,7 +180,9 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        public void Should_NotProcessViaBulkProcessor_WhenRuleReturnsFalse()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_NotProcessViaBulkProcessor_WhenRuleReturnsFalse(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -161,8 +197,21 @@ namespace PoliNorError.Tests
 
 			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => false;
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
+                ex,
+                policyResult,
+                errorContext,
+                ruleFunc,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+            }
+            else
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -171,6 +220,7 @@ namespace PoliNorError.Tests
                 bulkProcessor,
                 ErrorProcessingCancellationEffect.Ignore,
                 CancellationToken.None);
+            }
 
             // Assert
             Assert.That(bulkProcessed, Is.False);
@@ -179,7 +229,9 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        public void Should_CallBulkProcessor_Only_WhenRuleFuncIsNull()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_CallBulkProcessor_Only_WhenRuleFuncIsNull(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -193,7 +245,20 @@ namespace PoliNorError.Tests
             });
 
             // Act
-            BasicHandler.EvaluateRuleThenProcessException(
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
+                ex,
+                policyResult,
+                errorContext,
+                null,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+            }
+            else
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -202,6 +267,7 @@ namespace PoliNorError.Tests
                 bulkProcessor,
                 ErrorProcessingCancellationEffect.Ignore,
                 CancellationToken.None);
+            }
 
             // Assert
             Assert.That(bulkProcessed, Is.True);
@@ -209,7 +275,9 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        public void Should_AddCatchBlockErrorsFromBulkProcessorToResult()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_AddCatchBlockErrorsFromBulkProcessorToResult(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -223,23 +291,39 @@ namespace PoliNorError.Tests
 
 			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => true;
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
-                (pr, e, _, __) => pr.AddError(e),
                 ruleFunc,
                 bulkProcessor,
                 ErrorProcessingCancellationEffect.Ignore,
                 CancellationToken.None);
-
+            }
+            else
+            {
+               BasicHandler.EvaluateRuleThenProcessException(
+               ex,
+               policyResult,
+               errorContext,
+               (pr, e, _, __) => pr.AddError(e),
+               ruleFunc,
+               bulkProcessor,
+               ErrorProcessingCancellationEffect.Ignore,
+               CancellationToken.None);
+            }
+            
             // Assert
             Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
         }
 
         [Test]
-        public void Should_SetFailedAndCanceledWhenBulkProcessorResultIsCanceled_AndEffectPropagate()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_SetFailedAndCanceledWhenBulkProcessorResultIsCanceled_AndEffectPropagate(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -255,8 +339,21 @@ namespace PoliNorError.Tests
 
 			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => true;
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
+                ex,
+                policyResult,
+                errorContext,
+                ruleFunc,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Propagate,
+                CancellationToken.None);
+            }
+            else
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -265,14 +362,18 @@ namespace PoliNorError.Tests
                 bulkProcessor,
                 ErrorProcessingCancellationEffect.Propagate,
                 CancellationToken.None);
-
+            }
+            
             // Assert
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.IsCanceled, Is.True);
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
-        public void Should_NotSetFailedAndCanceledWhenBulkProcessorResultIsCanceled_AndEffectIgnore()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_NotSetFailedAndCanceledWhenBulkProcessorResultIsCanceled_AndEffectIgnore(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -288,8 +389,21 @@ namespace PoliNorError.Tests
 
 			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => true;
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
+                ex,
+                policyResult,
+                errorContext,
+                ruleFunc,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+            }
+            else
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -298,15 +412,19 @@ namespace PoliNorError.Tests
                 bulkProcessor,
                 ErrorProcessingCancellationEffect.Ignore,
                 CancellationToken.None);
+            }
 
             // Assert
             Assert.That(policyResult.IsFailed, Is.False);
             Assert.That(policyResult.IsCanceled, Is.False);
             Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
-        public void Should_SetFailedWithCatchBlockError_WhenRuleFuncThrowsNonCancellationException()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_SetFailedWithCatchBlockError_WhenRuleFuncThrowsNonCancellationException(bool withDefaultSaver)
         {
             // Arrange
             var policyResult = new PolicyResult();
@@ -315,21 +433,38 @@ namespace PoliNorError.Tests
             var ruleError = new ArithmeticException("rule error");
 			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => throw ruleError;
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
-                (pr, e, _, __) => pr.AddError(e),
                 ruleFunc,
                 CreateEmptyBulkProcessor(),
                 ErrorProcessingCancellationEffect.Propagate,
                 CancellationToken.None);
+            }
+            else
+            {
+               BasicHandler.EvaluateRuleThenProcessException(
+               ex,
+               policyResult,
+               errorContext,
+               (pr, e, _, __) => pr.AddError(e),
+               ruleFunc,
+               CreateEmptyBulkProcessor(),
+               ErrorProcessingCancellationEffect.Propagate,
+               CancellationToken.None);
+            }
 
             // Assert
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.IsCanceled, Is.False);
             Assert.That(policyResult.CriticalError, Is.Not.Null);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -364,7 +499,9 @@ namespace PoliNorError.Tests
         }
 
         [Test]
-        public void ShouldNotAddExtraCatchBlockError_WhenRuleFuncSucceedsWithBooleanDefault_True()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void ShouldNotAddExtraCatchBlockError_WhenRuleFuncSucceedsWithBooleanDefault_True(bool withDefaultSaver)
         {
             // When policyRuleFunc is not provided (null), evaluatePolicyRule calls invoke func
             // If func returns default (which can't be null for bool), result.accepted is true (true != false)
@@ -380,7 +517,20 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var originalEx = new System.IO.FileNotFoundException();
 
-            BasicHandler.EvaluateRuleThenProcessException(
+            if (withDefaultSaver)
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
+                originalEx,
+                policyResult,
+                errorContext,
+                func,
+                CreateEmptyBulkProcessor(),
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+            }
+            else
+            {
+                BasicHandler.EvaluateRuleThenProcessException(
                 originalEx,
                 policyResult,
                 errorContext,
@@ -389,11 +539,14 @@ namespace PoliNorError.Tests
                 CreateEmptyBulkProcessor(),
                 ErrorProcessingCancellationEffect.Ignore,
                 CancellationToken.None);
+            }
 
             // The rule threw a non-cancellation exception, so it set failed with catch block error
             Assert.That(runByUser, Is.True);
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.CriticalError, Is.Not.Null);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
         }
 
         [Test]

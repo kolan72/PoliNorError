@@ -127,7 +127,6 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultErrorSaver,
 						DefaultPolicyRule,
 						_bulkErrorProcessor,
 						ErrorProcessingCancellationEffect.Propagate,

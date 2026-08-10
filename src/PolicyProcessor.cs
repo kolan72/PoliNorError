@@ -520,7 +520,7 @@ namespace PoliNorError
 		/// <returns>An enumerator that can be used to iterate through the collection.</returns>
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		private static class ErrorSaver<T>
+		internal static class ErrorSaver<T>
 		{
 			internal readonly static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> Default = (pr, e, _, __) => pr.AddError(e);
 		}
