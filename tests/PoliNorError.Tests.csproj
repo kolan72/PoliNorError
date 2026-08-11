@@ -95,6 +95,7 @@
     <Compile Include="BulkProcessResultTests.cs" />
     <Compile Include="CancellationTests.cs" />
     <Compile Include="CatchBlockHandlersTests.cs" />
+    <Compile Include="ExceptionFilterExtensionsTests.cs" />
     <Compile Include="PipelineErrorProcessorsAddForExceptionTests.cs" />
     <Compile Include="PipelineErrorProcessorsTests.cs" />
     <Compile Include="ConvertExceptionDelegatesTests.cs" />
