@@ -354,5 +354,25 @@ namespace PoliNorError
 		{
 			return new LastPolicyResultState() { IsCanceled = policyResult?.IsCanceled, IsFailed = policyResult?.IsFailed };
 		}
+
+		internal static void HandlePolicyRuleFailure(this PolicyResult policyResult, Exception policyRuleError, bool canceled, Exception originalError)
+		{
+			if (!(policyRuleError is null))
+			{
+				if (canceled)
+				{
+					policyResult.SetFailedAndCanceled((OperationCanceledException)policyRuleError);
+					policyResult.AddCatchBlockError(new CatchBlockException(policyRuleError, originalError, CatchBlockExceptionSource.PolicyRule));
+				}
+				else
+				{
+					policyResult.SetFailedWithCatchBlockError(policyRuleError, originalError, CatchBlockExceptionSource.PolicyRule);
+				}
+			}
+			else
+			{
+				policyResult.SetFailedInner();
+			}
+		}
 	}
 }

@@ -18,14 +18,16 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var exception = new InvalidOperationException("test");
             bool saverCalled = false;
-			void saver(PolicyResult pr, Exception ex, ErrorContext<Unit> _, CancellationToken __)
+            bool handledResult = false;
+
+            void saver(PolicyResult pr, Exception ex, ErrorContext<Unit> _, CancellationToken __)
 			{
 				saverCalled = true;
 				pr.AddError(ex);
 			}
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+            handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 exception,
                 policyResult,
                 errorContext,
@@ -39,6 +41,7 @@ namespace PoliNorError.Tests
             Assert.That(saverCalled, Is.True);
             Assert.That(policyResult.Errors.Count(), Is.EqualTo(1));
             Assert.That(policyResult.Errors.First(), Is.SameAs(exception));
+            Assert.That(handledResult, Is.True);
         }
 
         [Test]
@@ -48,6 +51,8 @@ namespace PoliNorError.Tests
             var policyResult = new PolicyResult();
             var errorContext = new TestSimpleErrorContext();
             var exception = new InvalidOperationException("test");
+            bool handledResult = false;
+
             using (var cts = new CancellationTokenSource())
             {
                 cts.Cancel();
@@ -62,7 +67,7 @@ namespace PoliNorError.Tests
 				Func<ErrorContext<Unit>, CancellationToken, bool> ruleFunc = null;
 
                 // Act
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                     exception,
                     policyResult,
                     errorContext,
@@ -76,6 +81,7 @@ namespace PoliNorError.Tests
                 Assert.That(policyResult.IsFailed, Is.True);
                 Assert.That(policyResult.IsCanceled, Is.True);
                 Assert.That(savedCancellationEx, Is.Not.Null);
+                Assert.That(handledResult, Is.False);
             }
         }
 
@@ -89,6 +95,8 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var exception = new InvalidOperationException("test");
             bool ruleInvoked = false;
+            bool handledResult = false;
+
             using (var cts = new CancellationTokenSource())
             {
                 cts.Cancel();
@@ -101,7 +109,7 @@ namespace PoliNorError.Tests
                 // Act
                 if (withDefaultSaver)
                 {
-                    BasicHandler.EvaluateRuleThenProcessException(
+                    handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                     exception,
                     policyResult,
                     errorContext,
@@ -112,7 +120,7 @@ namespace PoliNorError.Tests
                 }
                 else
                 {
-                    BasicHandler.EvaluateRuleThenProcessException(
+                    handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                     exception,
                     policyResult,
                     errorContext,
@@ -128,6 +136,7 @@ namespace PoliNorError.Tests
                 Assert.That(policyResult.IsCanceled, Is.True);
                 Assert.That(ruleInvoked, Is.False);
                 Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+                Assert.That(handledResult, Is.False);
             }
         }
 
@@ -141,6 +150,8 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException("test");
             bool bulkProcessed = false;
+            bool handledResult = false;
+
             var bulkProcessor = new MockBulkProcessor(() =>
             {
                 bulkProcessed = true;
@@ -152,7 +163,7 @@ namespace PoliNorError.Tests
             // Act
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -163,7 +174,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -177,6 +188,7 @@ namespace PoliNorError.Tests
             // Assert
             Assert.That(bulkProcessed, Is.True);
             Assert.That(policyResult.Errors.Count(), Is.EqualTo(1));
+            Assert.That(handledResult, Is.True);
         }
 
         [Test]
@@ -189,6 +201,8 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException("test");
             bool bulkProcessed = false;
+            bool handledResult = false;
+
             var bulkProcessor = new MockBulkProcessor(() =>
             {
                 bulkProcessed = true;
@@ -200,7 +214,7 @@ namespace PoliNorError.Tests
             // Act
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -211,7 +225,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -226,6 +240,7 @@ namespace PoliNorError.Tests
             Assert.That(bulkProcessed, Is.False);
             Assert.That(policyResult.Errors.Count(), Is.EqualTo(1));
             Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(handledResult, Is.False);
         }
 
         [Test]
@@ -238,6 +253,8 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException("test");
             bool bulkProcessed = false;
+            bool handledResult = false;
+
             var bulkProcessor = new MockBulkProcessor(() =>
             {
                 bulkProcessed = true;
@@ -247,7 +264,7 @@ namespace PoliNorError.Tests
             // Act
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -258,7 +275,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -272,6 +289,7 @@ namespace PoliNorError.Tests
             // Assert
             Assert.That(bulkProcessed, Is.True);
             Assert.That(policyResult.Errors.Count(), Is.EqualTo(1));
+            Assert.That(handledResult, Is.True);
         }
 
         [Test]
@@ -286,6 +304,7 @@ namespace PoliNorError.Tests
             var processorEx = new ArgumentException("processor error");
             var epEx = new BulkErrorProcessor.ErrorProcessorException(processorEx, null, BulkErrorProcessor.ProcessStatus.Faulted);
             var bulkResult = new BulkErrorProcessor.BulkProcessResult(ex, new[] { epEx });
+            bool handledResult = false;
 
             var bulkProcessor = new MockBulkProcessor(() => bulkResult);
 
@@ -294,7 +313,7 @@ namespace PoliNorError.Tests
             // Act
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -305,7 +324,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-               BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                ex,
                policyResult,
                errorContext,
@@ -318,6 +337,7 @@ namespace PoliNorError.Tests
             
             // Assert
             Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(handledResult, Is.True);
         }
 
         [Test]
@@ -330,6 +350,8 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException("test");
             var cancelEx = new OperationCanceledException();
+            bool handledResult = false;
+
             var bulkResult = new BulkErrorProcessor.BulkProcessResult(
                 ex,
                 new[] { new BulkErrorProcessor.ErrorProcessorException(cancelEx, null, BulkErrorProcessor.ProcessStatus.Canceled) },
@@ -342,7 +364,7 @@ namespace PoliNorError.Tests
             // Act
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -353,7 +375,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -368,6 +390,7 @@ namespace PoliNorError.Tests
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.IsCanceled, Is.True);
             Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+            Assert.That(handledResult, Is.False);
         }
 
         [Test]
@@ -380,6 +403,8 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException("test");
             var cancelEx = new OperationCanceledException();
+            bool handledResult = false;
+
             var bulkResult = new BulkErrorProcessor.BulkProcessResult(
                 ex,
                 new[] { new BulkErrorProcessor.ErrorProcessorException(cancelEx, null, BulkErrorProcessor.ProcessStatus.Canceled) },
@@ -392,7 +417,7 @@ namespace PoliNorError.Tests
             // Act
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -403,7 +428,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -419,6 +444,7 @@ namespace PoliNorError.Tests
             Assert.That(policyResult.IsCanceled, Is.False);
             Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
             Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+            Assert.That(handledResult, Is.True);
         }
 
         [Test]
@@ -431,13 +457,15 @@ namespace PoliNorError.Tests
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException("original");
             var ruleError = new ArithmeticException("rule error");
-			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => throw ruleError;
+            bool handledResult = false;
+
+            bool ruleFunc(ErrorContext<Unit> _, CancellationToken __) => throw ruleError;
 
             // Act
 
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -448,7 +476,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-               BasicHandler.EvaluateRuleThenProcessException(
+               handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                ex,
                policyResult,
                errorContext,
@@ -465,6 +493,7 @@ namespace PoliNorError.Tests
             Assert.That(policyResult.CriticalError, Is.Not.Null);
             Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
             Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+            Assert.That(handledResult, Is.False);
         }
 
         [Test]
@@ -474,16 +503,17 @@ namespace PoliNorError.Tests
             var policyResult = new PolicyResult();
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException("original");
+            bool handledResult = false;
 
-			// When policyRuleFunc returns null/defaults to false, it means "not accepted"
-			// which leads to SetFailedInner with no additional error
-			bool ruleFunc(ErrorContext<Unit> _, CancellationToken __)
+            // When policyRuleFunc returns null/defaults to false, it means "not accepted"
+            // which leads to SetFailedInner with no additional error
+            bool ruleFunc(ErrorContext<Unit> _, CancellationToken __)
 			{
 				return false;
 			}
 
-			// Act
-			BasicHandler.EvaluateRuleThenProcessException(
+            // Act
+            handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -496,6 +526,7 @@ namespace PoliNorError.Tests
             // Assert
             Assert.That(policyResult.IsFailed, Is.True);
             Assert.That(policyResult.IsCanceled, Is.False);
+            Assert.That(handledResult, Is.False);
         }
 
         [Test]
@@ -507,7 +538,9 @@ namespace PoliNorError.Tests
             // If func returns default (which can't be null for bool), result.accepted is true (true != false)
             // So Accepted path is taken and bulk processor runs normally
             bool runByUser = false;
-			bool func(ErrorContext<Unit> _, CancellationToken __)
+            bool handledResult = false;
+
+            bool func(ErrorContext<Unit> _, CancellationToken __)
 			{
 				runByUser = true;
 				throw new InvalidOperationException("this should never appear as caught");
@@ -519,7 +552,7 @@ namespace PoliNorError.Tests
 
             if (withDefaultSaver)
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 originalEx,
                 policyResult,
                 errorContext,
@@ -530,7 +563,7 @@ namespace PoliNorError.Tests
             }
             else
             {
-                BasicHandler.EvaluateRuleThenProcessException(
+                handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 originalEx,
                 policyResult,
                 errorContext,
@@ -547,6 +580,7 @@ namespace PoliNorError.Tests
             Assert.That(policyResult.CriticalError, Is.Not.Null);
             Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
             Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
+            Assert.That(handledResult, Is.False);
         }
 
         [Test]
@@ -559,8 +593,9 @@ namespace PoliNorError.Tests
             var policyResult = new PolicyResult();
             var errorContext = new TestSimpleErrorContext();
             var ex = new InvalidOperationException();
+            bool handledResult = false;
 
-			void saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            void saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
 			{
 				saverCalled = true;
 				pr.AddError(e);
@@ -575,7 +610,7 @@ namespace PoliNorError.Tests
 			// Rule returning true to force bulk processing
 			bool rule(ErrorContext<Unit> _, CancellationToken __) => true;
 
-			BasicHandler.EvaluateRuleThenProcessException(
+            handledResult = BasicHandler.TryEvaluateRuleThenProcessException(
                 ex,
                 policyResult,
                 errorContext,
@@ -587,6 +622,7 @@ namespace PoliNorError.Tests
 
             Assert.That(saverCalled, Is.True);
             Assert.That(bulkCalled, Is.True);
+            Assert.That(handledResult, Is.True);
         }
 
         private static IBulkErrorProcessor CreateEmptyBulkProcessor()
