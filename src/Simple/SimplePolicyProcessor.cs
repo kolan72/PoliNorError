@@ -89,7 +89,13 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(ex, result, emptyErrorContext, token);
+					TryHandleByEvaluatingRuleThenProcessing(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultPolicyRule,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -123,12 +129,11 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					BasicHandler.EvaluateRuleThenProcessException(
+					TryHandleByEvaluatingRuleThenProcessing(
 						ex,
 						result,
 						emptyErrorContext,
 						DefaultPolicyRule,
-						_bulkErrorProcessor,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
 				}
@@ -181,7 +186,13 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(ex, result, emptyErrorContext, token);
+					TryHandleByEvaluatingRuleThenProcessing(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultPolicyRule,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -215,7 +226,13 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(ex, result, emptyErrorContext, token);
+					TryHandleByEvaluatingRuleThenProcessing(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultPolicyRule,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -460,25 +477,6 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
-		}
-
-		private void HandleException(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			CancellationToken token)
-
-		{
-			HandleException(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultErrorSaver,
-				DefaultPolicyRule,
-				_rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.EvaluateThenProcess,
-				ErrorProcessingCancellationEffect.Propagate,
-				token);
 		}
 
 		private Task HandleExceptionAsync(

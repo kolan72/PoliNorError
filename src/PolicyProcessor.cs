@@ -178,6 +178,25 @@ namespace PoliNorError
 			}
 		}
 
+		protected bool TryHandleByEvaluatingRuleThenProcessing<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			CancellationToken token)
+		{
+				return BasicHandler.TryEvaluateRuleThenProcessException(
+					ex,
+					policyResult,
+					errorContext,
+					policyRuleFunc,
+					_bulkErrorProcessor,
+					cancellationEffect,
+					token);
+
+		}
+
 		protected internal ExceptionHandlingResult HandleException<T>(
 			Exception ex,
 			PolicyResult policyResult,
@@ -351,50 +370,15 @@ namespace PoliNorError
 			}
 		}
 
-		protected bool TryMatchErrorFilter(Exception originalEx, out Exception filterError)
-		{
-			filterError = null;
-			try
-			{
-				return ErrorFilter.GetCanHandle()(originalEx);
-			}
-			catch (Exception fe)
-			{
-				filterError = fe;
-				return false;
-			}
-		}
-
 		protected bool ShouldPropagateFilterUnsatisfied(Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
 		{
-			filterAccepted = false;
-			try
+			var shouldPropagate = ErrorFilter.ShouldPropagateFilterUnsatisfied(originalEx, rethrowIfErrorFilterUnsatisfied, out bool accepted, out Exception filterException);
+			filterAccepted = accepted;
+			if (!shouldPropagate && !filterAccepted)
 			{
-				var filterResult = ErrorFilter.GetCanHandle()(originalEx);
-				if (!filterResult)
-				{
-					if (rethrowIfErrorFilterUnsatisfied)
-					{
-						originalEx.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-						return true;
-					}
-					else
-					{
-						result.SaveFilterCatchAndMarkFailed(originalEx, null);
-						return false;
-					}
-				}
-				else
-				{
-					filterAccepted = true;
-					return false;
-				}
+				result.SaveFilterCatchAndMarkFailed(originalEx, filterException);
 			}
-			catch (Exception fe)
-			{
-				result.SaveFilterCatchAndMarkFailed(originalEx, fe);
-				return false;
-			}
+			return shouldPropagate;
 		}
 
 		/// <summary>

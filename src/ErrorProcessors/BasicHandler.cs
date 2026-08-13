@@ -79,6 +79,5 @@ namespace PoliNorError
 				return (false, false, cex);
 			}
 		}
-
 	}
 }
