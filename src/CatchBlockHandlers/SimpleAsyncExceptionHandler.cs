@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This class is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal class SimpleAsyncExceptionHandler
 	{
 		private readonly PolicyResult _policyResult;
