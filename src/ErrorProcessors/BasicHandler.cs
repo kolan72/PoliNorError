@@ -60,6 +60,28 @@ namespace PoliNorError
 			return true;
 		}
 
+		public static Task<bool> TryEvaluateRuleThenProcessExceptionAsync<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
+			IBulkErrorProcessor bulkErrorProcessor,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			return TryEvaluateRuleThenProcessExceptionAsync(
+				ex,
+				policyResult,
+				errorContext,
+				PolicyProcessor.AsyncErrorSaver<T>.Default,
+				policyRuleFunc,
+				bulkErrorProcessor,
+				cancellationEffect,
+				configureAwait,
+				token);
+		}
+
 		public static async Task<bool> TryEvaluateRuleThenProcessExceptionAsync<T>(
 			Exception ex,
 			PolicyResult policyResult,

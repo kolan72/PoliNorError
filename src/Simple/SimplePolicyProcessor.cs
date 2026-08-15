@@ -293,7 +293,15 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+					await TryHandleByEvaluatingRuleThenProcessingAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultAsyncPolicyRule,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -327,7 +335,15 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+					await TryHandleByEvaluatingRuleThenProcessingAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultAsyncPolicyRule,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -389,7 +405,15 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+					await TryHandleByEvaluatingRuleThenProcessingAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultAsyncPolicyRule,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -424,7 +448,15 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
+					await TryHandleByEvaluatingRuleThenProcessingAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						DefaultAsyncPolicyRule,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;

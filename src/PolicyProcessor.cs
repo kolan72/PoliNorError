@@ -178,6 +178,26 @@ namespace PoliNorError
 			}
 		}
 
+		protected Task<bool> TryHandleByEvaluatingRuleThenProcessingAsync<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			return BasicHandler.TryEvaluateRuleThenProcessExceptionAsync(
+				ex,
+				policyResult,
+				errorContext,
+				policyRuleFunc,
+				_bulkErrorProcessor,
+				cancellationEffect,
+				configureAwait,
+				token);
+		}
+
 		protected bool TryHandleByEvaluatingRuleThenProcessing<T>(
 			Exception ex,
 			PolicyResult policyResult,
@@ -194,7 +214,6 @@ namespace PoliNorError
 					_bulkErrorProcessor,
 					cancellationEffect,
 					token);
-
 		}
 
 		protected internal ExceptionHandlingResult HandleException<T>(
@@ -509,7 +528,7 @@ namespace PoliNorError
 			internal readonly static Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> Default = (pr, e, _, __) => pr.AddError(e);
 		}
 
-		private static class AsyncErrorSaver<T>
+		internal static class AsyncErrorSaver<T>
 		{
 			internal readonly static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> Default = (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
 		}
