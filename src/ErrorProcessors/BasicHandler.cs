@@ -60,6 +60,60 @@ namespace PoliNorError
 			return true;
 		}
 
+		public static bool TryProcessExceptionThenEvaluateRule<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc,
+			IBulkErrorProcessor bulkErrorProcessor,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			CancellationToken token)
+		{
+			return TryProcessExceptionThenEvaluateRule(
+				ex,
+				policyResult,
+				errorContext,
+				PolicyProcessor.ErrorSaver<T>.Default,
+				policyRuleFunc,
+				bulkErrorProcessor,
+				cancellationEffect,
+				token);
+		}
+
+		public static bool TryProcessExceptionThenEvaluateRule<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Action<PolicyResult, Exception, ErrorContext<T>, CancellationToken> errorSaver,
+			Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc,
+			IBulkErrorProcessor bulkErrorProcessor,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			CancellationToken token)
+		{
+			errorSaver(policyResult, ex, errorContext, token);
+			if (token.IsCancellationRequested)
+			{
+				policyResult.SetFailedAndCanceled(new OperationCanceledException(token));
+				return false;
+			}
+
+			var bulkProcessResult = bulkErrorProcessor.Process(ex, errorContext.ToProcessingErrorContext(), token);
+			policyResult.AddBulkProcessorErrors(bulkProcessResult);
+			if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
+			{
+				policyResult.SetFailedAndCanceled(bulkProcessResult.CancellationException);
+				return false;
+			}
+
+			var (accepted, canceled, error) = RunPolicyRuleFunc(errorContext, policyRuleFunc, token);
+			if (!accepted)
+			{
+				policyResult.HandlePolicyRuleFailure(error, canceled, ex);
+				return false;
+			}
+			return true;
+		}
+
 		public static Task<bool> TryEvaluateRuleThenProcessExceptionAsync<T>(
 			Exception ex,
 			PolicyResult policyResult,

@@ -641,6 +641,7 @@ namespace PoliNorError.Tests
         {
             private readonly Func<BulkErrorProcessor.BulkProcessResult> _getReturn;
             public BulkErrorProcessor.BulkProcessResult LastResult { get; private set; }
+            public CancellationToken LastToken { get; private set; }
 
             public MockBulkProcessor(Func<BulkErrorProcessor.BulkProcessResult> getReturn)
             {
@@ -650,6 +651,7 @@ namespace PoliNorError.Tests
             public BulkErrorProcessor.BulkProcessResult Process(Exception handlingError, ProcessingErrorContext errorContext = null, CancellationToken token = default)
             {
                 LastResult = _getReturn();
+                LastToken = token;
                 return LastResult;
             }
 
@@ -1164,6 +1166,618 @@ namespace PoliNorError.Tests
             Assert.That(order[0], Is.EqualTo("Saver"));
             Assert.That(order[1], Is.EqualTo("Rule"));
             Assert.That(order[2], Is.EqualTo("Bulk"));
+        }
+
+        [Test]
+        public void Should_SaveExceptionAndPassThroughArgs()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+
+            PolicyResult savedPolicyResult = null;
+            Exception savedEx = null;
+            ErrorContext<Unit> savedContext = null;
+            CancellationToken savedToken = default;
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> ctx, CancellationToken ct)
+            {
+                savedPolicyResult = pr;
+                savedEx = e;
+                savedContext = ctx;
+                savedToken = ct;
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __) => true;
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                CreateEmptyBulkProcessor(),
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(savedPolicyResult, Is.SameAs(policyResult));
+            Assert.That(savedEx, Is.SameAs(ex));
+            Assert.That(savedContext, Is.SameAs(errorContext));
+            Assert.That(policyResult.Errors.Single(), Is.SameAs(ex));
+            Assert.That(policyResult.IsFailed, Is.False);
+            Assert.That(policyResult.IsCanceled, Is.False);
+        }
+
+        [Test]
+        public void Should_SetFailedAndCanceled_WhenTokenAlreadyCanceled()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            bool ruleCalled = false;
+            bool bulkCalled = false;
+
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+
+                void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+                {
+                    pr.AddError(e);
+                }
+
+                bool Rule(ErrorContext<Unit> _, CancellationToken __)
+                {
+                    ruleCalled = true;
+                    return true;
+                }
+
+                var bulkProcessor = new MockBulkProcessor(() =>
+                {
+                    bulkCalled = true;
+                    return new BulkErrorProcessor.BulkProcessResult(ex, Array.Empty<BulkErrorProcessor.ErrorProcessorException>());
+                });
+
+                // Act
+                bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                    ex,
+                    policyResult,
+                    errorContext,
+                    Saver,
+                    Rule,
+                    bulkProcessor,
+                    ErrorProcessingCancellationEffect.Propagate,
+                    cts.Token);
+
+                // Assert
+                Assert.That(result, Is.False);
+                Assert.That(policyResult.IsFailed, Is.True);
+                Assert.That(policyResult.IsCanceled, Is.True);
+                Assert.That(policyResult.PolicyCanceledError, Is.InstanceOf<OperationCanceledException>());
+                Assert.That(policyResult.Errors.Single(), Is.SameAs(ex));
+                Assert.That(ruleCalled, Is.False);
+                Assert.That(bulkCalled, Is.False);
+            }
+        }
+
+        [Test]
+        public void Should_ProcessBulkBeforeRule_WhenBothRun()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            var order = new List<string>();
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                order.Add("Saver");
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __)
+            {
+                order.Add("Rule");
+                return true;
+            }
+
+            var bulkProcessor = new MockBulkProcessor(() =>
+            {
+                order.Add("Bulk");
+                return new BulkErrorProcessor.BulkProcessResult(ex, Array.Empty<BulkErrorProcessor.ErrorProcessorException>());
+            });
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(order.Count, Is.EqualTo(3));
+            Assert.That(order[0], Is.EqualTo("Saver"));
+            Assert.That(order[1], Is.EqualTo("Bulk"));
+            Assert.That(order[2], Is.EqualTo("Rule"));
+        }
+
+        [Test]
+        public void Should_ReturnTrue_WhenBulkSucceedsAndRuleAccepts()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __) => true;
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                CreateEmptyBulkProcessor(),
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(policyResult.IsFailed, Is.False);
+            Assert.That(policyResult.IsCanceled, Is.False);
+            Assert.That(policyResult.Errors.Single(), Is.SameAs(ex));
+        }
+
+        [Test]
+        public void Should_StillRunBulkProcessor_WhenRuleReturnsFalse()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            bool bulkCalled = false;
+            bool ruleCalled = false;
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __)
+            {
+                ruleCalled = true;
+                return false;
+            }
+
+            var bulkProcessor = new MockBulkProcessor(() =>
+            {
+                bulkCalled = true;
+                return new BulkErrorProcessor.BulkProcessResult(ex, Array.Empty<BulkErrorProcessor.ErrorProcessorException>());
+            });
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(bulkCalled, Is.True);
+            Assert.That(ruleCalled, Is.True);
+            Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.IsCanceled, Is.False);
+        }
+
+        [Test]
+        public void Should_SetFailedAndCanceled_WhenBulkCanceledAndEffectPropagate()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            var cancelEx = new OperationCanceledException();
+            bool ruleCalled = false;
+            bool bulkCalled = false;
+
+            var bulkResult = new BulkErrorProcessor.BulkProcessResult(
+                ex,
+                new[] { new BulkErrorProcessor.ErrorProcessorException(cancelEx, null, BulkErrorProcessor.ProcessStatus.Canceled) },
+                isCanceledBetweenProcessors: false);
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __)
+            {
+                ruleCalled = true;
+                return true;
+            }
+
+            var bulkProcessor = new MockBulkProcessor(() =>
+            {
+                bulkCalled = true;
+                return bulkResult;
+            });
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Propagate,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(bulkCalled, Is.True);
+            Assert.That(ruleCalled, Is.False);
+            Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.IsCanceled, Is.True);
+            Assert.That(policyResult.PolicyCanceledError, Is.InstanceOf<OperationCanceledException>());
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Should_ContinueToRule_WhenBulkCanceledAndEffectIgnore()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            var cancelEx = new OperationCanceledException();
+            bool ruleCalled = false;
+
+            var bulkResult = new BulkErrorProcessor.BulkProcessResult(
+                ex,
+                new[] { new BulkErrorProcessor.ErrorProcessorException(cancelEx, null, BulkErrorProcessor.ProcessStatus.Canceled) },
+                isCanceledBetweenProcessors: false);
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __)
+            {
+                ruleCalled = true;
+                return true;
+            }
+
+            var bulkProcessor = new MockBulkProcessor(() => bulkResult);
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(ruleCalled, Is.True);
+            Assert.That(policyResult.IsFailed, Is.False);
+            Assert.That(policyResult.IsCanceled, Is.False);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Should_SetFailed_WhenBulkCanceledEffectIgnoreAndRuleReturnsFalse()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            var cancelEx = new OperationCanceledException();
+            bool ruleCalled = false;
+
+            var bulkResult = new BulkErrorProcessor.BulkProcessResult(
+                ex,
+                new[] { new BulkErrorProcessor.ErrorProcessorException(cancelEx, null, BulkErrorProcessor.ProcessStatus.Canceled) },
+                isCanceledBetweenProcessors: false);
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __)
+            {
+                ruleCalled = true;
+                return false;
+            }
+
+            var bulkProcessor = new MockBulkProcessor(() => bulkResult);
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(ruleCalled, Is.True);
+            Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.IsCanceled, Is.False);
+        }
+
+        [Test]
+        public void Should_AddBulkProcessorProcessErrorsToCatchBlockErrors()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            var processorEx = new ArgumentException("processor fault");
+
+            var bulkResult = new BulkErrorProcessor.BulkProcessResult(
+                ex,
+                new[] { new BulkErrorProcessor.ErrorProcessorException(processorEx, null, BulkErrorProcessor.ProcessStatus.Faulted) });
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __) => true;
+
+            var bulkProcessor = new MockBulkProcessor(() => bulkResult);
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            Assert.That(policyResult.CatchBlockErrors.Single().ExceptionSource, Is.EqualTo(CatchBlockExceptionSource.ErrorProcessor));
+        }
+
+        [Test]
+        public void Should_SetFailedWithCatchBlockError_WhenRuleThrowsNonCancellation()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            var ruleError = new ArithmeticException("rule failed");
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            bool Rule(ErrorContext<Unit> _, CancellationToken __)
+            {
+                throw ruleError;
+            }
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                Rule,
+                CreateEmptyBulkProcessor(),
+                ErrorProcessingCancellationEffect.Propagate,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(policyResult.IsFailed, Is.True);
+            Assert.That(policyResult.IsCanceled, Is.False);
+            Assert.That(policyResult.CriticalError, Is.InstanceOf<ArithmeticException>());
+            Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Should_SetFailedAndCanceled_WhenRuleThrowsOperationCanceledException()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+
+            using (var cts = new CancellationTokenSource())
+            {
+                void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+                {
+                    pr.AddError(e);
+                }
+
+                bool Rule(ErrorContext<Unit> _, CancellationToken ct)
+                {
+                    cts.Cancel();
+                    throw new OperationCanceledException(ct);
+                }
+
+                // Act
+                bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                    ex,
+                    policyResult,
+                    errorContext,
+                    Saver,
+                    Rule,
+                    CreateEmptyBulkProcessor(),
+                    ErrorProcessingCancellationEffect.Propagate,
+                    cts.Token);
+
+                // Assert
+                Assert.That(result, Is.False);
+                Assert.That(policyResult.IsFailed, Is.True);
+                Assert.That(policyResult.IsCanceled, Is.True);
+                Assert.That(policyResult.PolicyCanceledError, Is.InstanceOf<OperationCanceledException>());
+                Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            }
+        }
+
+        [Test]
+        public void Should_SetFailedAndCanceled_WhenRuleThrowsAggregateCancellation()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+
+            using (var cts = new CancellationTokenSource())
+            {
+                void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+                {
+                    pr.AddError(e);
+                }
+
+                bool AggExceptionRule(ErrorContext<Unit> _, CancellationToken token)
+                {
+                    cts.Cancel();
+                    throw new AggregateException(new OperationCanceledException(token));
+                }
+
+                // Act
+                bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                    ex,
+                    policyResult,
+                    errorContext,
+                    Saver,
+                    AggExceptionRule,
+                    CreateEmptyBulkProcessor(),
+                    ErrorProcessingCancellationEffect.Propagate,
+                    cts.Token);
+
+                // Assert
+                Assert.That(result, Is.False);
+                Assert.That(policyResult.IsFailed, Is.True);
+                Assert.That(policyResult.IsCanceled, Is.True);
+                Assert.That(policyResult.CatchBlockErrors.Count(), Is.EqualTo(1));
+            }
+        }
+
+        [Test]
+        public void Should_ReturnTrue_WhenPolicyRuleFuncIsNull()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            bool bulkCalled = false;
+
+            void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+            {
+                pr.AddError(e);
+            }
+
+            var bulkProcessor = new MockBulkProcessor(() =>
+            {
+                bulkCalled = true;
+                return new BulkErrorProcessor.BulkProcessResult(ex, Array.Empty<BulkErrorProcessor.ErrorProcessorException>());
+            });
+
+            // Act
+            bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                ex,
+                policyResult,
+                errorContext,
+                Saver,
+                null,
+                bulkProcessor,
+                ErrorProcessingCancellationEffect.Ignore,
+                CancellationToken.None);
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(bulkCalled, Is.True);
+            Assert.That(policyResult.IsFailed, Is.False);
+            Assert.That(policyResult.IsCanceled, Is.False);
+            Assert.That(policyResult.Errors.Single(), Is.SameAs(ex));
+        }
+
+        [Test]
+        public void Should_PassTokenToBulkProcessorAndRule()
+        {
+            // Arrange
+            var policyResult = new PolicyResult();
+            var errorContext = new TestSimpleErrorContext();
+            var ex = new InvalidOperationException("original");
+            CancellationToken ruleToken = default;
+
+            using (var cts = new CancellationTokenSource())
+            {
+                var token = cts.Token;
+
+                void Saver(PolicyResult pr, Exception e, ErrorContext<Unit> _, CancellationToken __)
+                {
+                    pr.AddError(e);
+                }
+
+                bool Rule(ErrorContext<Unit> _, CancellationToken ct)
+                {
+                    ruleToken = ct;
+                    return true;
+                }
+
+                var bulkProcessor = new MockBulkProcessor(() =>
+                    new BulkErrorProcessor.BulkProcessResult(ex, Array.Empty<BulkErrorProcessor.ErrorProcessorException>()));
+
+                // Act
+                bool result = BasicHandler.TryProcessExceptionThenEvaluateRule(
+                    ex,
+                    policyResult,
+                    errorContext,
+                    Saver,
+                    Rule,
+                    bulkProcessor,
+                    ErrorProcessingCancellationEffect.Ignore,
+                    token);
+
+                // Assert
+                Assert.That(result, Is.True);
+                Assert.That(bulkProcessor.LastToken, Is.EqualTo(token));
+                Assert.That(ruleToken, Is.EqualTo(token));
+            }
         }
     }
 }
