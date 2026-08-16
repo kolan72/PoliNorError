@@ -510,26 +510,5 @@ namespace PoliNorError
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
 		}
-
-		private Task HandleExceptionAsync(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			bool configAwait,
-			CancellationToken token)
-
-		{
-			return HandleExceptionAsync(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultAsyncErrorSaver,
-				DefaultAsyncPolicyRule,
-				_rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.EvaluateThenProcess,
-				ErrorProcessingCancellationEffect.Propagate,
-				configAwait,
-				token);
-		}
 	}
 }
