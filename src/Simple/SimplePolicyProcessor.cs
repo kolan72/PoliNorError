@@ -89,7 +89,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					TryHandleByEvaluatingRuleThenProcessing(
+					TryHandleByEvaluatingRuleThenProcessException(
 						ex,
 						result,
 						emptyErrorContext,
@@ -129,7 +129,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					TryHandleByEvaluatingRuleThenProcessing(
+					TryHandleByEvaluatingRuleThenProcessException(
 						ex,
 						result,
 						emptyErrorContext,
@@ -186,7 +186,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					TryHandleByEvaluatingRuleThenProcessing(
+					TryHandleByEvaluatingRuleThenProcessException(
 						ex,
 						result,
 						emptyErrorContext,
@@ -226,7 +226,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					TryHandleByEvaluatingRuleThenProcessing(
+					TryHandleByEvaluatingRuleThenProcessException(
 						ex,
 						result,
 						emptyErrorContext,
@@ -293,7 +293,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await TryHandleByEvaluatingRuleThenProcessingAsync(
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
 						ex,
 						result,
 						emptyErrorContext,
@@ -335,7 +335,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await TryHandleByEvaluatingRuleThenProcessingAsync(
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
 						ex,
 						result,
 						emptyErrorContext,
@@ -405,7 +405,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await TryHandleByEvaluatingRuleThenProcessingAsync(
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
 						ex,
 						result,
 						emptyErrorContext,
@@ -448,7 +448,7 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await TryHandleByEvaluatingRuleThenProcessingAsync(
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
 						ex,
 						result,
 						emptyErrorContext,

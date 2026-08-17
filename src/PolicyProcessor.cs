@@ -178,7 +178,7 @@ namespace PoliNorError
 			}
 		}
 
-		protected Task<bool> TryHandleByEvaluatingRuleThenProcessingAsync<T>(
+		protected Task<bool> TryHandleByEvaluatingRuleThenProcessExceptionAsync<T>(
 			Exception ex,
 			PolicyResult policyResult,
 			ErrorContext<T> errorContext,
@@ -198,7 +198,7 @@ namespace PoliNorError
 				token);
 		}
 
-		protected bool TryHandleByEvaluatingRuleThenProcessing<T>(
+		protected bool TryHandleByEvaluatingRuleThenProcessException<T>(
 			Exception ex,
 			PolicyResult policyResult,
 			ErrorContext<T> errorContext,
