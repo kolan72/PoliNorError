@@ -426,14 +426,7 @@ namespace PoliNorError
 			Exception ex,
 			CancellationToken token)
 		{
-			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-			{
-				var fallbackResult = fallback(ct);
-				result.SetResult(fallbackResult);
-				return true;
-			}
-
-			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+			HandleException(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(result), token);
 		}
 
 		private void HandleException(
@@ -443,9 +436,7 @@ namespace PoliNorError
 			Exception ex,
 			CancellationToken token)
 		{
-			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
-
-			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
+			HandleException(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(), token);
 		}
 
 		private void HandleException(
@@ -476,14 +467,7 @@ namespace PoliNorError
 			bool configureAwait,
 			CancellationToken token)
 		{
-			async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-			{
-				var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
-				result.SetResult(fallbackResult);
-				return true;
-			}
-
-			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+			return await HandleExceptionAsync(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(result, configureAwait), configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		private async Task HandleExceptionAsync(
@@ -494,13 +478,7 @@ namespace PoliNorError
 			bool configureAwait,
 			CancellationToken token)
 		{
-			async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-			{
-				await fallback(ct).ConfigureAwait(configureAwait);
-				return true;
-			}
-
-			await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+			await HandleExceptionAsync(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(configureAwait), configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		private Task<ExceptionHandlingResult> HandleExceptionAsync(
