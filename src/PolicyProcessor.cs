@@ -178,6 +178,24 @@ namespace PoliNorError
 			}
 		}
 
+		protected bool TryHandleByProcessingExceptionThenEvaluateRule<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			CancellationToken token)
+		{
+			return BasicHandler.TryProcessExceptionThenEvaluateRule(
+				ex,
+				policyResult,
+				errorContext,
+				policyRuleFunc,
+				_bulkErrorProcessor,
+				cancellationEffect,
+				token);
+		}
+
 		protected Task<bool> TryHandleByEvaluatingRuleThenProcessExceptionAsync<T>(
 			Exception ex,
 			PolicyResult policyResult,

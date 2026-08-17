@@ -56,7 +56,13 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(fallback, emptyErrorContext, result, ex, token);
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -90,7 +96,13 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(fallback, emptyErrorContext, result, ex, token);
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
