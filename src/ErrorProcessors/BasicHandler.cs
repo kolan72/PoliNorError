@@ -114,6 +114,63 @@ namespace PoliNorError
 			return true;
 		}
 
+		public static Task<bool> TryProcessExceptionThenEvaluateRuleAsync<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
+			IBulkErrorProcessor bulkErrorProcessor,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			return TryProcessExceptionThenEvaluateRuleAsync(
+				ex,
+				policyResult,
+				errorContext,
+				PolicyProcessor.AsyncErrorSaver<T>.Default,
+				policyRuleFunc,
+				bulkErrorProcessor,
+				cancellationEffect,
+				configureAwait,
+				token);
+		}
+
+		public static async Task<bool> TryProcessExceptionThenEvaluateRuleAsync<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
+			Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
+			Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
+			IBulkErrorProcessor bulkErrorProcessor,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			await errorSaver(policyResult, ex, errorContext, configureAwait, token).ConfigureAwait(configureAwait);
+			if (token.IsCancellationRequested)
+			{
+				policyResult.SetFailedAndCanceled(new OperationCanceledException(token));
+				return false;
+			}
+
+			var bulkProcessResult = await bulkErrorProcessor.ProcessAsync(ex, errorContext.ToProcessingErrorContext(), configureAwait, token).ConfigureAwait(configureAwait);
+			policyResult.AddBulkProcessorErrors(bulkProcessResult);
+			if (cancellationEffect == ErrorProcessingCancellationEffect.Propagate && bulkProcessResult.IsCanceled)
+			{
+				policyResult.SetFailedAndCanceled(bulkProcessResult.CancellationException);
+				return false;
+			}
+
+			var (accepted, canceled, error) = await RunPolicyRuleFuncAsync(errorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
+			if (!accepted)
+			{
+				policyResult.HandlePolicyRuleFailure(error, canceled, ex);
+				return false;
+			}
+			return true;
+		}
+
 		public static Task<bool> TryEvaluateRuleThenProcessExceptionAsync<T>(
 			Exception ex,
 			PolicyResult policyResult,
