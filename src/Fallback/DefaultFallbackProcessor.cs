@@ -152,7 +152,13 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(fallback, emptyErrorContext, result, ex, token);
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -186,7 +192,13 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					HandleException(fallback, emptyErrorContext, result, ex, token);
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -429,36 +441,6 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
-		}
-
-		private void HandleException<T>(
-			Func<CancellationToken, T> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult<T> result,
-			Exception ex,
-			CancellationToken token)
-		{
-			HandleException(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(result), token);
-		}
-
-		private void HandleException(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			Func<ErrorContext<Unit>, CancellationToken, bool> policyRuleFunc,
-			CancellationToken token)
-
-		{
-			HandleException(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultErrorSaver,
-				policyRuleFunc,
-				ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.ProcessThenEvaluate,
-				ErrorProcessingCancellationEffect.Propagate,
-				token);
 		}
 
 		private async Task<ExceptionHandlingResult> HandleExceptionAsync<T>(
