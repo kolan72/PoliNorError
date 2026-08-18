@@ -442,16 +442,6 @@ namespace PoliNorError
 		}
 
 		private void HandleException(
-			Action<CancellationToken> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult result,
-			Exception ex,
-			CancellationToken token)
-		{
-			HandleException(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(), token);
-		}
-
-		private void HandleException(
 			Exception ex,
 			PolicyResult policyResult,
 			EmptyErrorContext errorContext,
