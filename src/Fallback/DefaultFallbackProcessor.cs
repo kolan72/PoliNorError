@@ -369,7 +369,15 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+					await TryHandleByProcessingExceptionThenEvaluateRuleAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result, configureAwait),
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -404,7 +412,15 @@ namespace PoliNorError
 			{
 				if (filterAccepted)
 				{
-					await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+					await TryHandleByProcessingExceptionThenEvaluateRuleAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result, configureAwait),
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -457,50 +473,6 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
-		}
-
-		private async Task<ExceptionHandlingResult> HandleExceptionAsync<T>(
-			Func<CancellationToken, Task<T>> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult<T> result,
-			Exception ex,
-			bool configureAwait,
-			CancellationToken token)
-		{
-			return await HandleExceptionAsync(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(result, configureAwait), configureAwait, token).ConfigureAwait(configureAwait);
-		}
-
-		private async Task HandleExceptionAsync(
-			Func<CancellationToken, Task> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult result,
-			Exception ex,
-			bool configureAwait,
-			CancellationToken token)
-		{
-			await HandleExceptionAsync(ex, result, emptyErrorContext, fallback.ToPolicyRuleFunc(configureAwait), configureAwait, token).ConfigureAwait(configureAwait);
-		}
-
-		private Task<ExceptionHandlingResult> HandleExceptionAsync(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			Func<ErrorContext<Unit>, CancellationToken, Task<bool>> policyRuleFunc,
-			bool configAwait,
-			CancellationToken token)
-
-		{
-			return HandleExceptionAsync(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultAsyncErrorSaver,
-				policyRuleFunc,
-				ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.ProcessThenEvaluate,
-				ErrorProcessingCancellationEffect.Propagate,
-				configAwait,
-				token);
 		}
 	}
 }
