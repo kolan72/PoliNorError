@@ -231,7 +231,20 @@ namespace PoliNorError
 				}
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (filterAccepted && HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
+					if (filterAccepted &&
+						TryHandleByEvaluatingRuleThenProcessException(
+							ex,
+							result,
+							retryContext,
+							SaveError,
+							PolicyRule,
+							ErrorProcessingCancellationEffect.Propagate,
+							token) &&
+						!DelayProvider.DelayAndCheckIfResultFailed(
+								retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
+								result,
+								ex,
+								token))
 					{
 						retryContext.IncrementCount();
 					}
@@ -290,7 +303,20 @@ namespace PoliNorError
 				}
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 				{
-					if (filterAccepted && HandleException(ex, result, retryContext, PolicyRule, retryDelay, token))
+					if (filterAccepted &&
+						TryHandleByEvaluatingRuleThenProcessException(
+							ex,
+							result,
+							retryContext,
+							SaveError,
+							PolicyRule,
+							ErrorProcessingCancellationEffect.Propagate,
+							token) &&
+						!DelayProvider.DelayAndCheckIfResultFailed(
+								retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
+								result,
+								ex,
+								token))
 					{
 						retryContext.IncrementCount();
 					}
