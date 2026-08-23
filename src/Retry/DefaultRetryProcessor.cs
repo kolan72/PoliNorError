@@ -597,32 +597,6 @@ namespace PoliNorError
 			return !policyResult.IsFailed;
 		}
 
-		private bool HandleException(
-			Exception ex,
-			PolicyResult policyResult,
-			ErrorContext<RetryContext> errorContext,
-			Func<ErrorContext<RetryContext>, CancellationToken, bool> policyRuleFunc,
-			RetryDelay retryDelay,
-			CancellationToken token)
-		{
-			HandleException(
-				ex,
-				policyResult,
-				errorContext,
-				SaveError,
-				policyRuleFunc,
-				ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.EvaluateThenProcess,
-				ErrorProcessingCancellationEffect.Propagate,
-				token);
-
-			if (policyResult.IsFailed)
-				return false;
-
-			DelayProvider.DelayAndCheckIfResultFailed(retryDelay?.GetDelay(errorContext.Context.CurrentRetryCount), policyResult, ex, token);
-			return !policyResult.IsFailed;
-		}
-
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
 
 		private void SaveError(PolicyResult result, Exception ex, ErrorContext<RetryContext> retryContext, CancellationToken token)
