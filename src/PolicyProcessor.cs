@@ -220,6 +220,28 @@ namespace PoliNorError
 			Exception ex,
 			PolicyResult policyResult,
 			ErrorContext<T> errorContext,
+			Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> errorSaver,
+			Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
+			ErrorProcessingCancellationEffect cancellationEffect,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			return BasicHandler.TryEvaluateRuleThenProcessExceptionAsync(
+				ex,
+				policyResult,
+				errorContext,
+				errorSaver,
+				policyRuleFunc,
+				_bulkErrorProcessor,
+				cancellationEffect,
+				configureAwait,
+				token);
+		}
+
+		protected Task<bool> TryHandleByEvaluatingRuleThenProcessExceptionAsync<T>(
+			Exception ex,
+			PolicyResult policyResult,
+			ErrorContext<T> errorContext,
 			Func<ErrorContext<T>, CancellationToken, Task<bool>> policyRuleFunc,
 			ErrorProcessingCancellationEffect cancellationEffect,
 			bool configureAwait,
