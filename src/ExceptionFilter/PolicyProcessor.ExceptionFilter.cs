@@ -118,6 +118,11 @@ namespace PoliNorError
 			{
 				return FilterSet.CompilePredicate();
 			}
+
+			internal ExceptionFilterSlim GetSlim()
+			{
+				return new ExceptionFilterSlim(this);
+			}
 		}
 	}
 }
