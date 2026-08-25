@@ -69,6 +69,8 @@ namespace PoliNorError
 			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
+
+			var errorFilterSlim = ErrorFilter.GetSlim();
 			do
 			{
 				try
@@ -90,7 +92,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
 						TryHandleByEvaluatingRuleThenProcessException(
@@ -136,6 +138,8 @@ namespace PoliNorError
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
+			var errorFilterSlim = ErrorFilter.GetSlim();
+
 			do
 			{
 				try
@@ -157,7 +161,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
 						TryHandleByEvaluatingRuleThenProcessException(
@@ -207,6 +211,8 @@ namespace PoliNorError
 			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
+
+			var errorFilterSlim = ErrorFilter.GetSlim();
 			do
 			{
 				try
@@ -229,7 +235,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
 						TryHandleByEvaluatingRuleThenProcessException(
@@ -279,6 +285,7 @@ namespace PoliNorError
 			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
+			var errorFilterSlim = ErrorFilter.GetSlim();
 			do
 			{
 				try
@@ -301,7 +308,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
 						TryHandleByEvaluatingRuleThenProcessException(
@@ -347,6 +354,8 @@ namespace PoliNorError
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
+			var errorFilterSlim = ErrorFilter.GetSlim();
+
 			do
 			{
 				try
@@ -364,7 +373,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
@@ -396,6 +405,8 @@ namespace PoliNorError
 			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
+
+			var errorFilterSlim = ErrorFilter.GetSlim();
 			do
 			{
 				try
@@ -413,7 +424,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
@@ -445,6 +456,8 @@ namespace PoliNorError
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
+			var errorFilterSlim = ErrorFilter.GetSlim();
+
 			do
 			{
 				try
@@ -463,7 +476,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
@@ -495,6 +508,7 @@ namespace PoliNorError
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
+			var errorFilterSlim = ErrorFilter.GetSlim();
 			do
 			{
 				try
@@ -513,7 +527,7 @@ namespace PoliNorError
 				{
 					result.SetFailedAndCanceled(oe);
 				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
+				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
 					{
