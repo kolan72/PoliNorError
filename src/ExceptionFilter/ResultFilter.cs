@@ -6,19 +6,19 @@ namespace PoliNorError
 {
 	public class ResultFilter<T>
 	{
-		public IEnumerable<Expression<Func<T, bool>>> ExcludedErrorFilters => FilterSet.ExcludedErrorFilters;
+		public IEnumerable<Expression<Func<T, bool>>> ResultFilters => FilterSet.ResultFilters;
 
 		internal ResultFilterSet<T> FilterSet { get; } = new ResultFilterSet<T>();
 
-		public ResultFilter<T> ExcludeError(Expression<Func<T, bool>> expression)
+		public ResultFilter<T> ExcludeResult(Expression<Func<T, bool>> expression)
 		{
-			AddExcludedErrorFilter(expression);
+			AddExcludedResultFilter(expression);
 			return this;
 		}
 
-		internal void AddExcludedErrorFilter(Expression<Func<T, bool>> handledErrorFilter)
+		internal void AddExcludedResultFilter(Expression<Func<T, bool>> handledErrorFilter)
 		{
-			FilterSet.ExcludeFilter(handledErrorFilter);
+			FilterSet.ExcludeResult(handledErrorFilter);
 		}
 
 		internal void AppendFilter(ResultFilter<T> resultFilter)

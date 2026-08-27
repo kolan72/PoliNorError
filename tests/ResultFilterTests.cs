@@ -13,7 +13,7 @@ namespace PoliNorError.Tests
 		{
 			var filterSet = new ResultFilterSet<string>();
 
-			Assert.That(filterSet.ExcludedErrorFilters, Is.Empty);
+			Assert.That(filterSet.ResultFilters, Is.Empty);
 		}
 
 		[Test]
@@ -22,10 +22,10 @@ namespace PoliNorError.Tests
 			var filterSet = new ResultFilterSet<string>();
 			Expression<Func<string, bool>> filter = s => s.Length > 5;
 
-			filterSet.ExcludeFilter(filter);
+			filterSet.ExcludeResult(filter);
 
-			Assert.That(filterSet.ExcludedErrorFilters, Has.Count.EqualTo(1));
-			Assert.That(filterSet.ExcludedErrorFilters, Contains.Item(filter));
+			Assert.That(filterSet.ResultFilters, Has.Count.EqualTo(1));
+			Assert.That(filterSet.ResultFilters, Contains.Item(filter));
 		}
 
 		[Test]
@@ -36,11 +36,11 @@ namespace PoliNorError.Tests
 
 			Expression<Func<string, bool>> filter = s => s.Length > 5;
 
-			filterSet2.ExcludeFilter(filter);
+			filterSet2.ExcludeResult(filter);
 
 			filterSet1.AppendFilter(filterSet2);
 
-			Assert.That(filterSet1.ExcludedErrorFilters, Contains.Item(filter));
+			Assert.That(filterSet1.ResultFilters, Contains.Item(filter));
 		}
 
 		[Test]
@@ -58,7 +58,7 @@ namespace PoliNorError.Tests
 		public void Should_CompilePredicate_WithExcludedFilters()
 		{
 			var filterSet = new ResultFilterSet<string>();
-			filterSet.ExcludeFilter(s => s == "excluded");
+			filterSet.ExcludeResult(s => s == "excluded");
 
 			var predicate = filterSet.CompilePredicate();
 
@@ -70,8 +70,8 @@ namespace PoliNorError.Tests
 		public void Should_CompilePredicate_WithMultipleExcludedFilters()
 		{
 			var filterSet = new ResultFilterSet<string>();
-			filterSet.ExcludeFilter(s => s == "excluded1");
-			filterSet.ExcludeFilter(s => s == "excluded2");
+			filterSet.ExcludeResult(s => s == "excluded1");
+			filterSet.ExcludeResult(s => s == "excluded2");
 
 			var predicate = filterSet.CompilePredicate();
 
@@ -89,21 +89,21 @@ namespace PoliNorError.Tests
 			Expression<Func<string, bool>> originalFilter = s => s == "a";
 			Expression<Func<string, bool>> additionalFilter = s => s == "b";
 
-			originalSet.ExcludeFilter(originalFilter);
-			additionalSet.ExcludeFilter(additionalFilter);
+			originalSet.ExcludeResult(originalFilter);
+			additionalSet.ExcludeResult(additionalFilter);
 
 			originalSet.AppendFilter(additionalSet);
 
-			Assert.That(originalSet.ExcludedErrorFilters, Has.Count.EqualTo(2));
-			Assert.That(originalSet.ExcludedErrorFilters, Contains.Item(originalFilter));
-			Assert.That(originalSet.ExcludedErrorFilters, Contains.Item(additionalFilter));
+			Assert.That(originalSet.ResultFilters, Has.Count.EqualTo(2));
+			Assert.That(originalSet.ResultFilters, Contains.Item(originalFilter));
+			Assert.That(originalSet.ResultFilters, Contains.Item(additionalFilter));
 		}
 
 		[Test]
 		public void Should_Work_With_NonStringType()
 		{
 			var filterSet = new ResultFilterSet<int>();
-			filterSet.ExcludeFilter(i => i > 10);
+			filterSet.ExcludeResult(i => i > 10);
 
 			var predicate = filterSet.CompilePredicate();
 
@@ -121,7 +121,7 @@ namespace PoliNorError.Tests
 		{
 			var filter = new ResultFilter<string>();
 
-			Assert.That(filter.ExcludedErrorFilters, Is.Empty);
+			Assert.That(filter.ResultFilters, Is.Empty);
 		}
 
 		[Test]
@@ -138,9 +138,9 @@ namespace PoliNorError.Tests
 		public void Should_ExcludeError_AddToExcludedFilters()
 		{
 			var filter = new ResultFilter<string>();
-			filter.ExcludeError(s => s == "excluded");
+			filter.ExcludeResult(s => s == "excluded");
 
-			Assert.That(filter.ExcludedErrorFilters, Has.Count.EqualTo(1));
+			Assert.That(filter.ResultFilters, Has.Count.EqualTo(1));
 			Assert.That(filter.GetIsSuccessful()("excluded"), Is.False);
 			Assert.That(filter.GetIsSuccessful()("included"), Is.True);
 		}
@@ -149,7 +149,7 @@ namespace PoliNorError.Tests
 		public void Should_ExcludeError_ReturnSelf()
 		{
 			var filter = new ResultFilter<string>();
-			var result = filter.ExcludeError(s => s == "excluded");
+			var result = filter.ExcludeResult(s => s == "excluded");
 
 			Assert.That(result, Is.SameAs(filter));
 		}
@@ -160,23 +160,23 @@ namespace PoliNorError.Tests
 			var filter = new ResultFilter<string>();
 			Expression<Func<string, bool>> expression = s => s.Length > 3;
 
-			filter.AddExcludedErrorFilter(expression);
+			filter.AddExcludedResultFilter(expression);
 
-			Assert.That(filter.ExcludedErrorFilters, Has.Count.EqualTo(1));
+			Assert.That(filter.ResultFilters, Has.Count.EqualTo(1));
 		}
 
 		[Test]
 		public void Should_AppendFilter_MergeExcludedFilters()
 		{
 			var filter = new ResultFilter<string>();
-			filter.ExcludeError(s => s == "excluded1");
+			filter.ExcludeResult(s => s == "excluded1");
 
 			var appendedFilter = new ResultFilter<string>();
-			appendedFilter.ExcludeError(s => s == "excluded2");
+			appendedFilter.ExcludeResult(s => s == "excluded2");
 
 			filter.AppendFilter(appendedFilter);
 
-			Assert.That(filter.ExcludedErrorFilters, Has.Count.EqualTo(2));
+			Assert.That(filter.ResultFilters, Has.Count.EqualTo(2));
 			Assert.That(filter.GetIsSuccessful()("excluded1"), Is.False);
 			Assert.That(filter.GetIsSuccessful()("excluded2"), Is.False);
 			Assert.That(filter.GetIsSuccessful()("other"), Is.True);
@@ -186,7 +186,7 @@ namespace PoliNorError.Tests
 		public void Should_GetSlim_Match_GetIsSuccessful()
 		{
 			var filter = new ResultFilter<string>();
-			filter.ExcludeError(s => s == "excluded");
+			filter.ExcludeResult(s => s == "excluded");
 
 			var slim = filter.GetSlim();
 
@@ -209,10 +209,10 @@ namespace PoliNorError.Tests
 		public void Should_GetSlim_Match_GetIsSuccessful_AfterAppendFilter()
 		{
 			var filter = new ResultFilter<string>();
-			filter.ExcludeError(s => s == "first");
+			filter.ExcludeResult(s => s == "first");
 
 			var appended = new ResultFilter<string>();
-			appended.ExcludeError(s => s == "second");
+			appended.ExcludeResult(s => s == "second");
 
 			filter.AppendFilter(appended);
 			var slim = filter.GetSlim();
@@ -239,7 +239,7 @@ namespace PoliNorError.Tests
 		public void Should_IsSuccessful_Match_FilterGetIsSuccessful_ForExcludedFilters()
 		{
 			var filter = new ResultFilter<string>();
-			filter.ExcludeError(s => s == "filtered");
+			filter.ExcludeResult(s => s == "filtered");
 
 			var slim = filter.GetSlim();
 
@@ -253,7 +253,7 @@ namespace PoliNorError.Tests
 		{
 			var filter = new ResultFilter<string>();
 			var appended = new ResultFilter<string>();
-			appended.ExcludeError(s => s == "appended_excluded");
+			appended.ExcludeResult(s => s == "appended_excluded");
 
 			filter.AppendFilter(appended);
 			var slim = filter.GetSlim();

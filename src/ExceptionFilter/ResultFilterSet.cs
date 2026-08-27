@@ -8,29 +8,29 @@ namespace PoliNorError
 	{
 		private static readonly Func<T, bool> _defaultFilter = _ => true;
 
-		internal List<Expression<Func<T, bool>>> ExcludedErrorFilters { get; } = new List<Expression<Func<T, bool>>>();
+		internal List<Expression<Func<T, bool>>> ResultFilters { get; } = new List<Expression<Func<T, bool>>>();
 
-		internal void ExcludeFilter(Expression<Func<T, bool>> handledErrorFilter)
+		internal void ExcludeResult(Expression<Func<T, bool>> resultFilter)
 		{
-			ExcludedErrorFilters.Add(handledErrorFilter);
+			ResultFilters.Add(resultFilter);
 		}
 
 		internal void AppendFilter(ResultFilterSet<T> resultFilter)
 		{
-			foreach (var filter in resultFilter.ExcludedErrorFilters)
+			foreach (var filter in resultFilter.ResultFilters)
 			{
-				ExcludedErrorFilters.Add(filter);
+				ResultFilters.Add(filter);
 			}
 		}
 
 		internal Func<T, bool> CompilePredicate()
 		{
-			if (ExcludedErrorFilters.Count == 0)
+			if (ResultFilters.Count == 0)
 			{
 				return _defaultFilter;
 			}
 
-			return ExcludedErrorFilters.GetOrCombined().Not().Compile();
+			return ResultFilters.GetOrCombined().Not().Compile();
 		}
 	}
 }
