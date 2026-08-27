@@ -375,7 +375,22 @@ namespace PoliNorError
 				}
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
-					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted &&
+						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+							ex,
+							result,
+							retryContext,
+							SaveErrorAsync,
+							PolicyRuleAsync,
+							ErrorProcessingCancellationEffect.Propagate,
+							configureAwait,
+							token).ConfigureAwait(configureAwait) &&
+						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
+							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
+							result,
+							ex,
+							configureAwait,
+							token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -426,7 +441,22 @@ namespace PoliNorError
 				}
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
-					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted &&
+						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+							ex,
+							result,
+							retryContext,
+							SaveErrorAsync,
+							PolicyRuleAsync,
+							ErrorProcessingCancellationEffect.Propagate,
+							configureAwait,
+							token).ConfigureAwait(configureAwait) &&
+						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
+							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
+							result,
+							ex,
+							configureAwait,
+							token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
