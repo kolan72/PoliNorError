@@ -4,11 +4,11 @@ namespace PoliNorError
 {
 	internal class ResultFilterSlim<T>
 	{
-		public Func<T, bool> CanHandle { get; }
+		public Func<T, bool> IsSuccessful { get; }
 
 		internal ResultFilterSlim(ResultFilter<T> resultFilter)
 		{
-			CanHandle = resultFilter.GetCanHandle();
+			IsSuccessful = resultFilter.GetIsSuccessful();
 		}
 	}
 }

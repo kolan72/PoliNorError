@@ -125,13 +125,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_GetCanHandle_ReturnAlwaysTrue_WhenNoFilters()
+		public void Should_GetIsSuccessful_ReturnAlwaysTrue_WhenNoFilters()
 		{
 			var filter = new ResultFilter<string>();
-			var canHandle = filter.GetCanHandle();
+			var isSuccessful = filter.GetIsSuccessful();
 
-			Assert.That(canHandle("hello"), Is.True);
-			Assert.That(canHandle(""), Is.True);
+			Assert.That(isSuccessful("hello"), Is.True);
+			Assert.That(isSuccessful(""), Is.True);
 		}
 
 		[Test]
@@ -141,8 +141,8 @@ namespace PoliNorError.Tests
 			filter.ExcludeError(s => s == "excluded");
 
 			Assert.That(filter.ExcludedErrorFilters, Has.Count.EqualTo(1));
-			Assert.That(filter.GetCanHandle()("excluded"), Is.False);
-			Assert.That(filter.GetCanHandle()("included"), Is.True);
+			Assert.That(filter.GetIsSuccessful()("excluded"), Is.False);
+			Assert.That(filter.GetIsSuccessful()("included"), Is.True);
 		}
 
 		[Test]
@@ -177,36 +177,36 @@ namespace PoliNorError.Tests
 			filter.AppendFilter(appendedFilter);
 
 			Assert.That(filter.ExcludedErrorFilters, Has.Count.EqualTo(2));
-			Assert.That(filter.GetCanHandle()("excluded1"), Is.False);
-			Assert.That(filter.GetCanHandle()("excluded2"), Is.False);
-			Assert.That(filter.GetCanHandle()("other"), Is.True);
+			Assert.That(filter.GetIsSuccessful()("excluded1"), Is.False);
+			Assert.That(filter.GetIsSuccessful()("excluded2"), Is.False);
+			Assert.That(filter.GetIsSuccessful()("other"), Is.True);
 		}
 
 		[Test]
-		public void Should_GetSlim_Match_GetCanHandle()
+		public void Should_GetSlim_Match_GetIsSuccessful()
 		{
 			var filter = new ResultFilter<string>();
 			filter.ExcludeError(s => s == "excluded");
 
 			var slim = filter.GetSlim();
 
-			Assert.That(slim.CanHandle("excluded"), Is.False);
-			Assert.That(slim.CanHandle("included"), Is.True);
-			Assert.That(slim.CanHandle("excluded"), Is.EqualTo(filter.GetCanHandle()("excluded")));
-			Assert.That(slim.CanHandle("included"), Is.EqualTo(filter.GetCanHandle()("included")));
+			Assert.That(slim.IsSuccessful("excluded"), Is.False);
+			Assert.That(slim.IsSuccessful("included"), Is.True);
+			Assert.That(slim.IsSuccessful("excluded"), Is.EqualTo(filter.GetIsSuccessful()("excluded")));
+			Assert.That(slim.IsSuccessful("included"), Is.EqualTo(filter.GetIsSuccessful()("included")));
 		}
 
 		[Test]
-		public void Should_GetSlim_Match_GetCanHandle_WhenNoFilters()
+		public void Should_GetSlim_Match_GetIsSuccessful_WhenNoFilters()
 		{
 			var filter = new ResultFilter<string>();
 			var slim = filter.GetSlim();
 
-			Assert.That(slim.CanHandle("anything"), Is.EqualTo(filter.GetCanHandle()("anything")));
+			Assert.That(slim.IsSuccessful("anything"), Is.EqualTo(filter.GetIsSuccessful()("anything")));
 		}
 
 		[Test]
-		public void Should_GetSlim_Match_GetCanHandle_AfterAppendFilter()
+		public void Should_GetSlim_Match_GetIsSuccessful_AfterAppendFilter()
 		{
 			var filter = new ResultFilter<string>();
 			filter.ExcludeError(s => s == "first");
@@ -217,40 +217,39 @@ namespace PoliNorError.Tests
 			filter.AppendFilter(appended);
 			var slim = filter.GetSlim();
 
-			Assert.That(slim.CanHandle("first"), Is.False);
-			Assert.That(slim.CanHandle("second"), Is.False);
-			Assert.That(slim.CanHandle("other"), Is.True);
+			Assert.That(slim.IsSuccessful("first"), Is.False);
+			Assert.That(slim.IsSuccessful("second"), Is.False);
+			Assert.That(slim.IsSuccessful("other"), Is.True);
 		}
-
 	}
 
 	[TestFixture]
 	internal class ResultFilterSlimTests
 	{
 		[Test]
-		public void Should_CanHandle_Match_FilterGetCanHandle_WhenNoFilters()
+		public void Should_IsSuccessful_Match_FilterGetIsSuccessful_WhenNoFilters()
 		{
 			var filter = new ResultFilter<string>();
 			var slim = filter.GetSlim();
 
-			Assert.That(slim.CanHandle("hello"), Is.EqualTo(filter.GetCanHandle()("hello")));
+			Assert.That(slim.IsSuccessful("hello"), Is.EqualTo(filter.GetIsSuccessful()("hello")));
 		}
 
 		[Test]
-		public void Should_CanHandle_Match_FilterGetCanHandle_ForExcludedFilters()
+		public void Should_IsSuccessful_Match_FilterGetIsSuccessful_ForExcludedFilters()
 		{
 			var filter = new ResultFilter<string>();
 			filter.ExcludeError(s => s == "filtered");
 
 			var slim = filter.GetSlim();
 
-			Assert.That(slim.CanHandle("filtered"), Is.EqualTo(false));
-			Assert.That(slim.CanHandle("not_filtered"), Is.EqualTo(true));
-			Assert.That(slim.CanHandle("filtered"), Is.EqualTo(filter.GetCanHandle()("filtered")));
+			Assert.That(slim.IsSuccessful("filtered"), Is.EqualTo(false));
+			Assert.That(slim.IsSuccessful("not_filtered"), Is.EqualTo(true));
+			Assert.That(slim.IsSuccessful("filtered"), Is.EqualTo(filter.GetIsSuccessful()("filtered")));
 		}
 
 		[Test]
-		public void Should_CanHandle_Match_FilterGetCanHandle_AfterAppendFilter()
+		public void Should_IsSuccessful_Match_FilterGetIsSuccessful_AfterAppendFilter()
 		{
 			var filter = new ResultFilter<string>();
 			var appended = new ResultFilter<string>();
@@ -259,9 +258,9 @@ namespace PoliNorError.Tests
 			filter.AppendFilter(appended);
 			var slim = filter.GetSlim();
 
-			Assert.That(slim.CanHandle("appended_excluded"), Is.EqualTo(false));
-			Assert.That(slim.CanHandle("other"), Is.EqualTo(true));
-			Assert.That(slim.CanHandle("appended_excluded"), Is.EqualTo(filter.GetCanHandle()("appended_excluded")));
+			Assert.That(slim.IsSuccessful("appended_excluded"), Is.EqualTo(false));
+			Assert.That(slim.IsSuccessful("other"), Is.EqualTo(true));
+			Assert.That(slim.IsSuccessful("appended_excluded"), Is.EqualTo(filter.GetIsSuccessful()("appended_excluded")));
 		}
 	}
 }

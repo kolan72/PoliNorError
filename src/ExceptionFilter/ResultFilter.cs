@@ -26,7 +26,7 @@ namespace PoliNorError
 			FilterSet.AppendFilter(resultFilter.FilterSet);
 		}
 
-		internal Func<T, bool> GetCanHandle()
+		internal Func<T, bool> GetIsSuccessful()
 		{
 			return FilterSet.CompilePredicate();
 		}
