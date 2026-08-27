@@ -154,6 +154,7 @@
     <Compile Include="RetryDelay.Tests\RetryDelayTests.cs" />
     <Compile Include="RetryObjectsToTest.cs" />
     <Compile Include="RetryPolicyWithTypedErrorProcessorTests.cs" />
+    <Compile Include="ResultFilterTests.cs" />
     <Compile Include="SyncErrorProcessorTParamTests.cs" />
     <Compile Include="SyncErrorProcessorTests.cs" />
     <Compile Include="SyncTypedErrorProcessorTests.cs" />
