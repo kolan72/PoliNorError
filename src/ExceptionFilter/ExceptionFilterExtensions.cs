@@ -79,5 +79,37 @@ namespace PoliNorError
 				return false;
 			}
 		}
+
+		internal static bool ShouldPropagateFilterUnsatisfied(this ExceptionFilterSlim errorFilterSlim, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, out bool filterAccepted, out Exception filterException)
+		{
+			filterAccepted = false;
+			filterException = null;
+			try
+			{
+				var filterResult = errorFilterSlim.CanHandle(originalEx);
+				if (!filterResult)
+				{
+					if (rethrowIfErrorFilterUnsatisfied)
+					{
+						originalEx.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else
+				{
+					filterAccepted = true;
+					return false;
+				}
+			}
+			catch (Exception fe)
+			{
+				filterException = fe;
+				return false;
+			}
+		}
 	}
 }

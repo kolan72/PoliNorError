@@ -321,13 +321,11 @@ namespace PoliNorError
 			}
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal virtual PolicyResult GetLastWrappedPolicyResult()
 		{
 			return WrappedPolicyResults?.LastOrDefault()?.Result;
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -379,13 +377,11 @@ namespace PoliNorError
 		/// </summary>
 		public new IEnumerable<PolicyDelegateResult<T>> WrappedPolicyResults { get; internal set; }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal override PolicyResult GetLastWrappedPolicyResult()
 		{
 			return WrappedPolicyResults?.LastOrDefault()?.Result;
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal override IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

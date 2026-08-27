@@ -480,6 +480,17 @@ namespace PoliNorError
 			return shouldPropagate;
 		}
 
+		internal bool ShouldPropagateFilterUnsatisfied(ExceptionFilterSlim errorFilterSlim, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
+		{
+			var shouldPropagate = errorFilterSlim.ShouldPropagateFilterUnsatisfied(originalEx, rethrowIfErrorFilterUnsatisfied, out bool accepted, out Exception filterException);
+			filterAccepted = accepted;
+			if (!shouldPropagate && !filterAccepted)
+			{
+				result.SaveFilterCatchAndMarkFailed(originalEx, filterException);
+			}
+			return shouldPropagate;
+		}
+
 		/// <summary>
 		/// Evaluates a policy rule synchronously to determine if an exception should be handled.
 		/// </summary>
