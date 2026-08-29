@@ -508,7 +508,22 @@ namespace PoliNorError
 				}
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
-					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted &&
+						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+							ex,
+							result,
+							retryContext,
+							SaveErrorAsync,
+							PolicyRuleAsync,
+							ErrorProcessingCancellationEffect.Propagate,
+							configureAwait,
+							token).ConfigureAwait(configureAwait) &&
+						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
+							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
+							result,
+							ex,
+							configureAwait,
+							token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -559,7 +574,22 @@ namespace PoliNorError
 				}
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
-					if (filterAccepted && await HandleExceptionAsync(ex, result, retryContext, PolicyRuleAsync, retryDelay, configureAwait, token).ConfigureAwait(configureAwait))
+					if (filterAccepted &&
+						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+							ex,
+							result,
+							retryContext,
+							SaveErrorAsync,
+							PolicyRuleAsync,
+							ErrorProcessingCancellationEffect.Propagate,
+							configureAwait,
+							token).ConfigureAwait(configureAwait) &&
+						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
+							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
+							result,
+							ex,
+							configureAwait,
+							token).ConfigureAwait(configureAwait))
 					{
 						retryContext.IncrementCount();
 					}
@@ -611,35 +641,6 @@ namespace PoliNorError
 		}
 
 		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
-
-
-		private async Task<bool> HandleExceptionAsync(
-							Exception ex,
-							PolicyResult policyResult,
-							ErrorContext<RetryContext> errorContext,
-							Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleFunc,
-							RetryDelay retryDelay,
-							bool configureAwait,
-							CancellationToken token)
-		{
-			await HandleExceptionAsync(
-				ex,
-				policyResult,
-				errorContext,
-				SaveErrorAsync,
-				policyRuleFunc,
-				ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.EvaluateThenProcess,
-				ErrorProcessingCancellationEffect.Propagate,
-				configureAwait,
-				token).ConfigureAwait(configureAwait);
-
-			if (policyResult.IsFailed)
-				return false;
-
-			await DelayProvider.DelayAndCheckIfResultFailedAsync(retryDelay?.GetDelay(errorContext.Context.CurrentRetryCount), policyResult, ex, configureAwait, token).ConfigureAwait(configureAwait);
-			return !policyResult.IsFailed;
-		}
 
 		private bool ErrorsNotUsed => _saveErrorProcessor != null;
 
