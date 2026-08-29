@@ -54,32 +54,7 @@ namespace PoliNorError
 		/// <returns>A function that processes input and returns a pipeline result.</returns>
 		public Func<TIn, CancellationToken, PipelineResult<TOut>> GetPipelineDelegate()
 		{
-			return (t, ct) =>
-			{
-				PolicyResult<TOut> res = null;
-				switch (_policy)
-				{
-					case RetryPolicy rp:
-						res = rp.Handle(_func, t, ct);
-						break;
-					case FallbackPolicy fp:
-						res = fp.Handle(_func, t, ct);
-						break;
-					case SimplePolicy sp:
-						res = sp.Handle(_func, t, ct);
-						break;
-					default:
-						res = new PolicyResult<TOut>();
-						res.AddError(new NotImplementedException());
-						break;
-				}
-
-				if (((_policy is SimplePolicy) ? !res.NoError : res.IsFailed) || res.IsCanceled)
-				{
-					return PipelineResult<TOut>.Failure(res);
-				}
-				return PipelineResult<TOut>.Success(res);
-			};
+			return _func.ToPipelineFunc(_policy);
 		}
 	}
 }
