@@ -376,19 +376,12 @@ namespace PoliNorError
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
-						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						await TryHandleExceptionAsync(
 							ex,
 							result,
 							retryContext,
-							SaveErrorAsync,
 							PolicyRuleAsync,
-							ErrorProcessingCancellationEffect.Propagate,
-							configureAwait,
-							token).ConfigureAwait(configureAwait) &&
-						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
-							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
-							result,
-							ex,
+							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
 					{
@@ -442,19 +435,12 @@ namespace PoliNorError
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
-						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						await TryHandleExceptionAsync(
 							ex,
 							result,
 							retryContext,
-							SaveErrorAsync,
 							PolicyRuleAsync,
-							ErrorProcessingCancellationEffect.Propagate,
-							configureAwait,
-							token).ConfigureAwait(configureAwait) &&
-						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
-							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
-							result,
-							ex,
+							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
 					{
@@ -509,19 +495,12 @@ namespace PoliNorError
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
-						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						await TryHandleExceptionAsync(
 							ex,
 							result,
 							retryContext,
-							SaveErrorAsync,
 							PolicyRuleAsync,
-							ErrorProcessingCancellationEffect.Propagate,
-							configureAwait,
-							token).ConfigureAwait(configureAwait) &&
-						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
-							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
-							result,
-							ex,
+							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
 					{
@@ -575,19 +554,12 @@ namespace PoliNorError
 				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterSlim, ex, false, result, out bool filterAccepted))
 				{
 					if (filterAccepted &&
-						await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						await TryHandleExceptionAsync(
 							ex,
 							result,
 							retryContext,
-							SaveErrorAsync,
 							PolicyRuleAsync,
-							ErrorProcessingCancellationEffect.Propagate,
-							configureAwait,
-							token).ConfigureAwait(configureAwait) &&
-						!await DelayProvider.DelayAndCheckIfResultFailedAsync(
-							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
-							result,
-							ex,
+							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
 					{
@@ -597,6 +569,32 @@ namespace PoliNorError
 			}
 			while (!result.IsFailed);
 			return result;
+		}
+
+		private async Task<bool> TryHandleExceptionAsync(
+			Exception ex,
+			PolicyResult result,
+			RetryErrorContext retryContext,
+			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleFunc,
+			RetryDelay retryDelay,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			return await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+							ex,
+							result,
+							retryContext,
+							SaveErrorAsync,
+							policyRuleFunc,
+							ErrorProcessingCancellationEffect.Propagate,
+							configureAwait,
+							token).ConfigureAwait(configureAwait) &&
+					!await DelayProvider.DelayAndCheckIfResultFailedAsync(
+							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
+							result,
+							ex,
+							configureAwait,
+							token).ConfigureAwait(configureAwait);
 		}
 
 		public IRetryProcessor UseCustomErrorSaver(IErrorProcessor saveErrorProcessor)
