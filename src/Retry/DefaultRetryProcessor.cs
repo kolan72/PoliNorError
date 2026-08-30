@@ -10,6 +10,17 @@ namespace PoliNorError
 		private readonly bool _failedIfSaveErrorThrows;
 		private IDelayProvider _delayProvider;
 
+		private Func<PolicyResult, Exception, ErrorContext<RetryContext>, bool, CancellationToken, Task> _saveErrorAsyncDelegate;
+
+		private Func<PolicyResult, Exception, ErrorContext<RetryContext>, bool, CancellationToken, Task> SaveErrorAsyncDelegate
+		{
+			get
+			{
+				return _saveErrorAsyncDelegate
+					?? (_saveErrorAsyncDelegate = SaveErrorAsync);
+			}
+		}
+
 		private static readonly Func<int, RetryErrorContext> _retryErrorContextCreator = (tryCount) => new RetryErrorContext(tryCount);
 
 		private static readonly Func<RetryCountInfo, ErrorContext<RetryContext>, CancellationToken, bool> _policyRuleFunc = (retryCountInfo, exCtx, _) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
@@ -350,7 +361,10 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning disable IDE0039 // Use local function
+			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
+			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning restore IDE0039 // Use local function
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -380,7 +394,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRuleAsync,
+							policyRuleAsync,
 							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
@@ -410,7 +424,10 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning disable IDE0039 // Use local function
+			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
+			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning restore IDE0039 // Use local function
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
@@ -439,7 +456,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRuleAsync,
+							policyRuleAsync,
 							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
@@ -468,7 +485,10 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning disable IDE0039 // Use local function
+			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
+			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning restore IDE0039 // Use local function
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -499,7 +519,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRuleAsync,
+							policyRuleAsync,
 							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
@@ -528,7 +548,10 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			Task<bool> PolicyRuleAsync(ErrorContext<RetryContext> context, CancellationToken ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning disable IDE0039 // Use local function
+			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
+			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+#pragma warning restore IDE0039 // Use local function
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
@@ -558,7 +581,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRuleAsync,
+							policyRuleAsync,
 							retryDelay,
 							configureAwait,
 							token).ConfigureAwait(configureAwait))
@@ -584,7 +607,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							SaveErrorAsync,
+							SaveErrorAsyncDelegate,
 							policyRuleFunc,
 							ErrorProcessingCancellationEffect.Propagate,
 							configureAwait,
