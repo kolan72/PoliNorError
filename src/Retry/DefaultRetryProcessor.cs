@@ -25,6 +25,10 @@ namespace PoliNorError
 
 		private static readonly Func<RetryCountInfo, ErrorContext<RetryContext>, CancellationToken, bool> _policyRuleFunc = (retryCountInfo, exCtx, _) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 
+		//Allocated once per call (outside the retry loop), so no per-iteration delegate allocations occur.
+		private static Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> GetAsyncPolicyRule(RetryCountInfo retryCountInfo)
+			=> (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
+
 		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
 
 		public DefaultRetryProcessor(IBulkErrorProcessor bulkErrorProcessor, bool failedIfSaveErrorThrows = false)
@@ -361,10 +365,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-#pragma warning disable IDE0039 // Use local function
-			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
-			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
-#pragma warning restore IDE0039 // Use local function
+			var policyRuleAsync = GetAsyncPolicyRule(retryCountInfo);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -424,10 +425,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-#pragma warning disable IDE0039 // Use local function
-			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
-			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
-#pragma warning restore IDE0039 // Use local function
+			var policyRuleAsync = GetAsyncPolicyRule(retryCountInfo);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
@@ -485,10 +483,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-#pragma warning disable IDE0039 // Use local function
-			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
-			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
-#pragma warning restore IDE0039 // Use local function
+			var policyRuleAsync = GetAsyncPolicyRule(retryCountInfo);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -548,10 +543,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-#pragma warning disable IDE0039 // Use local function
-			//Eliminates per-iteration delegate allocations for PolicyRuleAsync 
-			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleAsync = (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
-#pragma warning restore IDE0039 // Use local function
+			var policyRuleAsync = GetAsyncPolicyRule(retryCountInfo);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
