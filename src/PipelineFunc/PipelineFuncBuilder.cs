@@ -17,7 +17,8 @@ namespace PoliNorError
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
 		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWith<TIn, TOut>(Func<TIn, TOut> func)
 		{
-			return StartWith(func, policy: null);
+			var delegateHolder = new PipelineDelegateHolder<TIn, TOut>(func);
+			return new PipelineFuncBuilder<TIn, TIn, TOut>(delegateHolder);
 		}
 
 		/// <summary>
