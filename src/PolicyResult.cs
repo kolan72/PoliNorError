@@ -22,19 +22,29 @@ namespace PoliNorError
 		internal static PolicyResult ForSync() => new PolicyResult();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static PolicyResult ForSync(int errorCapacity) => new PolicyResult(false, errorCapacity);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static PolicyResult ForNotSync(int errorCapacity) => new PolicyResult(true, errorCapacity);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static PolicyResult InitByConfigureAwait(bool configureAwait, int errorCapacity) => !configureAwait ? ForNotSync(errorCapacity) : ForSync(errorCapacity);
 
 		/// <summary>
 		/// Creates <see cref="PolicyResult"/>.
 		/// </summary>
 		/// <param name="forAsync">Indicates whether PolicyResult was created to store the results of handling sync or async delegate.</param>
-		public PolicyResult(bool forAsync = false)
+		/// <param name="errorCapacity">Initial capacity for the <see cref="Errors"/> collection storage.</param>
+		public PolicyResult(bool forAsync = false, int errorCapacity = 0)
 		{
 			Async = forAsync;
-			_errors = new FlexSyncEnumerable<Exception>(forAsync);
+			_errors = new FlexSyncEnumerable<Exception>(forAsync, errorCapacity);
 			FailedReason = PolicyResultFailedReason.None;
 			_catchBlockErrors = new FlexSyncEnumerable<CatchBlockException>(forAsync);
 			_handleResultErrors = new FlexSyncEnumerable<PolicyResultHandlingException>(forAsync);
@@ -352,13 +362,22 @@ namespace PoliNorError
 		internal static new PolicyResult<T> ForSync() => new PolicyResult<T>();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static new PolicyResult<T> ForSync(int errorCapacity) => new PolicyResult<T>(false, errorCapacity);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> ForNotSync() => new PolicyResult<T>(true);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static new PolicyResult<T> ForNotSync(int errorCapacity) => new PolicyResult<T>(true, errorCapacity);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
-		///<inheritdoc cref = "PolicyResult(bool)"/>
-		public PolicyResult(bool forAsync = false) : base(forAsync){}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait, int errorCapacity) => !configureAwait ? ForNotSync(errorCapacity) : ForSync(errorCapacity);
+
+		///<inheritdoc cref = "PolicyResult(bool, int)"/>
+		public PolicyResult(bool forAsync = false, int errorCapacity = 0) : base(forAsync, errorCapacity){}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetResult(T result)

@@ -12,6 +12,8 @@ namespace PoliNorError
 
 		public SynchronizedList() : this(new List<T>()) { }
 
+		internal SynchronizedList(int capacity) : this(new List<T>(capacity)) { }
+
 		internal SynchronizedList(List<T> list)
 		{
 			_list = list;

@@ -23,6 +23,16 @@ namespace PoliNorError
 
 		private static readonly Func<int, RetryErrorContext> _retryErrorContextCreator = (tryCount) => new RetryErrorContext(tryCount);
 
+		//A limited RetryCount N stores at most N + 1 errors (the last one is saved before the retry rule rejects it),
+		//so `RetryCount + 1` pre-allocation covers the worst case for limited retries.
+		//For infinite retries (and very large limited ones) the eventual error count is unknown,
+		//so pre-allocation stays at a small fixed constant: `List<T>` grows as 0 => 4 => 8 => ... anyway,
+		//with total copy work ~K regardless of the start, while a large constant would be paid on every
+		//handle call even when the delegate succeeds without errors.
+		private const int MAX_ERRORS_PREALLOC_CAPACITY = 8;
+
+		private static int GetErrorsCapacity(RetryCountInfo retryCountInfo) => Math.Min(retryCountInfo.RetryCount + 1, MAX_ERRORS_PREALLOC_CAPACITY);
+
 		private static readonly Func<RetryCountInfo, ErrorContext<RetryContext>, CancellationToken, bool> _policyRuleFunc = (retryCountInfo, exCtx, _) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 
 		//Allocated once per call (outside the retry loop), so no per-iteration delegate allocations occur.
@@ -69,7 +79,7 @@ namespace PoliNorError
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
 
-			var result = PolicyResult.ForSync();
+			var result = PolicyResult.ForSync(GetErrorsCapacity(retryCountInfo));
 
 			if (token.IsCancellationRequested)
 			{
@@ -131,7 +141,7 @@ namespace PoliNorError
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
 
-			var result = PolicyResult.ForSync();
+			var result = PolicyResult.ForSync(GetErrorsCapacity(retryCountInfo));
 
 			if (token.IsCancellationRequested)
 			{
@@ -199,7 +209,7 @@ namespace PoliNorError
 				throw new ArgumentException("Do not use this method for task return type!");
 			}
 
-			var result = PolicyResult<T>.ForSync();
+			var result = PolicyResult<T>.ForSync(GetErrorsCapacity(retryCountInfo));
 
 			if (token.IsCancellationRequested)
 			{
@@ -267,7 +277,7 @@ namespace PoliNorError
 				throw new ArgumentException("Do not use this method for task return type!");
 			}
 
-			var result = PolicyResult<T>.ForSync();
+			var result = PolicyResult<T>.ForSync(GetErrorsCapacity(retryCountInfo));
 
 			if (token.IsCancellationRequested)
 			{
@@ -329,7 +339,7 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
 
-			var result = PolicyResult.InitByConfigureAwait(configureAwait);
+			var result = PolicyResult.InitByConfigureAwait(configureAwait, GetErrorsCapacity(retryCountInfo));
 
 			if (token.IsCancellationRequested)
 			{
@@ -389,7 +399,7 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
 
-			var result = PolicyResult.InitByConfigureAwait(configureAwait);
+			var result = PolicyResult.InitByConfigureAwait(configureAwait, GetErrorsCapacity(retryCountInfo));
 
 			if (token.IsCancellationRequested)
 			{
@@ -448,7 +458,7 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
-			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
+			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait, GetErrorsCapacity(retryCountInfo));
 			if (token.IsCancellationRequested)
 			{
 				result.SetCanceledEarly();
@@ -508,7 +518,7 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
-			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait);
+			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait, GetErrorsCapacity(retryCountInfo));
 			if (token.IsCancellationRequested)
 			{
 				result.SetCanceledEarly();
