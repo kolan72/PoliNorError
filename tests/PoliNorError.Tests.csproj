@@ -98,6 +98,7 @@
     <Compile Include="CatchBlockHandlersTests.cs" />
     <Compile Include="ExceptionFilterExtensionsTests.cs" />
     <Compile Include="ExceptionFilterSlimTests.cs" />
+    <Compile Include="FallbackPolicyWithFallbackBehaviorTests.cs" />
     <Compile Include="PipelineErrorProcessorsAddForExceptionTests.cs" />
     <Compile Include="PipelineErrorProcessorsTests.cs" />
     <Compile Include="ConvertExceptionDelegatesTests.cs" />

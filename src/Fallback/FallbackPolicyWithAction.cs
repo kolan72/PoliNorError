@@ -25,6 +25,9 @@ namespace PoliNorError
 		public new FallbackPolicyWithAction WithFallbackFunc<TParam, T>(Func<TParam, CancellationToken, T> fallbackFunc)
 			=> this.WithFallbackFunc<FallbackPolicyWithAction, TParam, T>(fallbackFunc);
 
+		public new FallbackPolicyWithAction WithFallbackBehavior<T>(FallbackBehavior<T> fallbackBehavior)
+			=> this.WithFallbackBehavior<FallbackPolicyWithAction, T>(fallbackBehavior);
+
 		public FallbackPolicyBase WithAsyncFallbackFunc(Func<CancellationToken, Task> fallbackAsync)
 		{
 			_fallbackFuncsProvider.FallbackAsync = fallbackAsync;

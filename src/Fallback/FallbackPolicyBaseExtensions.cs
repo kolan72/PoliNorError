@@ -77,5 +77,11 @@ namespace PoliNorError
 			fallback._fallbackFuncsProvider.SetAsyncFallbackFunc(fallbackAsync);
 			return fallback;
 		}
+
+		internal static TFallback WithFallbackBehavior<TFallback, T>(this TFallback fallback, FallbackBehavior<T> fallbackBehavior) where TFallback : FallbackPolicyBase
+		{
+			fallback._fallbackFuncsProvider.AddOrReplaceFallbackBehavior(fallbackBehavior);
+			return fallback;
+		}
 	}
 }

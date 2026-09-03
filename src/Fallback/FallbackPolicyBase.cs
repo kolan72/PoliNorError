@@ -312,6 +312,8 @@ namespace PoliNorError
 
 		public FallbackPolicyBase WithFallbackAction<TParam>(Action<TParam, CancellationToken> fallbackAction) => this.WithFallbackAction<FallbackPolicyBase, TParam>(fallbackAction);
 
+		public FallbackPolicyBase WithFallbackBehavior<T>(FallbackBehavior<T> fallbackBehavior) => this.WithFallbackBehavior<FallbackPolicyBase, T>(fallbackBehavior);
+
 		public FallbackPolicyBase IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception => this.IncludeError<FallbackPolicyBase, TException>(func);
 
 		public FallbackPolicyBase IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<FallbackPolicyBase>(expression);

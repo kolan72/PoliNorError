@@ -38,6 +38,8 @@ namespace PoliNorError
 
 		public new FallbackPolicyWithAsyncFunc WithFallbackFunc<TParam, T>(Func<TParam, CancellationToken, T> fallbackFunc) => this.WithFallbackFunc<FallbackPolicyWithAsyncFunc, TParam, T>(fallbackFunc);
 
+		public new FallbackPolicyWithAsyncFunc WithFallbackBehavior<T>(FallbackBehavior<T> fallbackBehavior) => this.WithFallbackBehavior<FallbackPolicyWithAsyncFunc, T>(fallbackBehavior);
+
 		public new FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc<T>(Func<Task<T>> fallbackAsync, CancellationType convertType = CancellationType.Precancelable) => this.WithAsyncFallbackFunc<FallbackPolicyWithAsyncFunc, T>(fallbackAsync, convertType);
 
 		public new FallbackPolicyWithAsyncFunc WithAsyncFallbackFunc<T>(Func<CancellationToken, Task<T>> fallbackAsync) => this.WithAsyncFallbackFunc<FallbackPolicyWithAsyncFunc, T>(fallbackAsync);
