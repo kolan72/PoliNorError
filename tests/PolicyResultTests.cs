@@ -538,5 +538,115 @@ namespace PoliNorError.Tests
 				Assert.That(pr.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.PolicySuccess));
 			}
 		}
+		[Test]
+		public void Should_LastError_BeNull_ByDefault()
+		{
+			var policyResult = PolicyResult.ForSync();
+			Assert.That(policyResult.LastError, Is.Null);
+		}
+
+		[Test]
+		public void Should_LastError_ReturnSingleError_AfterOneAddError()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex = new InvalidOperationException("test");
+			policyResult.AddError(ex);
+			Assert.That(policyResult.LastError, Is.SameAs(ex));
+		}
+
+		[Test]
+		public void Should_LastError_ReturnLastAddedError_AfterMultipleAddErrorCalls()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex1 = new InvalidOperationException("first");
+			var ex2 = new ArgumentException("second");
+			var ex3 = new InvalidOperationException("third");
+			policyResult.AddError(ex1);
+			policyResult.AddError(ex2);
+			policyResult.AddError(ex3);
+			Assert.That(policyResult.LastError, Is.SameAs(ex3));
+		}
+
+		[Test]
+		public void Should_LastError_BeSameAsInErrorsCollection_AfterAddError()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex = new InvalidOperationException("test");
+			policyResult.AddError(ex);
+			Assert.That(policyResult.LastError, Is.SameAs(policyResult.Errors.LastOrDefault()));
+		}
+
+		[Test]
+		public void Should_LastError_BeNull_ForAsyncResult_WhenNoErrorAdded()
+		{
+			var policyResult = PolicyResult.ForNotSync();
+			Assert.That(policyResult.LastError, Is.Null);
+		}
+
+		[Test]
+		public void Should_LastError_ReturnLastAddedError_ForAsyncResult()
+		{
+			var policyResult = PolicyResult.ForNotSync();
+			var ex1 = new InvalidOperationException("first");
+			var ex2 = new ArgumentException("second");
+			policyResult.AddError(ex1);
+			policyResult.AddError(ex2);
+			Assert.That(policyResult.LastError, Is.SameAs(ex2));
+		}
+
+		[Test]
+		public void Should_UnprocessedError_UseLastError_WhenUnprocessedErrorIsNull_AndFailed()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex = new InvalidOperationException("test");
+			policyResult.AddError(ex);
+			policyResult.SetFailedInner(PolicyResultFailedReason.PolicyProcessorFailed);
+			Assert.That(policyResult.UnprocessedError, Is.SameAs(ex));
+		}
+
+		[Test]
+		public void Should_UnprocessedError_PreferExplicitSet_OverLastError()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex1 = new InvalidOperationException("from AddError");
+			var ex2 = new InvalidOperationException("explicit");
+			policyResult.AddError(ex1);
+			policyResult.UnprocessedError = ex2;
+			Assert.That(policyResult.UnprocessedError, Is.SameAs(ex2));
+		}
+
+		[Test]
+		public void Should_UnprocessedError_BeNull_WhenNotFailed()
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex = new InvalidOperationException("test");
+			policyResult.AddError(ex);
+			Assert.That(policyResult.UnprocessedError, Is.Null);
+		}
+
+		[Test]
+		[TestCase(PolicyResultFailedReason.DelegateIsNull)]
+		[TestCase(PolicyResultFailedReason.PolicyProcessorFailed)]
+		[TestCase(PolicyResultFailedReason.UnhandledError)]
+		public void Should_UnprocessedError_ReturnLastError_ForApplicableFailedReasons(PolicyResultFailedReason failedReason)
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex = new InvalidOperationException("test");
+			policyResult.AddError(ex);
+			policyResult.SetFailedInner(failedReason);
+			Assert.That(policyResult.UnprocessedError, Is.SameAs(ex));
+		}
+
+		[Test]
+		[TestCase(PolicyResultFailedReason.None)]
+		[TestCase(PolicyResultFailedReason.PolicyResultHandlerFailed)]
+		public void Should_UnprocessedError_BeNull_ForNonApplicableFailedReasons(PolicyResultFailedReason failedReason)
+		{
+			var policyResult = PolicyResult.ForSync();
+			var ex = new InvalidOperationException("test");
+			policyResult.AddError(ex);
+			policyResult.SetFailedInner(failedReason);
+			Assert.That(policyResult.UnprocessedError, Is.Null);
+		}
 	}
 }

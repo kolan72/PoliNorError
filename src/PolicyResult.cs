@@ -15,6 +15,7 @@ namespace PoliNorError
 		private readonly FlexSyncEnumerable<PolicyResultHandlingException> _handleResultErrors;
 
 		private Exception _unprocessedError;
+		private Exception _lastError;
 
 		internal bool _executed;
 
@@ -120,10 +121,15 @@ namespace PoliNorError
 		public Exception UnprocessedError
 		{
 			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError))
-															? Errors.LastOrDefault()
-															: null); }
+														? LastError
+														: null); }
 			internal set { _unprocessedError = value; }
 		}
+
+		/// <summary>
+		/// Gets the last exception passed to the <see cref="AddError(Exception)"/> method.
+		/// </summary>
+		public Exception LastError => _lastError;
 
 		/// <summary>
 		/// An exception in itself or wrapped in the AggregateException caused the processing to break with the <see cref="IsFailed"/>property equaling true.
@@ -216,6 +222,7 @@ namespace PoliNorError
 		internal void AddError(Exception exception)
 		{
 			_errors.Add(exception);
+			_lastError = exception;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
