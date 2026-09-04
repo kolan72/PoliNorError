@@ -17,8 +17,11 @@ namespace PoliNorError
 		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TOut}"/> class.
 		/// </summary>
 		/// <param name="func">The function to wrap in the pipeline.</param>
-		public PipelineDelegateHolder(Func<TIn, TOut> func) : this(func, null)
+		/// <param name="policyName">An optional name for the policy. If null, a default <see cref="SimplePolicy"/> will be created.</param>
+		public PipelineDelegateHolder(Func<TIn, TOut> func, string policyName = null)
 		{
+			_func = func;
+			_policy = policyName is null ? new SimplePolicy() : new SimplePolicy().WithPolicyName(policyName);
 		}
 
 		/// <summary>
