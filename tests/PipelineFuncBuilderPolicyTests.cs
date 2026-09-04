@@ -267,5 +267,294 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsFailed, Is.False);
 			Assert.That(result.Result, Is.EqualTo(8));
 		}
+
+		#region PolicyName Tests
+
+		[Test]
+		public void Should_StartWith_SetPolicyName_WhenPolicyNameIsProvided()
+		{
+			// Arrange
+			const string polName = "StartPolicy";
+			string func1(int i) => i.ToString();
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1, polName)
+				.Build();
+
+			var result = pipeline(3, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("3"));
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWith_UsePolicyTypeName_WhenPolicyNameIsNotProvided()
+		{
+			// Arrange
+			string func1(int i) => i.ToString();
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<int, string>)func1)
+				.Build();
+
+			var result = pipeline(3, CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo("SimplePolicy"));
+		}
+
+		[Test]
+		public void Should_StartWithRetry_SetPolicyName_WhenPolicyNameIsProvided()
+		{
+			// Arrange
+			const string polName = "NamedRetryPolicy";
+			int callCount = 0;
+			int func1(string s)
+			{
+				callCount++;
+				if (callCount < 2)
+				{
+					throw new InvalidOperationException("Simulated failure");
+				}
+				return s.Length;
+			}
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithRetry((Func<string, int>)func1, retryCount: 5, retryDelay: null, policyName: polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(4));
+			Assert.That(callCount, Is.EqualTo(2)); // Initial + 1 retry
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWithRetry_UsePolicyTypeName_WhenPolicyNameIsNotProvided()
+		{
+			// Arrange
+			int func1(string s) => s.Length;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithRetry((Func<string, int>)func1, retryCount: 3)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo("RetryPolicy"));
+		}
+
+		[Test]
+		public void Should_StartWithInfiniteRetry_SetPolicyName_WhenPolicyNameIsProvided()
+		{
+			// Arrange
+			const string polName = "NamedInfiniteRetryPolicy";
+			int callCount = 0;
+			int func1(string s)
+			{
+				callCount++;
+				if (callCount < 2)
+				{
+					throw new InvalidOperationException("Simulated failure");
+				}
+				return s.Length;
+			}
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithInfiniteRetry((Func<string, int>)func1, retryDelay: null, policyName: polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(4));
+			Assert.That(callCount, Is.EqualTo(2)); // Initial + 1 retry
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWithFallback_SetPolicyName_WhenPolicyNameIsProvided()
+		{
+			// Arrange
+			const string polName = "NamedFallbackPolicy";
+			int func1(string _) => throw new InvalidOperationException("Always fails");
+			int fallback() => 42;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithFallback((Func<string, int>)func1, fallback, polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(42));
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWithFallback_WithCancellationToken_SetPolicyName_WhenPolicyNameIsProvided()
+		{
+			// Arrange
+			const string polName = "NamedCtFallbackPolicy";
+			int func1(string _) => throw new InvalidOperationException("Always fails");
+			int fallback(CancellationToken ct)
+			{
+				Assert.That(ct.IsCancellationRequested, Is.False);
+				return 555;
+			}
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithFallback((Func<string, int>)func1, fallback, polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo(555));
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWith_SetFailedPolicyName_WhenPolicyNameIsProvided_WhenFunctionThrows()
+		{
+			// Arrange
+			const string polName = "StartFailPolicy";
+			var expected = new InvalidOperationException("boom");
+			int func1(string _) => throw expected;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWith((Func<string, int>)func1, polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.IsCanceled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(default(int)));
+			Assert.That(result.FailedPolicyResult, Is.Not.Null);
+			Assert.That(result.FailedPolicyResult.NoError, Is.False);
+			Assert.That(result.FailedPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWithRetry_SetFailedPolicyName_WhenPolicyNameIsProvided_WhenRetriesAreExhausted()
+		{
+			// Arrange
+			const string polName = "RetryFailPolicy";
+			var expected = new InvalidOperationException("boom");
+			int func1(string _) => throw expected;
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithRetry((Func<string, int>)func1, retryCount: 2, retryDelay: null, policyName: polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.IsCanceled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(default(int)));
+			Assert.That(result.FailedPolicyResult, Is.Not.Null);
+			Assert.That(result.FailedPolicyResult.NoError, Is.False);
+			Assert.That(result.FailedPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWithInfiniteRetry_SetFailedPolicyName_WhenPolicyNameIsProvided_WhenTokenIsAlreadyCanceled()
+		{
+			// Arrange
+			const string polName = "InfiniteRetryFailPolicy";
+			int func1(string _) => throw new InvalidOperationException("boom");
+			var pipeline = PipelineFuncBuilder
+				.StartWithInfiniteRetry((Func<string, int>)func1, retryDelay: null, policyName: polName)
+				.Build();
+
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+
+				// Act
+				var result = pipeline("test", cts.Token);
+
+				// Assert
+				Assert.That(result.IsFailed, Is.True);
+				Assert.That(result.IsCanceled, Is.True);
+				Assert.That(result.Result, Is.EqualTo(default(int)));
+				Assert.That(result.FailedPolicyResult, Is.Not.Null);
+				Assert.That(result.FailedPolicyResult.IsCanceled, Is.True);
+				Assert.That(result.FailedPolicyResult.PolicyName, Is.EqualTo(polName));
+			}
+		}
+
+		[Test]
+		public void Should_StartWithFallback_SetFailedPolicyName_WhenPolicyNameIsProvided_WhenFallbackThrows()
+		{
+			// Arrange
+			const string polName = "FallbackFailPolicy";
+			int func1(string _) => throw new InvalidOperationException("Main fails");
+			int fallback() => throw new InvalidOperationException("Fallback fails");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithFallback((Func<string, int>)func1, fallback, polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.IsCanceled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(default(int)));
+			Assert.That(result.FailedPolicyResult, Is.Not.Null);
+			Assert.That(result.FailedPolicyResult.NoError, Is.False);
+			Assert.That(result.FailedPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StartWithFallback_WithCancellationToken_SetFailedPolicyName_WhenPolicyNameIsProvided_WhenFallbackThrows()
+		{
+			// Arrange
+			const string polName = "CtFallbackFailPolicy";
+			int func1(string _) => throw new InvalidOperationException("Main fails");
+			int fallback(CancellationToken _) => throw new InvalidOperationException("Fallback fails");
+
+			// Act
+			var pipeline = PipelineFuncBuilder
+				.StartWithFallback((Func<string, int>)func1, fallback, polName)
+				.Build();
+
+			var result = pipeline("test", CancellationToken.None);
+
+			// Assert
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.IsCanceled, Is.False);
+			Assert.That(result.Result, Is.EqualTo(default(int)));
+			Assert.That(result.FailedPolicyResult, Is.Not.Null);
+			Assert.That(result.FailedPolicyResult.NoError, Is.False);
+			Assert.That(result.FailedPolicyResult.PolicyName, Is.EqualTo(polName));
+		}
+
+		#endregion
 	}
 }

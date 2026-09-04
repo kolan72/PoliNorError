@@ -14,10 +14,11 @@ namespace PoliNorError
 		/// <typeparam name="TIn">The input type for the pipeline.</typeparam>
 		/// <typeparam name="TOut">The output type for the first step.</typeparam>
 		/// <param name="func">The initial function for the pipeline.</param>
+		/// <param name="policyName">An optional name for the policy. If null, the policy uses its type name.</param>
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
-		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWith<TIn, TOut>(Func<TIn, TOut> func)
+		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWith<TIn, TOut>(Func<TIn, TOut> func, string policyName = null)
 		{
-			var delegateHolder = new PipelineDelegateHolder<TIn, TOut>(func);
+			var delegateHolder = new PipelineDelegateHolder<TIn, TOut>(func, policyName);
 			return new PipelineFuncBuilder<TIn, TIn, TOut>(delegateHolder);
 		}
 
@@ -43,14 +44,16 @@ namespace PoliNorError
 		/// <param name="func">The initial function for the pipeline.</param>
 		/// <param name="retryCount">The number of retry attempts.</param>
 		/// <param name="retryDelay">Optional retry delay configuration.</param>
+		/// <param name="policyName">An optional name for the policy. If null, the policy uses its type name.</param>
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
 		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWithRetry<TIn, TOut>(
 			Func<TIn, TOut> func,
 			int retryCount,
-			RetryDelay retryDelay = null)
+			RetryDelay retryDelay = null,
+			string policyName = null)
 		{
 			var retryPolicy = new RetryPolicy(retryCount, retryDelay: retryDelay);
-			return StartWith(func, retryPolicy);
+			return StartWith(func, policyName is null ? retryPolicy : retryPolicy.WithPolicyName(policyName));
 		}
 
 		/// <summary>
@@ -60,13 +63,15 @@ namespace PoliNorError
 		/// <typeparam name="TOut">The output type for the first step.</typeparam>
 		/// <param name="func">The initial function for the pipeline.</param>
 		/// <param name="retryDelay">Optional retry delay configuration.</param>
+		/// <param name="policyName">An optional name for the policy. If null, the policy uses its type name.</param>
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
 		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWithInfiniteRetry<TIn, TOut>(
 			Func<TIn, TOut> func,
-			RetryDelay retryDelay = null)
+			RetryDelay retryDelay = null,
+			string policyName = null)
 		{
 			var retryPolicy = RetryPolicy.InfiniteRetries(retryDelay: retryDelay);
-			return StartWith(func, retryPolicy);
+			return StartWith(func, policyName is null ? retryPolicy : retryPolicy.WithPolicyName(policyName));
 		}
 
 		/// <summary>
@@ -76,14 +81,16 @@ namespace PoliNorError
 		/// <typeparam name="TOut">The output type for the first step.</typeparam>
 		/// <param name="func">The initial function for the pipeline.</param>
 		/// <param name="fallbackFunc">The fallback function to execute if the main function fails.</param>
+		/// <param name="policyName">An optional name for the policy. If null, the policy uses its type name.</param>
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
 		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWithFallback<TIn, TOut>(
 			Func<TIn, TOut> func,
-			Func<TOut> fallbackFunc)
+			Func<TOut> fallbackFunc,
+			string policyName = null)
 		{
 			var fallbackPolicy = new FallbackPolicy()
 				.WithFallbackFunc(fallbackFunc);
-			return StartWith(func, fallbackPolicy);
+			return StartWith(func, policyName is null ? fallbackPolicy : fallbackPolicy.WithPolicyName(policyName));
 		}
 
 		/// <summary>
@@ -93,14 +100,16 @@ namespace PoliNorError
 		/// <typeparam name="TOut">The output type for the first step.</typeparam>
 		/// <param name="func">The initial function for the pipeline.</param>
 		/// <param name="fallbackFunc">The fallback function to execute if the main function fails.</param>
+		/// <param name="policyName">An optional name for the policy. If null, the policy uses its type name.</param>
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
 		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWithFallback<TIn, TOut>(
 			Func<TIn, TOut> func,
-			Func<CancellationToken, TOut> fallbackFunc)
+			Func<CancellationToken, TOut> fallbackFunc,
+			string policyName = null)
 		{
 			var fallbackPolicy = new FallbackPolicy()
 				.WithFallbackFunc(fallbackFunc);
-			return StartWith(func, fallbackPolicy);
+			return StartWith(func, policyName is null ? fallbackPolicy : fallbackPolicy.WithPolicyName(policyName));
 		}
 	}
 }
