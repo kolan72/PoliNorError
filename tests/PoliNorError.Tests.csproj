@@ -192,6 +192,7 @@
     <Compile Include="RetryPolicyTests.cs" />
     <Compile Include="SimplePolicyProcessorTests.cs" />
     <Compile Include="TypedErrorProcessorRegistrationTests.cs" />
+    <Compile Include="SimplePolicyWithTypedErrorProcessorTests.cs" />
     <Compile Include="SimplePolicyTests.cs" />
     <Compile Include="TestHandlingForInnerError.cs" />
     <Compile Include="TestHandlingWithErrorSet.cs" />
