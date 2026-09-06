@@ -38,7 +38,7 @@
 		/// <summary>
 		/// Gets the failed policy result if the pipeline failed.
 		/// </summary>
-		internal PolicyResult FailedPolicyResult { get; private set; }
+		public PolicyResult FailedPolicyResult { get; private set; }
 
 		/// <summary>
 		/// Gets the succeeded policy result if the pipeline succeeded.
