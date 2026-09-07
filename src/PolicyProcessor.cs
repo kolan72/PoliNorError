@@ -375,6 +375,9 @@ namespace PoliNorError
 		/// <summary>
 		/// Gets the default error saver for policy results with Unit error context.
 		/// </summary>
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static Action<PolicyResult, Exception, ErrorContext<Unit>, CancellationToken> DefaultErrorSaver { get; } = ErrorSaver<Unit>.Default;
 
 		/// <summary>
@@ -391,6 +394,9 @@ namespace PoliNorError
 		/// <summary>
 		/// Gets the default async error saver for policy results with Unit error context.
 		/// </summary>
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static Func<PolicyResult, Exception, ErrorContext<Unit>, bool, CancellationToken, Task> DefaultAsyncErrorSaver { get; } = AsyncErrorSaver<Unit>.Default;
 
 		/// <summary>
