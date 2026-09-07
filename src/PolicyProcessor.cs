@@ -629,6 +629,16 @@ namespace PoliNorError
 		{
 			internal readonly static Func<PolicyResult, Exception, ErrorContext<T>, bool, CancellationToken, Task> Default = (pr, e, _, __, ___) => { pr.AddError(e); return Task.CompletedTask; };
 		}
+
+		internal static class PolicyRule<T>
+		{
+			internal readonly static Func<ErrorContext<T>, CancellationToken, bool> Default = (_, __) => true;
+		}
+
+		internal static class AsyncPolicyRule<T>
+		{
+			internal readonly static Func<ErrorContext<T>, CancellationToken, Task<bool>> Default = (_, __) => Task.FromResult(true);
+		}
 	}
 
 	/// <summary>

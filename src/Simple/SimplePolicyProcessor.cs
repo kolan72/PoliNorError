@@ -93,7 +93,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultPolicyRule,
+						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
 				}
@@ -133,7 +133,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultPolicyRule,
+						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
 				}
@@ -190,7 +190,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultPolicyRule,
+						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
 				}
@@ -230,7 +230,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultPolicyRule,
+						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
 				}
@@ -297,7 +297,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultAsyncPolicyRule,
+						AsyncPolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						configureAwait,
 						token)
@@ -339,7 +339,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultAsyncPolicyRule,
+						AsyncPolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						configureAwait,
 						token)
@@ -409,7 +409,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultAsyncPolicyRule,
+						AsyncPolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						configureAwait,
 						token)
@@ -452,7 +452,7 @@ namespace PoliNorError
 						ex,
 						result,
 						emptyErrorContext,
-						DefaultAsyncPolicyRule,
+						AsyncPolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						configureAwait,
 						token)
