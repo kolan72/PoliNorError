@@ -3,7 +3,7 @@ using static PoliNorError.PolicyProcessor;
 
 namespace PoliNorError
 {
-	internal class ExceptionFilterSlim
+	public class ExceptionFilterSlim
 	{
 		public Func<Exception, bool> CanHandle { get; }
 
