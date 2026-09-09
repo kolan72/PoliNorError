@@ -14,7 +14,7 @@ namespace PoliNorError.Tests
 			filter.IncludeError<ArgumentException>();
 
 			var ex = new ArgumentException("test");
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, false, out bool filterAccepted, out Exception filterException);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, false, out bool filterAccepted, out Exception filterException);
 
 			Assert.That(result, Is.False);
 			Assert.That(filterAccepted, Is.True);
@@ -30,7 +30,7 @@ namespace PoliNorError.Tests
 #pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
 			var ex = new ArgumentNullException("paramName", "message");
 #pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, true, out bool filterAccepted, out Exception filterException);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, true, out bool filterAccepted, out Exception filterException);
 
 			Assert.That(result, Is.False);
 			Assert.That(filterAccepted, Is.True);
@@ -44,7 +44,7 @@ namespace PoliNorError.Tests
 			filter.IncludeError<ArgumentException>();
 
 			var ex = new NullReferenceException("null ref");
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, true, out bool filterAccepted, out Exception filterException);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, true, out bool filterAccepted, out Exception filterException);
 
 			Assert.That(result, Is.True);
 			Assert.That(filterAccepted, Is.False);
@@ -59,7 +59,7 @@ namespace PoliNorError.Tests
 			filter.IncludeError<ArgumentException>();
 
 			var ex = new NullReferenceException("null ref");
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, false, out bool filterAccepted, out Exception filterException);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, false, out bool filterAccepted, out Exception filterException);
 
 			Assert.That(result, Is.False);
 			Assert.That(filterAccepted, Is.False);
@@ -73,7 +73,7 @@ namespace PoliNorError.Tests
 			filter.IncludeError<ArgumentException>();
 
 			var ex = new InvalidOperationException("invalid op");
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, false, out _, out _);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, false, out _, out _);
 
 			Assert.That(result, Is.False);
 			Assert.That(ex.Data.Contains(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY), Is.False);
@@ -86,7 +86,7 @@ namespace PoliNorError.Tests
 			filter.IncludeError<InvalidOperationException>();
 
 			var ex = new ArgumentException("arg");
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, true, out _, out _);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, true, out _, out _);
 
 			Assert.That(result, Is.True);
 			Assert.That(ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY], Is.True);
@@ -98,7 +98,7 @@ namespace PoliNorError.Tests
 			var filter = new ExceptionFilter();
 
 			var ex = new Exception("any exception");
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, false, out bool filterAccepted, out Exception filterException);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, false, out bool filterAccepted, out Exception filterException);
 
 			Assert.That(result, Is.False);
 			Assert.That(filterAccepted, Is.True);
@@ -111,7 +111,7 @@ namespace PoliNorError.Tests
 			var filter = new ExceptionFilter();
 
 			var ex = new Exception("any exception");
-			bool result = filter.ShouldPropagateFilterUnsatisfied(ex, true, out bool filterAccepted, out Exception filterException);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), ex, true, out bool filterAccepted, out Exception filterException);
 
 			Assert.That(result, Is.False);
 			Assert.That(filterAccepted, Is.True);
@@ -126,14 +126,14 @@ namespace PoliNorError.Tests
 
 #pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
 			var excludedEx = new ArgumentException("excluded", "param");
-			bool excludedResult = filter.ShouldPropagateFilterUnsatisfied(excludedEx, true, out bool excludedAccepted, out _);
+			bool excludedResult = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), excludedEx, true, out bool excludedAccepted, out _);
 
 			Assert.That(excludedResult, Is.True);
 			Assert.That(excludedAccepted, Is.False);
 
 			var includedEx = new ArgumentException("included", "not_param");
 #pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
-			bool includedResult = filter.ShouldPropagateFilterUnsatisfied(includedEx, false, out bool includedAccepted, out _);
+			bool includedResult = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), includedEx, false, out bool includedAccepted, out _);
 
 			Assert.That(includedResult, Is.False);
 			Assert.That(includedAccepted, Is.True);
@@ -146,7 +146,7 @@ namespace PoliNorError.Tests
 			filter.IncludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
 
 			var outer = new Exception("Test", new NullReferenceException("not argument"));
-			bool result = filter.ShouldPropagateFilterUnsatisfied(outer, false, out bool filterAccepted, out _);
+			bool result = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), outer, false, out bool filterAccepted, out _);
 
 			Assert.That(result, Is.False);
 			Assert.That(filterAccepted, Is.False);
@@ -159,13 +159,13 @@ namespace PoliNorError.Tests
 			filter.IncludeError<ArgumentException>(CatchBlockFilter.ErrorType.InnerError);
 
 			var outer = new Exception("Test", new NullReferenceException("not arg"));
-			bool notMatchResult = filter.ShouldPropagateFilterUnsatisfied(outer, false, out bool notMatchAccepted, out _);
+			bool notMatchResult = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), outer, false, out bool notMatchAccepted, out _);
 
 			Assert.That(notMatchResult, Is.False);
 			Assert.That(notMatchAccepted, Is.False);
 
 			var matchingOuter = new Exception("Test", new ArgumentException("matching argument"));
-			bool matchResult = filter.ShouldPropagateFilterUnsatisfied(matchingOuter, false, out bool matchAccepted, out Exception filterException);
+			bool matchResult = ExceptionFilter.ShouldPropagateFilterUnsatisfied(filter.GetCanHandle(), matchingOuter, false, out bool matchAccepted, out Exception filterException);
 
 			Assert.That(matchResult, Is.False);
 			Assert.That(matchAccepted, Is.True);

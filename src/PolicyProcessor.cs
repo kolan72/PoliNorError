@@ -477,7 +477,8 @@ namespace PoliNorError
 
 		protected bool ShouldPropagateFilterUnsatisfied(Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
 		{
-			var shouldPropagate = ErrorFilter.ShouldPropagateFilterUnsatisfied(originalEx, rethrowIfErrorFilterUnsatisfied, out bool accepted, out Exception filterException);
+			var predicate = ErrorFilter.GetCanHandle();
+			var shouldPropagate = ExceptionFilter.ShouldPropagateFilterUnsatisfied(predicate, originalEx, rethrowIfErrorFilterUnsatisfied, out bool accepted, out Exception filterException);
 			filterAccepted = accepted;
 			if (!shouldPropagate && !filterAccepted)
 			{

@@ -119,6 +119,38 @@ namespace PoliNorError
 				return FilterSet.CompilePredicate();
 			}
 
+			internal static bool ShouldPropagateFilterUnsatisfied(Func<Exception, bool> predicate, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, out bool filterAccepted, out Exception filterException)
+			{
+				filterAccepted = false;
+				filterException = null;
+				try
+				{
+					var filterResult = predicate(originalEx);
+					if (!filterResult)
+					{
+						if (rethrowIfErrorFilterUnsatisfied)
+						{
+							originalEx.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
+							return true;
+						}
+						else
+						{
+							return false;
+						}
+					}
+					else
+					{
+						filterAccepted = true;
+						return false;
+					}
+				}
+				catch (Exception fe)
+				{
+					filterException = fe;
+					return false;
+				}
+			}
+
 			public ExceptionFilterSlim GetSlim()
 			{
 				return new ExceptionFilterSlim(this);
