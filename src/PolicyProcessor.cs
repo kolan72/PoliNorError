@@ -487,9 +487,9 @@ namespace PoliNorError
 			return shouldPropagate;
 		}
 
-		internal bool ShouldPropagateFilterUnsatisfied(ExceptionFilterSlim errorFilterSlim, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
+		internal bool ShouldPropagateFilterUnsatisfied(Func<Exception, bool> predicate, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
 		{
-			var shouldPropagate = errorFilterSlim.ShouldPropagateFilterUnsatisfied(originalEx, rethrowIfErrorFilterUnsatisfied, out bool accepted, out Exception filterException);
+			var shouldPropagate = ExceptionFilter.ShouldPropagateFilterUnsatisfied(predicate, originalEx, rethrowIfErrorFilterUnsatisfied, out bool accepted, out Exception filterException);
 			filterAccepted = accepted;
 			if (!shouldPropagate && !filterAccepted)
 			{

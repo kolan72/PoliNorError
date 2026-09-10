@@ -150,11 +150,6 @@ namespace PoliNorError
 					return false;
 				}
 			}
-
-			public ExceptionFilterSlim GetSlim()
-			{
-				return new ExceptionFilterSlim(this);
-			}
 		}
 	}
 }
