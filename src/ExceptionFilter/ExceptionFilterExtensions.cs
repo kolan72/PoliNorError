@@ -47,10 +47,5 @@ namespace PoliNorError
 				throw new NotImplementedException();
 			}
 		}
-
-		internal static bool ShouldPropagateFilterUnsatisfied(this ExceptionFilter errorFilter, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, out bool filterAccepted, out Exception filterException)
-		{
-			return ExceptionFilter.ShouldPropagateFilterUnsatisfied(errorFilter.GetCanHandle(), originalEx, rethrowIfErrorFilterUnsatisfied, out filterAccepted, out filterException);
-		}
 	}
 }
