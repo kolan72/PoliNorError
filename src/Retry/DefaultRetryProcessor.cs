@@ -35,6 +35,9 @@ namespace PoliNorError
 
 		private static readonly Func<RetryCountInfo, ErrorContext<RetryContext>, CancellationToken, bool> _policyRuleFunc = (retryCountInfo, exCtx, _) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 
+		private static Func<ErrorContext<RetryContext>, CancellationToken, bool> GetPolicyRule(RetryCountInfo retryCountInfo)
+			=> (ctx, ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
+
 		//Allocated once per call (outside the retry loop), so no per-iteration delegate allocations occur.
 		private static Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> GetAsyncPolicyRule(RetryCountInfo retryCountInfo)
 			=> (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
@@ -91,7 +94,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
+			var policyRule = GetPolicyRule(retryCountInfo);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
@@ -124,7 +127,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRule,
+							policyRule,
 							retryDelay,
 							token))
 					{
@@ -153,7 +156,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
+			var policyRule = GetPolicyRule(retryCountInfo);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -186,7 +189,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRule,
+							policyRule,
 							retryDelay,
 							token))
 					{
@@ -220,7 +223,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
+			var policyRule = GetPolicyRule(retryCountInfo);
 
 			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
 
@@ -254,7 +257,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRule,
+							policyRule,
 							retryDelay,
 							token))
 					{
@@ -288,7 +291,7 @@ namespace PoliNorError
 
 			result.ErrorsNotUsed = ErrorsNotUsed;
 
-			bool PolicyRule(ErrorContext<RetryContext> ctx, CancellationToken ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
+			var policyRule = GetPolicyRule(retryCountInfo);
 
 			var retryContext = new RetryErrorContext<TParam>(param, retryCountInfo.StartTryCount);
 
@@ -322,7 +325,7 @@ namespace PoliNorError
 							ex,
 							result,
 							retryContext,
-							PolicyRule,
+							policyRule,
 							retryDelay,
 							token))
 					{
