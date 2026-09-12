@@ -16,16 +16,6 @@ namespace PoliNorError
 		private readonly PipelineDelegateHolder<TIm, TOut> _pipelineDelegate;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TIm, TOut}"/> class.
-		/// </summary>
-		/// <param name="prevFunc">The previous function in the pipeline.</param>
-		/// <param name="fNext">The next function to add to the pipeline.</param>
-		public PipelineDelegateHolder(Func<TIn, CancellationToken, PipelineResult<TIm>> prevFunc, Func<TIm, TOut> fNext)
-			: this(prevFunc, fNext, null)
-		{
-		}
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TIm, TOut}"/> class with a specific policy.
 		/// </summary>
 		/// <param name="prevFunc">The previous function in the pipeline.</param>
