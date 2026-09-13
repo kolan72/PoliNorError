@@ -11,6 +11,7 @@ namespace PoliNorError
 		private IDelayProvider _delayProvider;
 
 		private Func<PolicyResult, Exception, ErrorContext<RetryContext>, bool, CancellationToken, Task> _saveErrorAsyncDelegate;
+		private Action<PolicyResult, Exception, ErrorContext<RetryContext>, CancellationToken> _saveErrorDelegate;
 
 		private Func<PolicyResult, Exception, ErrorContext<RetryContext>, bool, CancellationToken, Task> SaveErrorAsyncDelegate
 		{
@@ -18,6 +19,15 @@ namespace PoliNorError
 			{
 				return _saveErrorAsyncDelegate
 					?? (_saveErrorAsyncDelegate = SaveErrorAsync);
+			}
+		}
+
+		private Action<PolicyResult, Exception, ErrorContext<RetryContext>, CancellationToken> SaveErrorDelegate
+		{
+			get
+			{
+				return _saveErrorDelegate
+					?? (_saveErrorDelegate = SaveError);
 			}
 		}
 
@@ -608,13 +618,13 @@ namespace PoliNorError
 			CancellationToken token)
 		{
 			return TryHandleByEvaluatingRuleThenProcessException(
-							ex,
-							result,
-							retryContext,
-							SaveError,
-							policyRuleFunc,
-							ErrorProcessingCancellationEffect.Propagate,
-							token) &&
+						ex,
+						result,
+						retryContext,
+						SaveErrorDelegate,
+						policyRuleFunc,
+						ErrorProcessingCancellationEffect.Propagate,
+						token) &&
 					!DelayProvider.DelayAndCheckIfResultFailed(
 							retryDelay?.GetDelay(retryContext.Context.CurrentRetryCount),
 							result,
