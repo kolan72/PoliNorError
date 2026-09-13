@@ -2383,21 +2383,10 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_Initialize_DerivedFallbackPolicyBase_With_FallbackFuncsProvider()
 		{
-			var tfb = new TestFallbackPolicy(); 
-
-			var pol = new TestPolicy();
-			var polWrap = new TestPolicyForWrap().WrapUp(pol).OuterPolicy;
+			var tfb = new TestFallbackPolicy();
 
 			var result = tfb.Handle(() => throw new InvalidOperationException());
 			Assert.That(result.IsPolicySuccess, Is.True);
-		}
-
-		private static class PolicyExt
-		{
-			//public static TWrapperPolicy Then<TWrapperPolicy>(this IPolicyBase policy)
-			//{
-			//	throw new NotImplementedException();
-			//}
 		}
 
 		[Test]
@@ -2600,26 +2589,6 @@ namespace PoliNorError.Tests
 			public Task<PolicyResult<T>> FallbackAsync<T>(Func<CancellationToken, Task<T>> func, Func<CancellationToken, Task<T>> fallback, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
 			public IEnumerator<IErrorProcessor> GetEnumerator() => throw new NotImplementedException();
 			IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-		}
-
-		public class TestPolicy : Policy
-		{
-			public TestPolicy() : base(null)
-			{
-
-			}
-		}
-
-		public class TestPolicyForWrap : IPolicyBase
-		{
-			public IPolicyProcessor PolicyProcessor => throw new NotImplementedException();
-
-			public string PolicyName => throw new NotImplementedException();
-
-			public PolicyResult Handle(Action action, CancellationToken token = default) => throw new NotImplementedException();
-			public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default) => throw new NotImplementedException();
-			public Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
-			public Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default) => throw new NotImplementedException();
 		}
 	}
 }
