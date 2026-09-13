@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 
 namespace PoliNorError
@@ -8,7 +8,7 @@ namespace PoliNorError
 	/// </summary>
 	/// <typeparam name="TIn">The input type for the pipeline.</typeparam>
 	/// <typeparam name="TOut">The output type for the pipeline.</typeparam>
-	internal interface IPipelineDelegateHolder<TIn, TOut>
+	internal interface IPipelineFuncStep<TIn, TOut>
 	{
 		/// <summary>
 		/// Gets the pipeline delegate function.

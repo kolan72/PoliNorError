@@ -18,7 +18,7 @@ namespace PoliNorError
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
 		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWith<TIn, TOut>(Func<TIn, TOut> func, string policyName = null)
 		{
-			var delegateHolder = new PipelineDelegateHolder<TIn, TOut>(func, policyName);
+			var delegateHolder = new PipelineFuncStep<TIn, TOut>(func, policyName);
 			return new PipelineFuncBuilder<TIn, TIn, TOut>(delegateHolder);
 		}
 
@@ -32,7 +32,7 @@ namespace PoliNorError
 		/// <returns>A pipeline builder for constructing the pipeline.</returns>
 		public static PipelineFuncBuilder<TIn, TIn, TOut> StartWith<TIn, TOut>(Func<TIn, TOut> func, IPolicyBase policy)
 		{
-			var delegateHolder = new PipelineDelegateHolder<TIn, TOut>(func, policy);
+			var delegateHolder = new PipelineFuncStep<TIn, TOut>(func, policy);
 			return new PipelineFuncBuilder<TIn, TIn, TOut>(delegateHolder);
 		}
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 
 namespace PoliNorError
@@ -8,28 +8,28 @@ namespace PoliNorError
 	/// </summary>
 	/// <typeparam name="TIn">The input type.</typeparam>
 	/// <typeparam name="TOut">The output type.</typeparam>
-	internal class PipelineDelegateHolder<TIn, TOut> : IPipelineDelegateHolder<TIn, TOut>
+	internal class PipelineFuncStep<TIn, TOut> : IPipelineFuncStep<TIn, TOut>
 	{
 		private readonly Func<TIn, TOut> _func;
 		private readonly IPolicyBase _policy;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TOut}"/> class.
+		/// Initializes a new instance of the <see cref="PipelineFuncStep{TIn, TOut}"/> class.
 		/// </summary>
 		/// <param name="func">The function to wrap in the pipeline.</param>
 		/// <param name="policyName">An optional name for the policy. If null, a default <see cref="SimplePolicy"/> will be created.</param>
-		public PipelineDelegateHolder(Func<TIn, TOut> func, string policyName = null)
+		public PipelineFuncStep(Func<TIn, TOut> func, string policyName = null)
 		{
 			_func = func;
 			_policy = policyName is null ? new SimplePolicy() : new SimplePolicy().WithPolicyName(policyName);
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PipelineDelegateHolder{TIn, TOut}"/> class with a specific policy.
+		/// Initializes a new instance of the <see cref="PipelineFuncStep{TIn, TOut}"/> class with a specific policy.
 		/// </summary>
 		/// <param name="func">The function to wrap in the pipeline.</param>
 		/// <param name="policy">The policy to use for error handling. If null, a SimplePolicy will be created.</param>
-		public PipelineDelegateHolder(Func<TIn, TOut> func, IPolicyBase policy)
+		public PipelineFuncStep(Func<TIn, TOut> func, IPolicyBase policy)
 		{
 			_func = func;
 			_policy = policy ?? new SimplePolicy();

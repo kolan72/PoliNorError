@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace PoliNorError.Tests
 {
 	[TestFixture]
-	internal class PipelineDelegateHolderWithIntermediateTests
+	internal class PipelineFuncStepWithIntermediateTests
 	{
         [Test]
         public void Should_CreateInstance_WithValidParameters()
@@ -20,7 +20,7 @@ namespace PoliNorError.Tests
 			bool nextFunc(string _) => true;
 
 			// Act
-			var holder = new PipelineDelegateHolder<int, string, bool>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, bool>(prevFunc, nextFunc, new SimplePolicy());
 
             // Assert
             Assert.That(holder, Is.Not.Null);
@@ -38,7 +38,7 @@ namespace PoliNorError.Tests
 				return PipelineResult<string>.Success(result);
 			}
 			bool nextFunc(string s) => s == "42";
-			var holder = new PipelineDelegateHolder<int, string, bool>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, bool>(prevFunc, nextFunc, new SimplePolicy());
 
             // Act
             var pipelineDelegate = holder.GetPipelineDelegate();
@@ -59,7 +59,7 @@ namespace PoliNorError.Tests
 				return PipelineResult<string>.Success(res);
 			}
 			int nextFunc(string s) => s.Length;
-			var holder = new PipelineDelegateHolder<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
             var pipelineDelegate = holder.GetPipelineDelegate();
 
             // Act
@@ -80,7 +80,7 @@ namespace PoliNorError.Tests
 			PipelineResult<string> prevFunc(int _, CancellationToken __) =>
 				PipelineResult<string>.Failure(failedResult);
 			int nextFunc(string s) => s.Length;
-			var holder = new PipelineDelegateHolder<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
             var pipelineDelegate = holder.GetPipelineDelegate();
 
             // Act
@@ -102,7 +102,7 @@ namespace PoliNorError.Tests
 				return PipelineResult<string>.Success(res);
 			}
 			int nextFunc(string s) => s.Length;
-			var holder = new PipelineDelegateHolder<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
             var configureWasCalled = false;
 			void configure(BulkErrorProcessor _) { configureWasCalled = true; }
 
@@ -127,7 +127,7 @@ namespace PoliNorError.Tests
 				return PipelineResult<string>.Success(res);
 			}
 			double nextFunc(string s) => s.Length * 1.5;
-			var holder = new PipelineDelegateHolder<int, string, double>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, double>(prevFunc, nextFunc, new SimplePolicy());
             var pipelineDelegate = holder.GetPipelineDelegate();
 
             // Act
@@ -152,7 +152,7 @@ namespace PoliNorError.Tests
 					return PipelineResult<string>.Success(res);
 				}
 				bool nextFunc(string s) => !string.IsNullOrEmpty(s);
-				var holder = new PipelineDelegateHolder<int, string, bool>(prevFunc, nextFunc, new SimplePolicy());
+				var holder = new PipelineFuncStep<int, string, bool>(prevFunc, nextFunc, new SimplePolicy());
                 var pipelineDelegate = holder.GetPipelineDelegate();
 
                 // Act
@@ -176,7 +176,7 @@ namespace PoliNorError.Tests
 				return PipelineResult<string>.Success(res);
 			}
 			int nextFunc(string s) => int.Parse(s);
-			var holder = new PipelineDelegateHolder<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
 
             // Act
             holder.SetConfigure(null);
@@ -206,7 +206,7 @@ namespace PoliNorError.Tests
 				capturedIntermediate = s;
 				return s.Length;
 			}
-			var holder = new PipelineDelegateHolder<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
             var pipelineDelegate = holder.GetPipelineDelegate();
 
             // Act
@@ -229,7 +229,7 @@ namespace PoliNorError.Tests
 				return PipelineResult<int>.Success(resu);
 			}
 			bool nextFunc(int i) => i > 5;
-			var holder = new PipelineDelegateHolder<string, int, bool>(prevFunc, nextFunc, new SimplePolicy());
+			var holder = new PipelineFuncStep<string, int, bool>(prevFunc, nextFunc, new SimplePolicy());
             var pipelineDelegate = holder.GetPipelineDelegate();
 
             // Act

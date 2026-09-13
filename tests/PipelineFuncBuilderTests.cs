@@ -12,7 +12,7 @@ namespace PoliNorError.Tests
         [Test]
         public void Should_Build_ReturnSuccessfulResult_FromInitialDelegate()
         {
-            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 5));
+            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(x => x + 5));
 
             var pipeline = builder.Build();
             var result = pipeline(7, CancellationToken.None);
@@ -24,7 +24,7 @@ namespace PoliNorError.Tests
         [Test]
         public void Should_AddFunc_ComposePipelineAndTransformOutput()
         {
-            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 2));
+            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(x => x + 2));
 
             var pipeline = builder
                 .AddFunc(x => x * 3)
@@ -41,7 +41,7 @@ namespace PoliNorError.Tests
         {
             var expected = new InvalidOperationException("boom");
             var nextCalled = false;
-            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw expected));
+            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(_ => throw expected));
 
             var pipeline = builder
                 .AddFunc(x =>
@@ -64,7 +64,7 @@ namespace PoliNorError.Tests
             Exception receivedException = null;
             ProcessingErrorInfo<int> receivedInfo = null;
 
-            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw expected));
+            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(_ => throw expected));
             var pipeline = builder
                 .OnError((ex, info) =>
                 {
@@ -88,7 +88,7 @@ namespace PoliNorError.Tests
             Exception receivedException = null;
             ProcessingErrorInfo<int> receivedInfo = null;
 
-            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw expected));
+            var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(_ => throw expected));
             var pipeline = builder
                 .OnError((ex, info) =>
                 {
@@ -717,7 +717,7 @@ namespace PoliNorError.Tests
 		public void Should_OnError_ContextErrorProcessorsConfigure_ReturnIPipelineFuncBuilder()
 		{
 			// Arrange
-			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x + 1));
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(x => x + 1));
 
 			// Act
 			var result = builder.ConfigureErrorProcessors((PipelineErrorProcessors<int> _) => { });
@@ -731,7 +731,7 @@ namespace PoliNorError.Tests
 		{
 			// Arrange
 			int processorCallCount = 0;
-			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x * 3));
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(x => x * 3));
 
 			var pipeline = builder
 				.ConfigureErrorProcessors(cep => cep.Add((Exception _, ProcessingErrorInfo<int> __) => processorCallCount++))
@@ -753,7 +753,7 @@ namespace PoliNorError.Tests
 			int firstProcessorCount = 0;
 			int secondProcessorCount = 0;
 
-			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw new InvalidOperationException("fail")));
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(_ => throw new InvalidOperationException("fail")));
 			var pipeline = builder
 				.ConfigureErrorProcessors(cep =>
 				{
@@ -808,7 +808,7 @@ namespace PoliNorError.Tests
 		{
 			// Arrange
 			int processorCallCount = 0;
-			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(x => x * 2));
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(x => x * 2));
 			var pipeline = builder
 				.ConfigureErrorProcessors(ep => ep.Add(_ => processorCallCount++))
 				.Build();
@@ -830,7 +830,7 @@ namespace PoliNorError.Tests
 			int secondProcessorCount = 0;
 			var expected = new InvalidOperationException("fail");
 
-			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw expected));
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(_ => throw expected));
 			var pipeline = builder
 				.ConfigureErrorProcessors(ep =>
 				{
@@ -862,7 +862,7 @@ namespace PoliNorError.Tests
 			// Arrange
 			ProcessingErrorInfo<int> capturedParam = null;
 			var expected = new InvalidOperationException("fail-with-info");
-			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineDelegateHolder<int, int>(_ => throw expected));
+			var builder = new PipelineFuncBuilder<int, int, int>(new PipelineFuncStep<int, int>(_ => throw expected));
 			var pipeline = builder
 				.ConfigureErrorProcessors(ep =>
 					ep.Add((Exception ex, ProcessingErrorInfo<int> capturedPi) =>
@@ -1499,7 +1499,7 @@ namespace PoliNorError.Tests
 		public void Should_ConfigureErrorProcessors_AddForInnerException_ReturnFluentBuilder()
 		{
 			// Arrange
-			var builder = new PipelineFuncBuilder<int, int, string>(new PipelineDelegateHolder<int, string>(x => x.ToString()));
+			var builder = new PipelineFuncBuilder<int, int, string>(new PipelineFuncStep<int, string>(x => x.ToString()));
 
 			// Act
 			var result = builder.ConfigureErrorProcessors(cep => cep.AddForInnerException<ArgumentException>(_ => { }));

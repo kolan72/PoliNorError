@@ -5,12 +5,12 @@ using System.Threading;
 
 namespace PoliNorError.Tests
 {
-	internal class PipelineDelegateHolderTests
+	internal class PipelineFuncStepTests
 	{
 		[Test]
 		public void Should_ReturnSuccessfulPipelineResult_When_FunctionCompletesWithoutErrors()
 		{
-			var holder = new PipelineDelegateHolder<int, string>(value => $"value:{value}");
+			var holder = new PipelineFuncStep<int, string>(value => $"value:{value}");
 
 			var pipelineDelegate = holder.GetPipelineDelegate();
 			var result = pipelineDelegate(3, CancellationToken.None);
@@ -24,7 +24,7 @@ namespace PoliNorError.Tests
 		public void Should_ReturnFailedPipelineResult_When_FunctionThrowsHandledException()
 		{
 			var expectedException = new InvalidOperationException("boom");
-			var holder = new PipelineDelegateHolder<int, string>(_ => throw expectedException);
+			var holder = new PipelineFuncStep<int, string>(_ => throw expectedException);
 
 			var pipelineDelegate = holder.GetPipelineDelegate();
 			var result = pipelineDelegate(0, CancellationToken.None);
@@ -41,7 +41,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ReturnCanceledPipelineResult_When_TokenIsAlreadyCanceled()
 		{
-			var holder = new PipelineDelegateHolder<int, string>(value => $"value:{value}");
+			var holder = new PipelineFuncStep<int, string>(value => $"value:{value}");
 			using (var cts = new CancellationTokenSource())
 			{
 				cts.Cancel();
@@ -62,7 +62,7 @@ namespace PoliNorError.Tests
 		public void Should_UseConfiguredBulkErrorProcessor_When_ConfigurationIsProvided()
 		{
 			var expectedException = new InvalidOperationException("boom");
-			var holder = new PipelineDelegateHolder<int, string>(_ => throw expectedException);
+			var holder = new PipelineFuncStep<int, string>(_ => throw expectedException);
 			holder.SetConfigure(processors => processors.WithErrorProcessorOf(exception => exception.Data["processed"] = true));
 
 			var pipelineDelegate = holder.GetPipelineDelegate();
@@ -77,7 +77,7 @@ namespace PoliNorError.Tests
 		public void Should_SetPolicyName_When_PolicyNameIsProvided()
 		{
 			const string polName = "TestPolicy";
-			var holder = new PipelineDelegateHolder<int, string>(value => $"value:{value}", polName);
+			var holder = new PipelineFuncStep<int, string>(value => $"value:{value}", polName);
 
 			var pipelineDelegate = holder.GetPipelineDelegate();
 			var result = pipelineDelegate(3, CancellationToken.None);
@@ -92,7 +92,7 @@ namespace PoliNorError.Tests
 		{
 			const string polName = "TestFailurePolicy";
 			var expectedException = new InvalidOperationException("boom");
-			var holder = new PipelineDelegateHolder<int, string>(_ => throw expectedException, polName);
+			var holder = new PipelineFuncStep<int, string>(_ => throw expectedException, polName);
 
 			var pipelineDelegate = holder.GetPipelineDelegate();
 			var result = pipelineDelegate(0, CancellationToken.None);
@@ -111,7 +111,7 @@ namespace PoliNorError.Tests
 		public void Should_ReturnCanceledPipelineResult_WithPolicyName_When_TokenIsAlreadyCanceled()
 		{
 			const string polName = "CancelTestPolicy";
-			var holder = new PipelineDelegateHolder<int, string>(value => $"value:{value}", polName);
+			var holder = new PipelineFuncStep<int, string>(value => $"value:{value}", polName);
 			using (var cts = new CancellationTokenSource())
 			{
 				cts.Cancel();
@@ -134,7 +134,7 @@ namespace PoliNorError.Tests
 		{
 			const string polName = "ProcessorPolicy";
 			var expectedException = new InvalidOperationException("boom");
-			var holder = new PipelineDelegateHolder<int, string>(_ => throw expectedException, polName);
+			var holder = new PipelineFuncStep<int, string>(_ => throw expectedException, polName);
 			holder.SetConfigure(processors => processors.WithErrorProcessorOf(exception => exception.Data["processed"] = true));
 
 			var pipelineDelegate = holder.GetPipelineDelegate();

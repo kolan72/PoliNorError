@@ -11,13 +11,13 @@ namespace PoliNorError
 	/// <typeparam name="TOut">The output type for the pipeline.</typeparam>
 	public class PipelineFuncBuilder<TIn, TIm, TOut> : IPipelineFuncStepBuilder<TIn, TIm, TOut>
 	{
-		private readonly IPipelineDelegateHolder<TIn, TOut> _delegateHolder;
+		private readonly IPipelineFuncStep<TIn, TOut> _delegateHolder;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PipelineFuncBuilder{TIn, TIm, TOut}"/> class.
 		/// </summary>
 		/// <param name="delegateHolder">The delegate holder for managing pipeline functions.</param>
-		internal PipelineFuncBuilder(IPipelineDelegateHolder<TIn, TOut> delegateHolder)
+		internal PipelineFuncBuilder(IPipelineFuncStep<TIn, TOut> delegateHolder)
 		{
 			_delegateHolder = delegateHolder;
 		}
@@ -53,7 +53,7 @@ namespace PoliNorError
 		/// <returns>A step builder for the next pipeline stage.</returns>
 		public IPipelineFuncStepBuilder<TIn, TOut, TNext> AddFunc<TNext>(Func<TOut, TNext> fNext, IPolicyBase policy)
 		{
-			var pdh = new PipelineDelegateHolder<TIn, TOut, TNext>(_delegateHolder.GetPipelineDelegate(), fNext, policy);
+			var pdh = new PipelineFuncStep<TIn, TOut, TNext>(_delegateHolder.GetPipelineDelegate(), fNext, policy);
 			return new PipelineFuncBuilder<TIn, TOut, TNext>(pdh);
 		}
 	}
