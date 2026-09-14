@@ -44,6 +44,20 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Wraps the current policy inside the specified wrapper policy and returns the wrapper policy.
+		/// This is a shorthand for <see cref="WrapUp{TWrapperPolicy}"/> that returns the outer policy directly.
+		/// </summary>
+		/// <typeparam name="TWrapperPolicy">The type of the policy that will wrap the current policy.</typeparam>
+		/// <param name="policy">The policy to be wrapped.</param>
+		/// <param name="wrapperPolicy">The policy that will wrap the current policy.</param>
+		/// <returns>The wrapper policy that now wraps the current policy.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="wrapperPolicy"/> is <c>null</c>.</exception>
+		public static TWrapperPolicy Then<TWrapperPolicy>(this IPolicyBase policy, TWrapperPolicy wrapperPolicy) where TWrapperPolicy : Policy
+		{
+			return policy.WrapUp(wrapperPolicy).OuterPolicy;
+		}
+
+		/// <summary>
 		/// Gives a name to the <typeparamref name="T"/> policy.
 		/// </summary>
 		/// <typeparam name="T">Type of policy.</typeparam>
