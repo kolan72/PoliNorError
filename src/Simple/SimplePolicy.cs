@@ -738,7 +738,7 @@ namespace PoliNorError
 		/// <param name="onlyGenericFallbackForGenericDelegate">Specifies that only the generic fallback delegates, if any are added, will be called to handle the generic delegates.</param>
 		public FallbackPolicy ThenFallback(bool onlyGenericFallbackForGenericDelegate = false)
 		{
-			return this.WrapUp(new FallbackPolicy(onlyGenericFallbackForGenericDelegate)).OuterPolicy;
+			return this.Then(new FallbackPolicy(onlyGenericFallbackForGenericDelegate));
 		}
 	}
 }
