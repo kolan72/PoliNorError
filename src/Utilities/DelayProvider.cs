@@ -48,10 +48,6 @@ namespace PoliNorError
 				{
 					policyResult.SetFailedAndCanceled();
 				}
-				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
-				{
-					policyResult.SetFailedAndCanceled();
-				}
 				catch (Exception ex)
 				{
 					policyResult.SetFailedWithCatchBlockError(ex, handlingException, CatchBlockExceptionSource.PolicyRule);
