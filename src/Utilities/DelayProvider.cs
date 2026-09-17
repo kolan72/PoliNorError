@@ -20,13 +20,13 @@ namespace PoliNorError
 				{
 					delayProvider.Backoff(delay.Value, token);
 				}
-				catch (OperationCanceledException) when (token.IsCancellationRequested)
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(oe);
 				}
 				catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(ae.GetCancellationException(token));
 				}
 				catch (Exception ex)
 				{
@@ -44,9 +44,9 @@ namespace PoliNorError
 				{
 					await delayProvider.BackoffAsync(delay.Value, configureAwait, token).ConfigureAwait(configureAwait);
 				}
-				catch (OperationCanceledException) when (token.IsCancellationRequested)
+				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
 				{
-					policyResult.SetFailedAndCanceled();
+					policyResult.SetFailedAndCanceled(oe);
 				}
 				catch (Exception ex)
 				{
