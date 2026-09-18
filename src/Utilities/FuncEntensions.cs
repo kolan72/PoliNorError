@@ -31,9 +31,15 @@ namespace PoliNorError
 			};
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static Func<CancellationToken, Task> ToAsyncFunc(this Action<CancellationToken> action)
 			=> action.ToTaskReturnFunc();
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static Func<CancellationToken, Task<T>> ToAsyncFunc<T>(this Func<CancellationToken, T> func)
 			=> func.ToTaskReturnFunc();
 
