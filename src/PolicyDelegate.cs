@@ -10,8 +10,6 @@ namespace PoliNorError
 	/// </summary>
 	public sealed class PolicyDelegate : PolicyDelegateBase
 	{
-		private SingleDelegateContainer _delegateContainer;
-
 		internal PolicyDelegate(IPolicyBase policy) : base(policy){}
 
 		/// <summary>
@@ -38,26 +36,26 @@ namespace PoliNorError
 
 		internal void SetDelegate(Func<CancellationToken, Task> executeAsync)
 		{
-			_delegateContainer = SingleDelegateContainer.FromNotSync(executeAsync);
-			DelegateContainer = _delegateContainer;
+			DelegateContainer = SingleDelegateContainer.FromNotSync(executeAsync);
 		}
 
 		internal void SetDelegate(Action execute)
 		{
-			_delegateContainer = SingleDelegateContainer.FromSync(execute);
-			DelegateContainer = _delegateContainer;
+			DelegateContainer = SingleDelegateContainer.FromSync(execute);
 		}
 
 		internal MethodInfo GetMethodInfo()
 		{
-			if (_delegateContainer?.UseSync == SyncPolicyDelegateType.None)
+			if (TypedContainer?.UseSync == SyncPolicyDelegateType.None)
 				return null;
-			return _delegateContainer?.UseSync == SyncPolicyDelegateType.Sync ? Execute?.Method : ExecuteAsync?.Method;
+			return TypedContainer?.UseSync == SyncPolicyDelegateType.Sync ? Execute?.Method : ExecuteAsync?.Method;
 		}
 
-		internal Func<CancellationToken, Task> ExecuteAsync => _delegateContainer?.ExecuteAsync;
-		internal Action Execute =>  _delegateContainer?.Execute;
+		private SingleDelegateContainer TypedContainer => (SingleDelegateContainer)DelegateContainer;
 
-		protected override SyncPolicyDelegateType GetSyncType() => (_delegateContainer?.UseSync) ?? SyncPolicyDelegateType.None;
+		internal Func<CancellationToken, Task> ExecuteAsync => TypedContainer?.ExecuteAsync;
+		internal Action Execute => TypedContainer?.Execute;
+
+		protected override SyncPolicyDelegateType GetSyncType() => (TypedContainer?.UseSync) ?? SyncPolicyDelegateType.None;
 	}
 }

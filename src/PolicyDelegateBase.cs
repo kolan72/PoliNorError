@@ -7,7 +7,7 @@
 			Policy = policy;
 		}
 
-		internal SingleDelegateContainerBase DelegateContainer { get; set; }
+		internal SingleDelegateContainerBase DelegateContainer { get; private protected set; }
 
 		public IPolicyBase Policy { get; }
 
