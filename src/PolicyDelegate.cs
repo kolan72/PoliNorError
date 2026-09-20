@@ -46,9 +46,12 @@ namespace PoliNorError
 
 		internal MethodInfo GetMethodInfo()
 		{
-			if (TypedContainer?.UseSync == SyncPolicyDelegateType.None)
+			var container = TypedContainer;
+			if (container?.UseSync == SyncPolicyDelegateType.None)
 				return null;
-			return TypedContainer?.UseSync == SyncPolicyDelegateType.Sync ? Execute?.Method : ExecuteAsync?.Method;
+			return container.UseSync == SyncPolicyDelegateType.Sync
+				? container.Execute?.Method
+				: container.ExecuteAsync?.Method;
 		}
 
 		private SingleDelegateContainer TypedContainer => (SingleDelegateContainer)DelegateContainer;
