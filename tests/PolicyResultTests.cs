@@ -134,7 +134,7 @@ namespace PoliNorError.Tests
         public void Should_Status_ReturnFailedWithCancellation_WhenBothIsFailedAndIsCanceledAreTrue()
         {
             var policyResult = PolicyResult.ForSync();
-            policyResult.SetFailedAndCanceled();
+            policyResult.SetFailedAndCanceled(null);
             Assert.That(policyResult.Status, Is.SameAs(PolicyStatus.FailedWithCancellation));
         }
 
@@ -479,7 +479,7 @@ namespace PoliNorError.Tests
 				pr.SetOk(); // Makes Status != NotExecuted
 
 				var wrappedPr = new PolicyResult<int>();
-				wrappedPr.SetFailedAndCanceled();
+				wrappedPr.SetFailedAndCanceled(null);
 
 				var pdr = new PolicyDelegateResult<int>(wrappedPr, "TestPolicy", null);
 				pr.WrappedPolicyResults = new List<PolicyDelegateResult<int>> { pdr };
@@ -494,7 +494,7 @@ namespace PoliNorError.Tests
 				pr.SetOk(); // Makes Status != NotExecuted
 
 				var wrappedPr = new PolicyResult();
-				wrappedPr.SetFailedAndCanceled();
+				wrappedPr.SetFailedAndCanceled(null);
 
 				var pdr = new PolicyDelegateResult(wrappedPr, "TestPolicy", null);
 				pr.WrappedPolicyResults = new List<PolicyDelegateResult> { pdr };

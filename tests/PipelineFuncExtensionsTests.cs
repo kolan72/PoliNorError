@@ -278,7 +278,7 @@ namespace PoliNorError.Tests
             Func<int, CancellationToken, PipelineResult<string>> func1 = (__, _) =>
             {
                 var policyResult = PolicyResult.ForSync();
-                policyResult.SetFailedAndCanceled();
+                policyResult.SetFailedAndCanceled(default);
                 return PipelineResult<string>.Failure(policyResult);
             };
 

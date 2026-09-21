@@ -999,7 +999,7 @@ namespace PoliNorError.Tests
 				}
 				else
 				{
-					pr.SetFailedAndCanceled();
+					pr.SetFailedAndCanceled(null);
 				}
 				return pr;
 			}
@@ -1013,7 +1013,7 @@ namespace PoliNorError.Tests
 				}
 				else
 				{
-					pr.SetFailedAndCanceled();
+					pr.SetFailedAndCanceled(null);
 				}
 				return pr;
 			}
@@ -1027,7 +1027,7 @@ namespace PoliNorError.Tests
 				}
 				else
 				{
-					pr.SetFailedAndCanceled();
+					pr.SetFailedAndCanceled(null);
 				}
 				return Task.FromResult(pr);
 			}
@@ -1041,7 +1041,7 @@ namespace PoliNorError.Tests
 				}
 				else
 				{
-					pr.SetFailedAndCanceled();
+					pr.SetFailedAndCanceled(null);
 				}
 				return Task.FromResult(pr);
 			}

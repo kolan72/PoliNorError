@@ -265,7 +265,9 @@ namespace PoliNorError
 			NoError = true;
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal void SetFailedAndCanceled()
 		{
 			SetCanceled();
