@@ -413,11 +413,17 @@ namespace PoliNorError
 		/// <summary>
 		/// Gets the default async policy rule that always returns true for Unit error context.
 		/// </summary>
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This property is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static Func<ErrorContext<Unit>, CancellationToken, Task<bool>> DefaultAsyncPolicyRule { get; }= (_, __) => Task.FromResult(true);
 
 		/// <summary>
 		/// Gets the default policy rule for Unit error context.
 		/// </summary>
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This property is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static Func<ErrorContext<Unit>, CancellationToken, bool> DefaultPolicyRule { get; } = CreateDefaultPolicyRule<Unit>();
 
 		/// <summary>
