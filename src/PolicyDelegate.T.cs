@@ -50,9 +50,9 @@ namespace PoliNorError
 			var container = TypedContainer;
 			if (container?.UseSync == SyncPolicyDelegateType.None)
 				return null;
-			return container.UseSync == SyncPolicyDelegateType.Sync
+			return container?.UseSync == SyncPolicyDelegateType.Sync
 				? container.Execute?.Method
-				: container.ExecuteAsync?.Method;
+				: container?.ExecuteAsync?.Method;
 		}
 
 		private SingleDelegateContainer<T> TypedContainer => (SingleDelegateContainer<T>)DelegateContainer;
