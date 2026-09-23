@@ -431,6 +431,9 @@ namespace PoliNorError
 		/// </summary>
 		/// <typeparam name="T">The type of the error context.</typeparam>
 		/// <returns>A default policy rule function.</returns>
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal static Func<ErrorContext<T>, CancellationToken, bool> CreateDefaultPolicyRule<T>() =>
 			(_, __) => true;
 
