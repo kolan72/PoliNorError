@@ -9,6 +9,9 @@ namespace PoliNorError
 		public static bool IsOperationCanceledWithRequestedToken(this AggregateException _,
 														   CancellationToken token) => token.IsCancellationRequested;
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static bool HasCanceledException(this AggregateException ae, CancellationToken token) => ae.Flatten().InnerExceptions
 																														.Any(ie => ie is OperationCanceledException operationCanceledException && operationCanceledException.CancellationToken.Equals(token));
 

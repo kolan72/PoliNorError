@@ -235,7 +235,7 @@ namespace PoliNorError
 				}
 				catch (AggregateException ae)
 				{
-					if (ae.HasCanceledException(token))
+					if (ae.IsOperationCanceledWithRequestedToken(token))
 					{
 						curRes.AddWrappedHandleResultError(new OperationCanceledException(token), handler.CollectionIndex);
 					}
@@ -270,7 +270,7 @@ namespace PoliNorError
 				}
 				catch (AggregateException ae)
 				{
-					if (ae.HasCanceledException(token))
+					if (ae.IsOperationCanceledWithRequestedToken(token))
 					{
 						curRes.AddWrappedHandleResultError(new OperationCanceledException(token), handler.CollectionIndex);
 					}
