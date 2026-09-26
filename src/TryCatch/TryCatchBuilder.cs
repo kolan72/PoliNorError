@@ -95,7 +95,10 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
-		/// Creates a <see cref="ITryCatchBuilder"/> class based on the <see cref="CatchBlockForAllHandler"/>. No other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
+		/// Creates a <see cref="ITryCatchBuilder"/> class based on the <see cref="CatchBlockForAllHandler"/>.
+		/// The returned type is <see cref="ITryCatchBuilder"/> (not <see cref="TryCatchBuilder"/>) to enforce at compile time
+		/// that no additional <see cref="CatchBlockHandler"/> handlers can be added, because a catch-all handler
+		/// placed before a filtered handler would make subsequent handlers unreachable.
 		/// </summary>
 		/// <param name="filteredHandler"><see cref="CatchBlockForAllHandler"/></param>
 		/// <returns><see cref="ITryCatchBuilder"/></returns>
@@ -117,7 +120,10 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
-		/// Adds <see cref="CatchBlockForAllHandler"/> handler to builder. No other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
+		/// Adds <see cref="CatchBlockForAllHandler"/> handler to builder.
+		/// The returned type is <see cref="ITryCatchBuilder"/> (not <see cref="TryCatchBuilder"/>) to enforce at compile time
+		/// that no additional <see cref="CatchBlockHandler"/> handlers can be added, because a catch-all handler
+		/// placed before a filtered handler would make subsequent handlers unreachable.
 		/// </summary>
 		/// <param name="filteredHandler"><see cref="CatchBlockForAllHandler"/></param>
 		/// <returns><see cref="ITryCatchBuilder"/></returns>
@@ -129,7 +135,9 @@ namespace PoliNorError.TryCatch
 		}
 
 		/// <summary>
-		/// Adds <see cref="CatchBlockForAllHandler"/> handler with the <paramref name="bulkErrorProcessor"/>. No other <see cref="CatchBlockHandler"/> handlers may be added to the created object.
+		/// Wraps the <paramref name="bulkErrorProcessor"/> in a <see cref="CatchBlockForAllHandler"/> and adds it to the builder.
+		/// This creates a catch-all handler, so the returned type is <see cref="ITryCatchBuilder"/> to enforce at compile time
+		/// that no additional <see cref="CatchBlockHandler"/> handlers can be added.
 		/// </summary>
 		/// <param name="bulkErrorProcessor"><see cref="IBulkErrorProcessor"/></param>
 		/// <returns><see cref="ITryCatchBuilder"/></returns>
