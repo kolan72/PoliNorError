@@ -9,7 +9,7 @@ namespace PoliNorError
 	/// <c>_asyncGenericFuncsHolder</c> to store the non-generic <see cref="FallbackFuncsProvider.Fallback"/>
 	/// and <see cref="FallbackFuncsProvider.FallbackAsync"/> delegates.
 	/// </summary>
-	internal struct VoidType { }
+	internal readonly struct VoidType { }
 
 	internal interface IFallbackGenericFuncHolder { }
 
