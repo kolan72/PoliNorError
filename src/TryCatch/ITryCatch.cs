@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -62,10 +61,10 @@ namespace PoliNorError.TryCatch
 	{
 		private readonly SimplePolicy _simplePolicy;
 
-		internal TryCatch(IEnumerable<CatchBlockHandler> catchBlockHandlers, bool hasCatchBlockForAll)
+		internal TryCatch(IReadOnlyList<CatchBlockHandler> catchBlockHandlers, bool hasCatchBlockForAll)
 		{
 			_simplePolicy = CatchBlockHandlerCollectionWrapper.Wrap(catchBlockHandlers);
-			CatchBlockCount = catchBlockHandlers.Count();
+			CatchBlockCount = catchBlockHandlers.Count;
 			HasCatchBlockForAll = hasCatchBlockForAll;
 		}
 
