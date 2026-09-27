@@ -33,8 +33,9 @@ namespace PoliNorError.TryCatch
 		/// <returns><see cref="ITryCatch"/></returns>
 		public static ITryCatch CreateAndBuild(IBulkErrorProcessor bulkErrorProcessor)
 		{
-			var builder = new TryCatchBuilder();
-			return builder.AddCatchBlock(bulkErrorProcessor).Build();
+			var handler = CatchBlockHandlerFactory.ForAllExceptions();
+			handler.SetBulkErrorProcessor(bulkErrorProcessor);
+			return CreateFrom(handler).Build();
 		}
 
 		/// <summary>
