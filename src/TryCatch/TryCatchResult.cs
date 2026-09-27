@@ -8,10 +8,8 @@ namespace PoliNorError.TryCatch
 	/// </summary>
 	public class TryCatchResult : TryCatchResultBase
 	{
-		internal TryCatchResult(PolicyResult policyResult, int catchBlockCount) : base(policyResult)
+		internal TryCatchResult(PolicyResult policyResult, int catchBlockCount) : base(policyResult, catchBlockCount)
 		{
-			(Error, ExceptionHandlerIndex) = policyResult.GetErrorInWrappedResults(catchBlockCount - 1);
-			IsError = !(Error is null);
 		}
 	}
 
@@ -21,10 +19,8 @@ namespace PoliNorError.TryCatch
 	/// <typeparam name="T">The type of return value of the generic delegate</typeparam>
 	public class TryCatchResult<T> : TryCatchResultBase
 	{
-		internal TryCatchResult(PolicyResult<T> policyResult, int catchBlockCount) : base(policyResult)
+		internal TryCatchResult(PolicyResult<T> policyResult, int catchBlockCount) : base(policyResult, catchBlockCount)
 		{
-			(Error, ExceptionHandlerIndex) = policyResult.GetErrorInWrappedResults(catchBlockCount - 1);
-			IsError = !(Error is null);
 			if (!IsError)
 			{
 				Result = policyResult.Result;
@@ -42,6 +38,11 @@ namespace PoliNorError.TryCatch
 		protected TryCatchResultBase(PolicyResult policyResult)
 		{
 			IsCanceled = policyResult.IsCanceled;
+		}
+
+		protected TryCatchResultBase(PolicyResult policyResult, int catchBlockCount) : this(policyResult)
+		{
+			InitializeErrorState(policyResult, catchBlockCount);
 		}
 
 		/// <summary>
@@ -68,5 +69,11 @@ namespace PoliNorError.TryCatch
 		/// Represents the index of the <see cref="CatchBlockHandler"/> that handled an exception.
 		/// </summary>
 		public int ExceptionHandlerIndex { get; protected set; } = -1;
+
+		protected void InitializeErrorState(PolicyResult policyResult, int catchBlockCount)
+		{
+			(Error, ExceptionHandlerIndex) = policyResult.GetErrorInWrappedResults(catchBlockCount - 1);
+			IsError = !(Error is null);
+		}
 	}
 }
