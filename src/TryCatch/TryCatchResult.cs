@@ -70,7 +70,7 @@ namespace PoliNorError.TryCatch
 		/// </summary>
 		public int ExceptionHandlerIndex { get; protected set; } = -1;
 
-		protected void InitializeErrorState(PolicyResult policyResult, int catchBlockCount)
+		private void InitializeErrorState(PolicyResult policyResult, int catchBlockCount)
 		{
 			(Error, ExceptionHandlerIndex) = policyResult.GetErrorInWrappedResults(catchBlockCount - 1);
 			IsError = !(Error is null);
