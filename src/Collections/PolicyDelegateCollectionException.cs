@@ -9,6 +9,7 @@ namespace PoliNorError
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "Exception is not intended to be serialized across an AppDomain or remoting boundary.")]
 	public class PolicyDelegateCollectionException : Exception
 	{
+		private readonly IReadOnlyList<Exception>[] _materializedErrors;
 		private string _message;
 
 		private readonly IReadOnlyList<PolicyDelegateResultBase> _policyDelegateResults;
@@ -16,20 +17,35 @@ namespace PoliNorError
 		internal PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResultBase> policyDelegateResults)
 		{
 			_policyDelegateResults = policyDelegateResults as IReadOnlyList<PolicyDelegateResultBase> ?? policyDelegateResults.ToArray();
-			InnerExceptions = _policyDelegateResults.SelectMany(pdr => pdr.Errors).ToArray();
+
+			_materializedErrors = new IReadOnlyList<Exception>[_policyDelegateResults.Count];
+			var allErrors = new List<Exception>();
+
+			for (int i = 0; i < _policyDelegateResults.Count; i++)
+			{
+				var errors = _policyDelegateResults[i].Errors as IReadOnlyList<Exception> ?? _policyDelegateResults[i].Errors.ToArray();
+				_materializedErrors[i] = errors;
+				allErrors.AddRange(errors);
+			}
+
+			InnerExceptions = allErrors;
 		}
 
 		public override string Message
 		{
 			get
 			{
-				return _message ?? (_message = string.Join(";", _policyDelegateResults.Select(MapPolicyDelegateResultToExceptionMessage)));
+				return _message ?? (_message = string.Join(";", MessageCore()));
 			}
 		}
 
-		private static string MapPolicyDelegateResultToExceptionMessage(PolicyDelegateResultBase policyDelegateResult)
+		private IEnumerable<string> MessageCore()
 		{
-			return string.Join(";", policyDelegateResult.Errors.Select(er => MapExceptionToSubMessage(er, policyDelegateResult.PolicyName, policyDelegateResult.PolicyMethodInfo)));
+			for (int i = 0; i < _policyDelegateResults.Count; i++)
+			{
+				var pdr = _policyDelegateResults[i];
+				yield return string.Join(";", _materializedErrors[i].Select(er => MapExceptionToSubMessage(er, pdr.PolicyName, pdr.PolicyMethodInfo)));
+			}
 		}
 
 		private static string MapExceptionToSubMessage(Exception exc, string policyName, MethodInfo methodInfo)
