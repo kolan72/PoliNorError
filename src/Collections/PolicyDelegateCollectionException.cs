@@ -60,7 +60,7 @@ namespace PoliNorError
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly", Justification = "Exception is not intended to be serialized across an AppDomain or remoting boundary.")]
 	public class PolicyDelegateCollectionException<T> : PolicyDelegateCollectionException
 	{
-		private readonly IReadOnlyList<T> _results;
+		private readonly Lazy<IReadOnlyList<T>> _results;
 
 		internal PolicyDelegateCollectionException(IEnumerable<PolicyDelegateResult<T>> policyDelegateResult)
 			: this(policyDelegateResult as IReadOnlyList<PolicyDelegateResult<T>> ?? policyDelegateResult.ToArray())
@@ -70,14 +70,17 @@ namespace PoliNorError
 		private PolicyDelegateCollectionException(IReadOnlyList<PolicyDelegateResult<T>> materialized)
 			: base(materialized)
 		{
-			var results = new T[materialized.Count];
-			for (int i = 0; i < materialized.Count; i++)
+			_results = new Lazy<IReadOnlyList<T>>(() =>
 			{
-				results[i] = materialized[i].Result.Result;
-			}
-			_results = results;
+				var results = new T[materialized.Count];
+				for (int i = 0; i < materialized.Count; i++)
+				{
+					results[i] = materialized[i].Result.Result;
+				}
+				return results;
+			}, isThreadSafe: true);
 		}
 
-		public IEnumerable<T> GetResults() => _results;
+		public IEnumerable<T> GetResults() => _results.Value;
 	}
 }
