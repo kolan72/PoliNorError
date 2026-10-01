@@ -983,6 +983,21 @@ private static void PrintResultInConsole(PolicyResult<string[]> pr) => pr.Result
 ```
 The `PolicyCollection.WrapUp` method has an optional parameter of type `ThrowOnWrappedCollectionFailed`, that by default is set to `ThrowOnWrappedCollectionFailed.LastError`  with behind the scenes throwing `PolicyResult.UnprocessedError` of failed policy (usually the last one in the `PolicyCollection`).  
 
+Since the current version, `PolicyCollection` also supports the `Then` method, a shorthand for `WrapUp` that returns the wrapper policy directly (mirroring the `IPolicyBase.Then` extension method):
+```csharp
+var outerPolicy = PolicyCollection.Create()
+	.WithRetry(2)
+	//Wraps the collection in the SimplePolicy and returns it directly,
+	//instead of calling .WrapUp(...).OuterPolicy.
+	.Then(new SimplePolicy());
+```
+It has the same optional `ThrowOnWrappedCollectionFailed` parameter as `WrapUp`, so this is also valid:
+```csharp
+var outerPolicy = PolicyCollection.Create()
+	.WithRetry(2)
+	.Then(new SimplePolicy(), ThrowOnWrappedCollectionFailed.CollectionError);
+```
+
 You can use `ThrowOnWrappedCollectionFailed.CollectionError` if you want to deal with all the exceptions that happen when `PolicyCollection` handles delegate. In this case, the `PolicyDelegateCollectionException(<T>)` will be thrown as a result of failed handling of wrapped `PolicyCollection`.  
 
 For example, there is a service that should not be used if there are multiple `TimeoutExceptions` within a certain time period.  

@@ -170,6 +170,7 @@
     <Compile Include="ICanAddErrorProcessorExtensionsTests.cs" />
     <Compile Include="IErrorProcessorRegistration.cs" />
     <Compile Include="InnerErrorProcessorFuncs.cs" />
+    <Compile Include="PolicyCollectionThenTests.cs" />
     <Compile Include="PolicyCollectionWrapUpTests.cs" />
     <Compile Include="PolicyCollectionWrapUpTests.T.cs" />
     <Compile Include="PolicyResultHandlerTests.cs" />

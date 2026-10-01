@@ -475,6 +475,24 @@ namespace PoliNorError
 			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, this, throwOnWrappedCollectionFailed);
 		}
 
+		/// <summary>
+		/// Wraps the current PolicyCollection inside the specified wrapper policy and returns the wrapper policy.
+		/// This is a shorthand for <see cref="WrapUp{TWrapperPolicy}"/> that returns the outer policy directly.
+		/// </summary>
+		/// <typeparam name="TWrapperPolicy">The type of the policy that will wrap the current PolicyCollection.</typeparam>
+		/// <param name="wrapperPolicy">The policy that will wrap the current PolicyCollection.</param>
+		/// <param name="throwOnWrappedCollectionFailed">Shows how an exception will be generated if the last policy in the PolicyCollection fails.</param>
+		/// <returns>The wrapper policy that now wraps the current PolicyCollection.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="wrapperPolicy"/> is <c>null</c>.</exception>
+		public TWrapperPolicy Then<TWrapperPolicy>(TWrapperPolicy wrapperPolicy, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.LastError) where TWrapperPolicy : Policy
+		{
+			if (wrapperPolicy == null)
+			{
+				throw new ArgumentNullException(nameof(wrapperPolicy));
+			}
+			return WrapUp(wrapperPolicy, throwOnWrappedCollectionFailed).OuterPolicy;
+		}
+
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<IPolicyBase> GetEnumerator() => _policies.GetEnumerator();
 
