@@ -1465,6 +1465,19 @@ For quick, one-off error handling without complex logic, a policy processor is o
 - **Leverage context in error handlers**: The `ProcessingErrorInfo<T>` parameter contains the input to that specific step (`pi.Param`), making it easy to log which input caused the failure.
 - **Check `PipelineResult.IsFailed`** before accessing `Result` to avoid working with default values from failed pipelines.
 
+#### Quick Composition Tools Guide
+
+When choosing between the composition tools, this table is a fast way to orient:
+
+| You want | Use |
+|---|---|
+| One delegate, N retry/fallback strategies | `PolicyCollection` + `HandleDelegate` |
+| Same, but injectable handler | `collection.BuildCollectionHandlerFor(...)` |
+| Typed multi-step transform with policies per step | `PipelineFuncBuilder` |
+| Outer retry/fallback over a whole collection | `collection.Then(new RetryPolicy(...))` / `.WrapUp(...)` |
+| Per-step error processors in a typed pipeline | `PipelineFuncBuilder.ConfigureErrorProcessors` / `OnError` |
+
+
 ### Handling `PolicyResult`
 
 - **Chain with `SetFailed()` in result handlers** to pass control to the next delegate in the collection intentionally.
