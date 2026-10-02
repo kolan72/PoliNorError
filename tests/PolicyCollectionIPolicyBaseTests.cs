@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,6 +54,113 @@ namespace PoliNorError.Tests
 
 			Assert.That(collection.PolicyName, Is.EqualTo("TestPolicyCollectionName"));
 			Assert.That(returned, Is.SameAs(collection));
+		}
+
+		[Test]
+		public void Should_Handle_Result_PolicyName_Equals_Collection_PolicyName()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1).WithPolicyName("MyCollection");
+
+			var result = collection.Handle(() => { });
+
+			Assert.That(result.PolicyName, Is.EqualTo("MyCollection"));
+		}
+
+		[Test]
+		public void Should_Handle_Result_PolicyName_Equals_Collection_PolicyName_By_Default()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1);
+
+			var result = collection.Handle(() => { });
+
+			Assert.That(result.PolicyName, Is.EqualTo(nameof(PolicyCollection)));
+		}
+
+		[Test]
+		public void Should_HandleT_Result_PolicyName_Equals_Collection_PolicyName()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1).WithPolicyName("MyCollection");
+
+			var result = collection.Handle(() => 42);
+
+			Assert.That(result.PolicyName, Is.EqualTo("MyCollection"));
+			Assert.That(result.Result, Is.EqualTo(42));
+		}
+
+		[Test]
+		public async Task Should_HandleAsync_Result_PolicyName_Equals_Collection_PolicyName()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1).WithPolicyName("MyCollection");
+
+			var result = await collection.HandleAsync(_ => Task.CompletedTask);
+
+			Assert.That(result.PolicyName, Is.EqualTo("MyCollection"));
+		}
+
+		[Test]
+		public async Task Should_HandleAsyncT_Result_PolicyName_Equals_Collection_PolicyName()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1).WithPolicyName("MyCollection");
+
+			var result = await collection.HandleAsync(_ => Task.FromResult(42));
+
+			Assert.That(result.PolicyName, Is.EqualTo("MyCollection"));
+			Assert.That(result.Result, Is.EqualTo(42));
+		}
+
+		[Test]
+		public void Should_Handle_Result_PolicyName_Equals_Collection_PolicyName_When_Token_Is_Canceled()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1).WithPolicyName("MyCollection");
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+
+				var result = collection.Handle(() => { }, cts.Token);
+
+				Assert.That(result.PolicyName, Is.EqualTo("MyCollection"));
+			}
+		}
+
+		[Test]
+		public async Task Should_HandleAsync_Result_PolicyName_Equals_Collection_PolicyName_When_Token_Is_Canceled()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1).WithPolicyName("MyCollection");
+			using (var cts = new CancellationTokenSource())
+			{
+				cts.Cancel();
+
+				var result = await collection.HandleAsync(_ => Task.CompletedTask, cts.Token);
+
+				Assert.That(result.PolicyName, Is.EqualTo("MyCollection"));
+			}
+		}
+
+		[Test]
+		public void Should_HandleDelegate_Results_Keep_Inner_Policy_Names()
+		{
+			var retryPolicy = new RetryPolicy(1).WithPolicyName("InnerRetry");
+			var simplePolicy = new SimplePolicy().WithPolicyName("InnerSimple");
+			var collection = PolicyCollection.Create().WithPolicy(retryPolicy).WithPolicy(simplePolicy).WithPolicyName("MyCollection");
+
+			var collectionResult = collection.HandleDelegate(() => throw new Exception("Test"));
+			var names = collectionResult.PolicyDelegateResults.Select(r => r.PolicyName).ToList();
+
+			Assert.That(names, Does.Contain("InnerRetry"));
+			Assert.That(names, Does.Contain("InnerSimple"));
+			Assert.That(names, Has.No.Member("MyCollection"));
+		}
+
+		[Test]
+		public void Should_Handle_And_HandleDelegate_Use_Different_PolicyName_Levels()
+		{
+			var collection = PolicyCollection.Create().WithRetry(1).WithPolicyName("MyCollection");
+
+			var handleResult = collection.Handle(() => { });
+			var delegateResult = collection.HandleDelegate(() => { });
+
+			Assert.That(handleResult.PolicyName, Is.EqualTo("MyCollection"));
+			Assert.That(delegateResult.LastPolicyResult.PolicyName, Is.EqualTo(nameof(RetryPolicy)));
 		}
 
 		[Test]

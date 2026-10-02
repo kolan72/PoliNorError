@@ -533,11 +533,14 @@ namespace PoliNorError
 			{
 				var result = PolicyResult.ForSync();
 				result.SetCanceledEarly();
+				result.SetPolicyName(PolicyName);
 				return result;
 			}
 			else
 			{
-				return collectionResult.LastPolicyResult;
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(PolicyName);
+				return lastResult;
 			}
 		}
 
@@ -555,11 +558,14 @@ namespace PoliNorError
 			{
 				var result = PolicyResult<T>.ForSync();
 				result.SetCanceledEarly();
+				result.SetPolicyName(PolicyName);
 				return result;
 			}
 			else
 			{
-				return collectionResult.LastPolicyResult;
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(PolicyName);
+				return lastResult;
 			}
 		}
 
@@ -577,11 +583,14 @@ namespace PoliNorError
 			{
 				var result = PolicyResult.ForNotSync();
 				result.SetCanceledEarly();
+				result.SetPolicyName(PolicyName);
 				return result;
 			}
 			else
 			{
-				return collectionResult.LastPolicyResult;
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(PolicyName);
+				return lastResult;
 			}
 		}
 
@@ -600,11 +609,14 @@ namespace PoliNorError
 			{
 				var result = PolicyResult<T>.ForNotSync();
 				result.SetCanceledEarly();
+				result.SetPolicyName(PolicyName);
 				return result;
 			}
 			else
 			{
-				return collectionResult.LastPolicyResult;
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(PolicyName);
+				return lastResult;
 			}
 		}
 
