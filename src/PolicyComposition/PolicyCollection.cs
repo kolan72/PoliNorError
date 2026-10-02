@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public partial class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>, ICanAddErrorProcessor
+	public partial class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>, ICanAddErrorProcessor, IPolicyBase
 	{
 		protected readonly List<IPolicyBase> _policies = new List<IPolicyBase>();
+
+		private string _policyName;
 
 		/// <summary>
 		/// Creates a collection from a single policy, which will be added n times.
@@ -491,6 +493,119 @@ namespace PoliNorError
 				throw new ArgumentNullException(nameof(wrapperPolicy));
 			}
 			return WrapUp(wrapperPolicy, throwOnWrappedCollectionFailed).OuterPolicy;
+		}
+
+		/// <summary>
+		/// Gets the policy processor associated with the last policy in the collection.
+		/// </summary>
+		public IPolicyProcessor PolicyProcessor => _policies.LastOrDefault()?.PolicyProcessor;
+
+		/// <summary>
+		/// Gets the name of the policy collection. If not set, returns the type name of the collection.
+		/// </summary>
+		public string PolicyName
+		{
+			get { return _policyName ?? GetType().Name; }
+			internal set { _policyName = value; }
+		}
+
+		/// <summary>
+		/// Sets the name of the policy collection.
+		/// </summary>
+		/// <param name="policyName">The name of the policy collection.</param>
+		/// <returns>The current <see cref="PolicyCollection"/> instance.</returns>
+		public PolicyCollection WithPolicyName(string policyName)
+		{
+			_policyName = policyName;
+			return this;
+		}
+
+		/// <summary>
+		/// Handles an action by delegating to the collection handler and returning the last policy result.
+		/// </summary>
+		/// <param name="action">The action to handle</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		public PolicyResult Handle(Action action, CancellationToken token = default)
+		{
+			var collectionResult = HandleDelegate(action, token);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult.ForSync();
+				result.SetCanceledEarly();
+				return result;
+			}
+			else
+			{
+				return collectionResult.LastPolicyResult;
+			}
+		}
+
+		/// <summary>
+		/// Handles a function by delegating to the collection handler and returning the last policy result.
+		/// </summary>
+		/// <typeparam name="T">The type of the result</typeparam>
+		/// <param name="func">The function to handle</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
+		{
+			var collectionResult = HandleDelegate(func, token);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult<T>.ForSync();
+				result.SetCanceledEarly();
+				return result;
+			}
+			else
+			{
+				return collectionResult.LastPolicyResult;
+			}
+		}
+
+		/// <summary>
+		/// Handles an asynchronous function by delegating to the collection handler and returning the last policy result.
+		/// </summary>
+		/// <param name="func">The function to handle async</param>
+		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
+		{
+			var collectionResult = await HandleDelegateAsync(func, configureAwait, token).ConfigureAwait(configureAwait);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult.ForNotSync();
+				result.SetCanceledEarly();
+				return result;
+			}
+			else
+			{
+				return collectionResult.LastPolicyResult;
+			}
+		}
+
+		/// <summary>
+		/// Handles an asynchronous function by delegating to the collection handler and returning the last policy result.
+		/// </summary>
+		/// <typeparam name="T">The type of the result</typeparam>
+		/// <param name="func">The function to handle async</param>
+		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
+		{
+			var collectionResult = await HandleDelegateAsync(func, configureAwait, token).ConfigureAwait(configureAwait);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult<T>.ForNotSync();
+				result.SetCanceledEarly();
+				return result;
+			}
+			else
+			{
+				return collectionResult.LastPolicyResult;
+			}
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
