@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public partial class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>, ICanAddErrorProcessor, IPolicyBase
+	public partial class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>, ICanAddErrorProcessor, IPolicyBase, IWithErrorFilter<PolicyCollection>
 	{
 		protected readonly List<IPolicyBase> _policies = new List<IPolicyBase>();
 
@@ -271,6 +271,26 @@ namespace PoliNorError
 		{
 			this.SetPolicyResultFailedIfInner(predicate);
 			return this;
+		}
+
+		public PolicyCollection IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			return IncludeErrorForAll(func);
+		}
+
+		public PolicyCollection IncludeError(Expression<Func<Exception, bool>> expression)
+		{
+			return IncludeErrorForAll(expression);
+		}
+
+		public PolicyCollection ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			return ExcludeErrorForAll(func);
+		}
+
+		public PolicyCollection ExcludeError(Expression<Func<Exception, bool>> expression)
+		{
+			return ExcludeErrorForAll(expression);
 		}
 
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
