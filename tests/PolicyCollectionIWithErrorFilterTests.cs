@@ -36,7 +36,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.IncludeError<ArgumentNullException>();
+			((IWithErrorFilter<PolicyCollection>)collection).IncludeError<ArgumentNullException>();
 
 			AssertIncludedFiltersForAllPolicies(collection, 1);
 		}
@@ -46,7 +46,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.IncludeError<ArgumentNullException>(e => e.Message == "Test");
+			((IWithErrorFilter<PolicyCollection>)collection).IncludeError<ArgumentNullException>(e => e.Message == "Test");
 
 			AssertIncludedFiltersForAllPolicies(collection, 1);
 		}
@@ -56,7 +56,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.IncludeError(ex => ex.Message == "Test");
+			((IWithErrorFilter<PolicyCollection>)collection).IncludeError(ex => ex.Message == "Test");
 
 			AssertIncludedFiltersForAllPolicies(collection, 1);
 		}
@@ -66,7 +66,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.ExcludeError<ArgumentNullException>();
+			((IWithErrorFilter<PolicyCollection>)collection).ExcludeError<ArgumentNullException>();
 
 			AssertExcludedFiltersForAllPolicies(collection, 1);
 		}
@@ -76,7 +76,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.ExcludeError<ArgumentNullException>(e => e.Message == "Test");
+			((IWithErrorFilter<PolicyCollection>)collection).ExcludeError<ArgumentNullException>(e => e.Message == "Test");
 
 			AssertExcludedFiltersForAllPolicies(collection, 1);
 		}
@@ -86,7 +86,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.ExcludeError(ex => ex.Message == "Test");
+			((IWithErrorFilter<PolicyCollection>)collection).ExcludeError(ex => ex.Message == "Test");
 
 			AssertExcludedFiltersForAllPolicies(collection, 1);
 		}
@@ -96,7 +96,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			var result = collection.IncludeError<ArgumentNullException>();
+			var result = ((IWithErrorFilter<PolicyCollection>)collection).IncludeError<ArgumentNullException>();
 
 			Assert.That(result, Is.SameAs(collection));
 		}
@@ -106,7 +106,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			var result = collection.IncludeError(ex => ex.Message == "Test");
+			var result = ((IWithErrorFilter<PolicyCollection>)collection).IncludeError(ex => ex.Message == "Test");
 
 			Assert.That(result, Is.SameAs(collection));
 		}
@@ -116,7 +116,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			var result = collection.ExcludeError<ArgumentNullException>();
+			var result = ((IWithErrorFilter<PolicyCollection>)collection).ExcludeError<ArgumentNullException>();
 
 			Assert.That(result, Is.SameAs(collection));
 		}
@@ -126,7 +126,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			var result = collection.ExcludeError(ex => ex.Message == "Test");
+			var result = ((IWithErrorFilter<PolicyCollection>)collection).ExcludeError(ex => ex.Message == "Test");
 
 			Assert.That(result, Is.SameAs(collection));
 		}
@@ -136,7 +136,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.IncludeError<ArgumentException>();
+			((IWithErrorFilter<PolicyCollection>)collection).IncludeError<ArgumentException>();
 
 			foreach (var policy in collection)
 			{
@@ -150,7 +150,7 @@ namespace PoliNorError.Tests
 		{
 			var collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection.ExcludeError<ArgumentException>();
+			((IWithErrorFilter<PolicyCollection>)collection).ExcludeError<ArgumentException>();
 
 			foreach (var policy in collection)
 			{
@@ -162,35 +162,35 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Accumulate_Multiple_Filters_For_All_Policies()
 		{
-			var collection = CreateCollectionWithTwoRetryPolicies();
+			IWithErrorFilter<PolicyCollection> collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection
-				.IncludeError<ArgumentNullException>()
-				.IncludeError(ex => ex.Message == "Test");
+			collection.IncludeError<ArgumentNullException>();
+			collection.IncludeError(ex => ex.Message == "Test");
 
-			AssertIncludedFiltersForAllPolicies(collection, 2);
+			AssertIncludedFiltersForAllPolicies((PolicyCollection)collection, 2);
 		}
 
 		[Test]
 		public void Should_ExcludeError_Accumulate_Multiple_Filters_For_All_Policies()
 		{
-			var collection = CreateCollectionWithTwoRetryPolicies();
+			IWithErrorFilter<PolicyCollection> collection = CreateCollectionWithTwoRetryPolicies();
 
-			collection
-				.ExcludeError<ArgumentNullException>()
-				.ExcludeError(ex => ex.Message == "Test");
+			collection.ExcludeError<ArgumentNullException>();
+			collection.ExcludeError(ex => ex.Message == "Test");
 
-			AssertExcludedFiltersForAllPolicies(collection, 2);
+			AssertExcludedFiltersForAllPolicies((PolicyCollection)collection, 2);
 		}
 
 		[Test]
 		public void Should_IncludeError_Generic_Handle_Matching_Exception_As_Filter_Satisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.IncludeError<ArgumentNullException>();
 
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
 			var result = collection.Handle(() => throw new ArgumentNullException("Test"));
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.False);
 		}
@@ -198,8 +198,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Generic_Handle_Non_Matching_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.IncludeError<ArgumentNullException>();
 
 			var result = collection.Handle(() => throw new InvalidOperationException("Test"));
@@ -210,8 +210,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Expression_Handle_Matching_Exception_As_Filter_Satisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.IncludeError(ex => ex.Message == "Test");
 
 			var result = collection.Handle(() => throw new Exception("Test"));
@@ -222,8 +222,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Expression_Handle_Non_Matching_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.IncludeError(ex => ex.Message == "Test");
 
 			var result = collection.Handle(() => throw new Exception("Other"));
@@ -234,8 +234,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Generic_Handle_Excluded_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.ExcludeError<ArgumentNullException>();
 
 #pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
@@ -248,8 +248,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Generic_Handle_Not_Excluded_Exception_As_Filter_Satisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.ExcludeError<ArgumentNullException>();
 
 			var result = collection.Handle(() => throw new InvalidOperationException("Test"));
@@ -260,8 +260,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Expression_Handle_Excluded_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.ExcludeError(ex => ex.Message == "Test");
 
 			var result = collection.Handle(() => throw new Exception("Test"));
@@ -272,8 +272,8 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Expression_Handle_Not_Excluded_Exception_As_Filter_Satisfied()
 		{
-			var collection = PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1))
+			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+				.WithPolicy(new RetryPolicy(1)))
 				.ExcludeError(ex => ex.Message == "Test");
 
 			var result = collection.Handle(() => throw new Exception("Other"));
@@ -284,7 +284,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Not_Throw_For_Empty_Collection()
 		{
-			var collection = PolicyCollection.Create();
+			IWithErrorFilter<PolicyCollection> collection = PolicyCollection.Create();
 
 			Assert.That(() => collection.IncludeError<ArgumentException>(), Throws.Nothing);
 			Assert.That(() => collection.IncludeError(ex => true), Throws.Nothing);
@@ -293,7 +293,7 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Not_Throw_For_Empty_Collection()
 		{
-			var collection = PolicyCollection.Create();
+			IWithErrorFilter<PolicyCollection> collection = PolicyCollection.Create();
 
 			Assert.That(() => collection.ExcludeError<ArgumentException>(), Throws.Nothing);
 			Assert.That(() => collection.ExcludeError(ex => true), Throws.Nothing);

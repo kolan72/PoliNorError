@@ -273,25 +273,13 @@ namespace PoliNorError
 			return this;
 		}
 
-		public PolicyCollection IncludeError<TException>(Func<TException, bool> func = null) where TException : Exception
-		{
-			return IncludeErrorForAll(func);
-		}
+		PolicyCollection IWithErrorFilter<PolicyCollection>.IncludeError<TException>(Func<TException, bool> func) => IncludeErrorForAll(func);
 
-		public PolicyCollection IncludeError(Expression<Func<Exception, bool>> expression)
-		{
-			return IncludeErrorForAll(expression);
-		}
+		PolicyCollection IWithErrorFilter<PolicyCollection>.IncludeError(Expression<Func<Exception, bool>> expression) => IncludeErrorForAll(expression);
 
-		public PolicyCollection ExcludeError<TException>(Func<TException, bool> func = null) where TException : Exception
-		{
-			return ExcludeErrorForAll(func);
-		}
+		PolicyCollection IWithErrorFilter<PolicyCollection>.ExcludeError<TException>(Func<TException, bool> func) => ExcludeErrorForAll(func);
 
-		public PolicyCollection ExcludeError(Expression<Func<Exception, bool>> expression)
-		{
-			return ExcludeErrorForAll(expression);
-		}
+		PolicyCollection IWithErrorFilter<PolicyCollection>.ExcludeError(Expression<Func<Exception, bool>> expression) => ExcludeErrorForAll(expression);
 
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
