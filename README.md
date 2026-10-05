@@ -853,6 +853,21 @@ Furthermore, with the `PolicyCollection` :
 
 The `PolicyCollection` class has the same options for filtering errors and adding `PolicyResult` handlers as the `PolicyDelegateCollection` class.  
 
+`PolicyCollection` is primarily a composition of policies, **not a policy itself**. It implements `IPolicyBase` **explicitly** — the adapter members `Handle`, `HandleAsync`, `PolicyProcessor` and `PolicyName` are available only through an `IPolicyBase`-typed reference, where they treat the whole collection as a single policy (returning the last policy's `PolicyResult` and stamping it with the collection-level name). The public surface of `PolicyCollection` is the fluent builder (`WithPolicy`, `WithRetry`, ...) plus `HandleDelegate(Async)`, which runs a common delegate through every policy and keeps the inner policies' own names on the results. To name the collection for the adapter role, use the public `WithPolicyName` builder step:
+
+```csharp
+var collection = PolicyCollection.Create()
+	.WithRetry(2)
+	.WithPolicyName("MyCollection");   // builder step — public
+
+IPolicyBase policyBase = collection;  // adapter role
+var policyResult = policyBase.Handle(() => DoWork());
+// policyResult.PolicyName == "MyCollection" — collection-level name
+
+var delegateResult = collection.HandleDelegate(() => DoWork());
+// delegateResult.LastPolicyResult.PolicyName == "RetryPolicy" — inner policy name
+```
+
 Be careful when adding an existing `Policy` to a collection, see [Nuances of using the library](#nuances-of-using-the-library) for details.
 
 ### Policy wrap
