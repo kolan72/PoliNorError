@@ -184,13 +184,13 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Generic_Handle_Matching_Exception_As_Filter_Satisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
 				.WithPolicy(new RetryPolicy(1)))
 				.IncludeError<ArgumentNullException>();
 
-#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
-			var result = collection.Handle(() => throw new ArgumentNullException("Test"));
-#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one
+			var result = policyBase.Handle(() => throw new ArgumentNullException("Test"));
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.False);
 		}
@@ -198,11 +198,11 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Generic_Handle_Non_Matching_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
 				.WithPolicy(new RetryPolicy(1)))
 				.IncludeError<ArgumentNullException>();
 
-			var result = collection.Handle(() => throw new InvalidOperationException("Test"));
+			var result = policyBase.Handle(() => throw new InvalidOperationException("Test"));
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 		}
@@ -210,11 +210,9 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Expression_Handle_Matching_Exception_As_Filter_Satisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1)))
-				.IncludeError(ex => ex.Message == "Test");
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create().WithPolicy(new RetryPolicy(1))).IncludeError(ex => ex.Message == "Test");
 
-			var result = collection.Handle(() => throw new Exception("Test"));
+			var result = policyBase.Handle(() => throw new Exception("Test"));
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.False);
 		}
@@ -222,11 +220,9 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_IncludeError_Expression_Handle_Non_Matching_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1)))
-				.IncludeError(ex => ex.Message == "Test");
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create().WithPolicy(new RetryPolicy(1))).IncludeError(ex => ex.Message == "Test");
 
-			var result = collection.Handle(() => throw new Exception("Other"));
+			var result = policyBase.Handle(() => throw new Exception("Other"));
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 		}
@@ -234,13 +230,11 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Generic_Handle_Excluded_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1)))
-				.ExcludeError<ArgumentNullException>();
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create().WithPolicy(new RetryPolicy(1))).ExcludeError<ArgumentNullException>();
 
-#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one 
-			var result = collection.Handle(() => throw new ArgumentNullException("Test"));
-#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one 
+#pragma warning disable S3928 // Parameter names used into ArgumentException constructors should match an existing one
+			var result = policyBase.Handle(() => throw new ArgumentNullException("Test"));
+#pragma warning restore S3928 // Parameter names used into ArgumentException constructors should match an existing one
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 		}
@@ -248,11 +242,9 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Generic_Handle_Not_Excluded_Exception_As_Filter_Satisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1)))
-				.ExcludeError<ArgumentNullException>();
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create().WithPolicy(new RetryPolicy(1))).ExcludeError<ArgumentNullException>();
 
-			var result = collection.Handle(() => throw new InvalidOperationException("Test"));
+			var result = policyBase.Handle(() => throw new InvalidOperationException("Test"));
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.False);
 		}
@@ -260,11 +252,9 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Expression_Handle_Excluded_Exception_As_Filter_Unsatisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1)))
-				.ExcludeError(ex => ex.Message == "Test");
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create().WithPolicy(new RetryPolicy(1))).ExcludeError(ex => ex.Message == "Test");
 
-			var result = collection.Handle(() => throw new Exception("Test"));
+			var result = policyBase.Handle(() => throw new Exception("Test"));
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.True);
 		}
@@ -272,11 +262,9 @@ namespace PoliNorError.Tests
 		[Test]
 		public void Should_ExcludeError_Expression_Handle_Not_Excluded_Exception_As_Filter_Satisfied()
 		{
-			var collection = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create()
-				.WithPolicy(new RetryPolicy(1)))
-				.ExcludeError(ex => ex.Message == "Test");
+			IPolicyBase policyBase = ((IWithErrorFilter<PolicyCollection>)PolicyCollection.Create().WithPolicy(new RetryPolicy(1))).ExcludeError(ex => ex.Message == "Test");
 
-			var result = collection.Handle(() => throw new Exception("Other"));
+			var result = policyBase.Handle(() => throw new Exception("Other"));
 
 			Assert.That(result.ErrorFilterUnsatisfied, Is.False);
 		}

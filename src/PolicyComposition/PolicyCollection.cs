@@ -505,22 +505,29 @@ namespace PoliNorError
 
 		/// <summary>
 		/// Gets the policy processor associated with the last policy in the collection.
+		/// Explicit <see cref="IPolicyBase"/> member: the collection itself has no processor;
+		/// use this only when the collection acts as a single policy.
 		/// </summary>
-		public IPolicyProcessor PolicyProcessor => _policies.LastOrDefault()?.PolicyProcessor;
+		IPolicyProcessor IPolicyBase.PolicyProcessor => _policies.LastOrDefault()?.PolicyProcessor;
 
 		/// <summary>
-		/// Gets the name of the policy collection. If not set, returns the type name of the collection.
+		/// Gets the name used when this collection acts as an <see cref="IPolicyBase"/>.
+		/// Explicit <see cref="IPolicyBase"/> member: the collection itself is nameless —
+		/// policies added via <see cref="WithPolicy(IPolicyBase)"/> keep their own names,
+		/// which is what the <see cref="HandleDelegate(Action, CancellationToken)"/> results carry.
 		/// </summary>
-		public string PolicyName
-		{
-			get { return _policyName ?? GetType().Name; }
-			internal set { _policyName = value; }
-		}
+		string IPolicyBase.PolicyName => EffectivePolicyName;
+
+		private string EffectivePolicyName => _policyName ?? GetType().Name;
 
 		/// <summary>
-		/// Sets the name of the policy collection.
+		/// Sets the name used when this collection acts as an <see cref="IPolicyBase"/> —
+		/// it is stamped onto the last result returned by <see cref="IPolicyBase.Handle(Action, CancellationToken)"/>
+		/// and the <see cref="IPolicyBase"/> HandleAsync overloads.
+		/// The collection itself is nameless: policies added via <see cref="WithPolicy(IPolicyBase)"/> keep
+		/// their own names, which is what the HandleDelegate results carry.
 		/// </summary>
-		/// <param name="policyName">The name of the policy collection.</param>
+		/// <param name="policyName">The adapter-level policy name.</param>
 		/// <returns>The current <see cref="PolicyCollection"/> instance.</returns>
 		public PolicyCollection WithPolicyName(string policyName)
 		{
@@ -530,103 +537,115 @@ namespace PoliNorError
 
 		/// <summary>
 		/// Handles an action by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
 		/// </summary>
 		/// <param name="action">The action to handle</param>
 		/// <param name="token">A cancellation token to cancel handling</param>
 		/// <returns>The last policy result of the collection handling.</returns>
-		public PolicyResult Handle(Action action, CancellationToken token = default)
+		private PolicyResult HandleCore(Action action, CancellationToken token)
 		{
 			var collectionResult = HandleDelegate(action, token);
 			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
 			{
 				var result = PolicyResult.ForSync();
 				result.SetCanceledEarly();
-				result.SetPolicyName(PolicyName);
+				result.SetPolicyName(EffectivePolicyName);
 				return result;
 			}
 			else
 			{
 				var lastResult = collectionResult.LastPolicyResult;
-				lastResult?.SetPolicyName(PolicyName);
+				lastResult?.SetPolicyName(EffectivePolicyName);
 				return lastResult;
 			}
 		}
 
 		/// <summary>
 		/// Handles a function by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
 		/// </summary>
 		/// <typeparam name="T">The type of the result</typeparam>
 		/// <param name="func">The function to handle</param>
 		/// <param name="token">A cancellation token to cancel handling</param>
 		/// <returns>The last policy result of the collection handling.</returns>
-		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
+		private PolicyResult<T> HandleCore<T>(Func<T> func, CancellationToken token)
 		{
 			var collectionResult = HandleDelegate(func, token);
 			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
 			{
 				var result = PolicyResult<T>.ForSync();
 				result.SetCanceledEarly();
-				result.SetPolicyName(PolicyName);
+				result.SetPolicyName(EffectivePolicyName);
 				return result;
 			}
 			else
 			{
 				var lastResult = collectionResult.LastPolicyResult;
-				lastResult?.SetPolicyName(PolicyName);
+				lastResult?.SetPolicyName(EffectivePolicyName);
 				return lastResult;
 			}
 		}
 
 		/// <summary>
 		/// Handles an asynchronous function by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
 		/// </summary>
 		/// <param name="func">The function to handle async</param>
 		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
 		/// <param name="token">A cancellation token to cancel handling</param>
 		/// <returns>The last policy result of the collection handling.</returns>
-		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult> HandleCoreAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			var collectionResult = await HandleDelegateAsync(func, configureAwait, token).ConfigureAwait(configureAwait);
 			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
 			{
 				var result = PolicyResult.ForNotSync();
 				result.SetCanceledEarly();
-				result.SetPolicyName(PolicyName);
+				result.SetPolicyName(EffectivePolicyName);
 				return result;
 			}
 			else
 			{
 				var lastResult = collectionResult.LastPolicyResult;
-				lastResult?.SetPolicyName(PolicyName);
+				lastResult?.SetPolicyName(EffectivePolicyName);
 				return lastResult;
 			}
 		}
 
 		/// <summary>
 		/// Handles an asynchronous function by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
 		/// </summary>
 		/// <typeparam name="T">The type of the result</typeparam>
 		/// <param name="func">The function to handle async</param>
 		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
 		/// <param name="token">A cancellation token to cancel handling</param>
 		/// <returns>The last policy result of the collection handling.</returns>
-		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult<T>> HandleCoreAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			var collectionResult = await HandleDelegateAsync(func, configureAwait, token).ConfigureAwait(configureAwait);
 			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
 			{
 				var result = PolicyResult<T>.ForNotSync();
 				result.SetCanceledEarly();
-				result.SetPolicyName(PolicyName);
+				result.SetPolicyName(EffectivePolicyName);
 				return result;
 			}
 			else
 			{
 				var lastResult = collectionResult.LastPolicyResult;
-				lastResult?.SetPolicyName(PolicyName);
+				lastResult?.SetPolicyName(EffectivePolicyName);
 				return lastResult;
 			}
 		}
+
+		PolicyResult IPolicyBase.Handle(Action action, CancellationToken token) => HandleCore(action, token);
+
+		PolicyResult<T> IPolicyBase.Handle<T>(Func<T> func, CancellationToken token) => HandleCore(func, token);
+
+		Task<PolicyResult> IPolicyBase.HandleAsync(Func<CancellationToken, Task> func, bool configureAwait, CancellationToken token) => HandleCoreAsync(func, configureAwait, token);
+
+		Task<PolicyResult<T>> IPolicyBase.HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait, CancellationToken token) => HandleCoreAsync(func, configureAwait, token);
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<IPolicyBase> GetEnumerator() => _policies.GetEnumerator();
