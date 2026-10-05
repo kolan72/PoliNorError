@@ -69,7 +69,7 @@ namespace PoliNorError
 
 	/// <summary>
 	/// Represents a strongly-typed exception that occurs during the execution of a policy delegate collection,
-	/// containing both error information and the results of successful executions.
+	/// containing both error information and the result values of all the policy delegates in the collection.
 	/// </summary>
 	/// <typeparam name="T">The type of the result values returned by the policy delegates.</typeparam>
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "Constructed internally only from a collection of policy-delegate results; standard exception constructors are not applicable.")]
