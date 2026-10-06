@@ -3,17 +3,23 @@
 This folder implements **policy composition**: grouping many policies into a single
 `PolicyCollection` that applies them to **one common delegate**.
 
-`PolicyCollection` is not a policy itself (`IPolicyBase`). It is an ordered
-`IEnumerable<IPolicyBase>` with a fluent builder surface. Handling a delegate goes
-through every policy in the collection, one by one, the same way a
-`PolicyDelegateCollection` handles a sequence of policy+delegate pairs — except that
-here **the delegate is supplied once**, at handle time.
+`PolicyCollection` is primarily an ordered `IEnumerable<IPolicyBase>` with a fluent
+builder surface — **not a policy itself**. Handling a delegate goes through every
+policy in the collection, one by one, the same way a `PolicyDelegateCollection`
+handles a sequence of policy+delegate pairs — except that **the delegate is supplied
+once**, at handle time.
+
+It *adapts to* `IPolicyBase`, but **explicitly**: the adapter members
+(`Handle`, `HandleAsync`, `PolicyProcessor`, `PolicyName`) are explicit interface
+implementations and are **not** visible on the concrete `PolicyCollection` type.
+The public surface is the collection builder + `HandleDelegate(Async)`; the policy
+adapter role is reached only through an `IPolicyBase`-typed reference.
 
 ## Contents
 
 | File | Responsibility |
 |---|---|
-| `PolicyCollection.cs` | Core type: creation, `WithPolicy`, filters, result handlers, conversion, wrapping |
+| `PolicyCollection.cs` | Core type: creation, `WithPolicy`, filters, result handlers, conversion, wrapping, explicit `IPolicyBase` adapter |
 | `PolicyCollection.WithPolicy.cs` | Append-only shorthands: `WithRetry`, `WithWaitAndRetry`, `WithInfiniteRetry`, `WithWaitAndInfiniteRetry`, `WithFallback`, `WithSimple` |
 | `PolicyCollection.HandleDelegate.cs` | `HandleDelegate` / `HandleDelegateAsync` — run the collection against a common delegate |
 | `PolicyCollectionErrorProcessorRegistration.cs` | `WithErrorProcessorOf` / `WithErrorProcessor` — error processors for the **last** policy |
@@ -41,6 +47,60 @@ collection stops. Otherwise the next policy runs. The outcome is a
 `PolicyDelegateCollectionResult(<T>)` with `PolicyDelegateResults`,
 `PolicyDelegatesUnused`, `LastPolicyResult`, `Result`, `IsFailed`, `IsCanceled`,
 `IsSuccess`, and `LastPolicyResultFailedReason`.
+
+## The `IPolicyBase` adapter role
+
+When generic code needs "one policy" — a pipeline step, a `PolicyDelegate`, a
+single-policy wrap via the `IPolicyBase.WrapUp/Then` extensions — a
+`PolicyCollection` can play that role. It does so **explicitly**:
+
+| Member | Visibility on `PolicyCollection` | Behavior |
+|---|---|---|
+| `Handle` / `HandleAsync` | **Explicit** `IPolicyBase` only | Runs the whole collection via `HandleDelegate`, returns **`LastPolicyResult`**, stamps it with the adapter-level name (see below) |
+| `PolicyProcessor` | **Explicit** `IPolicyBase` only | The **last** policy's processor; `null` when empty. Configure processors via `WithErrorProcessorOf`/`WithInnerErrorProcessorOf` instead |
+| `PolicyName` | **Explicit** `IPolicyBase` only | Adapter-level name; default is the type name (`PolicyCollection`) |
+| `WithPolicyName(name)` | **Public** (builder step) | Sets the adapter-level name; chains like `WithRetry`/`WithFallback` |
+
+Usage:
+
+```csharp
+// Collection role (public): common delegate through every policy
+var delegateResult = collection.HandleDelegate(() => DoWork());
+
+// Adapter role (IPolicyBase): treat the collection as ONE policy
+IPolicyBase policyBase = collection;
+var policyResult = policyBase.Handle(() => DoWork()); // LastPolicyResult, name stamped
+```
+
+### Two naming levels
+
+| Path | `PolicyResult.PolicyName` |
+|---|---|
+| `IPolicyBase.Handle` / `HandleAsync` | The **collection's** adapter name — set by `WithPolicyName`, defaults to `"PolicyCollection"` |
+| `HandleDelegate` / `HandleDelegateAsync` | The **inner policies'** own names (e.g. `"RetryPolicy"`); the collection name does **not** appear |
+
+The collection itself is nameless: naming configures the adapter role, not the
+composition. `WithPolicyName` remains public because it is a builder step that must
+chain with `WithRetry`/`WithFallback`; the name is *read* only through `IPolicyBase`
+and *observed* on adapter-handle results.
+
+```csharp
+var collection = PolicyCollection.Create()
+    .WithRetry(2)
+    .WithPolicyName("MyCollection");          // public builder step
+
+IPolicyBase policyBase = collection;          // adapter role
+var result = policyBase.Handle(() => DoWork());
+// result.PolicyName == "MyCollection"
+
+var delegateResult = collection.HandleDelegate(() => DoWork());
+// delegateResult.LastPolicyResult.PolicyName == "RetryPolicy"  (inner name)
+```
+
+`WrapUp`/`Then` on the concrete type wrap the collection **as a sequence of
+policies** (collection-aware, `ThrowOnWrappedCollectionFailed`). The
+`IPolicyBase.WrapUp/Then` extensions wrap it **as a single policy** via `Handle`
+(the adapter path above). Prefer the instance methods for collections.
 
 ## Creating a collection
 
