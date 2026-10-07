@@ -123,6 +123,7 @@
     <Compile Include="DelegateExtensionsTRetryTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />
     <Compile Include="EnumerablePolicyDelegateBaseExtensionsTests.cs" />
+    <Compile Include="EnumerablePolicyExtensionsTests.cs" />
     <Compile Include="ErrorProcessorRunnersTests.cs" />
     <Compile Include="ErrorProcessorTests.cs" />
     <Compile Include="ErrorSetTests.cs" />
