@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
-	public partial class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>, ICanAddErrorProcessor, IPolicyBase, IWithErrorFilter<PolicyCollection>
+	public partial class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>, ICanAddErrorProcessor, IPolicyBase, IWithErrorFilter<PolicyCollection>, IWithInnerErrorFilter<PolicyCollection>
 	{
 		protected readonly List<IPolicyBase> _policies = new List<IPolicyBase>();
 
@@ -281,6 +281,10 @@ namespace PoliNorError
 
 		PolicyCollection IWithErrorFilter<PolicyCollection>.ExcludeError(Expression<Func<Exception, bool>> expression) => ExcludeErrorForAll(expression);
 
+		PolicyCollection IWithInnerErrorFilter<PolicyCollection>.IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate) => IncludeInnerErrorForAll(predicate);
+
+		PolicyCollection IWithInnerErrorFilter<PolicyCollection>.ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate) => ExcludeInnerErrorForAll(predicate);
+
 		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
 		{
 			this.AddIncludedErrorFilterForAll(func);
@@ -372,6 +376,30 @@ namespace PoliNorError
 		public PolicyCollection ExcludeErrorSet(IErrorSet errorSet)
 		{
 			this.AddExcludedErrorSetFilter(errorSet);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be included in the handling by every policy already present in the PolicyCollection. Use <see cref="IncludeInnerError{TInnerException}"/> to target the last policy only.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		internal PolicyCollection IncludeInnerErrorForAll<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddIncludedInnerErrorFilterForAll(predicate);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by every policy already present in the PolicyCollection. Use <see cref="ExcludeInnerError{TInnerException}"/> to target the last policy only.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		internal PolicyCollection ExcludeInnerErrorForAll<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddExcludedInnerErrorFilterForAll(predicate);
 			return this;
 		}
 

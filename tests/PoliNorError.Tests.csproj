@@ -173,6 +173,7 @@
     <Compile Include="InnerErrorProcessorFuncs.cs" />
     <Compile Include="PolicyCollectionIPolicyBaseTests.cs" />
     <Compile Include="PolicyCollectionIWithErrorFilterTests.cs" />
+    <Compile Include="PolicyCollectionIWithInnerErrorFilterTests.cs" />
     <Compile Include="PolicyCollectionThenTests.cs" />
     <Compile Include="PolicyCollectionWrapUpTests.cs" />
     <Compile Include="PolicyCollectionWrapUpTests.T.cs" />

@@ -275,7 +275,7 @@ namespace PoliNorError.Tests
 			IWithErrorFilter<PolicyCollection> collection = PolicyCollection.Create();
 
 			Assert.That(() => collection.IncludeError<ArgumentException>(), Throws.Nothing);
-			Assert.That(() => collection.IncludeError(ex => true), Throws.Nothing);
+			Assert.That(() => collection.IncludeError(_ => true), Throws.Nothing);
 		}
 
 		[Test]
@@ -284,7 +284,7 @@ namespace PoliNorError.Tests
 			IWithErrorFilter<PolicyCollection> collection = PolicyCollection.Create();
 
 			Assert.That(() => collection.ExcludeError<ArgumentException>(), Throws.Nothing);
-			Assert.That(() => collection.ExcludeError(ex => true), Throws.Nothing);
+			Assert.That(() => collection.ExcludeError(_ => true), Throws.Nothing);
 		}
 	}
 }
