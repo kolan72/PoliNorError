@@ -45,12 +45,12 @@ namespace PoliNorError
 
 		public static Action<CancellationToken> ToSyncFunc(this Func<CancellationToken, Task> func)
 		{
-			return (ct) => Task.Run(() => func(ct), ct).Wait(ct);
+			return (ct) => Task.Run(() => func(ct), ct).WaitUnwrapped(ct);
 		}
 
 		public static Func<CancellationToken, T> ToSyncFunc<T>(this Func<CancellationToken, Task<T>> func)
 		{
-			return (ct) => { var t = Task.Run(() => func(ct), ct); t.Wait(ct); return t.Result; };
+			return (ct) => Task.Run(() => func(ct), ct).WaitUnwrapped(ct);
 		}
 
 		public static Func<CancellationToken, T> ToDefaultReturnFunc<T>(this Action<CancellationToken> action)
@@ -73,12 +73,12 @@ namespace PoliNorError
 
 		public static Action<T, CancellationToken> ToCancelableAction<T>(this Action<T> action)
 		{
-			return (ex, ct) => Task.Run(() => action(ex), ct).Wait(ct);
+			return (ex, ct) => Task.Run(() => action(ex), ct).WaitUnwrapped(ct);
 		}
 
 		public static Action<T, K, CancellationToken> ToCancelableAction<T, K>(this Action<T, K> action)
 		{
-			return (ex, k, ct) => Task.Run(() => action(ex, k), ct).Wait(ct);
+			return (ex, k, ct) => Task.Run(() => action(ex, k), ct).WaitUnwrapped(ct);
 		}
 
 		public static Action<CancellationToken> ToCancelableAction(this Action action, CancellationType convertType, bool throwIfCanceled = false)
@@ -91,12 +91,12 @@ namespace PoliNorError
 
 		public static Action<CancellationToken> ToCancelableAction(this Action action)
 		{
-			return (ct) => Task.Run(action, ct).Wait(ct);
+			return (ct) => Task.Run(action, ct).WaitUnwrapped(ct);
 		}
 
 		public static Action<T, K, CancellationToken> ToCancelableAction<T, K>(this Func<T, K, Task> func)
 		{
-			return (e, k, ct) => func(e, k).Wait(ct);
+			return (e, k, ct) => func(e, k).WaitUnwrapped(ct);
 		}
 
 		public static Action<CancellationToken> ToPrecancelableAction(this Action action, bool throwIfCanceled = false)
@@ -166,12 +166,12 @@ namespace PoliNorError
 
 		public static Func<CancellationToken, T> ToCancelableFunc<T>(this Func<T> func)
 		{
-			return (ct) => { var t = Task.Run(() => func(), ct); t.Wait(ct); return t.Result; };
+			return (ct) => Task.Run(func, ct).WaitUnwrapped(ct);
 		}
 
 		public static Func<TParam, CancellationToken, T> ToCancelableFunc<TParam, T>(this Func<TParam, T> func)
 		{
-			return (param, ct) => { var t = Task.Run(() => func(param), ct); t.Wait(ct); return t.Result; };
+			return (param, ct) => Task.Run(() => func(param), ct).WaitUnwrapped(ct);
 		}
 
 		public static Func<CancellationToken, Task<T>> ToCancelableFunc<T>(this Func<Task<T>> fnTask)

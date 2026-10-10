@@ -1,10 +1,37 @@
-﻿using System.Threading;
+﻿using System;
+using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PoliNorError
 {
 	internal static class TaskExtensions
 	{
+		public static void WaitUnwrapped(this Task task, CancellationToken cancellationToken)
+		{
+			try
+			{
+				task.Wait(cancellationToken);
+			}
+			catch (AggregateException ae)
+			{
+				ExceptionDispatchInfo.Capture(ae.InnerException).Throw();
+			}
+		}
+
+		public static T WaitUnwrapped<T>(this Task<T> task, CancellationToken cancellationToken)
+		{
+			try
+			{
+				task.Wait(cancellationToken);
+			}
+			catch (AggregateException ae)
+			{
+				ExceptionDispatchInfo.Capture(ae.InnerException).Throw();
+			}
+			return task.Result;
+		}
+
 		public static Task WithCancellation(this Task task, CancellationToken cancelToken)
 		{
 			var tcs = new TaskCompletionSource<object>();

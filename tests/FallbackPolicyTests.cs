@@ -41,8 +41,7 @@ namespace PoliNorError.Tests
 			ClassicAssert.NotNull(polResult.UnprocessedError);
 			ClassicAssert.AreEqual(1, polResult.CatchBlockErrors.Count());
 			ClassicAssert.NotNull(polResult.CriticalError);
-			ClassicAssert.IsTrue(typeof(AggregateException) == polResult.CriticalError.GetType());
-			ClassicAssert.AreEqual(throwingException, ((AggregateException)polResult.CriticalError).InnerExceptions.FirstOrDefault());
+			ClassicAssert.AreSame(throwingException, polResult.CriticalError);
 		}
 
 		[Test]

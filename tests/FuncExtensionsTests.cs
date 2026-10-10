@@ -64,5 +64,54 @@ namespace PoliNorError.Tests
 				ClassicAssert.AreEqual(0, i);
 			}
 		}
+
+		[Test]
+		public void Should_ToCancelableFunc_Propagate_Raw_Exception_Not_AggregateException()
+		{
+			var expected = new InvalidOperationException("boom");
+			Func<int> func = () => throw expected;
+			var ex = Assert.Throws<InvalidOperationException>(() => func.ToCancelableFunc()(CancellationToken.None));
+			ClassicAssert.AreSame(expected, ex);
+		}
+
+		[Test]
+		public void Should_ToCancelableAction_Propagate_Raw_Exception_Not_AggregateException()
+		{
+			var expected = new InvalidOperationException("boom");
+			Action act = () => throw expected;
+			var ex = Assert.Throws<InvalidOperationException>(() => act.ToCancelableAction()(CancellationToken.None));
+			ClassicAssert.AreSame(expected, ex);
+		}
+
+		[Test]
+		public void Should_ToSyncFunc_Propagate_Raw_Exception_Not_AggregateException()
+		{
+			var expected = new InvalidOperationException("boom");
+			Func<CancellationToken, Task> func = _ => Task.FromException(expected);
+			var ex = Assert.Throws<InvalidOperationException>(() => func.ToSyncFunc()(CancellationToken.None));
+			ClassicAssert.AreSame(expected, ex);
+		}
+
+		[Test]
+		public void Should_ToCancelableFunc_Throw_Raw_OperationCanceled_When_Token_PreCanceled()
+		{
+			Func<int> func = () => 42;
+			using (var cs = new CancellationTokenSource())
+			{
+				cs.Cancel();
+				Assert.Catch<OperationCanceledException>(() => func.ToCancelableFunc()(cs.Token));
+			}
+		}
+
+		[Test]
+		public void Should_ToCancelableFunc_Throw_Raw_OperationCanceled_When_Canceled_While_Waiting()
+		{
+			using (var cs = new CancellationTokenSource())
+			{
+				Func<int> func = () => { Thread.Sleep(3000); return 42; };
+				cs.CancelAfter(100);
+				Assert.Catch<OperationCanceledException>(() => func.ToCancelableFunc()(cs.Token));
+			}
+		}
 	}
 }

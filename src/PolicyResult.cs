@@ -132,7 +132,7 @@ namespace PoliNorError
 		public Exception LastError => _lastError;
 
 		/// <summary>
-		/// An exception in itself or wrapped in the AggregateException caused the processing to break with the <see cref="IsFailed"/>property equaling true.
+		/// An exception that caused the processing to break with the <see cref="IsFailed"/>property equaling true.
 		/// </summary>
 		public Exception CriticalError => CatchBlockErrors.FirstOrDefault(ce => ce.IsCritical)?.ProcessingException;
 
