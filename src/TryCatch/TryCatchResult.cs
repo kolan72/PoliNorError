@@ -33,6 +33,11 @@ namespace PoliNorError.TryCatch
 		public T Result { get; }
 	}
 
+	/// <summary>
+	/// Base class for results of executing delegates using the <see cref="ITryCatch"/> interface.
+	/// Provides state information about whether the execution succeeded, was canceled, or encountered an error,
+	/// including the exception that was caught and the index of the <see cref="CatchBlockHandler"/> that handled it.
+	/// </summary>
 	public abstract class TryCatchResultBase
 	{
 		protected TryCatchResultBase(PolicyResult policyResult)
