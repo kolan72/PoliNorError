@@ -40,12 +40,21 @@ namespace PoliNorError.TryCatch
 	/// </summary>
 	public abstract class TryCatchResultBase
 	{
-		protected TryCatchResultBase(PolicyResult policyResult)
+		/// <summary>
+	/// Initializes a new instance of the <see cref="TryCatchResultBase"/> class with the specified policy result.
+	/// </summary>
+	/// <param name="policyResult">The policy result containing execution status information.</param>
+	protected TryCatchResultBase(PolicyResult policyResult)
 		{
 			IsCanceled = policyResult.IsCanceled;
 		}
 
-		protected TryCatchResultBase(PolicyResult policyResult, int catchBlockCount) : this(policyResult)
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TryCatchResultBase"/> class with the specified policy result and catch block count.
+	/// </summary>
+	/// <param name="policyResult">The policy result containing execution status information.</param>
+	/// <param name="catchBlockCount">The number of catch blocks to check for error handling.</param>
+	protected TryCatchResultBase(PolicyResult policyResult, int catchBlockCount) : this(policyResult)
 		{
 			InitializeErrorState(policyResult, catchBlockCount);
 		}
