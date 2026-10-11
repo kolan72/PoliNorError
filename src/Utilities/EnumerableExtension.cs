@@ -19,15 +19,12 @@ namespace PoliNorError
 			}
 		}
 
-		public static void ActionForAll<T>(this IList<T> source, Action<IEnumerable<T>> collectionAct, bool excludeLastPolicy)
+		public static void ActionForAll<T>(this List<T> source, Action<T> action, bool excludeLast)
 		{
-			if (!excludeLastPolicy)
+			int limit = excludeLast ? source.Count - 1 : source.Count;
+			for (int i = 0; i < limit; i++)
 			{
-				collectionAct(source);
-			}
-			else if (source.Count > 1)
-			{
-				collectionAct(source.SkipLast());
+				action(source[i]);
 			}
 		}
 

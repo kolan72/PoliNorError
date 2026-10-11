@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PoliNorError.Extensions.PolicyResultHandling;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +51,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -62,7 +63,8 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(act, convertType), excludeLastPolicy);
+			var cancelableAct = act.ToCancelableAction(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableAct), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -73,7 +75,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -84,7 +86,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -95,7 +97,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -107,7 +109,8 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(func, convertType), excludeLastPolicy);
+			var cancelableFunc = func.ToCancelableFunc(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableFunc), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -119,7 +122,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -130,7 +133,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>, CancellationToken> act, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(act), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -143,7 +146,8 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(act, convertType), excludeLastPolicy);
+			var cancelableAct = act.ToCancelableAction(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableAct), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -155,7 +159,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -168,7 +172,8 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(func, convertType), excludeLastPolicy);
+			var cancelableFunc = func.ToCancelableFunc(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableFunc), excludeLastPolicy);
 		}
 
 		/// <summary>
@@ -180,7 +185,7 @@ namespace PoliNorError
 		/// <returns></returns>
 		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, CancellationToken, Task> func, bool excludeLastPolicy = false)
 		{
-			return SetHandler((col) => col.SetResultHandler(func), excludeLastPolicy);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
 		}
 
 		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult> act)
@@ -678,9 +683,9 @@ namespace PoliNorError
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<IPolicyBase> GetEnumerator() => _policies.GetEnumerator();
 
-		private PolicyCollection SetHandler(Action<IEnumerable<IPolicyBase>> collectionAct, bool excludeLastPolicy)
+		private PolicyCollection SetHandler(Action<IPolicyBase> itemAct, bool excludeLastPolicy)
 		{
-			_policies.ActionForAll(collectionAct, excludeLastPolicy);
+			_policies.ActionForAll(itemAct, excludeLastPolicy);
 			return this;
 		}
 	}
