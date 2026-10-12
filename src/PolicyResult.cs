@@ -451,7 +451,11 @@ namespace PoliNorError
 		/// <summary>
 		/// Policy  (re-)throws exception.
 		/// </summary>
-		UnhandledError
+		UnhandledError,
+		/// <summary>
+		/// The policy passed to a pipeline is not one of the supported policy types.
+		/// </summary>
+		UnsupportedPolicy
 	}
 
 	internal class PolicyStatus
