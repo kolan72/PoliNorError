@@ -51,27 +51,32 @@ namespace PoliNorError
 		/// </returns>
 		internal static Func<TIn, CancellationToken, PipelineResult<TOut>> ToPipelineFunc<TIn, TOut>(this Func<TIn, TOut> func, IPolicyBase policy)
 		{
+			Func<TIn, CancellationToken, PolicyResult<TOut>> handler;
+			bool isSimplePolicy;
+			switch (policy)
+			{
+				case RetryPolicy rp:
+					handler = (t, ct) => rp.Handle(func, t, ct);
+					isSimplePolicy = false;
+					break;
+				case FallbackPolicy fp:
+					handler = (t, ct) => fp.Handle(func, t, ct);
+					isSimplePolicy = false;
+					break;
+				case SimplePolicy sp:
+					handler = (t, ct) => sp.Handle(func, t, ct);
+					isSimplePolicy = true;
+					break;
+				default:
+					var notSupportedError = new NotSupportedException(
+						$"Pipelines support only {nameof(RetryPolicy)}, {nameof(FallbackPolicy)} and {nameof(SimplePolicy)}. Got: {policy?.GetType().Name ?? "null"}.");
+					return (_, __) => PipelineResult<TOut>.Failure(new PolicyResult().SetFailedWithError(notSupportedError, PolicyResultFailedReason.UnsupportedPolicy));
+			}
+
 			return (t, ct) =>
 			{
-				PolicyResult<TOut> res = null;
-				switch (policy)
-				{
-					case RetryPolicy rp:
-						res = rp.Handle(func, t, ct);
-						break;
-					case FallbackPolicy fp:
-						res = fp.Handle(func, t, ct);
-						break;
-					case SimplePolicy sp:
-						res = sp.Handle(func, t, ct);
-						break;
-					default:
-						res = new PolicyResult<TOut>();
-						res.AddError(new NotImplementedException());
-						break;
-				}
-
-				if (((policy is SimplePolicy) ? !res.NoError : res.IsFailed) || res.IsCanceled)
+				var res = handler(t, ct);
+				if ((isSimplePolicy ? !res.NoError : res.IsFailed) || res.IsCanceled)
 				{
 					return PipelineResult<TOut>.Failure(res);
 				}

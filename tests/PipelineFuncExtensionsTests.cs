@@ -333,5 +333,81 @@ namespace PoliNorError.Tests
             Assert.That(result.IsFailed, Is.False);
             Assert.That(result.Result, Is.True);
         }
+
+        [Test]
+        public void Should_Return_Failure_For_Unsupported_Policy()
+        {
+            // Arrange
+            Func<int, string> func = i => i.ToString();
+            var pipelineFunc = func.ToPipelineFunc(PolicyCollection.Create(new SimplePolicy()));
+
+            // Act
+            var result = pipelineFunc(1, CancellationToken.None);
+
+            // Assert
+            Assert.That(result.IsFailed, Is.True);
+            Assert.That(result.IsCanceled, Is.False);
+            Assert.That(result.Result, Is.EqualTo(default(string)));
+            Assert.That(result.FailedPolicyResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnsupportedPolicy));
+
+            var error = result.FailedPolicyResult.LastError;
+            Assert.That(error, Is.TypeOf<NotSupportedException>());
+            Assert.That(error.Message, Does.Contain("PolicyCollection"));
+            Assert.That(error.Message, Does.Contain("RetryPolicy"));
+            Assert.That(error.Message, Does.Contain("FallbackPolicy"));
+            Assert.That(error.Message, Does.Contain("SimplePolicy"));
+        }
+
+        [Test]
+        public void Should_Return_Failure_For_Null_Policy()
+        {
+            // Arrange
+            Func<int, string> func = i => i.ToString();
+            var pipelineFunc = func.ToPipelineFunc(null);
+
+            // Act
+            var result = pipelineFunc(1, CancellationToken.None);
+
+            // Assert
+            Assert.That(result.IsFailed, Is.True);
+            Assert.That(result.FailedPolicyResult.FailedReason, Is.EqualTo(PolicyResultFailedReason.UnsupportedPolicy));
+            Assert.That(result.FailedPolicyResult.LastError.Message, Does.Contain("null"));
+        }
+
+        [Test]
+        public void Should_Reuse_NotSupportedException_Across_Invocations()
+        {
+            // Arrange
+            Func<int, string> func = i => i.ToString();
+            var pipelineFunc = func.ToPipelineFunc(PolicyCollection.Create(new SimplePolicy()));
+
+            // Act
+            var firstResult = pipelineFunc(1, CancellationToken.None);
+            var secondResult = pipelineFunc(2, CancellationToken.None);
+
+            // Assert
+            Assert.That(firstResult.FailedPolicyResult.LastError, Is.SameAs(secondResult.FailedPolicyResult.LastError));
+            Assert.That(firstResult.FailedPolicyResult, Is.Not.SameAs(secondResult.FailedPolicyResult));
+        }
+
+        [Test]
+        public void Should_Not_Fail_Supported_Policies()
+        {
+			// Arrange
+			string func(int i) => i.ToString();
+
+			// Act
+			var simpleResult = PipelineFuncBuilder.StartWith((Func<int, string>)func).Build()(1, CancellationToken.None);
+            var retryResult = PipelineFuncBuilder.StartWith((Func<int, string>)func, new RetryPolicy(1)).Build()(1, CancellationToken.None);
+            var fallbackResult = PipelineFuncBuilder.StartWith((Func<int, string>)func, new FallbackPolicy().WithFallbackFunc(() => "fallback")).Build()(1, CancellationToken.None);
+
+            // Assert
+            foreach (var result in new[] { simpleResult, retryResult, fallbackResult })
+            {
+                Assert.That(result.IsFailed, Is.False);
+                Assert.That(result.Result, Is.EqualTo("1"));
+                Assert.That(result.FailedPolicyResult?.FailedReason, Is.Not.EqualTo(PolicyResultFailedReason.UnsupportedPolicy));
+            }
+        }
     }
 }
