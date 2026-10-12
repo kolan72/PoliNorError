@@ -43,7 +43,7 @@
 		/// <summary>
 		/// Gets the succeeded policy result if the pipeline succeeded.
 		/// </summary>
-		internal PolicyResult<T> SucceededPolicyResult { get; private set; }
+		public PolicyResult<T> SucceededPolicyResult { get; private set; }
 
 		/// <summary>
 		/// Gets a value indicating whether the pipeline execution failed.
