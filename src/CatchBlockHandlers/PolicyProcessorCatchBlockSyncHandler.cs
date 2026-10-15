@@ -3,6 +3,9 @@ using System.Threading;
 
 namespace PoliNorError
 {
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This class is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal class PolicyProcessorCatchBlockSyncHandler<T> : PolicyProcessorCatchBlockHandlerBase<T>
 	{
 		public PolicyProcessorCatchBlockSyncHandler(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null)
