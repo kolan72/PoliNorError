@@ -1,3 +1,70 @@
+## 2.24.30
+
+- Introduce abstract `TypedErrorProcessor<TException>` with an overridable `Execute` method for type-specific error processing.
+- Introduce `DefaultTypedErrorProcessor<TException>` for typed exception handling.
+- Added implicit conversions from `*RetryDelayOptions` to their corresponding `*RetryDelay` types.
+- Extract `DelayCoreBase` internal abstract base class.
+- Introduced `*DelayCore` classes (`ConstantDelayCore`, `LinearDelayCore`, `ExponentialDelayCore`, `TimeSeriesDelayCore`) to streamline constructor logic and simplify initialization for `ConstantRetryDelay`, `LinearRetryDelay`, `ExponentialRetryDelay`, and `TimeSeriesRetryDelay`.
+- Make the `ErrorContext<T>` class public (previously internal).
+- Add `FromErrors<TException1, TException2>` and `FromErrors<TException1, TException2, TException3>` methods to `ErrorSet`.
+- Add `HasError<TException>` and `HasInnerError<TInnerException>` methods to `ErrorSet`.
+- Add internal `StandardJitter` class.
+- Materialize `BulkProcessResult.ProcessErrors` once and replace LINQ `Select` with iterator in `ToCatchBlockExceptions` method to avoid re-enumeration and extra allocations.
+- Add the `BulkProcessResult.HasProcessErrors` property and tests for the `BulkProcessResult` class.
+- Guard the call to `BulkProcessResult.ToCatchBlockExceptions` with `BulkProcessResult.HasProcessErrors` in `PolicyResult.AddBulkProcessorErrors`.
+- Add `IsCanceledBetweenProcessors` and `CancellationException` properties to `BulkProcessResult`.
+- Replace tuple `(ErrorProcessorException, Exception)` with `ProcessorResult` in `BulkErrorProcessor`.
+- Do not set `BulkProcessResult.IsCanceledBetweenProcessors` to `true` when cancellation occurs within a processor in `BulkErrorProcessor.Process` and `ProcessAsync`.
+- Add synthetic `ErrorProcessorException` with inner `OperationCanceledException` to `BulkProcessResult.ProcessErrors` when cancellation occurs at start or between processors in `BulkErrorProcessor.Process/ProcessAsync`.
+- DRY refactor `BulkErrorProcessor.Process/ProcessAsync`.
+- Refactor `DelayErrorProcessor`: eliminate redundant allocation, use pattern matching for delay retrieval.
+- Add public `ErrorProcessingCancellationEffect` enum.
+- Add public `ExceptionHandlingBehavior` enum.
+- Add public `ExceptionHandlingResult` enum.
+- Add public `ProcessingOrder` enum.
+- Add the internal static `PolicyProcessor.DefaultErrorSaver` property.
+- Added the internal static `PolicyProcessor.CreateDefaultPolicyRule<T>` method and the `PolicyProcessor.DefaultPolicyRule` property.
+- Added the internal static `PolicyProcessor.CreateDefaultAsyncErrorSaver<T>` method.
+- Add the internal static `PolicyProcessor.DefaultAsyncErrorSaver` property.
+- Added the protected internal `PolicyProcessor.HandleException<T>` method.
+- Added the protected internal `PolicyProcessor.HandleExceptionAsync<T>` method.
+- **SimplePolicyProcessor**: Refactored catch-block handling into private methods across all `Execute` and `ExecuteAsync` overloads.
+- **DefaultFallbackProcessor**: Refactored catch-block handling into private methods across all `Fallback` and `FallbackAsync` overloads.
+- Implement  `ProcessingOrder.ProcessThenEvaluate` path in `PolicyProcessor.HandleException`.
+- Implement `ProcessingOrder.ProcessThenEvaluate` path in `PolicyProcessor.HandleExceptionAsync`.
+- Introduce `ExceptionFilter.IncludeError<TException>` method overloads.
+- Introduce `ExceptionFilter.ExcludeError<TException>` method overloads.
+- Introduce `ExceptionFilter.IncludeError` and `ExcludeError` methods accepting `Expression<Func<Exception, bool>>`.
+- Introduce the `ExceptionFilter.ExcludeErrorSet` method.
+- Introduce the `ExceptionFilter.IncludeErrorSet` extension method.
+- Introduce the `ICanAddErrorFilter<T>.AddExceptionFilter` extension method.
+- Use `ServiceOperationCanceledException` as the fallback exception in `AggregateException.GetCancellationException`.
+- Simplify cancellation-related `AggregateException` filtering in synchronous policy processor methods to a single `CancellationToken.IsCancellationRequested` check.
+- Add `ConvertExceptionDelegates.TryAsExact` static method to internal `ConvertExceptionDelegates` class.
+- Introduce `ServiceOperationCanceledException` for cancellation observed through a linked token when synchronously waiting on tasks.
+- Store `ServiceOperationCanceledException` in `PolicyResult.PolicyCanceledError` when cancellation is observed on a linked token during synchronous task waits in:
+  - `SimplePolicyProcessor.Execute` (all overloads)
+  - `DefaultFallbackProcessor.Fallback` (all overloads)
+- Added `MethodImpl(MethodImplOptions.AggressiveInlining)` to `ForSync`, `ForNotSync`, and `InitByConfigureAwait` methods across both `PolicyResult` and `PolicyResult<T>`.
+- Add `propagateCancellation` parameter (default: `true`) to internal `FuncExtensions.ToTaskReturnFunc` overloads.
+- Refactored internal `PolicyProcessorCatchBlockSyncHandler<T>` to use `ShouldHandleException` instead of `PreHandle`, replacing the tuple return value with a `HandleCatchBlockResult` enum.
+- DRY refactor internal `DefaultErrorProcessorT` class.
+- Inline internal `IPolicyProcessor.AddExcludedError` and `AddIncludedError` extensions.
+- Refactor `ErrorProcessorRegistration` methods to use expression-bodied syntax.
+- Refactor `ICanAddErrorProcessor` methods to use expression-bodied syntax.
+- Refactor `PolicyWrapper` and `PolicyWrapper<T>` `PolicyDelegateResults` properties to use expression-bodied syntax.
+- Edit PoliNorError.Tests.csproj.
+- Bump System.ValueTuple from 4.6.1 to 4.6.2
+- Update NUnit to 4.5.1.
+- Remove duplicated implementations in FuncEntensions.
+- Deprecate the `PolicyProcessorCatchBlockHandlerBase<T>.PreHandle` method.
+- Deprecate the `PolicyProcessorCatchBlockHandlerBase.PostHandle` method.
+- Deprecate internal `FallbackFuncExecResult.FromErrorAndToken` overloads.
+- Remove unused private `SimplePolicyProcessor.GetFilterUnsatisfiedOrFilterException` method
+- Add a 'Safeguarding Core Components' subsection to the 'Tips and Tricks' chapter in the README.
+- Add ErrorProcessor<TParam> usage example to "Error processors" README section.
+
+
 ## 2.24.20
 
 - Eliminated closure allocations across all `Fallback`, `Retry`, and `Execute` policy processor methods by introducing internal/private overloads that accept the original `Action<TParam>`, `Func<TParam, T>`, `Func<TParam, CancellationToken, Task>` and `Func<TParam, CancellationToken, Task<T>>` delegates directly.
