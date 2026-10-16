@@ -70,6 +70,16 @@ namespace PoliNorError
 			policies.LastOrDefault()?.PolicyProcessor.AddExcludedErrorSet(errorSet);
 		}
 
+		public static void AddIncludedInnerErrorFilterForAll<TInnerException>(this IEnumerable<IPolicyBase> policies, Func<TInnerException, bool> func = null) where TInnerException : Exception
+		{
+			policies.ActionForAll((p) => p.PolicyProcessor.AddIncludedInnerErrorFilter(func));
+		}
+
+		public static void AddExcludedInnerErrorFilterForAll<TInnerException>(this IEnumerable<IPolicyBase> policies, Func<TInnerException, bool> func = null) where TInnerException : Exception
+		{
+			policies.ActionForAll((p) => p.PolicyProcessor.AddExcludedInnerErrorFilter(func));
+		}
+
 		public static void AddIncludedInnerErrorFilter<TInnerException>(this IEnumerable<IPolicyBase> policies, Func<TInnerException, bool> func = null) where TInnerException : Exception
 		{
 			policies.LastOrDefault()?.PolicyProcessor.AddIncludedInnerErrorFilter(func);

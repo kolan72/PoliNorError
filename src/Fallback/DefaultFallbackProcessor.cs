@@ -28,7 +28,7 @@ namespace PoliNorError
 			return Fallback(action, fallback, emptyContext, token);
 		}
 
-		private PolicyResult Fallback<TParam>(Action<TParam> action, TParam param, Action<CancellationToken> fallback, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		private PolicyResult Fallback<TParam>(Action<TParam> action, TParam param, Action<CancellationToken> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
 		{
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
@@ -45,20 +45,25 @@ namespace PoliNorError
 
 			try
 			{
-				action(param);
-				result.SetOk();
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(action, param, token);
+				result.SetResultBasedOnCancellation(oe);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
+				}
 			}
 			return result;
 		}
@@ -80,20 +85,25 @@ namespace PoliNorError
 
 			try
 			{
-				action();
-				result.SetOk();
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(action, token);
+				result.SetResultBasedOnCancellation(oe);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
+				}
 			}
 			return result;
 		}
@@ -114,7 +124,7 @@ namespace PoliNorError
 			return Fallback(func, fallback, emptyContext, token);
 		}
 
-		private PolicyResult<T> Fallback<TParam, T>(Func<TParam, T> func, TParam param, Func<CancellationToken, T> fallback, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		private PolicyResult<T> Fallback<TParam, T>(Func<TParam, T> func, TParam param, Func<CancellationToken, T> fallback, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -131,21 +141,25 @@ namespace PoliNorError
 
 			try
 			{
-				var resAction = func(param);
-				result.SetOk();
-				result.SetResult(resAction);
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(func, param, token, out T outcome);
+				result.SetResultBasedOnCancellation(oe, outcome);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
+				}
 			}
 			return result;
 		}
@@ -167,21 +181,25 @@ namespace PoliNorError
 
 			try
 			{
-				var resAction = func();
-				result.SetOk();
-				result.SetResult(resAction);
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(func, token, out T outcome);
+				result.SetResultBasedOnCancellation(oe, outcome);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				HandleException(fallback, emptyErrorContext, result, ex, token);
+				if (filterAccepted)
+				{
+					TryHandleByProcessingExceptionThenEvaluateRule(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result),
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
+				}
 			}
 			return result;
 		}
@@ -212,7 +230,7 @@ namespace PoliNorError
 			return await FallbackAsync(func, fallback, emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		private async Task<PolicyResult> FallbackAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, Func<CancellationToken, Task> fallback, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult> FallbackAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, Func<CancellationToken, Task> fallback, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
@@ -236,9 +254,20 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await TryHandleByProcessingExceptionThenEvaluateRuleAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(configureAwait),
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
@@ -267,9 +296,20 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await TryHandleByProcessingExceptionThenEvaluateRuleAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(configureAwait),
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
@@ -300,7 +340,7 @@ namespace PoliNorError
 			return await FallbackAsync(func, fallback, emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		private async Task<PolicyResult<T>> FallbackAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, Func<CancellationToken, Task<T>> fallback, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult<T>> FallbackAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, Func<CancellationToken, Task<T>> fallback, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -325,9 +365,20 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await TryHandleByProcessingExceptionThenEvaluateRuleAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result, configureAwait),
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
@@ -357,9 +408,20 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, false, result, out bool filterAccepted))
 			{
-				await HandleExceptionAsync(fallback, emptyErrorContext, result, ex, configureAwait, token).ConfigureAwait(configureAwait);
+				if (filterAccepted)
+				{
+					await TryHandleByProcessingExceptionThenEvaluateRuleAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						fallback.ToPolicyRuleFunc(result, configureAwait),
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
+				}
 			}
 			return result;
 		}
@@ -411,112 +473,6 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
-		}
-
-		private void HandleException<T>(
-			Func<CancellationToken, T> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult<T> result,
-			Exception ex,
-			CancellationToken token)
-		{
-			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-			{
-				var fallbackResult = fallback(ct);
-				result.SetResult(fallbackResult);
-				return true;
-			}
-
-			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
-		}
-
-		private void HandleException(
-			Action<CancellationToken> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult result,
-			Exception ex,
-			CancellationToken token)
-		{
-			bool policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct) { fallback(ct); return true; }
-
-			HandleException(ex, result, emptyErrorContext, policyRuleFunc, token);
-		}
-
-		private void HandleException(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			Func<ErrorContext<Unit>, CancellationToken, bool> policyRuleFunc,
-			CancellationToken token)
-
-		{
-			HandleException(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultErrorSaver,
-				policyRuleFunc,
-				ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.ProcessThenEvaluate,
-				ErrorProcessingCancellationEffect.Propagate,
-				token);
-		}
-
-		private async Task<ExceptionHandlingResult> HandleExceptionAsync<T>(
-			Func<CancellationToken, Task<T>> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult<T> result,
-			Exception ex,
-			bool configureAwait,
-			CancellationToken token)
-		{
-			async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-			{
-				var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
-				result.SetResult(fallbackResult);
-				return true;
-			}
-
-			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
-		}
-
-		private async Task<ExceptionHandlingResult> HandleExceptionAsync(
-			Func<CancellationToken, Task> fallback,
-			EmptyErrorContext emptyErrorContext,
-			PolicyResult result,
-			Exception ex,
-			bool configureAwait,
-			CancellationToken token)
-		{
-			async Task<bool> policyRuleFunc(ErrorContext<Unit> _, CancellationToken ct)
-			{
-				await fallback(ct).ConfigureAwait(configureAwait);
-				return true;
-			}
-
-			return await HandleExceptionAsync(ex, result, emptyErrorContext, policyRuleFunc, configureAwait, token).ConfigureAwait(configureAwait);
-		}
-
-		private Task<ExceptionHandlingResult> HandleExceptionAsync(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			Func<ErrorContext<Unit>, CancellationToken, Task<bool>> policyRuleFunc,
-			bool configAwait,
-			CancellationToken token)
-
-		{
-			return HandleExceptionAsync(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultAsyncErrorSaver,
-				policyRuleFunc,
-				ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.ProcessThenEvaluate,
-				ErrorProcessingCancellationEffect.Propagate,
-				configAwait,
-				token);
 		}
 	}
 }

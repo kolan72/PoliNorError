@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -15,6 +15,7 @@ namespace PoliNorError
 		private readonly FlexSyncEnumerable<PolicyResultHandlingException> _handleResultErrors;
 
 		private Exception _unprocessedError;
+		private Exception _lastError;
 
 		internal bool _executed;
 
@@ -22,19 +23,29 @@ namespace PoliNorError
 		internal static PolicyResult ForSync() => new PolicyResult();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static PolicyResult ForSync(int errorCapacity) => new PolicyResult(false, errorCapacity);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult ForNotSync() => new PolicyResult(true);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static PolicyResult ForNotSync(int errorCapacity) => new PolicyResult(true, errorCapacity);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static PolicyResult InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static PolicyResult InitByConfigureAwait(bool configureAwait, int errorCapacity) => !configureAwait ? ForNotSync(errorCapacity) : ForSync(errorCapacity);
 
 		/// <summary>
 		/// Creates <see cref="PolicyResult"/>.
 		/// </summary>
 		/// <param name="forAsync">Indicates whether PolicyResult was created to store the results of handling sync or async delegate.</param>
-		public PolicyResult(bool forAsync = false)
+		/// <param name="errorCapacity">Initial capacity for the <see cref="Errors"/> collection storage.</param>
+		public PolicyResult(bool forAsync = false, int errorCapacity = 0)
 		{
 			Async = forAsync;
-			_errors = new FlexSyncEnumerable<Exception>(forAsync);
+			_errors = new FlexSyncEnumerable<Exception>(forAsync, errorCapacity);
 			FailedReason = PolicyResultFailedReason.None;
 			_catchBlockErrors = new FlexSyncEnumerable<CatchBlockException>(forAsync);
 			_handleResultErrors = new FlexSyncEnumerable<PolicyResultHandlingException>(forAsync);
@@ -110,10 +121,15 @@ namespace PoliNorError
 		public Exception UnprocessedError
 		{
 			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError))
-															? Errors.LastOrDefault()
-															: null); }
+														? LastError
+														: null); }
 			internal set { _unprocessedError = value; }
 		}
+
+		/// <summary>
+		/// Gets the last exception passed to the <see cref="AddError(Exception)"/> method.
+		/// </summary>
+		public Exception LastError => _lastError;
 
 		/// <summary>
 		/// An exception in itself or wrapped in the AggregateException caused the processing to break with the <see cref="IsFailed"/>property equaling true.
@@ -190,6 +206,7 @@ namespace PoliNorError
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetFailedInner(PolicyResultFailedReason failedReason = PolicyResultFailedReason.PolicyProcessorFailed)
 		{
 			IsFailed = true;
@@ -201,42 +218,63 @@ namespace PoliNorError
 			throw new NotImplementedException();
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddError(Exception exception)
 		{
 			_errors.Add(exception);
+			_lastError = exception;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddCatchBlockError(CatchBlockException catchBlockException)
 		{
 			_catchBlockErrors.Add(catchBlockException);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddCatchBlockErrors(IEnumerable<CatchBlockException> catchBlockExceptions)
 		{
 			_catchBlockErrors.AddRange(catchBlockExceptions);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddHandleResultError(PolicyResultHandlingException handlePolicyResultException)
 		{
 			_handleResultErrors.Add(handlePolicyResultException);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddHandleResultErrors(IEnumerable<PolicyResultHandlingException> handlePolicyResultExceptions)
 		{
 			_handleResultErrors.AddRange(handlePolicyResultExceptions);
 		}
 
+		internal void SaveFilterCatchAndMarkFailed(Exception ex, Exception filterError)
+		{
+			if (!(filterError is null))
+			{
+				AddCatchBlockError(new CatchBlockException(filterError, ex, CatchBlockExceptionSource.ErrorFilter, true));
+			}
+			SetFailedAndFilterUnsatisfied();
+			AddError(ex);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetOk()
 		{
 			NoError = true;
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal void SetFailedAndCanceled()
 		{
 			SetCanceled();
 			SetFailedInner();
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetFailedAndCanceled(OperationCanceledException exception)
 		{
 			SetCanceled();
@@ -244,23 +282,27 @@ namespace PoliNorError
 			PolicyCanceledError = exception;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetFailedAndFilterUnsatisfied()
 		{
 			ErrorFilterUnsatisfied = true;
 			SetFailedInner();
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetCanceled()
 		{
 			IsCanceled = true;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetCanceledEarly()
 		{
 			IsCanceled = true;
 			NoError = true;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetExecuted()
 		{
 			_executed = true;
@@ -304,6 +346,19 @@ namespace PoliNorError
 		}
 
 		internal virtual IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal void SetResultBasedOnCancellation(OperationCanceledException oe)
+		{
+			if (oe is null)
+			{
+				SetOk();
+			}
+			else
+			{
+				SetFailedAndCanceled(oe);
+			}
+		}
 	}
 
 	/// <summary>
@@ -316,14 +371,24 @@ namespace PoliNorError
 		internal static new PolicyResult<T> ForSync() => new PolicyResult<T>();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static new PolicyResult<T> ForSync(int errorCapacity) => new PolicyResult<T>(false, errorCapacity);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> ForNotSync() => new PolicyResult<T>(true);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static new PolicyResult<T> ForNotSync(int errorCapacity) => new PolicyResult<T>(true, errorCapacity);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait) => !configureAwait ? ForNotSync() : ForSync();
 
-		///<inheritdoc cref = "PolicyResult(bool)"/>
-		public PolicyResult(bool forAsync = false) : base(forAsync){}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static new PolicyResult<T> InitByConfigureAwait(bool configureAwait, int errorCapacity) => !configureAwait ? ForNotSync(errorCapacity) : ForSync(errorCapacity);
 
+		///<inheritdoc cref = "PolicyResult(bool, int)"/>
+		public PolicyResult(bool forAsync = false, int errorCapacity = 0) : base(forAsync, errorCapacity){}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void SetResult(T result)
 		{
 			Result = result;
@@ -346,6 +411,20 @@ namespace PoliNorError
 		}
 
 		internal override IEnumerable<PolicyDelegateResultBase> GetWrappedPolicyResults() => WrappedPolicyResults;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal void SetResultBasedOnCancellation(OperationCanceledException oe, T result)
+		{
+			if (oe is null)
+			{
+				SetOk();
+				SetResult(result);
+			}
+			else
+			{
+				SetFailedAndCanceled(oe);
+			}
+		}
 	}
 
 	/// <summary>
@@ -372,7 +451,11 @@ namespace PoliNorError
 		/// <summary>
 		/// Policy  (re-)throws exception.
 		/// </summary>
-		UnhandledError
+		UnhandledError,
+		/// <summary>
+		/// The policy passed to a pipeline is not one of the supported policy types.
+		/// </summary>
+		UnsupportedPolicy
 	}
 
 	internal class PolicyStatus

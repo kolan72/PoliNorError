@@ -18,23 +18,23 @@ namespace PoliNorError
 			IsInfinite = retryCount >= REAL_INFINITE_RETRY_COUNT;
 			IsLimited = !IsInfinite;
 
-			var innerRetryCount = RetryCount = CorrectRetryCount(IsLimited);
-
+			RetryCount = IsLimited ? CorrectRetries(retryCount) : REAL_INFINITE_RETRY_COUNT;
 			StartTryCount = startTryCount;
 
-			_canRetryFunc = GetRetryInnerFunc(startTryCount, innerRetryCount, canRetryInner);
-
-			int CorrectRetryCount(bool isLimited)
-			{
-				return isLimited ? CorrectRetries(retryCount) : REAL_INFINITE_RETRY_COUNT;
-			}
+			_canRetryFunc = canRetryInner ?? (startTryCount == 0 ? CreateDefaultRetryFunc(RetryCount) : CreateDefaultRetryFunc(startTryCount, RetryCount));
 		}
 
-		private static Func<int, bool> GetRetryInnerFunc(int startTryCount, int retryCount, Func<int, bool> canRetryInner = null)
-		{
-			bool func(int nr) { return (nr - startTryCount) < retryCount && nr < REAL_INFINITE_RETRY_COUNT; }
+		// Property to safely access the retry function, handling the default struct initialization case
+		private Func<int, bool> CanRetryFunc => _canRetryFunc ?? CreateDefaultRetryFunc(RetryCount > 0 ? RetryCount : DEFAULT_RETRY_COUNT);
 
-			return canRetryInner ?? func;
+		private static Func<int, bool> CreateDefaultRetryFunc(int startTryCount, int retryCount)
+		{
+			return nr => (nr - startTryCount) < retryCount && nr < REAL_INFINITE_RETRY_COUNT;
+		}
+
+		private static Func<int, bool> CreateDefaultRetryFunc(int retryCount)
+		{
+			return nr => nr < retryCount;
 		}
 
 		/// <summary>
@@ -70,7 +70,7 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="numOfCurRetry">Number of retries</param>
 		/// <returns></returns>
-		public bool CanRetry(int numOfCurRetry) => _canRetryFunc(numOfCurRetry);
+		public bool CanRetry(int numOfCurRetry) => CanRetryFunc(numOfCurRetry);
 
 		/// <summary>
 		/// Number of retries

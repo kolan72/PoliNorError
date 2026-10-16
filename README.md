@@ -853,6 +853,21 @@ Furthermore, with the `PolicyCollection` :
 
 The `PolicyCollection` class has the same options for filtering errors and adding `PolicyResult` handlers as the `PolicyDelegateCollection` class.  
 
+`PolicyCollection` is primarily a composition of policies, **not a policy itself**. It implements `IPolicyBase` **explicitly** — the adapter members `Handle`, `HandleAsync`, `PolicyProcessor` and `PolicyName` are available only through an `IPolicyBase`-typed reference, where they treat the whole collection as a single policy (returning the last policy's `PolicyResult` and stamping it with the collection-level name). The public surface of `PolicyCollection` is the fluent builder (`WithPolicy`, `WithRetry`, ...) plus `HandleDelegate(Async)`, which runs a common delegate through every policy and keeps the inner policies' own names on the results. To name the collection for the adapter role, use the public `WithPolicyName` builder step:
+
+```csharp
+var collection = PolicyCollection.Create()
+	.WithRetry(2)
+	.WithPolicyName("MyCollection");   // builder step — public
+
+IPolicyBase policyBase = collection;  // adapter role
+var policyResult = policyBase.Handle(() => DoWork());
+// policyResult.PolicyName == "MyCollection" — collection-level name
+
+var delegateResult = collection.HandleDelegate(() => DoWork());
+// delegateResult.LastPolicyResult.PolicyName == "RetryPolicy" — inner policy name
+```
+
 Be careful when adding an existing `Policy` to a collection, see [Nuances of using the library](#nuances-of-using-the-library) for details.
 
 ### Policy wrap
@@ -982,6 +997,21 @@ var outerPolicyResult = PolicyCollection
 private static void PrintResultInConsole(PolicyResult<string[]> pr) => pr.Result?.ToList().ForEach(l => Console.WriteLine(l));
 ```
 The `PolicyCollection.WrapUp` method has an optional parameter of type `ThrowOnWrappedCollectionFailed`, that by default is set to `ThrowOnWrappedCollectionFailed.LastError`  with behind the scenes throwing `PolicyResult.UnprocessedError` of failed policy (usually the last one in the `PolicyCollection`).  
+
+Since the current version, `PolicyCollection` also supports the `Then` method, a shorthand for `WrapUp` that returns the wrapper policy directly (mirroring the `IPolicyBase.Then` extension method):
+```csharp
+var outerPolicy = PolicyCollection.Create()
+	.WithRetry(2)
+	//Wraps the collection in the SimplePolicy and returns it directly,
+	//instead of calling .WrapUp(...).OuterPolicy.
+	.Then(new SimplePolicy());
+```
+It has the same optional `ThrowOnWrappedCollectionFailed` parameter as `WrapUp`, so this is also valid:
+```csharp
+var outerPolicy = PolicyCollection.Create()
+	.WithRetry(2)
+	.Then(new SimplePolicy(), ThrowOnWrappedCollectionFailed.CollectionError);
+```
 
 You can use `ThrowOnWrappedCollectionFailed.CollectionError` if you want to deal with all the exceptions that happen when `PolicyCollection` handles delegate. In this case, the `PolicyDelegateCollectionException(<T>)` will be thrown as a result of failed handling of wrapped `PolicyCollection`.  
 
@@ -1139,6 +1169,138 @@ public class SomeService
 Since _version_ 2.20.0, you can use the `InvokeWithTryCatch(-Async)` extension methods for delegates handled by this library.
 
 `TryCatch` related classes placed in the `PoliNorError.TryCatch` namespace.
+
+### PipelineFuncBuilder (since _version_ 2.25.0)
+The `PipelineFuncBuilder` provides a fluent API for building resilient function pipelines with error handling at each step. It allows you to chain multiple functions together and attach error processors to handle exceptions that occur at any stage of the pipeline.
+
+#### Creating a Pipeline
+Start a pipeline using the `PipelineFuncBuilder.StartWith<TIn, TOut>` method:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.Build();
+
+var result = pipeline("hello", CancellationToken.None);
+// result.Result == 5
+```
+
+#### Chaining Functions
+Add additional transformation steps using the `AddFunc` method:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.AddFunc(length => length * 2)
+	.AddFunc(doubled => $"Result: {doubled}")
+	.Build();
+
+var result = pipeline("hello", CancellationToken.None);
+// result.Result == "Result: 10"
+```
+
+#### Adding Error Handlers
+Attach error handlers to any step in the pipeline using the `OnError` method. Error handlers receive the exception and a `ProcessingErrorInfo<T>` object containing the input parameter for that step:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Error processing string: {Input}", pi.Param))
+	.AddFunc(length => length * 2)
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Error doubling value: {Input}", pi.Param))
+	.AddFunc(doubled => $"Result: {doubled}")
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Error formatting result: {Input}", pi.Param))
+	.Build();
+
+var result = pipeline("hello", CancellationToken.None);
+```
+
+#### Async Error Handlers
+Error handlers can be asynchronous:
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<string, int>(s => s.Length)
+	.OnError(async (ex, pi) =>
+	{
+		await errorRepository.SaveErrorAsync(ex, pi.Param);
+		logger.LogError(ex, "Error at step with input: {Input}", pi.Param);
+	})
+	.AddFunc(length => length * 2)
+	.Build();
+```
+
+#### Error Handling Behavior
+- If an exception occurs at any step, the pipeline stops executing subsequent steps
+- Error handlers for that step are invoked
+- The `PipelineResult<T>` will have `IsFailed` set to `true`
+- The exception is available in the result for inspection
+
+```csharp
+var pipeline = PipelineFuncBuilder
+	.StartWith<int, int>(i => i / 0) // Will throw DivideByZeroException
+	.OnError((ex, pi) => 
+		Console.WriteLine($"Error: {ex.Message}"))
+	.AddFunc(result => result * 2) // This step won't execute
+	.Build();
+
+var result = pipeline(10, CancellationToken.None);
+// result.IsFailed == true
+// Error handler prints: "Error: Attempted to divide by zero."
+```
+
+#### PipelineResult
+The `Build()` method returns a function that produces a `PipelineResult<T>`:
+- `IsFailed` - indicates if the pipeline failed due to an exception
+- `IsCanceled` - indicates if the pipeline was canceled
+- `IsSuccess` - indicates successful completion (no failure and no cancellation)
+- `Result` - the final result if successful, or `default(T)` if failed
+
+#### Real-World Example
+Here's a complete example of processing user data through multiple validation and transformation steps:
+```csharp
+var userProcessingPipeline = PipelineFuncBuilder
+	.StartWith<string, User>(userId => userRepository.GetUser(userId))
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Failed to fetch user {UserId}", pi.Param))
+	
+	.AddFunc(user => ValidateUser(user))
+	.OnError((ex, pi) => 
+		logger.LogWarning(ex, "User validation failed for {UserName}", pi.Param.Name))
+	
+	.AddFunc(user => EnrichUserData(user))
+	.OnError(async (ex, pi) =>
+	{
+		await auditLog.LogAsync($"Enrichment failed for user {pi.Param.Id}");
+		logger.LogError(ex, "Failed to enrich user data");
+	})
+	
+	.AddFunc(user => user.ToDto())
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Failed to convert user to DTO"))
+	
+	.Build();
+
+// Use the pipeline
+var result = await Task.Run(() => 
+	userProcessingPipeline("user-123", cancellationToken));
+
+if (result.IsSuccess)
+{
+	return Ok(result.Result);
+}
+else
+{
+	return StatusCode(500, "User processing failed");
+}
+```
+
+#### Key Benefits
+- **Composability**: Build complex data transformation pipelines from simple functions
+- **Error Isolation**: Handle errors at each step independently
+- **Type Safety**: Full type inference through the pipeline chain
+- **Context Preservation**: Error handlers receive the input parameter for their step
+- **Fluent API**: Readable, declarative pipeline construction
+- **Cancellation Support**: Built-in cancellation token support
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  
@@ -1311,6 +1473,25 @@ For quick, one-off error handling without complex logic, a policy processor is o
 ### Wrapping
 
 - **Building Policy Chains:** Utilize `WrapPolicy` or `WrapUp` to create nested policy chains. The `WrapUp` method, in particular, provides a fluent, bottom-up approach to constructing these chains.
+
+### PipelineFuncBuilder
+
+- **Use for multi-step transformations**: When you have a series of functions that transform data step-by-step, `PipelineFuncBuilder` provides a clean, composable way to chain them with error handling at each stage.
+- **Leverage context in error handlers**: The `ProcessingErrorInfo<T>` parameter contains the input to that specific step (`pi.Param`), making it easy to log which input caused the failure.
+- **Check `PipelineResult.IsFailed`** before accessing `Result` to avoid working with default values from failed pipelines.
+
+#### Quick Composition Tools Guide
+
+When choosing between the composition tools, this table is a fast way to orient:
+
+| You want | Use |
+|---|---|
+| One delegate, N retry/fallback strategies | `PolicyCollection` + `HandleDelegate` |
+| Same, but injectable handler | `collection.BuildCollectionHandlerFor(...)` |
+| Typed multi-step transform with policies per step | `PipelineFuncBuilder` |
+| Outer retry/fallback over a whole collection | `collection.Then(new RetryPolicy(...))` / `.WrapUp(...)` |
+| Per-step error processors in a typed pipeline | `PipelineFuncBuilder.ConfigureErrorProcessors` / `OnError` |
+
 
 ### Handling `PolicyResult`
 

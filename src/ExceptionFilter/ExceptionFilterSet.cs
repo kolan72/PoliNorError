@@ -6,6 +6,8 @@ namespace PoliNorError
 {
 	internal class ExceptionFilterSet
 	{
+		private static readonly Func<Exception, bool> _defaultFilter = _ => true;
+
 		internal List<Expression<Func<Exception, bool>>> IncludedErrorFilters { get; } = new List<Expression<Func<Exception, bool>>>();
 
 		internal List<Expression<Func<Exception, bool>>> ExcludedErrorFilters { get; } = new List<Expression<Func<Exception, bool>>>();
@@ -49,7 +51,7 @@ namespace PoliNorError
 			}
 			else
 			{
-				return (_) => true;
+				return _defaultFilter;
 			}
 		}
 

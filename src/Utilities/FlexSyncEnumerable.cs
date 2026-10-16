@@ -7,9 +7,9 @@ namespace PoliNorError
 	{
 		private readonly IWrapper _inner;
 
-		public FlexSyncEnumerable(bool forAsync = false)
+		public FlexSyncEnumerable(bool forAsync = false, int capacity = 0)
 		{
-			_inner = !forAsync ? new ListWrapper() : (IWrapper)new SynchronizedListWrapper();
+			_inner = !forAsync ? new ListWrapper(capacity) : (IWrapper)new SynchronizedListWrapper(capacity);
 		}
 
 		public void Add(T t)
@@ -28,9 +28,9 @@ namespace PoliNorError
 		private sealed class ListWrapper : IWrapper
 		{
 			private readonly List<T> _inner;
-			public ListWrapper()
+			public ListWrapper(int capacity = 0)
 			{
-				_inner = new List<T>();
+				_inner = new List<T>(capacity);
 			}
 
 			public void Add(T t) => _inner.Add(t);
@@ -42,9 +42,9 @@ namespace PoliNorError
 		private sealed class SynchronizedListWrapper : IWrapper
 		{
 			private readonly SynchronizedList<T> _inner;
-			public SynchronizedListWrapper()
+			public SynchronizedListWrapper(int capacity = 0)
 			{
-				_inner = new SynchronizedList<T>();
+				_inner = new SynchronizedList<T>(capacity);
 			}
 
 			public void Add(T t) => _inner.Add(t);

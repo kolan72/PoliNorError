@@ -31,9 +31,15 @@ namespace PoliNorError
 			};
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static Func<CancellationToken, Task> ToAsyncFunc(this Action<CancellationToken> action)
 			=> action.ToTaskReturnFunc();
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static Func<CancellationToken, Task<T>> ToAsyncFunc<T>(this Func<CancellationToken, T> func)
 			=> func.ToTaskReturnFunc();
 
@@ -163,6 +169,11 @@ namespace PoliNorError
 			return (ct) => { var t = Task.Run(() => func(), ct); t.Wait(ct); return t.Result; };
 		}
 
+		public static Func<TParam, CancellationToken, T> ToCancelableFunc<TParam, T>(this Func<TParam, T> func)
+		{
+			return (param, ct) => { var t = Task.Run(() => func(param), ct); t.Wait(ct); return t.Result; };
+		}
+
 		public static Func<CancellationToken, Task<T>> ToCancelableFunc<T>(this Func<Task<T>> fnTask)
 		{
 			return (ct) => fnTask().WithCancellation(ct);
@@ -171,6 +182,11 @@ namespace PoliNorError
 		public static Func<CancellationToken, Task> ToCancelableFunc(this Func<Task> fnTask)
 		{
 			return (ct) => fnTask().WithCancellation(ct);
+		}
+
+		public static Func<TParam, CancellationToken, Task<T>> ToCancelableFunc<TParam, T>(this Func<TParam, Task<T>> fnTask)
+		{
+			return (param, ct) => fnTask(param).WithCancellation(ct);
 		}
 
 		public static Func<CancellationToken, T> ToPrecancelableFunc<T>(this Func<T> fnTask, bool throwIfCanceled = false)
@@ -185,6 +201,21 @@ namespace PoliNorError
 						return default;
 				}
 				return fnTask();
+			};
+		}
+
+		public static Func<TParam, CancellationToken, T> ToPrecancelableFunc<TParam, T>(this Func<TParam, T> fnTask, bool throwIfCanceled = false)
+		{
+			return (param, ct) =>
+			{
+				if (ct.IsCancellationRequested)
+				{
+					if (throwIfCanceled)
+						throw new OperationCanceledException(ct);
+					else
+						return default;
+				}
+				return fnTask(param);
 			};
 		}
 
@@ -239,6 +270,18 @@ namespace PoliNorError
 					return Task.FromCanceled(ct);
 				}
 				return func(t);
+			};
+		}
+
+		public static Func<TParam, CancellationToken, Task<T>> ToPrecancelableFunc<TParam, T>(this Func<TParam, Task<T>> func)
+		{
+			return (param, ct) =>
+			{
+				if (ct.IsCancellationRequested)
+				{
+					return Task.FromCanceled<T>(ct);
+				}
+				return func(param);
 			};
 		}
 	}

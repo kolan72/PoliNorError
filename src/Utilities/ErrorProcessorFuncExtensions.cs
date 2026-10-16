@@ -45,6 +45,26 @@ namespace PoliNorError
 		{
 			return ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.ToInnerException);
 		}
+
+		public static Action<Exception, ProcessingErrorInfo> ToErrorProcessorFunc(this Action<Exception> actionProcessor)
+		{
+			return (ex, _) => actionProcessor(ex);
+		}
+
+		public static Action<Exception, ProcessingErrorInfo, CancellationToken> ToErrorProcessorFunc(this Action<Exception, CancellationToken> actionProcessor)
+		{
+			return (ex, _, token) => actionProcessor(ex, token);
+		}
+
+		public static Func<Exception, ProcessingErrorInfo, Task> ToErrorProcessorFunc(this Func<Exception, Task> funcProcessor)
+		{
+			return (ex, _) => funcProcessor(ex);
+		}
+
+		public static Func<Exception, ProcessingErrorInfo, CancellationToken, Task> ToErrorProcessorFunc(this Func<Exception, CancellationToken, Task> funcProcessor)
+		{
+			return (ex, _, token) => funcProcessor(ex, token);
+		}
 	}
 
 	internal static class ErrorProcessorFuncConverter

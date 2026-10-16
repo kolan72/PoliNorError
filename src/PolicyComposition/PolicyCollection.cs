@@ -1,0 +1,692 @@
+﻿using PoliNorError.Extensions.PolicyResultHandling;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace PoliNorError
+{
+	public partial class PolicyCollection : IEnumerable<IPolicyBase>, IWithPolicy<PolicyCollection>, ICanAddErrorProcessor, IPolicyBase, IWithErrorFilter<PolicyCollection>, IWithInnerErrorFilter<PolicyCollection>
+	{
+		protected readonly List<IPolicyBase> _policies = new List<IPolicyBase>();
+
+		private string _policyName;
+
+		/// <summary>
+		/// Creates a collection from a single policy, which will be added n times.
+		/// </summary>
+		/// <param name="policy">The policy that will be added</param>
+		/// <param name="n">The number of times</param>
+		/// <returns></returns>
+		public static PolicyCollection Create(IPolicyBase policy, int n = 1)
+		{
+			var res = new PolicyCollection();
+			for (int i = 0; i < n; i++)
+			{
+				res.WithPolicy(policy);
+			}
+			return res;
+		}
+
+		public static PolicyCollection Create(params IPolicyBase[] policies) => FromPolicies(policies);
+
+		public static PolicyCollection Create(IEnumerable<IPolicyBase> errorPolicies) => FromPolicies(errorPolicies);
+
+		public PolicyCollection WithPolicy(Func<IPolicyBase> func) => WithPolicy(func());
+
+		public PolicyCollection WithPolicy(IPolicyBase policyBase)
+		{
+			_policies.Add(policyBase);
+			return this;
+		}
+
+		/// <summary>
+		/// Adds an action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds an action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult> act, CancellationType convertType, bool excludeLastPolicy = false)
+		{
+			var cancelableAct = act.ToCancelableAction(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableAct), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds an action with a token-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action with a token-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Action<PolicyResult, CancellationToken> act, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
+		}
+
+		/// <summary>
+		///  Adds an asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds an asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, CancellationToken, Task> func, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
+		}
+
+		/// <summary>
+		///  Adds an asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll(Func<PolicyResult, Task> func, CancellationType convertType, bool excludeLastPolicy = false)
+		{
+			var cancelableFunc = func.ToCancelableFunc(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableFunc), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds a generic action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds an action with a token-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <param name="act">Action with a token-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>, CancellationToken> act, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(act), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds a generic action-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="act">Action-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Action<PolicyResult<T>> act, CancellationType convertType, bool excludeLastPolicy = false)
+		{
+			var cancelableAct = act.ToCancelableAction(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableAct), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func-based policy result handler.</param>
+		/// <param name="convertType"><see cref="CancellationType"/></param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType, bool excludeLastPolicy = false)
+		{
+			var cancelableFunc = func.ToCancelableFunc(convertType);
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(cancelableFunc), excludeLastPolicy);
+		}
+
+		/// <summary>
+		/// Adds a generic asynchronous function-based policy result handler to all policies in the collection, excluding the last if <paramref name="excludeLastPolicy"/> is true.
+		/// </summary>
+		/// <typeparam name="T">Type of result.</typeparam>
+		/// <param name="func">Func with a token-based policy result handler.</param>
+		/// <param name="excludeLastPolicy">If true, the handler is not added to the last policy in the collection. Default is false (applies to all policies).</param>
+		/// <returns></returns>
+		public PolicyCollection AddPolicyResultHandlerForAll<T>(Func<PolicyResult<T>, CancellationToken, Task> func, bool excludeLastPolicy = false)
+		{
+			return SetHandler((p) => (p as Policy)?.AddHandlerForPolicyResult(func), excludeLastPolicy);
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult> act, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Action<PolicyResult, CancellationToken> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Func<PolicyResult, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Func<PolicyResult, Task> func, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast(Func<PolicyResult, CancellationToken, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Action<PolicyResult<T>> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Action<PolicyResult<T>> act, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Action<PolicyResult<T>, CancellationToken> act)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(act);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Func<PolicyResult<T>, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Func<PolicyResult<T>, Task> func, CancellationType convertType)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func, convertType);
+			return this;
+		}
+
+		public PolicyCollection AddPolicyResultHandlerForLast<T>(Func<PolicyResult<T>, CancellationToken, Task> func)
+		{
+			this.AddPolicyResultHandlerToLastPolicyInner(func);
+			return this;
+		}
+
+		/// <summary>
+		/// For the last policy in the <see cref="PolicyCollection"/>, this method adds a special PolicyResult handler that sets <see cref="PolicyResult.IsFailed"/> to true only if the executed <paramref name="predicate"/> returns true.
+		/// </summary>
+		/// <param name="predicate">A predicate that a PolicyResult should satisfy.</param>
+		/// <returns></returns>
+		public PolicyCollection SetPolicyResultFailedIf(Func<PolicyResult, bool> predicate)
+		{
+			this.SetPolicyResultFailedIfInner(predicate);
+			return this;
+		}
+
+		///<inheritdoc cref="SetPolicyResultFailedIf"/>
+		public PolicyCollection SetPolicyResultFailedIf<T>(Func<PolicyResult<T>, bool> predicate)
+		{
+			this.SetPolicyResultFailedIfInner(predicate);
+			return this;
+		}
+
+		PolicyCollection IWithErrorFilter<PolicyCollection>.IncludeError<TException>(Func<TException, bool> func) => IncludeErrorForAll(func);
+
+		PolicyCollection IWithErrorFilter<PolicyCollection>.IncludeError(Expression<Func<Exception, bool>> expression) => IncludeErrorForAll(expression);
+
+		PolicyCollection IWithErrorFilter<PolicyCollection>.ExcludeError<TException>(Func<TException, bool> func) => ExcludeErrorForAll(func);
+
+		PolicyCollection IWithErrorFilter<PolicyCollection>.ExcludeError(Expression<Func<Exception, bool>> expression) => ExcludeErrorForAll(expression);
+
+		PolicyCollection IWithInnerErrorFilter<PolicyCollection>.IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate) => IncludeInnerErrorForAll(predicate);
+
+		PolicyCollection IWithInnerErrorFilter<PolicyCollection>.ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate) => ExcludeInnerErrorForAll(predicate);
+
+		public PolicyCollection IncludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			this.AddIncludedErrorFilterForAll(func);
+			return this;
+		}
+
+		public PolicyCollection IncludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			this.AddIncludedErrorFilterForAll(handledErrorFilter);
+			return this;
+		}
+
+		public PolicyCollection ExcludeErrorForAll<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			this.AddExcludedErrorFilterForAll(func);
+			return this;
+		}
+
+		public PolicyCollection ExcludeErrorForAll(Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			this.AddExcludedErrorFilterForAll(handledErrorFilter);
+			return this;
+		}
+
+		public PolicyCollection IncludeErrorForLast<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			this.AddIncludedErrorFilterForLast(func);
+			return this;
+		}
+
+		public PolicyCollection IncludeErrorForLast(Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			this.AddIncludedErrorFilterForLast(handledErrorFilter);
+			return this;
+		}
+
+		public PolicyCollection ExcludeErrorForLast<TException>(Func<TException, bool> func = null) where TException : Exception
+		{
+			this.AddExcludedErrorFilterForLast(func);
+			return this;
+		}
+
+		public PolicyCollection ExcludeErrorForLast(Expression<Func<Exception, bool>> handledErrorFilter)
+		{
+			this.AddExcludedErrorFilterForLast(handledErrorFilter);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies two types-based filter condition for including an exception in the processing performed by the last policy of the PolicyCollection
+		/// </summary>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <returns></returns>
+		public PolicyCollection IncludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
+		{
+			this.AddIncludedErrorSetFilter<TException1, TException2>();
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the <see cref= "IErrorSet" /> interface-based filter conditions for including an exception in the processing performed by the last policy of the PolicyCollection
+		/// </summary>
+		/// <param name="errorSet"><see cref="IErrorSet"/></param>
+		/// <returns></returns>
+		public PolicyCollection IncludeErrorSet(IErrorSet errorSet)
+		{
+			this.AddIncludedErrorSetFilter(errorSet);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies two types-based filter conditions for excluding an exception from the processing performed by the last policy of the PolicyCollection
+		/// </summary>
+		/// <typeparam name="TException1">A type of exception.</typeparam>
+		/// <typeparam name="TException2">A type of exception.</typeparam>
+		/// <returns></returns>
+		public PolicyCollection ExcludeErrorSet<TException1, TException2>() where TException1 : Exception where TException2 : Exception
+		{
+			this.AddExcludedErrorSetFilter<TException1, TException2>();
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the <see cref= "IErrorSet" /> interface-based filter conditions for excluding an exception from the processing performed by the last policy of the PolicyCollection
+		/// </summary>
+		/// <param name="errorSet"><see cref="IErrorSet"/></param>
+		/// <returns></returns>
+		public PolicyCollection ExcludeErrorSet(IErrorSet errorSet)
+		{
+			this.AddExcludedErrorSetFilter(errorSet);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be included in the handling by every policy already present in the PolicyCollection. Use <see cref="IncludeInnerError{TInnerException}"/> to target the last policy only.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		internal PolicyCollection IncludeInnerErrorForAll<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddIncludedInnerErrorFilterForAll(predicate);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by every policy already present in the PolicyCollection. Use <see cref="ExcludeInnerError{TInnerException}"/> to target the last policy only.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		internal PolicyCollection ExcludeInnerErrorForAll<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddExcludedInnerErrorFilterForAll(predicate);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the last policy of the PolicyCollection.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public PolicyCollection IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddIncludedInnerErrorFilter(predicate);
+			return this;
+		}
+
+		/// <summary>
+		/// Specifies the type- and optionally predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the last policy of the PolicyCollection.
+		/// </summary>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns></returns>
+		public PolicyCollection ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception
+		{
+			this.AddExcludedInnerErrorFilter(predicate);
+			return this;
+		}
+
+		private static PolicyCollection FromPolicies(IEnumerable<IPolicyBase> errorPolicies)
+		{
+			var res = new PolicyCollection();
+			foreach (var errorPolicy in errorPolicies)
+			{
+				res.WithPolicy(errorPolicy);
+			}
+			return res;
+		}
+
+		public IPolicyDelegateCollection ToPolicyDelegateCollection(Action action)
+		{
+			return PolicyDelegateCollection.Create(_policies.Select(p => p.ToPolicyDelegate(action)));
+		}
+
+		public IPolicyDelegateCollection ToPolicyDelegateCollection(Func<CancellationToken, Task> func)
+		{
+			return PolicyDelegateCollection.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
+		}
+
+		public IPolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<T> func)
+		{
+			return PolicyDelegateCollection<T>.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
+		}
+
+		public IPolicyDelegateCollection<T> ToPolicyDelegateCollection<T>(Func<CancellationToken, Task<T>> func)
+		{
+			return PolicyDelegateCollection<T>.Create(_policies.Select(p => p.ToPolicyDelegate(func)));
+		}
+
+		/// <summary>
+		/// Creates PoiicyDelegateCollection from this collection and <paramref name="action"/> and returns  <see cref="IPolicyDelegateCollection"/>
+		/// from calling <see cref="IPolicyDelegateCollection.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="action">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler BuildCollectionHandlerFor(Action action)
+		{
+			return ToPolicyDelegateCollection(action).BuildCollectionHandler();
+		}
+
+		/// <summary>
+		/// Creates PoiicyDelegateCollection from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection"/>
+		/// from calling <see cref="IPolicyDelegateCollection.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="func">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler BuildCollectionHandlerFor(Func<CancellationToken, Task> func)
+		{
+			return ToPolicyDelegateCollection(func).BuildCollectionHandler();
+		}
+
+		/// <summary>
+		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/>
+		/// from calling <see cref="IPolicyDelegateCollection{T}.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="func">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler<T> BuildCollectionHandlerFor<T>(Func<T> func)
+		{
+			return ToPolicyDelegateCollection(func).BuildCollectionHandler();
+		}
+
+		/// <summary>
+		/// Creates PoiicyDelegateCollection{T} from this collection and <paramref name="func"/> and returns  <see cref="IPolicyDelegateCollection{T}"/>
+		/// from calling <see cref="IPolicyDelegateCollection{T}.BuildCollectionHandler"/>
+		/// </summary>
+		/// <param name="func">The delegate will be common to the entire collection.</param>
+		/// <returns></returns>
+		public IPolicyDelegateCollectionHandler<T> BuildCollectionHandlerFor<T>(Func<CancellationToken, Task<T>> func)
+		{
+			return ToPolicyDelegateCollection(func).BuildCollectionHandler();
+		}
+
+		/// <summary>
+		/// Returns an <see cref="OuterPolicyRegistrar{Policy}"></see> with the <see cref="OuterPolicyRegistrar{Policy}.OuterPolicy"></see> that wraps the current PolicyCollection.
+		/// </summary>
+		/// <typeparam name="TWrapperPolicy"></typeparam>
+		/// <param name="wrapperPolicy">>The policy that will wrap the current policy</param>
+		/// <param name="throwOnWrappedCollectionFailed">Shows how an exception will be generated if the last policy in the PolicyCollection fails.</param>
+		/// <returns></returns>
+		public OuterPolicyRegistrar<TWrapperPolicy> WrapUp<TWrapperPolicy>(TWrapperPolicy wrapperPolicy, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.LastError) where TWrapperPolicy : Policy
+		{
+			return new OuterPolicyRegistrar<TWrapperPolicy>(wrapperPolicy, this, throwOnWrappedCollectionFailed);
+		}
+
+		/// <summary>
+		/// Wraps the current PolicyCollection inside the specified wrapper policy and returns the wrapper policy.
+		/// This is a shorthand for <see cref="WrapUp{TWrapperPolicy}"/> that returns the outer policy directly.
+		/// </summary>
+		/// <typeparam name="TWrapperPolicy">The type of the policy that will wrap the current PolicyCollection.</typeparam>
+		/// <param name="wrapperPolicy">The policy that will wrap the current PolicyCollection.</param>
+		/// <param name="throwOnWrappedCollectionFailed">Shows how an exception will be generated if the last policy in the PolicyCollection fails.</param>
+		/// <returns>The wrapper policy that now wraps the current PolicyCollection.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="wrapperPolicy"/> is <c>null</c>.</exception>
+		public TWrapperPolicy Then<TWrapperPolicy>(TWrapperPolicy wrapperPolicy, ThrowOnWrappedCollectionFailed throwOnWrappedCollectionFailed = ThrowOnWrappedCollectionFailed.LastError) where TWrapperPolicy : Policy
+		{
+			if (wrapperPolicy == null)
+			{
+				throw new ArgumentNullException(nameof(wrapperPolicy));
+			}
+			return WrapUp(wrapperPolicy, throwOnWrappedCollectionFailed).OuterPolicy;
+		}
+
+		/// <summary>
+		/// Gets the policy processor associated with the last policy in the collection.
+		/// Explicit <see cref="IPolicyBase"/> member: the collection itself has no processor;
+		/// use this only when the collection acts as a single policy.
+		/// </summary>
+		IPolicyProcessor IPolicyBase.PolicyProcessor => _policies.LastOrDefault()?.PolicyProcessor;
+
+		/// <summary>
+		/// Gets the name used when this collection acts as an <see cref="IPolicyBase"/>.
+		/// Explicit <see cref="IPolicyBase"/> member: the collection itself is nameless —
+		/// policies added via <see cref="WithPolicy(IPolicyBase)"/> keep their own names,
+		/// which is what the <see cref="HandleDelegate(Action, CancellationToken)"/> results carry.
+		/// </summary>
+		string IPolicyBase.PolicyName => EffectivePolicyName;
+
+		private string EffectivePolicyName => _policyName ?? GetType().Name;
+
+		/// <summary>
+		/// Sets the name used when this collection acts as an <see cref="IPolicyBase"/> —
+		/// it is stamped onto the last result returned by <see cref="IPolicyBase.Handle(Action, CancellationToken)"/>
+		/// and the <see cref="IPolicyBase"/> HandleAsync overloads.
+		/// The collection itself is nameless: policies added via <see cref="WithPolicy(IPolicyBase)"/> keep
+		/// their own names, which is what the HandleDelegate results carry.
+		/// </summary>
+		/// <param name="policyName">The adapter-level policy name.</param>
+		/// <returns>The current <see cref="PolicyCollection"/> instance.</returns>
+		public PolicyCollection WithPolicyName(string policyName)
+		{
+			_policyName = policyName;
+			return this;
+		}
+
+		/// <summary>
+		/// Handles an action by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
+		/// </summary>
+		/// <param name="action">The action to handle</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		private PolicyResult HandleCore(Action action, CancellationToken token)
+		{
+			var collectionResult = HandleDelegate(action, token);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult.ForSync();
+				result.SetCanceledEarly();
+				result.SetPolicyName(EffectivePolicyName);
+				return result;
+			}
+			else
+			{
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(EffectivePolicyName);
+				return lastResult;
+			}
+		}
+
+		/// <summary>
+		/// Handles a function by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
+		/// </summary>
+		/// <typeparam name="T">The type of the result</typeparam>
+		/// <param name="func">The function to handle</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		private PolicyResult<T> HandleCore<T>(Func<T> func, CancellationToken token)
+		{
+			var collectionResult = HandleDelegate(func, token);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult<T>.ForSync();
+				result.SetCanceledEarly();
+				result.SetPolicyName(EffectivePolicyName);
+				return result;
+			}
+			else
+			{
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(EffectivePolicyName);
+				return lastResult;
+			}
+		}
+
+		/// <summary>
+		/// Handles an asynchronous function by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
+		/// </summary>
+		/// <param name="func">The function to handle async</param>
+		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		private async Task<PolicyResult> HandleCoreAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
+		{
+			var collectionResult = await HandleDelegateAsync(func, configureAwait, token).ConfigureAwait(configureAwait);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult.ForNotSync();
+				result.SetCanceledEarly();
+				result.SetPolicyName(EffectivePolicyName);
+				return result;
+			}
+			else
+			{
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(EffectivePolicyName);
+				return lastResult;
+			}
+		}
+
+		/// <summary>
+		/// Handles an asynchronous function by delegating to the collection handler and returning the last policy result.
+		/// Stamps the last result with the adapter-level name set by <see cref="WithPolicyName"/>.
+		/// </summary>
+		/// <typeparam name="T">The type of the result</typeparam>
+		/// <param name="func">The function to handle async</param>
+		/// <param name="configureAwait">Specifies whether the asynchronous execution should attempt to continue on the captured context.</param>
+		/// <param name="token">A cancellation token to cancel handling</param>
+		/// <returns>The last policy result of the collection handling.</returns>
+		private async Task<PolicyResult<T>> HandleCoreAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
+		{
+			var collectionResult = await HandleDelegateAsync(func, configureAwait, token).ConfigureAwait(configureAwait);
+			if (collectionResult.LastPolicyResult == null && collectionResult.IsCanceled)
+			{
+				var result = PolicyResult<T>.ForNotSync();
+				result.SetCanceledEarly();
+				result.SetPolicyName(EffectivePolicyName);
+				return result;
+			}
+			else
+			{
+				var lastResult = collectionResult.LastPolicyResult;
+				lastResult?.SetPolicyName(EffectivePolicyName);
+				return lastResult;
+			}
+		}
+
+		PolicyResult IPolicyBase.Handle(Action action, CancellationToken token) => HandleCore(action, token);
+
+		PolicyResult<T> IPolicyBase.Handle<T>(Func<T> func, CancellationToken token) => HandleCore(func, token);
+
+		Task<PolicyResult> IPolicyBase.HandleAsync(Func<CancellationToken, Task> func, bool configureAwait, CancellationToken token) => HandleCoreAsync(func, configureAwait, token);
+
+		Task<PolicyResult<T>> IPolicyBase.HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait, CancellationToken token) => HandleCoreAsync(func, configureAwait, token);
+
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+		public IEnumerator<IPolicyBase> GetEnumerator() => _policies.GetEnumerator();
+
+		private PolicyCollection SetHandler(Action<IPolicyBase> itemAct, bool excludeLastPolicy)
+		{
+			_policies.ActionForAll(itemAct, excludeLastPolicy);
+			return this;
+		}
+	}
+}

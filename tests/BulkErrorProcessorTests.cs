@@ -846,18 +846,471 @@ namespace PoliNorError.Tests
 		[Test]
 		public async Task Should_ProcessAsync_Handle_Null_Exception()
 		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var testProcessor1 = new TestErrorProcessor();
+
+		    bulkProcessor.AddProcessor(testProcessor1);
+
+		    // Act
+		    var result = await bulkProcessor.ProcessAsync(null);
+
+		    // Assert
+		    Assert.That(result.HandlingError, Is.Null);
+		    Assert.That(testProcessor1.ProcessedExceptionsAsync, Contains.Item(null));
+		}
+
+		/// <summary>
+		/// Tests for WithTypedErrorProcessorOf methods
+		/// </summary>
+		[Test]
+		public void Should_WithTypedErrorProcessorOf_Action_WithoutCancellationToken_HandleException()
+		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var exceptionHandled = false;
+		    var testException = new InvalidOperationException("Test exception");
+
+		    // Act
+		    bulkProcessor.WithTypedErrorProcessorOf<InvalidOperationException>(
+		        (InvalidOperationException ex, ProcessingErrorInfo _) =>
+		        {
+		            exceptionHandled = true;
+		            Assert.That(ex.Message, Is.EqualTo("Test exception"));
+		        });
+
+		    var result = bulkProcessor.Process(testException);
+
+		    // Assert
+		    Assert.That(exceptionHandled, Is.True);
+		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithTypedErrorProcessorOf_Action_WithCancellationToken_HandleException()
+		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var exceptionHandled = false;
+		    var testException = new InvalidOperationException("Test exception");
+
+		    // Act
+		    bulkProcessor.WithTypedErrorProcessorOf<InvalidOperationException>(
+		        (InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken ct) =>
+		        {
+		            exceptionHandled = true;
+		            Assert.That(ex.Message, Is.EqualTo("Test exception"));
+		            Assert.That(ct, Is.Not.Null);
+		        });
+
+		    var result = bulkProcessor.Process(testException);
+
+		    // Assert
+		    Assert.That(exceptionHandled, Is.True);
+		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithTypedErrorProcessorOf_Action_WithCancellationType_HandleException()
+		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var exceptionHandled = false;
+		    var testException = new InvalidOperationException("Test exception");
+
+		    // Act
+		    bulkProcessor.WithTypedErrorProcessorOf(
+		        (InvalidOperationException ex, ProcessingErrorInfo _) =>
+		        {
+		            exceptionHandled = true;
+		            Assert.That(ex.Message, Is.EqualTo("Test exception"));
+		        },
+		        CancellationType.Precancelable);
+
+		    var result = bulkProcessor.Process(testException);
+
+		    // Assert
+		    Assert.That(exceptionHandled, Is.True);
+		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public async Task Should_WithTypedErrorProcessorOf_AsyncFunc_WithoutCancellationToken_HandleException()
+		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var exceptionHandled = false;
+		    var testException = new InvalidOperationException("Test exception");
+
+		    // Act
+		    bulkProcessor.WithTypedErrorProcessorOf(
+		        async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+		        {
+		            await Task.Delay(1);
+		            exceptionHandled = true;
+		            Assert.That(ex.Message, Is.EqualTo("Test exception"));
+		        });
+
+		    var result = await bulkProcessor.ProcessAsync(testException);
+
+		    // Assert
+		    Assert.That(exceptionHandled, Is.True);
+		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public async Task Should_WithTypedErrorProcessorOf_AsyncFunc_WithCancellationType_HandleException()
+		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var exceptionHandled = false;
+		    var testException = new InvalidOperationException("Test exception");
+
+		    // Act
+		    bulkProcessor.WithTypedErrorProcessorOf(
+		        async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+		        {
+		            await Task.Delay(1);
+		            exceptionHandled = true;
+		            Assert.That(ex.Message, Is.EqualTo("Test exception"));
+		        },
+		        CancellationType.Precancelable);
+
+		    var result = await bulkProcessor.ProcessAsync(testException);
+
+		    // Assert
+		    Assert.That(exceptionHandled, Is.True);
+		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public async Task Should_WithTypedErrorProcessorOf_AsyncFunc_WithCancellationToken_HandleException()
+		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var exceptionHandled = false;
+		    var testException = new InvalidOperationException("Test exception");
+
+		    // Act
+		    bulkProcessor.WithTypedErrorProcessorOf(
+		        async (InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken ct) =>
+		        {
+		            await Task.Delay(1);
+		            exceptionHandled = true;
+		            Assert.That(ex.Message, Is.EqualTo("Test exception"));
+		            Assert.That(ct, Is.Not.Null);
+		        });
+
+		    var result = await bulkProcessor.ProcessAsync(testException);
+
+		    // Assert
+		    Assert.That(exceptionHandled, Is.True);
+		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithTypedErrorProcessor_HandleException()
+		{
+		    // Arrange
+		    var bulkProcessor = new BulkErrorProcessor();
+		    var exceptionHandled = false;
+		    var testException = new InvalidOperationException("Test exception");
+
+		    // Act
+		    var typedProcessor = new DefaultTypedErrorProcessor<InvalidOperationException>(
+		        (InvalidOperationException ex, ProcessingErrorInfo _) =>
+		        {
+		            exceptionHandled = true;
+		            Assert.That(ex.Message, Is.EqualTo("Test exception"));
+		        });
+
+		    bulkProcessor.WithTypedErrorProcessor(typedProcessor);
+
+		    var result = bulkProcessor.Process(testException);
+
+		    // Assert
+		    Assert.That(exceptionHandled, Is.True);
+		    Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Only_Inner_Exception_Of_Specified_Type()
+		{
 			// Arrange
 			var bulkProcessor = new BulkErrorProcessor();
-			var testProcessor1 = new TestErrorProcessor();
+			var innerExceptionHandled = false;
 
-			bulkProcessor.AddProcessor(testProcessor1);
+			// Create an exception with a specific inner exception type
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
 
-			// Act
-			var result = await bulkProcessor.ProcessAsync(null);
+			// Act - Add processor for InvalidOperationException
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						innerExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+					}));
+
+			// Process exception with matching inner exception type
+			var result1 = bulkProcessor.Process(mainException);
 
 			// Assert
-			Assert.That(result.HandlingError, Is.Null);
-			Assert.That(testProcessor1.ProcessedExceptionsAsync, Contains.Item(null));
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result1.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public async Task Should_WithInnerErrorProcessor_Async_Handle_Only_Inner_Exception_Of_Specified_Type()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var innerExceptionHandled = false;
+
+			// Create an exception with a specific inner exception type
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+
+			// Act - Add async processor for InvalidOperationException
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						await Task.Delay(1);
+						innerExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+					}));
+
+			// Process exception with matching inner exception type
+			var result = await bulkProcessor.ProcessAsync(mainException);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Exception_Without_Matching_Inner_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var processorCalled = false;
+
+			// Create an exception without the target inner exception type
+			var nonMatchingInnerException = new ArgumentException("Wrong type");
+			var mainException = new AggregateException("Main exception", nonMatchingInnerException);
+
+			// Act - Add processor for InvalidOperationException (but we have ArgumentException as inner)
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException _, ProcessingErrorInfo __) =>
+					{
+						processorCalled = true; // Should not be called
+					}));
+
+			// Process exception with non-matching inner exception type
+			var result = bulkProcessor.Process(mainException);
+
+			// Assert - Processor should not be called since inner exception type doesn't match
+			Assert.That(processorCalled, Is.False);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Exception_Without_Inner_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var processorCalled = false;
+
+			// Create an exception without any inner exception
+			var mainException = new InvalidOperationException("Main exception without inner");
+
+			// Act - Add processor for any type (it shouldn't be called since there's no inner exception)
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<ArgumentException>(
+					(ArgumentException _, ProcessingErrorInfo __) =>
+					{
+						processorCalled = true; // Should not be called
+					}));
+
+			// Process exception without inner exception
+			bulkProcessor.Process(mainException);
+
+			// Assert - Processor should not be called since there's no inner exception of the target type
+			Assert.That(processorCalled, Is.False);
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Work_With_Multiple_Inner_Exception_Types()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var invalidOperationExceptionHandled = false;
+			var argumentExceptionHandled = false;
+
+			// Create an exception with multiple inner exceptions where only one matches
+			var innerException1 = new InvalidOperationException("First inner");
+			var mainException = new AggregateException("Main exception", innerException1);
+
+			// Act - Add processors for both types
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						invalidOperationExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("First inner"));
+					}));
+
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<ArgumentException>(
+					(ArgumentException _, ProcessingErrorInfo __) =>
+					{
+						argumentExceptionHandled = true; // Should not be called
+					}));
+
+			// Process exception with matching inner exception type
+			var result = bulkProcessor.Process(mainException);
+
+			// Assert - Only the matching processor should be called
+			Assert.That(invalidOperationExceptionHandled, Is.True);
+			Assert.That(argumentExceptionHandled, Is.False);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_With_CancellationType_Handle_Inner_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+
+			// Act - Add processor with CancellationType.Precancelable
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						innerExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+					},
+					CancellationType.Precancelable));
+
+			var result = bulkProcessor.Process(mainException);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public async Task Should_WithInnerErrorProcessor_Async_With_CancellationToken_Handle_Inner_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+
+			// Act - Add async processor with CancellationToken overload
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					async (InvalidOperationException ex, ProcessingErrorInfo _, CancellationToken ct) =>
+					{
+						await Task.Delay(1, ct);
+						innerExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+					}));
+
+			var result = await bulkProcessor.ProcessAsync(mainException);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public async Task Should_WithInnerErrorProcessor_Async_With_CancellationType_Handle_Inner_Exception()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+
+			// Act - Add async processor with CancellationType.Precancelable
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						await Task.Delay(1);
+						innerExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+					},
+					CancellationType.Precancelable));
+
+			var result = await bulkProcessor.ProcessAsync(mainException);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Propagate_ProcessingErrorInfo()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			ProcessingErrorInfo capturedErrorInfo = null;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+			var processingErrorContext = new RetryProcessingErrorContext(1);
+
+			// Act
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException _, ProcessingErrorInfo pi) =>
+					{
+						capturedErrorInfo = pi;
+					}));
+
+			var result = bulkProcessor.Process(mainException, processingErrorContext);
+
+			// Assert
+			Assert.That(capturedErrorInfo, Is.Not.Null);
+			Assert.That(capturedErrorInfo.PolicyKind, Is.EqualTo(PolicyAlias.Retry));
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Handle_Exception_From_Inner_Processor()
+		{
+			// Arrange
+			var bulkProcessor = new BulkErrorProcessor();
+			var processorException = new ArgumentException("Processor error");
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var mainException = new AggregateException("Main exception", innerException);
+
+			// Act
+			bulkProcessor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException _, ProcessingErrorInfo __) =>
+					{
+						throw processorException;
+					}));
+
+			var result = bulkProcessor.Process(mainException);
+
+			// Assert
+			Assert.That(result.ProcessErrors.Count(), Is.EqualTo(1));
+			Assert.That(result.ProcessErrors.First().InnerException, Is.EqualTo(processorException));
 		}
 
 		internal class TestErrorProcessor : IErrorProcessor

@@ -8,9 +8,34 @@ namespace PoliNorError
 	{
 		private readonly DefaultTypedErrorProcessorT<TException> _errorProcessor;
 
+		public DefaultTypedErrorProcessor(Action<TException, ProcessingErrorInfo> actionProcessor)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(actionProcessor);
+		}
+
 		public DefaultTypedErrorProcessor(Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor)
 		{
 			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(actionProcessor);
+		}
+
+		public DefaultTypedErrorProcessor(Action<TException, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(actionProcessor, cancellationType);
+		}
+
+		public DefaultTypedErrorProcessor(Func<TException, ProcessingErrorInfo, Task> funcProcessor)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(funcProcessor);
+		}
+
+		public DefaultTypedErrorProcessor(Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(funcProcessor, cancellationType);
+		}
+
+		public DefaultTypedErrorProcessor(Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor)
+		{
+			_errorProcessor = DefaultTypedErrorProcessorT<TException>.Create(funcProcessor);
 		}
 
 		public Exception Process(Exception error, ProcessingErrorInfo catchBlockProcessErrorInfo = null, CancellationToken cancellationToken = default)
@@ -26,12 +51,57 @@ namespace PoliNorError
 
 	internal class DefaultTypedErrorProcessorT<TException> : ErrorProcessorBase<ProcessingErrorInfo> where TException : Exception
 	{
+		public static DefaultTypedErrorProcessorT<TException> Create(Action<TException, ProcessingErrorInfo> actionProcessor)
+		{
+			var action = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetSyncRunner(action);
+			return res;
+		}
+
 		public static DefaultTypedErrorProcessorT<TException> Create(Action<TException, ProcessingErrorInfo, CancellationToken> actionProcessor)
 		{
 			var action = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
 
 			var res = new DefaultTypedErrorProcessorT<TException>();
 			res.SetSyncRunner(action);
+			return res;
+		}
+
+		public static DefaultTypedErrorProcessorT<TException> Create(Action<TException, ProcessingErrorInfo> actionProcessor, CancellationType cancellationType)
+		{
+			var action = ErrorProcessorFuncConverter.Convert(actionProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetSyncRunner(action, cancellationType);
+			return res;
+		}
+
+		public static DefaultTypedErrorProcessorT<TException> Create(Func<TException, ProcessingErrorInfo, Task> funcProcessor)
+		{
+			var func = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetAsyncRunner(func);
+			return res;
+		}
+
+		public static DefaultTypedErrorProcessorT<TException> Create(Func<TException, ProcessingErrorInfo, Task> funcProcessor, CancellationType cancellationType)
+		{
+			var func = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetAsyncRunner(func, cancellationType);
+			return res;
+		}
+
+		public static DefaultTypedErrorProcessorT<TException> Create(Func<TException, ProcessingErrorInfo, CancellationToken, Task> funcProcessor)
+		{
+			var func = ErrorProcessorFuncConverter.Convert(funcProcessor, ConvertExceptionDelegates.TryAsExact);
+
+			var res = new DefaultTypedErrorProcessorT<TException>();
+			res.SetAsyncRunner(func);
 			return res;
 		}
 

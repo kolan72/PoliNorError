@@ -8,10 +8,8 @@ namespace PoliNorError.TryCatch
 	/// </summary>
 	public class TryCatchResult : TryCatchResultBase
 	{
-		internal TryCatchResult(PolicyResult policyResult, int catchBlockCount) : base(policyResult)
+		internal TryCatchResult(PolicyResult policyResult, int catchBlockCount) : base(policyResult, catchBlockCount)
 		{
-			(Error, ExceptionHandlerIndex) = policyResult.GetErrorInWrappedResults(catchBlockCount - 1);
-			IsError = !(Error is null);
 		}
 	}
 
@@ -21,10 +19,8 @@ namespace PoliNorError.TryCatch
 	/// <typeparam name="T">The type of return value of the generic delegate</typeparam>
 	public class TryCatchResult<T> : TryCatchResultBase
 	{
-		internal TryCatchResult(PolicyResult<T> policyResult, int catchBlockCount) : base(policyResult)
+		internal TryCatchResult(PolicyResult<T> policyResult, int catchBlockCount) : base(policyResult, catchBlockCount)
 		{
-			(Error, ExceptionHandlerIndex) = policyResult.GetErrorInWrappedResults(catchBlockCount - 1);
-			IsError = !(Error is null);
 			if (!IsError)
 			{
 				Result = policyResult.Result;
@@ -37,11 +33,30 @@ namespace PoliNorError.TryCatch
 		public T Result { get; }
 	}
 
+	/// <summary>
+	/// Base class for results of executing delegates using the <see cref="ITryCatch"/> interface.
+	/// Provides state information about whether the execution succeeded, was canceled, or encountered an error,
+	/// including the exception that was caught and the index of the <see cref="CatchBlockHandler"/> that handled it.
+	/// </summary>
 	public abstract class TryCatchResultBase
 	{
-		protected TryCatchResultBase(PolicyResult policyResult)
+		/// <summary>
+	/// Initializes a new instance of the <see cref="TryCatchResultBase"/> class with the specified policy result.
+	/// </summary>
+	/// <param name="policyResult">The policy result containing execution status information.</param>
+	protected TryCatchResultBase(PolicyResult policyResult)
 		{
 			IsCanceled = policyResult.IsCanceled;
+		}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="TryCatchResultBase"/> class with the specified policy result and catch block count.
+	/// </summary>
+	/// <param name="policyResult">The policy result containing execution status information.</param>
+	/// <param name="catchBlockCount">The number of catch blocks to check for error handling.</param>
+	protected TryCatchResultBase(PolicyResult policyResult, int catchBlockCount) : this(policyResult)
+		{
+			InitializeErrorState(policyResult, catchBlockCount);
 		}
 
 		/// <summary>
@@ -68,5 +83,11 @@ namespace PoliNorError.TryCatch
 		/// Represents the index of the <see cref="CatchBlockHandler"/> that handled an exception.
 		/// </summary>
 		public int ExceptionHandlerIndex { get; protected set; } = -1;
+
+		private void InitializeErrorState(PolicyResult policyResult, int catchBlockCount)
+		{
+			(Error, ExceptionHandlerIndex) = policyResult.GetErrorInWrappedResults(catchBlockCount - 1);
+			IsError = !(Error is null);
+		}
 	}
 }

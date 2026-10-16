@@ -12,6 +12,9 @@ namespace PoliNorError
 	/// </summary>
 	public partial class BulkErrorProcessor : IBulkErrorProcessor
 	{
+		private static readonly BulkProcessResult _succeededEmptyResult = new BulkProcessResult(null, Array.Empty<ErrorProcessorException>());
+		private static readonly BulkProcessResult _canceledEmptyResult = new BulkProcessResult(null, Array.Empty<ErrorProcessorException>(), isCanceledBetweenProcessors: true);
+
 		private readonly List<IErrorProcessor> _errorProcessors = new List<IErrorProcessor>();
 
 		/// <summary>
@@ -39,6 +42,11 @@ namespace PoliNorError
 		/// <inheritdoc/>
 		public BulkProcessResult Process(Exception handlingError, ProcessingErrorContext errorContext = null, CancellationToken token = default)
 		{
+			if (_errorProcessors.Count == 0)
+			{
+				return token.IsCancellationRequested ? _canceledEmptyResult : _succeededEmptyResult;
+			}
+
 			var errors = new List<ErrorProcessorException>();
 
 			if (TryGetEarlyReturnResult(handlingError, token, errors, (errs, ex) => ((List<ErrorProcessorException>)errs).Add(ex), out var earlyReturnResult))
@@ -97,6 +105,11 @@ namespace PoliNorError
 		/// <inheritdoc/>
 		public async Task<BulkProcessResult> ProcessAsync(Exception handlingError, ProcessingErrorContext errorContext = null, bool configAwait = false, CancellationToken token = default)
 		{
+			if (_errorProcessors.Count == 0)
+			{
+				return token.IsCancellationRequested ? _canceledEmptyResult : _succeededEmptyResult;
+			}
+
 			var errors = new FlexSyncEnumerable<ErrorProcessorException>(!configAwait);
 
 			if (TryGetEarlyReturnResult(handlingError, token, errors, (errs, ex) => ((FlexSyncEnumerable<ErrorProcessorException>)errs).Add(ex), out var earlyReturnResult))
@@ -132,14 +145,8 @@ namespace PoliNorError
 			return new BulkProcessResult(handlingError, errors);
 		}
 
-		private bool TryGetEarlyReturnResult(Exception handlingError, CancellationToken token, IEnumerable<ErrorProcessorException> errors,  Action<IEnumerable<ErrorProcessorException>, ErrorProcessorException> addAction,  out BulkProcessResult result)
+		private bool TryGetEarlyReturnResult(Exception handlingError, CancellationToken token, IEnumerable<ErrorProcessorException> errors, Action<IEnumerable<ErrorProcessorException>, ErrorProcessorException> addAction, out BulkProcessResult result)
 		{
-			if (_errorProcessors.Count == 0)
-			{
-				result = new BulkProcessResult(handlingError, errors, token.IsCancellationRequested);
-				return true;
-			}
-
 			if (token.IsCancellationRequested)
 			{
 				var oe = new ErrorProcessorException(new OperationCanceledException(token), null, ProcessStatus.Canceled);

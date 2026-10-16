@@ -4,6 +4,9 @@ using static PoliNorError.BulkErrorProcessor;
 
 namespace PoliNorError
 {
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This class is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal abstract class PolicyProcessorCatchBlockHandlerBase<T>
 	{
 		protected readonly PolicyResult _policyResult;
@@ -11,15 +14,15 @@ namespace PoliNorError
 		protected readonly IBulkErrorProcessor _bulkErrorProcessor;
 
 		private readonly Func<Exception, bool> _errorFilterFunc;
-		private readonly Func<ErrorContext<T>, bool> _policyRuleFunc;
+		private readonly Func<ErrorContext<T>, CancellationToken, bool> _policyRuleFunc;
 
-		protected PolicyProcessorCatchBlockHandlerBase(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, bool> policyRuleFunc = null)
+		protected PolicyProcessorCatchBlockHandlerBase(PolicyResult policyResult, IBulkErrorProcessor bulkErrorProcessor, CancellationToken cancellationToken, Func<Exception, bool> errorFilterFunc, Func<ErrorContext<T>, CancellationToken, bool> policyRuleFunc = null)
 		{
 			_policyResult = policyResult;
 			_cancellationToken = cancellationToken;
 			_bulkErrorProcessor = bulkErrorProcessor;
 			_errorFilterFunc = errorFilterFunc;
-			_policyRuleFunc = policyRuleFunc ?? ((_) => true);
+			_policyRuleFunc = policyRuleFunc ?? ((_,__) => true);
 		}
 
 		protected HandleCatchBlockResult ShouldHandleException(Exception ex, ErrorContext<T> errorContext)
@@ -51,7 +54,7 @@ namespace PoliNorError
 		{
 			if (!RunErrorFilterFunc(ex))
 				return HandleCatchBlockResult.FailedByErrorFilter;
-			else if (!_policyRuleFunc(errorContext))
+			else if (!_policyRuleFunc(errorContext, CancellationToken.None))
 				return HandleCatchBlockResult.FailedByPolicyRules;
 			else
 				return HandleCatchBlockResult.Success;

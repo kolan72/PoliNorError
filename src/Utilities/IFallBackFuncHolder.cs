@@ -3,11 +3,17 @@ using System.Threading;
 
 namespace PoliNorError
 {
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This interface is obsolete.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal interface IFallBackFuncHolder
 	{
 		Func<CancellationToken, T> GetFallbackFunc<T>();
 	}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This class is obsolete.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal class FallBackFuncHolder<U> : IFallBackFuncHolder
 	{
 		private readonly Func<CancellationToken, U> _func;

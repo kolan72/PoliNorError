@@ -6,6 +6,47 @@ namespace PoliNorError
 {
 	internal static class FallbackFuncExtensions
 	{
+		public static Func<ErrorContext<Unit>, CancellationToken, Task<bool>> ToPolicyRuleFunc<T>(this Func<CancellationToken, Task<T>> fallback, PolicyResult<T> result, bool configureAwait)
+		{
+			return async (ErrorContext<Unit> _, CancellationToken ct) =>
+			{
+				var fallbackResult = await fallback(ct).ConfigureAwait(configureAwait);
+				result.SetResult(fallbackResult);
+				return true;
+			};
+		}
+
+		public static Func<ErrorContext<Unit>, CancellationToken, Task<bool>> ToPolicyRuleFunc(this Func<CancellationToken, Task> fallback, bool configureAwait)
+		{
+			return async (ErrorContext<Unit> _, CancellationToken ct) =>
+			{
+				await fallback(ct).ConfigureAwait(configureAwait);
+				return true;
+			};
+		}
+
+		public static Func<ErrorContext<Unit>, CancellationToken, bool> ToPolicyRuleFunc<T>(this Func<CancellationToken, T> fallback, PolicyResult<T> result)
+		{
+			return (ErrorContext<Unit> _, CancellationToken ct) =>
+			{
+				var fallbackResult = fallback(ct);
+				result.SetResult(fallbackResult);
+				return true;
+			};
+		}
+
+		public static Func<ErrorContext<Unit>, CancellationToken, bool> ToPolicyRuleFunc(this Action<CancellationToken> fallback)
+		{
+			return (ErrorContext<Unit> _, CancellationToken ct) =>
+			{
+				fallback(ct);
+				return true;
+			};
+		}
+
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static FallbackFuncExecResult HandleAsFallback(this Action<CancellationToken> fallback, CancellationToken token)
 		{
 			try
@@ -27,6 +68,9 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static FallbackFuncExecResult<T> HandleAsFallback<T>(this Func<CancellationToken, T> fallback, CancellationToken token)
 		{
 			try
@@ -48,6 +92,9 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static async Task<FallbackFuncExecResult> HandleAsFallbackAsync(this Func<CancellationToken, Task> fallback, bool configAwait, CancellationToken token)
 		{
 			try
@@ -65,6 +112,9 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("This method is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		public static async Task<FallbackFuncExecResult<T>> HandleAsFallbackAsync<T>(this Func<CancellationToken, Task<T>> fallback, bool configAwait, CancellationToken token)
 		{
 			try

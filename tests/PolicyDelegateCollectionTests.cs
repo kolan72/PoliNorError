@@ -1189,7 +1189,7 @@ namespace PoliNorError.Tests
 			var lastPolResult = new PolicyResult();
 			if (failed && canceled)
 			{
-				lastPolResult.SetFailedAndCanceled();
+				lastPolResult.SetFailedAndCanceled(null);
 			}
 			else if (failed)
 			{

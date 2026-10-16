@@ -191,13 +191,15 @@ namespace PoliNorError.Tests
 
 			async Task func(CancellationToken _) { await Task.Delay(100, cancelTokenSourceThirdParty.Token); }
 
-			var cancelTokenSourceNative = new CancellationTokenSource();
-			var polResult = await retryPol.HandleAsync(func, cancelTokenSourceNative.Token);
-			ClassicAssert.IsFalse(polResult.IsCanceled);
-			ClassicAssert.IsTrue(polResult.IsFailed);
-			//Because we excluded TaskCanceledException type exception handling.
-			ClassicAssert.AreEqual(1, polResult.Errors.Count());
-			cancelTokenSourceThirdParty.Dispose();
+			using (var cancelTokenSourceNative = new CancellationTokenSource())
+			{
+				var polResult = await retryPol.HandleAsync(func, cancelTokenSourceNative.Token);
+				ClassicAssert.IsFalse(polResult.IsCanceled);
+				ClassicAssert.IsTrue(polResult.IsFailed);
+				//Because we excluded TaskCanceledException type exception handling.
+				ClassicAssert.AreEqual(1, polResult.Errors.Count());
+				cancelTokenSourceThirdParty.Dispose();
+			}
 		}
 
 		[Test]

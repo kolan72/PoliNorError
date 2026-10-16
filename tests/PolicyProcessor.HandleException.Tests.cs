@@ -417,7 +417,86 @@ namespace PoliNorError.Tests
 			Assert.That(policyResult.Errors.Count, Is.EqualTo(1));
 		}
 
-		[Test]
+        [Test]
+        [TestCase(ExceptionHandlingBehavior.Handle)]
+        [TestCase(ExceptionHandlingBehavior.ConditionalRethrow)]
+        public void Should_Honor_PolicyCanceledError_WhenCancellation_In_ErrorSaver(ExceptionHandlingBehavior handlingBehavior)
+        {
+            // Arrange
+            var bulkProcessor = new TestBulkErrorProcessor
+            {
+                ResultToReturn = new BulkProcessResult(new InvalidOperationException(), null)
+            };
+            var processor = new TestPolicyProcessor(bulkProcessor);
+            var policyResult = PolicyResult.ForSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new InvalidOperationException("test exception");
+
+            using (var cts = new CancellationTokenSource())
+            {
+                void customErrorSaver(PolicyResult _, Exception __, ErrorContext<string> ___, CancellationToken ____)
+                {
+                    cts.Cancel();
+                }
+
+                // Act
+                processor.TestHandleException(
+                    exception,
+                    policyResult,
+                    errorContext,
+                    cts.Token,
+                    ProcessingOrder.EvaluateThenProcess,
+                    null,
+                    handlingBehavior,
+                    ErrorProcessingCancellationEffect.Propagate,
+                    errorSaver: customErrorSaver);
+
+                Assert.That(policyResult.PolicyCanceledError, Is.Not.Null);
+            }
+        }
+
+        [Test]
+        [TestCase(ExceptionHandlingBehavior.Handle)]
+        [TestCase(ExceptionHandlingBehavior.ConditionalRethrow)]
+        public async Task Should_Honor_PolicyCanceledError_WhenCancellation_In_AsyncErrorSaver(ExceptionHandlingBehavior handlingBehavior)
+        {
+            // Arrange
+            var bulkProcessor = new TestBulkErrorProcessor
+            {
+                ResultToReturn = new BulkProcessResult(new InvalidOperationException(), null)
+            };
+            var processor = new TestPolicyProcessor(bulkProcessor);
+            var policyResult = PolicyResult.ForNotSync();
+            var errorContext = new TestErrorContext("test");
+            var exception = new InvalidOperationException("test exception");
+
+            using (var cts = new CancellationTokenSource())
+            {
+                async Task customErrorSaverAsync(PolicyResult _, Exception __, ErrorContext<string> ___, bool ____, CancellationToken _____)
+                {
+                    await Task.Delay(1);
+                    cts.Cancel();
+                }
+
+                // Act
+               await processor.TestHandleExceptionAsync(
+                    exception,
+                    policyResult,
+                    errorContext,
+                    customErrorSaverAsync,
+                    null,
+                    handlingBehavior,
+                    ErrorProcessingCancellationEffect.Propagate,
+                    false,
+                    ProcessingOrder.EvaluateThenProcess,
+                    cts.Token
+                    ).ConfigureAwait(false);
+
+                Assert.That(policyResult.PolicyCanceledError, Is.Not.Null);
+            }
+        }
+
+        [Test]
         [TestCase(ExceptionHandlingBehavior.Handle)]
         [TestCase(ExceptionHandlingBehavior.ConditionalRethrow)]
         public void Should_HandleErrorFilterThrowingException_WhenHandleOrRethrowBehavior(ExceptionHandlingBehavior handlingBehavior)

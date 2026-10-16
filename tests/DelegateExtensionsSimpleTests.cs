@@ -310,7 +310,7 @@ namespace PoliNorError.Tests
 
             int i4 = 0;
             Func<Exception, CancellationToken, Task> beforeProcessErrorWithCancelAsync = (_, __) => { i4++; return Task.CompletedTask; };
-            func.InvokeWithSimple(beforeProcessErrorWithCancelAsync);
+            func.InvokeWithSimple((ErrorProcessorParam)beforeProcessErrorWithCancelAsync);
             ClassicAssert.AreEqual(1, i4);
 
             ClassicAssert.AreEqual(5, i);
@@ -399,7 +399,7 @@ namespace PoliNorError.Tests
             Func<int> func = () => { i++; throw new Exception(); };
 
             int i1 = 0;
-            var res = func.InvokeWithSimple(new BasicErrorProcessor((_, __) => ++i1));
+            var res = func.InvokeWithSimple((ErrorProcessorParam)new BasicErrorProcessor((_, __) => ++i1));
 
             ClassicAssert.AreEqual(1, i1);
             ClassicAssert.AreEqual(1, i);
@@ -413,7 +413,7 @@ namespace PoliNorError.Tests
             Func<int> func = () => { i++; throw new Exception(); };
 
             int i1 = 0;
-            var res = func.InvokeWithSimple(new DefaultErrorProcessor((_, __) => ++i1));
+            var res = func.InvokeWithSimple((ErrorProcessorParam)new DefaultErrorProcessor((_, __) => ++i1));
 
             ClassicAssert.AreEqual(1, i1);
             ClassicAssert.AreEqual(1, i);

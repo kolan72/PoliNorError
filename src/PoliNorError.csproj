@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Andrey Kolesnichenko</Authors>
     <Copyright>Copyright 2023 Andrey Kolesnichenko</Copyright>
-    <PackageTags>Exception Handling Policy Retry Fallback Resilience Simple Error TryCatch CatchBlockHandler Try Catch</PackageTags>
+    <PackageTags>Exception Handling Policy Retry Fallback Resilience Simple Error TryCatch CatchBlockHandler Try Catch Polly-Alternative Pipeline</PackageTags>
     <PackageIcon>PoliNorError.png</PackageIcon>
     <PackageReadmeFile>NuGet.md</PackageReadmeFile>
     <PackageIconUrl />

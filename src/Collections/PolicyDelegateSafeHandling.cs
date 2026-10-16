@@ -74,7 +74,7 @@ namespace PoliNorError
 				polResult = Task.Run(() => si.HandleAsync(false, token), token).Result;
 				return (polResult, false);
 			}
-			catch (AggregateException aeWithCanceledException) when (aeWithCanceledException.HasCanceledException(token))
+			catch (AggregateException aeWithCanceledException) when (aeWithCanceledException.IsOperationCanceledWithRequestedToken(token))
 			{
 				return (null, true);
 			}
@@ -95,7 +95,7 @@ namespace PoliNorError
 				polResult = Task.Run(() => si.HandleAsync(false, token), token).Result;
 				return (polResult, false);
 			}
-			catch (AggregateException aeWithCanceledException) when (aeWithCanceledException.HasCanceledException(token))
+			catch (AggregateException aeWithCanceledException) when (aeWithCanceledException.IsOperationCanceledWithRequestedToken(token))
 			{
 				return (null, true);
 			}

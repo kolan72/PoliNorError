@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,7 +61,7 @@ namespace PoliNorError
 			return Execute(action, (EmptyErrorContext)emptyContext, token);
 		}
 
-		private PolicyResult Execute<TParam>(Action<TParam> action, TParam param, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		private PolicyResult Execute<TParam>(Action<TParam> action, TParam param, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
 		{
 			if (action == null)
 				return new PolicyResult().WithNoDelegateException();
@@ -78,24 +78,24 @@ namespace PoliNorError
 
 			try
 			{
-				action(param);
-				result.SetOk();
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(action, param, token);
+				result.SetResultBasedOnCancellation(oe);
 			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
-			}
-			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			catch (AggregateException ae) when (token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					TryHandleByEvaluatingRuleThenProcessException(
+						ex,
+						result,
+						emptyErrorContext,
+						PolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -118,24 +118,24 @@ namespace PoliNorError
 
 			try
 			{
-				action();
-				result.SetOk();
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(action, token);
+				result.SetResultBasedOnCancellation(oe);
 			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
-			}
-			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
+			catch (AggregateException ae) when (token.IsCancellationRequested)
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					TryHandleByEvaluatingRuleThenProcessException(
+						ex,
+						result,
+						emptyErrorContext,
+						PolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -158,7 +158,7 @@ namespace PoliNorError
 			return Execute(func, (EmptyErrorContext)emptyContext, token);
 		}
 
-		private PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, EmptyErrorContext<TParam> emptyErrorContext, CancellationToken token = default)
+		private PolicyResult<T> Execute<TParam, T>(Func<TParam, T> func, TParam param, EmptyErrorContext emptyErrorContext, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -175,25 +175,24 @@ namespace PoliNorError
 
 			try
 			{
-				var resAction = func(param);
-				result.SetOk();
-				result.SetResult(resAction);
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(func, param, token, out T outcome);
+				result.SetResultBasedOnCancellation(oe, outcome);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					TryHandleByEvaluatingRuleThenProcessException(
+						ex,
+						result,
+						emptyErrorContext,
+						PolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -216,25 +215,24 @@ namespace PoliNorError
 
 			try
 			{
-				var resAction = func();
-				result.SetOk();
-				result.SetResult(resAction);
-			}
-			catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-			{
-				result.SetFailedAndCanceled(oe);
+				var oe = CancellationAwareInvocation.InvokeCapturingCancel(func, token, out T outcome);
+				result.SetResultBasedOnCancellation(oe, outcome);
 			}
 			catch (AggregateException ae) when (ae.IsOperationCanceledWithRequestedToken(token))
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = HandleException(ex, result, emptyErrorContext, token);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					TryHandleByEvaluatingRuleThenProcessException(
+						ex,
+						result,
+						emptyErrorContext,
+						PolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						token);
 				}
 			}
 			return result;
@@ -267,7 +265,7 @@ namespace PoliNorError
 			return await ExecuteAsync(func, (EmptyErrorContext)emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		private async Task<PolicyResult> ExecuteAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult> ExecuteAsync<TParam>(Func<TParam, CancellationToken, Task> func, TParam param, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
@@ -291,13 +289,19 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						AsyncPolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -327,13 +331,19 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						AsyncPolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -366,7 +376,7 @@ namespace PoliNorError
 			return await ExecuteAsync(func, (EmptyErrorContext)emptyContext, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		private async Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, EmptyErrorContext<TParam> emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
+		private async Task<PolicyResult<T>> ExecuteAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, EmptyErrorContext emptyErrorContext, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
@@ -391,13 +401,19 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						AsyncPolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -428,13 +444,19 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
-				var handlingResult = await HandleExceptionAsync(ex, result, emptyErrorContext, configureAwait, token).ConfigureAwait(configureAwait);
-				if (handlingResult == ExceptionHandlingResult.Rethrow)
+				if (filterAccepted)
 				{
-					ex.Data[PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY] = true;
-					throw;
+					await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+						ex,
+						result,
+						emptyErrorContext,
+						AsyncPolicyRule<Unit>.Default,
+						ErrorProcessingCancellationEffect.Propagate,
+						configureAwait,
+						token)
+						.ConfigureAwait(configureAwait);
 				}
 			}
 			return result;
@@ -487,46 +509,6 @@ namespace PoliNorError
 		{
 			this.AddNonEmptyCatchBlockFilter(filterFactory);
 			return this;
-		}
-
-		private ExceptionHandlingResult HandleException(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			CancellationToken token)
-
-		{
-			return HandleException(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultErrorSaver,
-				DefaultPolicyRule,
-				_rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.EvaluateThenProcess,
-				ErrorProcessingCancellationEffect.Propagate,
-				token);
-		}
-
-		private Task<ExceptionHandlingResult> HandleExceptionAsync(
-			Exception ex,
-			PolicyResult policyResult,
-			EmptyErrorContext errorContext,
-			bool configAwait,
-			CancellationToken token)
-
-		{
-			return HandleExceptionAsync(
-				ex,
-				policyResult,
-				errorContext,
-				DefaultAsyncErrorSaver,
-				DefaultAsyncPolicyRule,
-				_rethrowIfErrorFilterUnsatisfied ? ExceptionHandlingBehavior.ConditionalRethrow : ExceptionHandlingBehavior.Handle,
-				ProcessingOrder.EvaluateThenProcess,
-				ErrorProcessingCancellationEffect.Propagate,
-				configAwait,
-				token);
 		}
 	}
 }

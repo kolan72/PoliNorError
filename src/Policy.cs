@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace PoliNorError
 {
+	/// <summary>
+	/// Represents the abstract base class for all policies in the PoliNorError library.
+	/// </summary>
 	public abstract class Policy
 	{
 		protected string _policyName;
@@ -13,6 +16,10 @@ namespace PoliNorError
 
 		private readonly IPolicyResultHandlerCollection _policyResultHandlerCollection;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Policy"/> class with the specified policy processor.
+		/// </summary>
+		/// <param name="policyProcessor">The policy processor to use for this policy.</param>
 		protected Policy(IPolicyProcessor policyProcessor)
 		{
 			_policyResultHandlerCollection = new PolicyResultHandlerCollection();
@@ -165,19 +172,31 @@ namespace PoliNorError
 			}
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether this policy has a wrapped policy factory.
+		/// </summary>
 		protected bool HasPolicyWrapperFactory => _policyWrapperFactory != null;
 
+		/// <summary>
+		/// Resets the wrapped policy by clearing the policy wrapper factory.
+		/// </summary>
 		public void ResetWrap()
 		{
 			_policyWrapperFactory = null;
 		}
 
+		/// <summary>
+		/// Gets or sets the name of this policy. If not set, returns the type name of the policy.
+		/// </summary>
 		public string PolicyName
 		{
 			get { return _policyName ?? GetType().Name; }
 			internal set { _policyName = value; }
 		}
 
+		/// <summary>
+		/// Gets the policy processor associated with this policy.
+		/// </summary>
 		public IPolicyProcessor PolicyProcessor { get; }
 
 		internal enum HandlerRunnerSyncType

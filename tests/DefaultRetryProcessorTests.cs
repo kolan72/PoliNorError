@@ -1491,5 +1491,339 @@ namespace PoliNorError.Tests
 				Assert.That(tryResCount.NoError, Is.True);
 			}
 		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public void Should_Retry_Action_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll, bool withContext)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new DefaultRetryProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					if (withContext)
+					{
+						pr = processor.RetryWithErrorContext(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+					}
+					else
+					{
+						pr = processor.Retry(TaskWaitingDelegates.GetActionWithTaskWaitAll(cts, canceledOnLinkedSource), 1, cts.Token);
+					}
+				}
+				else
+				{
+					if (withContext)
+					{
+						pr = processor.RetryWithErrorContext(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+					}
+					else
+					{
+						pr = processor.Retry(TaskWaitingDelegates.GetActionWithTaskWait(cts, canceledOnLinkedSource), 1, cts.Token);
+					}
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Retry_ActionWithParam_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new DefaultRetryProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Retry(TaskWaitingDelegates.GetActionWithParamWithTaskWaitAll(cts, canceledOnLinkedSource), 4, 1, cts.Token);
+				}
+				else
+				{
+					pr = processor.Retry(TaskWaitingDelegates.GetActionWithParamWithTaskWait(cts, canceledOnLinkedSource), 4, 1, cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true, true)]
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		[TestCase(false, false)]
+		public void Should_Retry_Func_WithParam_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new DefaultRetryProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					pr = processor.Retry(TaskWaitingDelegates.GetFuncWithParamWithTaskWaitAll(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+				}
+				else
+				{
+					pr = processor.Retry(TaskWaitingDelegates.GetFuncWithParamWithTaskWait(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		[TestCase(true, true, true)]
+		[TestCase(false, true, true)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, true)]
+		[TestCase(true, true, false)]
+		[TestCase(false, true, false)]
+		[TestCase(true, false, false)]
+		[TestCase(false, false, false)]
+		public void Should_Retry_Func_Return_Correct_PolicyResult_When_OperationCanceledException_On_Linked_Token(bool canceledOnLinkedSource, bool waitAll, bool withContext)
+		{
+			using (var cts = new CancellationTokenSource())
+			{
+				var processor = new DefaultRetryProcessor();
+
+				PolicyResult pr;
+
+				if (waitAll)
+				{
+					if (withContext)
+					{
+						pr = processor.RetryWithErrorContext(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+					}
+					else
+					{
+						pr = processor.Retry(TaskWaitingDelegates.GetFuncWithTaskWaitAll(cts, canceledOnLinkedSource), 1, cts.Token);
+					}
+				}
+				else
+				{
+					if (withContext)
+					{
+						pr = processor.RetryWithErrorContext(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), 1, 1, cts.Token);
+					}
+					else
+					{
+						pr = processor.Retry(TaskWaitingDelegates.GetFuncWithTaskWait(cts, canceledOnLinkedSource), 1, cts.Token);
+					}
+				}
+				Assert.That(pr.Errors.OfType<NullReferenceException>().Count, Is.EqualTo(0));
+				Assert.That(pr.IsFailed, Is.True);
+				if (canceledOnLinkedSource)
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<ServiceOperationCanceledException>());
+				}
+				else
+				{
+					Assert.That(pr.PolicyCanceledError, Is.TypeOf<TaskCanceledException>());
+				}
+			}
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Using_DefaultInnerErrorProcessor_Handle_Only_Matching_Inner_Exception()
+		{
+			// Arrange
+			var processor = RetryProcessor.CreateDefault();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				(InvalidOperationException ex, ProcessingErrorInfo _) =>
+				{
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				});
+
+			// Act
+			processor.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = processor.Retry(() => throw new AggregateException("Main exception", innerException),1);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(2));
+		}
+
+		[Test]
+		public async Task Should_WithInnerErrorProcessor_Using_DefaultInnerErrorProcessor_Async_Handle_Only_Matching_Inner_Exception()
+		{
+			// Arrange
+			var processor = RetryProcessor.CreateDefault();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				async (InvalidOperationException ex, ProcessingErrorInfo _) =>
+				{
+					await Task.Delay(1);
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				});
+
+			// Act
+			processor.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = await processor.RetryAsync(async (_) => { await Task.Delay(1); throw new AggregateException("Main exception", innerException); },1);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Using_DefaultInnerErrorProcessor_Not_Handle_When_Inner_Exception_Type_Does_Not_Match()
+		{
+			// Arrange
+			var processor = RetryProcessor.CreateDefault();
+			var processorCalled = false;
+
+			var nonMatchingInnerException = new ArgumentException("Wrong type");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				(InvalidOperationException _, ProcessingErrorInfo __) => processorCalled = true);
+
+			// Act
+			processor.WithInnerErrorProcessor(innerErrorProcessor);
+			processor.Retry(() => throw new AggregateException("Main exception", nonMatchingInnerException),1);
+
+			// Assert
+			Assert.That(processorCalled, Is.False);
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Using_DefaultInnerErrorProcessor_Not_Handle_When_No_Inner_Exception()
+		{
+			// Arrange
+			var processor = RetryProcessor.CreateDefault();
+			var processorCalled = false;
+
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<ArgumentException>(
+				(ArgumentException _, ProcessingErrorInfo __) => processorCalled = true);
+
+			// Act
+			processor.WithInnerErrorProcessor(innerErrorProcessor);
+			processor.Retry(() => throw new InvalidOperationException("Exception without inner exception"), 1);
+
+			// Assert
+			Assert.That(processorCalled, Is.False);
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Using_DefaultInnerErrorProcessor_With_CancellationType_Handle_Inner_Exception()
+		{
+			// Arrange
+			var processor = RetryProcessor.CreateDefault();
+			var innerExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("Inner exception");
+			var innerErrorProcessor = new DefaultInnerErrorProcessor<InvalidOperationException>(
+				(InvalidOperationException ex, ProcessingErrorInfo _) =>
+				{
+					innerExceptionHandled = true;
+					Assert.That(ex.Message, Is.EqualTo("Inner exception"));
+				},
+				CancellationType.Precancelable);
+
+			// Act
+			processor.WithInnerErrorProcessor(innerErrorProcessor);
+			var result = processor.Retry(() => throw new AggregateException("Main exception", innerException), 1);
+
+			// Assert
+			Assert.That(innerExceptionHandled, Is.True);
+			Assert.That(result.Errors.Count(), Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Using_DefaultInnerErrorProcessor_Work_With_Multiple_Inner_Exception_Types()
+		{
+			// Arrange
+			var processor = RetryProcessor.CreateDefault();
+			var invalidOperationExceptionHandled = false;
+			var argumentExceptionHandled = false;
+
+			var innerException = new InvalidOperationException("First inner");
+
+			// Act - Add processors for both types
+			processor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException ex, ProcessingErrorInfo _) =>
+					{
+						invalidOperationExceptionHandled = true;
+						Assert.That(ex.Message, Is.EqualTo("First inner"));
+					}));
+
+			processor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<ArgumentException>(
+					(ArgumentException _, ProcessingErrorInfo __) => argumentExceptionHandled = true));
+
+			var result = processor.Retry(() => throw new AggregateException("Main exception", innerException), 1);
+
+			// Assert - Only the matching processor should be called
+			Assert.That(invalidOperationExceptionHandled, Is.True);
+			Assert.That(argumentExceptionHandled, Is.False);
+			Assert.That(result.Errors.Count(), Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Should_WithInnerErrorProcessor_Using_DefaultInnerErrorProcessor_Handle_Exception_From_Inner_Processor()
+		{
+			// Arrange
+			var processor = RetryProcessor.CreateDefault();
+			var processorException = new ArgumentException("Processor error");
+
+			var innerException = new InvalidOperationException("Inner exception");
+
+			// Act
+			processor.WithInnerErrorProcessor(
+				new DefaultInnerErrorProcessor<InvalidOperationException>(
+					(InvalidOperationException _, ProcessingErrorInfo __) => throw processorException));
+
+			var result = processor.Retry(() => throw new AggregateException("Main exception", innerException), 1);
+
+			// Assert - the inner processor exception is captured as a CatchBlockError
+			Assert.That(result.CatchBlockErrors.Count(), Is.EqualTo(1));
+		}
 	}
 }

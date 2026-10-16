@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace PoliNorError
 {
@@ -91,6 +92,7 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="attempt">The current retry.</param>
 		/// <returns></returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public virtual TimeSpan GetDelay(int attempt)
 		{
 			return DelayValueProvider(attempt);
@@ -200,6 +202,9 @@ namespace PoliNorError
 		TimeSeries
 	}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This class is obsolete")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal class MaxDelayDelimiter
 	{
 		private readonly double _adaptedMaxDelayMs;

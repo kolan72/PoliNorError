@@ -1,0 +1,194 @@
+using NUnit.Framework;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace PoliNorError.Tests
+{
+    internal class DelegateExtensionsErrorContextAsyncTests
+    {
+        [Test]
+        public async Task Should_InvokeWithSimpleAsync_ForErrorContextAsyncFunc_PassContextToProcessorOnly()
+        {
+            const int errorContext = 64;
+            int calls = 0;
+            bool tokenCancelable = false;
+            var logger = new TestLoggerWithParam();
+
+            Func<CancellationToken, Task> func = async token =>
+            {
+                await Task.Delay(1, token);
+                calls++;
+                tokenCancelable = token.CanBeCanceled;
+                throw new InvalidOperationException("simple");
+            };
+
+            using (var cts = new CancellationTokenSource())
+            {
+                var result = await func.InvokeWithSimpleAsync(errorContext, ErrorProcessorParam.From(new LogErrorProcessorWithParam(logger)), token: cts.Token);
+
+                Assert.That(calls, Is.EqualTo(1));
+                Assert.That(tokenCancelable, Is.True);
+                Assert.That(logger.LastLoggedException, Is.Not.Null);
+                Assert.That(logger.Param, Is.EqualTo(errorContext));
+                Assert.That(result.IsPolicySuccess, Is.True);
+                Assert.That(result.Errors.Count(), Is.EqualTo(1));
+            }
+        }
+
+        [Test]
+        public async Task Should_InvokeWithSimpleAsync_ForErrorContextAsyncFunc_WithConfigureAwait_Work()
+        {
+            const int errorContext = 71;
+            int calls = 0;
+            var logger = new TestLoggerWithParam();
+
+            Func<CancellationToken, Task> func = _ =>
+            {
+                calls++;
+                throw new Exception("cfg");
+            };
+
+            var result = await func.InvokeWithSimpleAsync(errorContext, ErrorProcessorParam.From(new LogErrorProcessorWithParam(logger)), configureAwait: true);
+
+            Assert.That(calls, Is.EqualTo(1));
+            Assert.That(logger.Param, Is.EqualTo(errorContext));
+            Assert.That(result.IsPolicySuccess, Is.True);
+        }
+
+        [Test]
+        public async Task Should_InvokeWithRetryAsync_ForErrorContextAsyncFunc_UseSameContextAcrossRetries()
+        {
+            const int errorContext = 19;
+            const int retryCount = 2;
+            int calls = 0;
+            var logger = new TestLoggerWithParam();
+
+            Func<CancellationToken, Task> func = _ =>
+            {
+                calls++;
+                throw new Exception("retry");
+            };
+
+            var result = await func.InvokeWithRetryAsync(errorContext, retryCount, ErrorProcessorParam.From(new LogErrorProcessorWithParam(logger)));
+
+            Assert.That(calls, Is.EqualTo(retryCount + 1));
+            Assert.That(logger.LastLoggedException, Is.Not.Null);
+            Assert.That(logger.Param, Is.EqualTo(errorContext));
+            Assert.That(result.IsFailed, Is.True);
+            Assert.That(result.Errors.Count(), Is.EqualTo(retryCount + 1));
+        }
+
+        [Test]
+        public async Task Should_InvokeWithWaitAndRetryAsync_ForErrorContextAsyncFunc_Work()
+        {
+            const int errorContext = 29;
+            int callsDelay = 0;
+            int callsRetryFunc = 0;
+            var loggerDelay = new TestLoggerWithParam();
+            var loggerRetryFunc = new TestLoggerWithParam();
+
+            Func<CancellationToken, Task> funcDelay = _ =>
+            {
+                callsDelay++;
+                throw new Exception("delay");
+            };
+
+            Func<CancellationToken, Task> funcRetryFunc = _ =>
+            {
+                callsRetryFunc++;
+                throw new Exception("delay-func");
+            };
+
+            var resultDelay = await funcDelay.InvokeWithWaitAndRetryAsync(errorContext, retryCount: 1, TimeSpan.Zero, ErrorProcessorParam.From(new LogErrorProcessorWithParam(loggerDelay)));
+            var resultRetryFunc = await funcRetryFunc.InvokeWithWaitAndRetryAsync(errorContext, retryCount: 1, (_, __) => TimeSpan.Zero, ErrorProcessorParam.From(new LogErrorProcessorWithParam(loggerRetryFunc)));
+
+            Assert.That(callsDelay, Is.EqualTo(2));
+            Assert.That(callsRetryFunc, Is.EqualTo(2));
+            Assert.That(loggerDelay.Param, Is.EqualTo(errorContext));
+            Assert.That(loggerRetryFunc.Param, Is.EqualTo(errorContext));
+            Assert.That(resultDelay.Errors.Count(), Is.EqualTo(2));
+            Assert.That(resultRetryFunc.Errors.Count(), Is.EqualTo(2));
+        }
+
+        [Test]
+        public async Task Should_InvokeWithFallbackAsync_ForErrorContextAsyncFunc_Work()
+        {
+            const int errorContext = 93;
+            int mainCalls = 0;
+            int fallbackWithTokenCalls = 0;
+            int fallbackSimpleCalls = 0;
+            bool fallbackTokenCancelable = false;
+            var logger = new TestLoggerWithParam();
+
+            Func<CancellationToken, Task> func = _ =>
+            {
+                mainCalls++;
+                throw new Exception("fallback");
+            };
+
+            Task fallbackWithToken(CancellationToken token)
+            {
+                fallbackWithTokenCalls++;
+                fallbackTokenCancelable = token.CanBeCanceled;
+                return Task.CompletedTask;
+            }
+
+            Task fallbackSimple()
+            {
+                fallbackSimpleCalls++;
+                return Task.CompletedTask;
+            }
+
+            using (var cts = new CancellationTokenSource())
+            {
+                var resultWithToken = await func.InvokeWithFallbackAsync(errorContext, fallbackWithToken, ErrorProcessorParam.From(new LogErrorProcessorWithParam(logger)), token: cts.Token);
+                var resultSimple = await func.InvokeWithFallbackAsync(errorContext, fallbackSimple, ErrorProcessorParam.From(new LogErrorProcessorWithParam(new TestLoggerWithParam())), CancellationType.Precancelable, CancellationToken.None);
+
+                Assert.That(mainCalls, Is.EqualTo(2));
+                Assert.That(fallbackWithTokenCalls, Is.EqualTo(1));
+                Assert.That(fallbackSimpleCalls, Is.EqualTo(1));
+                Assert.That(fallbackTokenCancelable, Is.True);
+                Assert.That(logger.Param, Is.EqualTo(errorContext));
+                Assert.That(resultWithToken.IsSuccess, Is.True);
+                Assert.That(resultSimple.IsSuccess, Is.True);
+            }
+        }
+
+        [Test]
+        public async Task Should_InvokeWithRetryInfiniteAsync_ForErrorContextAsyncFunc_Work()
+        {
+            const int errorContext = 55;
+            int calls = 0;
+            var logger = new TestLoggerWithParam();
+
+            Func<CancellationToken, Task> func = _ =>
+            {
+                calls++;
+                throw new Exception("inf");
+            };
+
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(100);
+                await func.InvokeWithRetryInfiniteAsync(errorContext, ErrorProcessorParam.From(new LogErrorProcessorWithParam(logger)), token: cts.Token);
+            }
+
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(100);
+                await func.InvokeWithWaitAndRetryInfiniteAsync(errorContext, TimeSpan.Zero, ErrorProcessorParam.From(new LogErrorProcessorWithParam(new TestLoggerWithParam())), token: cts.Token);
+            }
+
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(100);
+                await func.InvokeWithWaitAndRetryInfiniteAsync(errorContext, (_, __) => TimeSpan.Zero, ErrorProcessorParam.From(new LogErrorProcessorWithParam(new TestLoggerWithParam())), token: cts.Token);
+            }
+
+            Assert.That(calls, Is.GreaterThan(0));
+            Assert.That(logger.Param, Is.EqualTo(errorContext));
+        }
+    }
+}
