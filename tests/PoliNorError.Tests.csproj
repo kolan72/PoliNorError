@@ -183,6 +183,7 @@
     <Compile Include="IPolicyBaseExtensionsTests.cs" />
     <Compile Include="PolicyCollectionTests.cs" />
     <Compile Include="PolicyDelegateCollectionTests.cs" />
+    <Compile Include="PolicyDelegatesHandlerRegressionTests.cs" />
     <Compile Include="PolicyDelegateTCollectionTests.cs" />
     <Compile Include="PolicyProcessorHandleCanceledTests.cs" />
     <Compile Include="ExceptionFilterTests.cs" />
