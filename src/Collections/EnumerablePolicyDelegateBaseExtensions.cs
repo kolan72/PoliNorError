@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PoliNorError
 {
@@ -31,21 +29,18 @@ namespace PoliNorError
 
 		internal static PolicyDelegateHandleType GetHandleType(this IEnumerable<PolicyDelegateBase> policyDelegateInfos)
 		{
-			if (policyDelegateInfos.Any(si => si.SyncType == SyncPolicyDelegateType.Sync))
+			bool hasSync = false, hasAsync = false;
+			foreach (var st in policyDelegateInfos.Select(pd => pd.SyncType))
 			{
-				if (policyDelegateInfos.Any(si => si.SyncType == SyncPolicyDelegateType.Async))
-				{
+				if (st == SyncPolicyDelegateType.Sync)
+					hasSync = true;
+				else if (st == SyncPolicyDelegateType.Async)
+					hasAsync = true;
+
+				if (hasSync && hasAsync)
 					return PolicyDelegateHandleType.Misc;
-				}
-				else
-				{
-					return PolicyDelegateHandleType.Sync;
-				}
 			}
-			else
-			{
-				return PolicyDelegateHandleType.Async;
-			}
+			return hasSync ? PolicyDelegateHandleType.Sync : PolicyDelegateHandleType.Async;
 		}
 
 		internal static void AddIncludedErrorFilterForAll(this IEnumerable<PolicyDelegateBase> policyDelegateInfos, Expression<Func<Exception, bool>> handledErrorFilter)
