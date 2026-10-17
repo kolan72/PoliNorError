@@ -17,7 +17,8 @@ namespace PoliNorError
 
 		public IEnumerable<PolicyDelegate> PolicyDelegatesUnused { get; }
 
-		public PolicyResult LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
+		// Served from the base-class cache: previously an O(n) LastOrDefault() re-enumeration per access.
+		public PolicyResult LastPolicyResult => (LastHandledResult as PolicyDelegateResult)?.Result;
 
 		public IEnumerator<PolicyDelegateResult> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
@@ -45,7 +46,7 @@ namespace PoliNorError
 			}
 		}
 
-		public PolicyResult<T> LastPolicyResult => PolicyDelegateResults.LastOrDefault()?.Result;
+		public PolicyResult<T> LastPolicyResult => (LastHandledResult as PolicyDelegateResult<T>)?.Result;
 
 		public IEnumerator<PolicyDelegateResult<T>> GetEnumerator() => PolicyDelegateResults.GetEnumerator();
 
@@ -56,7 +57,9 @@ namespace PoliNorError
 	{
 		internal PolicyDelegateCollectionResultBase(IEnumerable<PolicyDelegateResultBase> policyHandledResults, LastPolicyResultState lastPolicyResultState = null, PolicyResultFailedReason failedReason = PolicyResultFailedReason.None)
 		{
-			if (!policyHandledResults.Any())
+			// LastOrDefault() replaces the previous Any() + Last() pair: one enumeration instead of two.
+			var lastResult = policyHandledResults.LastOrDefault();
+			if (lastResult == null)
 			{
 				IsFailed = lastPolicyResultState?.IsFailed == true;
 				IsCanceled = lastPolicyResultState?.IsCanceled == true;
@@ -64,11 +67,11 @@ namespace PoliNorError
 			}
 			else
 			{
-				var lastResult = policyHandledResults.Last();
 				IsFailed = lastResult.IsFailed;
 				IsCanceled = lastResult.IsCanceled;
 				LastPolicyResultFailedReason = lastResult.FailedReason;
 				IsSuccess = !IsFailed && !IsCanceled;
+				LastHandledResult = lastResult;
 			}
 		}
 
@@ -79,5 +82,8 @@ namespace PoliNorError
 		public bool IsCanceled { get; }
 
 		public PolicyResultFailedReason LastPolicyResultFailedReason { get; internal set; }
+
+		/// <summary>Last handled result captured during construction; null when nothing was handled.</summary>
+		protected PolicyDelegateResultBase LastHandledResult { get; }
 	}
 }
