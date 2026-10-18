@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace PoliNorError
 
 		public PolicyDelegateCollectionHandler(PolicyDelegateCollection policyDelegates)
 		{
-			_policyDelegates = policyDelegates;
+			_policyDelegates = policyDelegates ?? throw new ArgumentNullException(nameof(policyDelegates));
 		}
 
 		public PolicyDelegateCollectionResult Handle(CancellationToken token = default)
@@ -30,16 +31,14 @@ namespace PoliNorError
 
 		private PolicyDelegateCollectionResult GetResultOrThrow(IEnumerable<PolicyDelegateResult> handledResults, LastPolicyResultState resultState)
 		{
-			ThrowErrorIfNeed(handledResults);
-
-			return new PolicyDelegateCollectionResult(handledResults, _policyDelegates.Skip(handledResults.Count()).ToList(), resultState);
-			void ThrowErrorIfNeed(IEnumerable<PolicyDelegateResult> hResults)
+			if (resultState.IsFailed == true && _policyDelegates.ThrowOnLastFailed)
 			{
-				if (resultState.IsFailed == true && _policyDelegates.ThrowOnLastFailed)
-				{
-					throw _policyDelegates.ErrorConverter.ToExceptionConverter()(hResults);
-				}
+				throw _policyDelegates.ErrorConverter.ToExceptionConverter()(handledResults);
 			}
+
+			// Count() is O(1): FlexSyncEnumerable implements IReadOnlyCollection<T>.
+			var unusedPolicyDelegates = _policyDelegates.Skip(handledResults.Count()).ToList();
+			return new PolicyDelegateCollectionResult(handledResults, unusedPolicyDelegates, resultState);
 		}
 	}
 }
