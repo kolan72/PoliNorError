@@ -16,7 +16,9 @@ namespace PoliNorError
 		IPolicyDelegateCollection WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter errorConverter = null);
 
 		/// <summary>
-		/// Builds a handler for the entire collection of PolicyDelegates
+		/// Builds a handler for the entire collection of PolicyDelegates.
+		/// The handler captures the delegates present at build time; later mutations of this collection do not affect it.
+		/// The <see cref="PolicyDelegate"/> instances themselves are shared, so changing a delegate's bound func via the collection after build is still observed.
 		/// </summary>
 		/// <returns>An instance of <see cref="IPolicyDelegateCollectionHandler"/></returns>
 		IPolicyDelegateCollectionHandler BuildCollectionHandler();
@@ -33,7 +35,9 @@ namespace PoliNorError
 		IPolicyDelegateCollection<T> WithThrowOnLastFailed(IPolicyDelegateResultsToErrorConverter<T> errorConverter = null);
 
 		/// <summary>
-		/// Builds a handler for the entire collection of generic PolicyDelegates
+		/// Builds a handler for the entire collection of generic PolicyDelegates.
+		/// The handler captures the delegates present at build time; later mutations of this collection do not affect it.
+		/// The <see cref="PolicyDelegate{T}"/> instances themselves are shared, so changing a delegate's bound func via the collection after build is still observed.
 		/// </summary>
 		/// <returns>An instance of <see cref="IPolicyDelegateCollectionHandler{T}"/>.</returns>
 		IPolicyDelegateCollectionHandler<T> BuildCollectionHandler();

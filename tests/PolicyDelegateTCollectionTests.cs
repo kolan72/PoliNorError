@@ -1108,6 +1108,60 @@ namespace PoliNorError.Tests
 			Assert.DoesNotThrow(() => polCollection.ExcludeErrorSet(errorSet));
 		}
 
+		[Test]
+		public void Should_BuildCollectionHandler_Not_See_Delegates_Added_After_Build()
+		{
+			int i = 0;
+			var policyDelegateCollection = PolicyDelegateCollection<int>
+				.Create()
+				.WithRetry(1)
+				.AndDelegate(() => i++);
+			var handler = policyDelegateCollection.BuildCollectionHandler();
+
+			policyDelegateCollection.WithRetry(1).AndDelegate(() => i++);
+
+			var res = handler.Handle();
+			ClassicAssert.AreEqual(1, res.Count());
+			ClassicAssert.AreEqual(1, i);
+		}
+
+		[Test]
+		public void Should_BuildCollectionHandler_Not_Throw_On_WithThrowOnLastFailed_Set_After_Build()
+		{
+			var policyDelegateCollection = PolicyDelegateCollection<int>
+				.Create()
+				.WithRetry(1)
+				.AndDelegate(() => throw new Exception("Test"));
+			var handler = policyDelegateCollection.BuildCollectionHandler();
+
+			policyDelegateCollection.WithThrowOnLastFailed();
+
+			Assert.DoesNotThrow(() => handler.Handle());
+		}
+
+		[Test]
+		public void Should_BuildCollectionHandler_Observe_AndDelegate_On_Existing_Element_After_Build()
+		{
+			// Documents the shallow-snapshot limitation: the handler snapshots the delegate
+			// list at build time, but the PolicyDelegate<T> instances themselves stay shared
+			// with the collection. So replacing the bound func of an already-added element
+			// via AndDelegate after build IS observed by the handler. A future deep-freeze
+			// refactor must consciously update this test.
+			int i = 0;
+			var policyDelegateCollection = (PolicyDelegateCollection<int>)PolicyDelegateCollection<int>
+				.Create()
+				.WithRetry(1)
+				.AndDelegate(() => throw new Exception("Test"));
+			var handler = policyDelegateCollection.BuildCollectionHandler();
+
+			policyDelegateCollection.AndDelegate(() => i++);
+
+			var res = handler.Handle();
+			ClassicAssert.AreEqual(1, res.Count());
+			ClassicAssert.AreEqual(1, i);
+			ClassicAssert.IsFalse(res.LastOrDefault().Result.IsFailed);
+		}
+
 		private class TestClass
 		{
 			public void Save()

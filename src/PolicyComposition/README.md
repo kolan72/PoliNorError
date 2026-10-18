@@ -146,6 +146,8 @@ parameter. A `null` delegate produces a failed result with
 
 ## Building reusable handlers
 
+You can use the `BuildCollectionHandler()` method to get the `IPolicyDelegateCollectionHandler(T)` interface that has `Handle` and `HandleAsync` methods and pass it somewhere as a dependency injection parameter for further handling. The handler operates on the policy delegates captured at build time; later mutations of the collection do not affect it.  
+
 ```csharp
 // IPolicyDelegateCollectionHandler(<T>) — injectable Handle/HandleAsync
 IPolicyDelegateCollectionHandler<string[]> handler =

@@ -8,11 +8,20 @@ namespace PoliNorError
 {
 	public class PolicyDelegateCollectionHandler : IPolicyDelegateCollectionHandler
 	{
-		private readonly PolicyDelegateCollection _policyDelegates;
+		private readonly PolicyDelegate[] _policyDelegates;
+		private readonly bool _throwOnLastFailed;
+		private readonly IPolicyDelegateResultsToErrorConverter _errorConverter;
 
 		public PolicyDelegateCollectionHandler(PolicyDelegateCollection policyDelegates)
 		{
-			_policyDelegates = policyDelegates ?? throw new ArgumentNullException(nameof(policyDelegates));
+			if (policyDelegates == null)
+			{
+				throw new ArgumentNullException(nameof(policyDelegates));
+			}
+
+			_policyDelegates = policyDelegates.ToArray();
+			_throwOnLastFailed = policyDelegates.ThrowOnLastFailed;
+			_errorConverter = policyDelegates.ErrorConverter;
 		}
 
 		public PolicyDelegateCollectionResult Handle(CancellationToken token = default)
@@ -31,9 +40,9 @@ namespace PoliNorError
 
 		private PolicyDelegateCollectionResult GetResultOrThrow(IEnumerable<PolicyDelegateResult> handledResults, LastPolicyResultState resultState)
 		{
-			if (resultState.IsFailed == true && _policyDelegates.ThrowOnLastFailed)
+			if (resultState.IsFailed == true && _throwOnLastFailed)
 			{
-				throw _policyDelegates.ErrorConverter.ToExceptionConverter()(handledResults);
+				throw _errorConverter.ToExceptionConverter()(handledResults);
 			}
 
 			// Count() is O(1): FlexSyncEnumerable implements IReadOnlyCollection<T>.
