@@ -41,7 +41,9 @@ namespace PoliNorError
 		//handle call even when the delegate succeeds without errors.
 		private const int MAX_ERRORS_PREALLOC_CAPACITY = 8;
 
-		private static int GetErrorsCapacity(RetryCountInfo retryCountInfo) => Math.Min(retryCountInfo.RetryCount + 1, MAX_ERRORS_PREALLOC_CAPACITY);
+		internal static int GetErrorsCapacity(RetryCountInfo retryCountInfo) => Math.Min(retryCountInfo.RetryCount + 1, MAX_ERRORS_PREALLOC_CAPACITY);
+
+		internal static Func<int, RetryErrorContext> RetryErrorContextCreator => _retryErrorContextCreator;
 
 		private static readonly Func<RetryCountInfo, ErrorContext<RetryContext>, CancellationToken, bool> _policyRuleFunc = (retryCountInfo, exCtx, _) => retryCountInfo.CanRetry(exCtx.Context.CurrentRetryCount);
 
@@ -49,7 +51,7 @@ namespace PoliNorError
 			=> (ctx, ct) => _policyRuleFunc(retryCountInfo, ctx, ct);
 
 		//Allocated once per call (outside the retry loop), so no per-iteration delegate allocations occur.
-		private static Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> GetAsyncPolicyRule(RetryCountInfo retryCountInfo)
+		internal static Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> GetAsyncPolicyRule(RetryCountInfo retryCountInfo)
 			=> (context, ct) => Task.FromResult(_policyRuleFunc(retryCountInfo, context, ct));
 
 		public DefaultRetryProcessor(bool failedIfSaveErrorThrows = false) : this(null, failedIfSaveErrorThrows) { }
@@ -411,58 +413,8 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult().WithNoDelegateException();
 
-			var result = PolicyResult.InitByConfigureAwait(configureAwait, GetErrorsCapacity(retryCountInfo));
-
-			if (token.IsCancellationRequested)
-			{
-				result.SetCanceledEarly();
-				return result;
-			}
-
-			result.SetExecuted();
-
-			result.ErrorsNotUsed = ErrorsNotUsed;
-
-			var policyRuleAsync = GetAsyncPolicyRule(retryCountInfo);
-
-			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
-
-			var errorFilterPredicate = ErrorFilter.GetCanHandle();
-			do
-			{
-				try
-				{
-					await func(token).ConfigureAwait(configureAwait);
-					if (retryContext.Context.IsZeroRetry)
-					{
-						result.SetOk();
-					}
-					if (result.UnprocessedError != null)
-						result.UnprocessedError = null;
-					break;
-				}
-				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-				{
-					result.SetFailedAndCanceled(oe);
-				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterPredicate, ex, false, result, out bool filterAccepted))
-				{
-					if (filterAccepted &&
-						await TryHandleExceptionAsync(
-							ex,
-							result,
-							retryContext,
-							policyRuleAsync,
-							retryDelay,
-							configureAwait,
-							token).ConfigureAwait(configureAwait))
-					{
-						retryContext.IncrementCount();
-					}
-				}
-			}
-			while (!result.IsFailed);
-			return result;
+			var session = RetrySession.Create(func, this, retryCountInfo, retryDelay, retryErrorContextCreator, configureAwait, token);
+			return await session.RunUntilTerminalAsync(configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
 		internal async Task<PolicyResult<T>> RetryInternalAsync<TParam, T>(Func<TParam, CancellationToken, Task<T>> func, TParam param, RetryCountInfo retryCountInfo, RetryDelay retryDelay, bool configureAwait = false, CancellationToken token = default)
@@ -529,58 +481,27 @@ namespace PoliNorError
 			if (func == null)
 				return new PolicyResult<T>().WithNoDelegateException();
 
-			var result = PolicyResult<T>.InitByConfigureAwait(configureAwait, GetErrorsCapacity(retryCountInfo));
-			if (token.IsCancellationRequested)
-			{
-				result.SetCanceledEarly();
-				return result;
-			}
+			var session = RetrySession<T>.Create(func, this, retryCountInfo, retryDelay, retryErrorContextCreator, configureAwait, token);
+			return await session.RunUntilTerminalAsync(configureAwait, token).ConfigureAwait(configureAwait);
+		}
 
-			result.SetExecuted();
-
-			result.ErrorsNotUsed = ErrorsNotUsed;
-
-			var policyRuleAsync = GetAsyncPolicyRule(retryCountInfo);
-
-			var retryContext = retryErrorContextCreator(retryCountInfo.StartTryCount);
-
-			var errorFilterPredicate = ErrorFilter.GetCanHandle();
-			do
-			{
-				try
-				{
-					var res = await func(token).ConfigureAwait(configureAwait);
-					if (retryContext.Context.IsZeroRetry)
-					{
-						result.SetOk();
-					}
-					result.SetResult(res);
-					if (result.UnprocessedError != null)
-						result.UnprocessedError = null;
-					break;
-				}
-				catch (OperationCanceledException oe) when (token.IsCancellationRequested)
-				{
-					result.SetFailedAndCanceled(oe);
-				}
-				catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(errorFilterPredicate, ex, false, result, out bool filterAccepted))
-				{
-					if (filterAccepted &&
-						await TryHandleExceptionAsync(
+		internal Task<bool> TryHandleExceptionCoreAsync(
+			Exception ex,
+			PolicyResult result,
+			RetryErrorContext retryContext,
+			Func<ErrorContext<RetryContext>, CancellationToken, Task<bool>> policyRuleFunc,
+			bool configureAwait,
+			CancellationToken token)
+		{
+			return TryHandleByEvaluatingRuleThenProcessExceptionAsync(
 							ex,
 							result,
 							retryContext,
-							policyRuleAsync,
-							retryDelay,
+							SaveErrorAsyncDelegate,
+							policyRuleFunc,
+							ErrorProcessingCancellationEffect.Propagate,
 							configureAwait,
-							token).ConfigureAwait(configureAwait))
-					{
-						retryContext.IncrementCount();
-					}
-				}
-			}
-			while (!result.IsFailed);
-			return result;
+							token);
 		}
 
 		private async Task<bool> TryHandleExceptionAsync(
@@ -592,13 +513,11 @@ namespace PoliNorError
 			bool configureAwait,
 			CancellationToken token)
 		{
-			return await TryHandleByEvaluatingRuleThenProcessExceptionAsync(
+			return await TryHandleExceptionCoreAsync(
 							ex,
 							result,
 							retryContext,
-							SaveErrorAsyncDelegate,
 							policyRuleFunc,
-							ErrorProcessingCancellationEffect.Propagate,
 							configureAwait,
 							token).ConfigureAwait(configureAwait) &&
 					!await DelayProvider.DelayAndCheckIfResultFailedAsync(
@@ -673,9 +592,9 @@ namespace PoliNorError
 			return this.WithErrorContextProcessor<DefaultRetryProcessor, TErrorContext>(errorProcessor);
 		}
 
-		private IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
+		internal IDelayProvider DelayProvider => _delayProvider ?? (_delayProvider = new DelayProvider());
 
-		private bool ErrorsNotUsed => _saveErrorProcessor != null;
+		internal bool ErrorsNotUsed => _saveErrorProcessor != null;
 
 		private void SaveError(PolicyResult result, Exception ex, ErrorContext<RetryContext> retryContext, CancellationToken token)
 		{

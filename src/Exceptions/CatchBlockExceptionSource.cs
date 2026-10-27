@@ -21,9 +21,13 @@
 		/// Exception thrown when trying to apply a policy rule.
 		/// </summary>
 		PolicyRule,
-		/// <summary>
+/// <summary>
 		///  Exception thrown when trying to apply an error filter.
 		/// </summary>
-		ErrorFilter
+		ErrorFilter,
+		/// <summary>
+		/// Exception thrown by the <see cref="RetryQueue"/> worker while stepping or finalizing a queued retry session.
+		/// </summary>
+		RetryQueueWorker
 	}
 }
