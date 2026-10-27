@@ -491,6 +491,42 @@ When error saving is customized, the `PolicyResult.ErrorsNotUsed` property will 
 For testing purposes there is a `RetryPolicy` constructor that has `Action<RetryCountInfoOptions>` parameter.  
 `RetryPolicy` can be customized of your implementation of `IRetryProcessor` interface.  
 
+#### Deferred retries (RetryQueue)
+`HandleDeferredAsync` starts attempt 1 inside the current call and, when that attempt fails retryably, does not sleep for the inter-attempt delay: the remaining retry session is handed over to a `RetryQueue` worker, while the caller gets a `QueuedRetryHandle` whose `Completion` task resolves with the same terminal `PolicyResult` `HandleAsync` would have returned:
+```csharp
+var policy = new RetryPolicy(3, retryDelay: new ConstantRetryDelay(TimeSpan.FromSeconds(1)));
+
+//Attempt 1 runs here; the deferred part of the session runs on the queue's worker:
+var handle = await policy.HandleDeferredAsync(async (ct) => await DoSomethingAsync(ct), queue);
+
+//...do other work without waiting for the retries...
+
+var retryResult = await handle.Completion;
+```
+A `RetryQueue` must be passed explicitly. The queue is single-worker and schedules sessions by their next ready time, so a session with a longer delay never blocks a session that is already due:
+```csharp
+var queue = new RetryQueue(new RetryQueueOptions
+{
+    Capacity = 100,                                  //0 - unbounded (the default)
+    Overflow = RetryQueueOverflowPolicy.Wait         //or RetryQueueOverflowPolicy.Reject
+});
+
+//Stop accepting new sessions and wait until every accepted session reaches its terminal state:
+await queue.CompleteAsync();
+
+//Stop accepting new sessions and abort the pending/in-flight ones instead:
+await queue.CancelAsync();
+```
+The deferred mode has the following contract:
+
+- `HandleDeferredAsync` returns after attempt 1 and its error processing, not before the whole session finishes. If attempt 1 succeeds or fails definitively, nothing is queued and the returned handle is already completed.
+- `PolicyResult` handlers of the policy (including ones that call `SetFailed`) run exactly once, before `Completion` resolves - even if the caller never awaits `Completion`.
+- The mode is asynchronous only: there is no deferred counterpart of the synchronous `Handle` methods, and it requires the `DefaultRetryProcessor` (a custom `IRetryProcessor` makes `HandleDeferredAsync` throw `NotImplementedException`).
+- Cancellation funnels into the usual canceled shapes: a token passed to `HandleDeferredAsync`, `handle.Cancel()` and `queue.CancelAsync()` give a *failed and canceled* result with `PolicyCanceledError` set (a pre-canceled token gives the same canceled-early result `HandleAsync` gives).
+- When the queue capacity is reached, the default `Wait` overflow policy makes `HandleDeferredAsync` wait for a free slot (the wait honors the cancellation token); with `Reject` the call throws `RetryQueueRejectedException` and no session is queued - note that attempt 1 may have already executed by then. Throwing out of a `HandleDeferredAsync` call that has not returned a handle means no session was queued and no `PolicyResult` handlers run for that attempt.
+- The delegate is invoked on two different contexts: attempt 1 on the caller's context, the queued attempts on the queue worker's context (no `ExecutionContext` is captured at enqueue time). Keep the delegate self-contained (avoid scoped/DI dependencies captured by the closure), idempotent where it can be invoked more than once, and make its callbacks thread-safe.
+- Prefer `RetryDelay` over `WithWait` for deferred sessions: `WithWait` installs a `DelayErrorProcessor`, which sleeps inline while processing an attempt's error - so the sleep of attempt 1 still happens inside `HandleDeferredAsync`, before the handle exists.
+
 ### FallbackPolicy
 The policy rule for the `FallbackPolicy` is that it can't handle error when the fallback delegate throws an exception.  
 If it happens, this exception will be wrapped up in a `CatchBlockException` exception with the `IsCritical` property set to true, which will be saved in the `CatchBlockErrors` property of the `PolicyResult` object.  Additionally, the `PolicyResult.IsFailed` property will be set to true.  
