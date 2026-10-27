@@ -9,9 +9,17 @@ namespace PoliNorError
 {
 	public static partial class PolicyDelegateCollectionRegistrar
 	{
-		public static IPolicyDelegateCollection<T> WithPolicyAndDelegate<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, IPolicyBase errorPolicy, Func<CancellationToken, Task<T>> func) => policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+		public static IPolicyDelegateCollection<T> WithPolicyAndDelegate<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, IPolicyBase errorPolicy, Func<CancellationToken, Task<T>> func)
+		{
+			if (errorPolicy == null) throw new ArgumentNullException(nameof(errorPolicy));
+			return policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+		}
 
-		public static IPolicyDelegateCollection<T> WithPolicyAndDelegate<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, IPolicyBase errorPolicy, Func<T> func) => policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+		public static IPolicyDelegateCollection<T> WithPolicyAndDelegate<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, IPolicyBase errorPolicy, Func<T> func)
+		{
+			if (errorPolicy == null) throw new ArgumentNullException(nameof(errorPolicy));
+			return policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+		}
 
 		public static INeedDelegateCollection<T> WithRetry<T>(this IPolicyDelegateCollection<T> policyDelegateCollection, int retryCount, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{

@@ -12,9 +12,17 @@ namespace PoliNorError
 	/// </summary>
 	public static partial class PolicyDelegateCollectionRegistrar
 	{
-		public static IPolicyDelegateCollection WithPolicyAndDelegate(this IPolicyDelegateCollection policyDelegateCollection, IPolicyBase errorPolicy, Func<CancellationToken, Task> func) => policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+		public static IPolicyDelegateCollection WithPolicyAndDelegate(this IPolicyDelegateCollection policyDelegateCollection, IPolicyBase errorPolicy, Func<CancellationToken, Task> func)
+		{
+			if (errorPolicy == null) throw new ArgumentNullException(nameof(errorPolicy));
+			return policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(func));
+		}
 
-		public static IPolicyDelegateCollection WithPolicyAndDelegate(this IPolicyDelegateCollection policyDelegateCollection, IPolicyBase errorPolicy, Action action) => policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(action));
+		public static IPolicyDelegateCollection WithPolicyAndDelegate(this IPolicyDelegateCollection policyDelegateCollection, IPolicyBase errorPolicy, Action action)
+		{
+			if (errorPolicy == null) throw new ArgumentNullException(nameof(errorPolicy));
+			return policyDelegateCollection.WithPolicyDelegate(errorPolicy.ToPolicyDelegate(action));
+		}
 
 		public static INeedDelegateCollection WithRetry(this IPolicyDelegateCollection policyDelegateCollection, int retryCount, ErrorProcessorParam policyParams = null, bool failedIfSaveErrorThrows = false, RetryErrorSaverParam errorSaver = null)
 		{
