@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Represents the handle of a deferred (queued) retry session started by <see cref="RetryPolicy"/>'s
-	/// <c>HandleDeferredAsync</c> method.
+	/// Represents the handle of a deferred (queued) retry session started by <see cref="DeferredRetry"/>'s
+	/// <c>StartAsync</c> method.
 	/// </summary>
 	public sealed class QueuedRetryHandle
 	{

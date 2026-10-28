@@ -76,12 +76,12 @@ namespace PoliNorError
 			return _policyResultHandlerCollection.Handle(policyRetryResult, token);
 		}
 
-		protected async Task<PolicyResult> HandlePolicyResultAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		protected internal async Task<PolicyResult> HandlePolicyResultAsync(PolicyResult policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
 			return await _policyResultHandlerCollection.HandleAsync(policyRetryResult, configureAwait, token).ConfigureAwait(configureAwait);
 		}
 
-		protected async Task<PolicyResult<T>> HandlePolicyResultAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
+		protected internal async Task<PolicyResult<T>> HandlePolicyResultAsync<T>(PolicyResult<T> policyRetryResult, bool configureAwait = false, CancellationToken token = default)
 		{
 			return await _policyResultHandlerCollection.HandleAsync(policyRetryResult, configureAwait, token).ConfigureAwait(configureAwait);
 		}

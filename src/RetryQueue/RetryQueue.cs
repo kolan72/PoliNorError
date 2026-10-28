@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// Executes retry sessions handed over by <see cref="RetryPolicy"/>'s <c>HandleDeferredAsync</c> methods:
+	/// Executes retry sessions handed over by <see cref="DeferredRetry"/>'s <c>StartAsync</c> methods:
 	/// every accepted session is stepped sequentially by a single internal worker with ready-time based scheduling, i.e. a session
 	/// with a later <see cref="TimeSpan"/> delay never blocks a session that is already due.
 	/// </summary>

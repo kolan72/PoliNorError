@@ -576,7 +576,7 @@ namespace PoliNorError
 
 		internal RetryDelay Delay { get; }
 
-		private void ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor proc)
+		internal void ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor proc)
 		{
 			ThrowHelper.ThrowIfNotImplemented(RetryProcessor, out proc);
 		}

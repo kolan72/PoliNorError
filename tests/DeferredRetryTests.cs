@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
-	internal class RetryPolicyHandleDeferredAsyncTests
+	internal class DeferredRetryTests
 	{
 		private static Func<CancellationToken, Task> TransientThenSuccess(int failTimes)
 		{
@@ -41,7 +41,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_Match_HandleAsync_TerminalStateAndHandlers()
+		public void Ctor_WithNullPolicyOrNullQueue_ShouldThrowArgumentNullException()
+		{
+			Assert.Throws<ArgumentNullException>(() => new DeferredRetry(null, new RetryQueue()));
+			Assert.Throws<ArgumentNullException>(() => new DeferredRetry(new RetryPolicy(1), null));
+		}
+
+		[Test]
+		public async Task Should_StartAsync_Match_HandleAsync_TerminalStateAndHandlers()
 		{
 			var policyOfHandleAsync = new RetryPolicy(2);
 			var handlersOfHandleAsync = 0;
@@ -52,7 +59,7 @@ namespace PoliNorError.Tests
 			var handlersOfDeferred = 0;
 			policyOfDeferred.AddPolicyResultHandler(_ => handlersOfDeferred++);
 			var queue = new RetryQueue();
-			var handle = await policyOfDeferred.HandleDeferredAsync(TransientThenSuccess(1), queue);
+			var handle = await new DeferredRetry(policyOfDeferred, queue).StartAsync(TransientThenSuccess(1));
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
 			ClassicAssert.AreEqual(handleAsyncResult.IsFailed, deferredResult.IsFailed);
@@ -71,14 +78,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsyncT_Match_HandleAsyncT_TerminalStateAndResultValue()
+		public async Task Should_StartAsyncT_Match_HandleAsyncT_TerminalStateAndResultValue()
 		{
 			var policyOfHandleAsync = new RetryPolicy(2);
 			var handleAsyncResult = await policyOfHandleAsync.HandleAsync(TransientThenResult(1, 42));
 
 			var policyOfDeferred = new RetryPolicy(2);
 			var queue = new RetryQueue();
-			var handle = await policyOfDeferred.HandleDeferredAsync(TransientThenResult(1, 42), queue);
+			var handle = await new DeferredRetry(policyOfDeferred, queue).StartAsync(TransientThenResult(1, 42));
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
 			ClassicAssert.AreEqual(handleAsyncResult.Result, deferredResult.Result);
@@ -93,7 +100,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_WithoutAwaitingCompletion_StillRunHandlersExactlyOnce()
+		public async Task Should_StartAsync_WithoutAwaitingCompletion_StillRunHandlersExactlyOnce()
 		{
 			var policy = new RetryPolicy(2);
 			var handled = 0;
@@ -106,7 +113,7 @@ namespace PoliNorError.Tests
 				}
 			});
 
-			var handle = await policy.HandleDeferredAsync(TransientThenSuccess(1), new RetryQueue());
+			var handle = await new DeferredRetry(policy, new RetryQueue()).StartAsync(TransientThenSuccess(1));
 
 			await DeferredRetryTestHelpers.Complete(handlerSignal.Task);
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
@@ -117,7 +124,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_SetFailedInsideHandler_BeVisibleInCompletion()
+		public async Task Should_StartAsync_SetFailedInsideHandler_BeVisibleInCompletion()
 		{
 			var policy = new RetryPolicy(1);
 			var handled = 0;
@@ -127,9 +134,8 @@ namespace PoliNorError.Tests
 				r.SetFailed();
 			});
 
-			var handle = await policy.HandleDeferredAsync(
-				async _ => await Task.Yield(),
-				new RetryQueue());
+			var handle = await new DeferredRetry(policy, new RetryQueue())
+				.StartAsync(async _ => await Task.Yield());
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
 			ClassicAssert.AreEqual(1, handled);
@@ -137,7 +143,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_CanceledEarly_MatchHandleAsync()
+		public async Task Should_StartAsync_CanceledEarly_MatchHandleAsync()
 		{
 			using (var cts = new CancellationTokenSource())
 			{
@@ -160,7 +166,7 @@ namespace PoliNorError.Tests
 				};
 				var policyOfDeferred = new RetryPolicy(2);
 				var queue = new RetryQueue();
-				var handle = await policyOfDeferred.HandleDeferredAsync(funcOfDeferred, queue, false, cts.Token);
+				var handle = await new DeferredRetry(policyOfDeferred, queue).StartAsync(funcOfDeferred, false, cts.Token);
 				var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
 				ClassicAssert.AreEqual(0, callsOfHandleAsync);
@@ -176,7 +182,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_CanceledDuringAttempt1_ProduceFailedAndCanceledResult()
+		public async Task Should_StartAsync_CanceledDuringAttempt1_ProduceFailedAndCanceledResult()
 		{
 			using (var cts = new CancellationTokenSource())
 			{
@@ -189,7 +195,7 @@ namespace PoliNorError.Tests
 					await Task.Delay(1, token);
 				}
 
-				var handle = await policy.HandleDeferredAsync(func, queue, false, cts.Token);
+				var handle = await new DeferredRetry(policy, queue).StartAsync(func, false, cts.Token);
 				var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
 				ClassicAssert.IsTrue(deferredResult.IsFailed);
@@ -200,7 +206,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_CanceledDuringReadyWait_ProduceFailedAndCanceledResult()
+		public async Task Should_StartAsync_CanceledDuringReadyWait_ProduceFailedAndCanceledResult()
 		{
 			using (var cts = new CancellationTokenSource())
 			{
@@ -215,7 +221,7 @@ namespace PoliNorError.Tests
 					throw new InvalidOperationException("boom");
 				}
 
-				var handle = await policy.HandleDeferredAsync(func, queue, false, cts.Token);
+				var handle = await new DeferredRetry(policy, queue).StartAsync(func, false, cts.Token);
 				cts.Cancel();
 
 				var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
@@ -231,7 +237,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_CanceledDuringAttempt2_ProduceFailedAndCanceledResult()
+		public async Task Should_StartAsync_CanceledDuringAttempt2_ProduceFailedAndCanceledResult()
 		{
 			using (var cts = new CancellationTokenSource())
 			{
@@ -252,7 +258,7 @@ namespace PoliNorError.Tests
 					await Task.Delay(Timeout.Infinite, token);
 				}
 
-				var handle = await policy.HandleDeferredAsync(func, queue, false, cts.Token);
+				var handle = await new DeferredRetry(policy, queue).StartAsync(func, false, cts.Token);
 				await DeferredRetryTestHelpers.Complete(attempt2Started.Task);
 				cts.Cancel();
 
@@ -282,7 +288,7 @@ namespace PoliNorError.Tests
 				throw new InvalidOperationException("boom");
 			}
 
-			var handle = await policy.HandleDeferredAsync(func, queue);
+			var handle = await new DeferredRetry(policy, queue).StartAsync(func);
 			handle.Cancel();
 
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
@@ -310,7 +316,7 @@ namespace PoliNorError.Tests
 				throw new InvalidOperationException("boom");
 			}
 
-			var handle = await policy.HandleDeferredAsync(func, queue);
+			var handle = await new DeferredRetry(policy, queue).StartAsync(func);
 			await DeferredRetryTestHelpers.Complete(queue.CancelAsync());
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
@@ -322,7 +328,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_WithWrappedPolicy_MatchHandleAsync()
+		public async Task Should_StartAsync_WithWrappedPolicy_MatchHandleAsync()
 		{
 			var policyOfHandleAsync = new RetryPolicy(2);
 			new SimplePolicy().Then(policyOfHandleAsync);
@@ -331,7 +337,7 @@ namespace PoliNorError.Tests
 			var policyOfDeferred = new RetryPolicy(2);
 			new SimplePolicy().Then(policyOfDeferred);
 			var queue = new RetryQueue();
-			var handle = await policyOfDeferred.HandleDeferredAsync(TransientThenSuccess(1), queue);
+			var handle = await new DeferredRetry(policyOfDeferred, queue).StartAsync(TransientThenSuccess(1));
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
 			ClassicAssert.IsNotNull(handleAsyncResult.WrappedPolicyResults);
@@ -347,7 +353,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_HandleDeferredAsync_Throw_ForCustomRetryProcessor()
+		public void Should_StartAsync_Throw_ForCustomRetryProcessor()
 		{
 			var subsProcessor = Substitute.For<IRetryProcessor>();
 			var policy = new RetryPolicy(subsProcessor, 1);
@@ -360,12 +366,12 @@ namespace PoliNorError.Tests
 				return Task.CompletedTask;
 			};
 
-			Assert.ThrowsAsync<NotImplementedException>(async () => await policy.HandleDeferredAsync(func, queue));
+			Assert.ThrowsAsync<NotImplementedException>(async () => await new DeferredRetry(policy, queue).StartAsync(func));
 			ClassicAssert.AreEqual(0, calls);
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_NullDelegate_MatchHandleAsync()
+		public async Task Should_StartAsync_NullDelegate_MatchHandleAsync()
 		{
 			var policyOfHandleAsync = new RetryPolicy(1);
 			var handlersOfHandleAsync = 0;
@@ -375,7 +381,7 @@ namespace PoliNorError.Tests
 			var policyOfDeferred = new RetryPolicy(1);
 			var handlersOfDeferred = 0;
 			policyOfDeferred.AddPolicyResultHandler(_ => handlersOfDeferred++);
-			var handle = await policyOfDeferred.HandleDeferredAsync((Func<CancellationToken, Task>)null, new RetryQueue());
+			var handle = await new DeferredRetry(policyOfDeferred, new RetryQueue()).StartAsync((Func<CancellationToken, Task>)null);
 			var deferredResult = await DeferredRetryTestHelpers.Complete(handle.Completion);
 
 			ClassicAssert.IsTrue(handleAsyncResult.IsFailed);
@@ -387,13 +393,13 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_WithWithWait_SleepInlineDuringAttempt1()
+		public async Task Should_StartAsync_WithWithWait_SleepInlineDuringAttempt1()
 		{
 			var policy = new RetryPolicy(2).WithWait(TimeSpan.FromMilliseconds(15));
 			var queue = new RetryQueue();
 
 			var stopwatch = Stopwatch.StartNew();
-			var handle = await policy.HandleDeferredAsync(TransientThenSuccess(1), queue);
+			var handle = await new DeferredRetry(policy, queue).StartAsync(TransientThenSuccess(1));
 			stopwatch.Stop();
 
 			ClassicAssert.GreaterOrEqual(stopwatch.ElapsedMilliseconds, 10);
@@ -406,7 +412,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_HandleDeferredAsync_Throw_WhenQueueRejectsWithRejectPolicy()
+		public async Task Should_StartAsync_Throw_WhenQueueRejectsWithRejectPolicy()
 		{
 			var queue = new RetryQueue(new RetryQueueOptions { Capacity = 1, Overflow = RetryQueueOverflowPolicy.Reject });
 			var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -432,11 +438,11 @@ namespace PoliNorError.Tests
 			}
 
 			var firstPolicy = new RetryPolicy(2);
-			var firstHandle = await firstPolicy.HandleDeferredAsync(func, queue);
+			var firstHandle = await new DeferredRetry(firstPolicy, queue).StartAsync(func);
 			await DeferredRetryTestHelpers.Complete(attempt2Started.Task);
 
 			var secondPolicy = new RetryPolicy(2);
-			Assert.ThrowsAsync<RetryQueueRejectedException>(async () => await secondPolicy.HandleDeferredAsync(func, queue));
+			Assert.ThrowsAsync<RetryQueueRejectedException>(async () => await new DeferredRetry(secondPolicy, queue).StartAsync(func));
 
 			await DeferredRetryTestHelpers.Complete(queue.CancelAsync());
 			var firstResult = await DeferredRetryTestHelpers.Complete(firstHandle.Completion);
