@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PoliNorError
 {
-	internal class FlexSyncEnumerable<T> : FlexSyncEnumerable<T>.IWrapper, IReadOnlyCollection<T>
+	internal class FlexSyncEnumerable<T> : FlexSyncEnumerable<T>.IWrapper
 	{
 		private readonly IWrapper _inner;
 
