@@ -173,6 +173,38 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Builds the result for a null delegate: no execution happens, therefore no wrapped results exist.
+		/// The <see cref="NoDelegateException"/> message includes this policy's name, the result carries
+		/// <see cref="PolicyResult.PolicyName"/> and registered result handlers are invoked like on every other path.
+		/// </summary>
+		private protected PolicyResult NoDelegateResult(CancellationToken token)
+		{
+			var result = new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(PolicyName);
+			return HandlePolicyResult(result, token);
+		}
+
+		/// <inheritdoc cref="NoDelegateResult(CancellationToken)"/>
+		private protected PolicyResult<T> NoDelegateResult<T>(CancellationToken token)
+		{
+			var result = new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(PolicyName);
+			return HandlePolicyResult(result, token);
+		}
+
+		/// <inheritdoc cref="NoDelegateResult(CancellationToken)"/>
+		private protected async Task<PolicyResult> NoDelegateResultAsync(bool configureAwait, CancellationToken token)
+		{
+			var result = new PolicyResult().WithNoDelegateExceptionAndPolicyNameFrom(PolicyName);
+			return await HandlePolicyResultAsync(result, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		/// <inheritdoc cref="NoDelegateResult(CancellationToken)"/>
+		private protected async Task<PolicyResult<T>> NoDelegateResultAsync<T>(bool configureAwait, CancellationToken token)
+		{
+			var result = new PolicyResult<T>().WithNoDelegateExceptionAndPolicyNameFrom(PolicyName);
+			return await HandlePolicyResultAsync(result, configureAwait, token).ConfigureAwait(configureAwait);
+		}
+
+		/// <summary>
 		/// Gets a value indicating whether this policy has a wrapped policy factory.
 		/// </summary>
 		protected bool HasPolicyWrapperFactory => _policyWrapperFactory != null;

@@ -10,6 +10,8 @@ namespace PoliNorError
 		public NoDelegateException(string msg) : base(msg){}
 		public NoDelegateException(IPolicyBase policy)  : this(GetExceptionMessage(policy.PolicyName)) {}
 
+		internal static NoDelegateException ForPolicyName(string policyName) => new NoDelegateException(GetExceptionMessage(policyName));
+
 		private static string GetExceptionMessage(string policyName) => $"Delegate for policy {policyName} was not set.";
 	}
 }

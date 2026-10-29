@@ -96,9 +96,9 @@ namespace PoliNorError
 			return retryResult.SetFailedWithError(new NoDelegateException());
 		}
 
-		internal static T WithNoDelegateExceptionAndPolicyNameFrom<T>(this T retryResult, IPolicyBase policy) where T : PolicyResult
+		internal static T WithNoDelegateExceptionAndPolicyNameFrom<T>(this T retryResult, string policyName) where T : PolicyResult
 		{
-			return retryResult.SetFailedWithError(new NoDelegateException(policy)).SetPolicyName(policy.PolicyName);
+			return retryResult.SetFailedWithError(NoDelegateException.ForPolicyName(policyName)).SetPolicyName(policyName);
 		}
 
 		internal async static Task<PolicyResult> HandleResultMisc(this PolicyResult policyRetryResult, IEnumerable<IHandlerRunner> handlerRunners, bool configureAwait, CancellationToken token)

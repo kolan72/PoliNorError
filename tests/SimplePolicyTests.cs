@@ -98,6 +98,44 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Handle_Null_Delegate_NoDelegateException_Message_Contain_PolicyName_And_Run_Handlers()
+		{
+			const string polName = "StupidPolicy";
+			var simple = new SimplePolicy().WithPolicyName(polName);
+			PolicyResult seen = null;
+			simple.AddPolicyResultHandler(r => seen = r);
+
+			var res = simple.Handle(null);
+
+			Assert.That(res.FailedReason, Is.EqualTo(PolicyResultFailedReason.DelegateIsNull));
+			Assert.That(res.Errors.First().Message, Is.EqualTo($"Delegate for policy {polName} was not set."));
+			Assert.That(res.PolicyName, Is.EqualTo(polName));
+			Assert.That(seen, Is.SameAs(res));
+
+			simple.WrapPolicy(new SimplePolicy());
+
+			var wrapRes = simple.Handle(null);
+
+			Assert.That(wrapRes.FailedReason, Is.EqualTo(PolicyResultFailedReason.DelegateIsNull));
+			Assert.That(wrapRes.Errors.First().Message, Is.EqualTo($"Delegate for policy {polName} was not set."));
+			Assert.That(wrapRes.PolicyName, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_Handle_TParam_Null_Delegate_Return_NoDelegateException_When_Wrap_Is_Configured()
+		{
+			const string polName = "StupidPolicy";
+			var simple = new SimplePolicy().WithPolicyName(polName);
+			simple.WrapPolicy(new SimplePolicy());
+
+			Action<int> nullAction = null;
+			var res = simple.Handle(nullAction, 1);
+
+			Assert.That(res.FailedReason, Is.EqualTo(PolicyResultFailedReason.DelegateIsNull));
+			Assert.That(res.Errors.First().Message, Is.EqualTo($"Delegate for policy {polName} was not set."));
+		}
+
+		[Test]
 		public void Should_Handle_CallWrappedPolicy_When_Wrapped_And_Not_Error()
 		{
 			var simple = new SimplePolicy();
