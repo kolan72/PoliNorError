@@ -71,11 +71,12 @@ namespace PoliNorError
 
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
-			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
-			if (Act == null)
+			if (action == null)
 			{
 				return NoDelegateResult(token);
 			}
+
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 
 			PolicyResult retryResult;
 			if (Delay is null)
@@ -96,11 +97,12 @@ namespace PoliNorError
 
 		public PolicyResult Handle<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
 		{
-			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
-			if (Act == null)
+			if (action == null)
 			{
 				return NoDelegateResult(token);
 			}
+
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 
 			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
 
@@ -157,11 +159,12 @@ namespace PoliNorError
 
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
-			if (Fn == null)
+			if (func == null)
 			{
 				return NoDelegateResult<T>(token);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 
 			PolicyResult<T> retryResult;
 			if (Delay is null)
@@ -182,11 +185,12 @@ namespace PoliNorError
 
 		public PolicyResult<T> Handle<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
-			if (Fn == null)
+			if (func == null)
 			{
 				return NoDelegateResult<T>(token);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 
 			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
 
@@ -242,11 +246,12 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			PolicyResult retryResult;
 
@@ -273,11 +278,12 @@ namespace PoliNorError
 
 		public async Task<PolicyResult> HandleAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, bool configureAwait, CancellationToken token)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
 
@@ -338,11 +344,12 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync<T>(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			PolicyResult<T> retryResult;
 
@@ -369,11 +376,12 @@ namespace PoliNorError
 
 		public async Task<PolicyResult<T>> HandleAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, bool configureAwait, CancellationToken token)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync<T>(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			ThrowIfProcessorIsNotDefault(out DefaultRetryProcessor processor);
 

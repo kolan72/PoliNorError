@@ -114,14 +114,9 @@ namespace PoliNorError
 			{
 				return (action, null);
 			}
-			else
-			{
-				if (action == null)
-					return (null, null);
 
-				var wrapper = _policyWrapperFactory.CreateWrapper(action, token);
-				return (wrapper.Handle, wrapper);
-			}
+			var wrapper = _policyWrapperFactory.CreateWrapper(action, token);
+			return (wrapper.Handle, wrapper);
 		}
 
 		internal (Func<T> Fn, PolicyWrapper<T> Wrapper) WrapDelegateIfNeed<T>(Func<T> fn, CancellationToken token)
@@ -130,14 +125,9 @@ namespace PoliNorError
 			{
 				return (fn, null);
 			}
-			else
-			{
-				if (fn == null)
-					return (null, null);
 
-				var wrapper = _policyWrapperFactory.CreateWrapper(fn, token);
-				return (wrapper.Handle, wrapper);
-			}
+			var wrapper = _policyWrapperFactory.CreateWrapper(fn, token);
+			return (wrapper.Handle, wrapper);
 		}
 
 		internal (Func<CancellationToken, Task> Fn, PolicyWrapper Wrapper) WrapDelegateIfNeed(Func<CancellationToken, Task> fn, CancellationToken token, bool configureAwait)
@@ -146,14 +136,9 @@ namespace PoliNorError
 			{
 				return (fn, null);
 			}
-			else
-			{
-				if (fn == null)
-					return (null, null);
 
-				var wrapper = _policyWrapperFactory.CreateWrapper(fn, token, configureAwait);
-				return (wrapper.HandleAsync, wrapper);
-			}
+			var wrapper = _policyWrapperFactory.CreateWrapper(fn, token, configureAwait);
+			return (wrapper.HandleAsync, wrapper);
 		}
 
 		internal (Func<CancellationToken, Task<T>> Fn, PolicyWrapper<T> Wrapper) WrapDelegateIfNeed<T>(Func<CancellationToken, Task<T>> fn, CancellationToken token, bool configureAwait)
@@ -162,14 +147,9 @@ namespace PoliNorError
 			{
 				return (fn, null);
 			}
-			else
-			{
-				if (fn == null)
-					return (null, null);
 
-				var wrapper = _policyWrapperFactory.CreateWrapper(fn, token, configureAwait);
-				return (wrapper.HandleAsync, wrapper);
-			}
+			var wrapper = _policyWrapperFactory.CreateWrapper(fn, token, configureAwait);
+			return (wrapper.HandleAsync, wrapper);
 		}
 
 		/// <summary>

@@ -39,11 +39,12 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
-			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
-			if (Act == null)
+			if (action == null)
 			{
 				return NoDelegateResult(token);
 			}
+
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 
 			var retryResult = _simpleProcessor.Execute(Act, token)
 							  .SetWrappedPolicyResults(Wrapper)
@@ -62,11 +63,12 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
 		public PolicyResult Handle<TErrorContext>(Action action, TErrorContext param, CancellationToken token = default)
 		{
-			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
-			if (Act == null)
+			if (action == null)
 			{
 				return NoDelegateResult(token);
 			}
+
+			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
@@ -115,11 +117,12 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
-			if (Fn == null)
+			if (func == null)
 			{
 				return NoDelegateResult<T>(token);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 
 			var retryResult = _simpleProcessor.Execute(Fn, token)
 							  .SetWrappedPolicyResults(Wrapper)
@@ -169,11 +172,12 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
 		public PolicyResult<T> Handle<TErrorContext, T>(Func<T> func, TErrorContext param, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
-			if (Fn == null)
+			if (func == null)
 			{
 				return NoDelegateResult<T>(token);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = processor.Execute(Fn, param, token)
@@ -192,11 +196,12 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			var retryResult = (await _simpleProcessor.ExecuteAsync(Fn, configureAwait, token).ConfigureAwait(configureAwait))
 									.SetWrappedPolicyResults(Wrapper)
@@ -228,11 +233,12 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
 		public async Task<PolicyResult> HandleAsync<TErrorContext>(Func<CancellationToken, Task> func, TErrorContext param, bool configureAwait, CancellationToken token)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
@@ -295,11 +301,12 @@ namespace PoliNorError
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync<T>(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			var retryResult = (await _simpleProcessor.ExecuteAsync(Fn, configureAwait, token).ConfigureAwait(configureAwait))
 									.SetWrappedPolicyResults(Wrapper)
@@ -379,11 +386,12 @@ namespace PoliNorError
 		/// <returns>A task representing the asynchronous operation that yields a policy result.</returns>
 		public async Task<PolicyResult<T>> HandleAsync<TErrorContext, T>(Func<CancellationToken, Task<T>> func, TErrorContext param, bool configureAwait, CancellationToken token)
 		{
-			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
-			if (Fn == null)
+			if (func == null)
 			{
 				return await NoDelegateResultAsync<T>(configureAwait, token).ConfigureAwait(configureAwait);
 			}
+
+			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
