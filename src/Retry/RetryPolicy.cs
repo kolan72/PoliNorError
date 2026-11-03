@@ -88,8 +88,7 @@ namespace PoliNorError
 				retryResult = ((DefaultRetryProcessor)RetryProcessor).Retry(Act, RetryInfo, Delay, token);
 			}
 
-			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
-							 .SetPolicyName(PolicyName);
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -117,8 +116,7 @@ namespace PoliNorError
 			}
 
 			retryResult = retryResult
-							  .SetWrappedPolicyResults(Wrapper)
-							  .SetPolicyName(PolicyName);
+							  .SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -176,8 +174,7 @@ namespace PoliNorError
 				retryResult = ((DefaultRetryProcessor)RetryProcessor).Retry(Fn, RetryInfo, Delay, token);
 			}
 
-			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -204,8 +201,7 @@ namespace PoliNorError
 				retryResult = processor.RetryWithErrorContext(Fn, param, RetryInfo, Delay, token);
 			}
 
-			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -264,8 +260,7 @@ namespace PoliNorError
 				retryResult = await ((DefaultRetryProcessor)RetryProcessor).RetryAsync(Fn, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 
-			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -297,8 +292,7 @@ namespace PoliNorError
 			{
 				retryResult = await processor.RetryWithErrorContextAsync(Fn, param, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
 			}
-			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -362,8 +356,7 @@ namespace PoliNorError
 				retryResult = await ((DefaultRetryProcessor)RetryProcessor).RetryAsync(Fn, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
 			}
 
-			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
-						.SetPolicyName(PolicyName);
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -395,8 +388,7 @@ namespace PoliNorError
 			{
 				retryResult = await processor.RetryWithErrorContextAsync(Fn, param, RetryInfo, Delay, configureAwait, token).ConfigureAwait(configureAwait);
 			}
-			retryResult = retryResult.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+			retryResult = retryResult.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;

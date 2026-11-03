@@ -316,6 +316,16 @@ namespace PoliNorError
 			return policyResult;
 		}
 
+		internal static PolicyResult SetWrappedPolicyResults(this PolicyResult policyResult, PolicyWrapper wrapper, string policyName)
+		{
+			return policyResult.SetWrappedPolicyResults(wrapper).SetPolicyName(policyName);
+		}
+
+		internal static PolicyResult<T> SetWrappedPolicyResults<T>(this PolicyResult<T> policyResult, PolicyWrapper<T> wrapper, string policyName)
+		{
+			return policyResult.SetWrappedPolicyResults(wrapper).SetPolicyName(policyName);
+		}
+
 		internal static void ChangeByErrorData(this PolicyResult policyResult, Exception error)
 		{
 			if (error.DataContainsKeyStringWithValue(PolinorErrorConsts.EXCEPTION_DATA_ERRORFILTERUNSATISFIED_KEY, true))

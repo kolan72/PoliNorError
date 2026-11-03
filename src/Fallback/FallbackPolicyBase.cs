@@ -40,8 +40,7 @@ namespace PoliNorError
 			Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
 
 			var fallBackRes = _fallbackProcessor.Fallback(Act, curFallback, token)
-								.SetWrappedPolicyResults(Wrapper)
-								.SetPolicyName(PolicyName);
+								.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(fallBackRes, token);
 			return fallBackRes;
@@ -61,8 +60,7 @@ namespace PoliNorError
 			Action<CancellationToken> curFallback = _fallbackFuncsProvider.GetFallbackAction();
 
 			var fallBackRes = processor.Fallback(Act, param, curFallback, token)
-								.SetWrappedPolicyResults(Wrapper)
-								.SetPolicyName(PolicyName);
+								.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(fallBackRes, token);
 			return fallBackRes;
@@ -104,8 +102,7 @@ namespace PoliNorError
 			Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
 
 			var fallbackResult = _fallbackProcessor.Fallback(Fn, fallBackFunc, token)
-									.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+									.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(fallbackResult, token);
 			return fallbackResult;
@@ -148,8 +145,7 @@ namespace PoliNorError
 			Func<CancellationToken, T> fallBackFunc = _fallbackFuncsProvider.GetFallbackFunc<T>();
 
 			var retryResult = processor.Fallback(Fn, param, fallBackFunc, token)
-							  .SetWrappedPolicyResults(Wrapper)
-							  .SetPolicyName(PolicyName);
+							  .SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -167,8 +163,7 @@ namespace PoliNorError
 			Func<CancellationToken, Task> curFallbackAsync = _fallbackFuncsProvider.GetAsyncFallbackFunc();
 
 			var fallBackRes = (await _fallbackProcessor.FallbackAsync(Fn, curFallbackAsync, configureAwait, token).ConfigureAwait(configureAwait))
-				.SetWrappedPolicyResults(Wrapper)
-				.SetPolicyName(PolicyName);
+				.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(fallBackRes, configureAwait, token).ConfigureAwait(configureAwait);
 			return fallBackRes;
@@ -193,8 +188,7 @@ namespace PoliNorError
 			Func<CancellationToken, Task> curFallbackAsync = _fallbackFuncsProvider.GetAsyncFallbackFunc();
 
 			var fallBackRes = (await processor.FallbackAsync(Fn, param, curFallbackAsync, configureAwait, token).ConfigureAwait(configureAwait))
-				.SetWrappedPolicyResults(Wrapper)
-				.SetPolicyName(PolicyName);
+				.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(fallBackRes, configureAwait, token).ConfigureAwait(configureAwait);
 			return fallBackRes;
@@ -241,8 +235,7 @@ namespace PoliNorError
 			Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
 
 			var fallBackRes = (await _fallbackProcessor.FallbackAsync(Fn, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait))
-				.SetWrappedPolicyResults(Wrapper)
-				.SetPolicyName(PolicyName);
+				.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(fallBackRes, configureAwait).ConfigureAwait(configureAwait);
 			return fallBackRes;
@@ -296,8 +289,7 @@ namespace PoliNorError
 			Func<CancellationToken, Task<T>> fallBackAsyncFunc = _fallbackFuncsProvider.GetAsyncFallbackFunc<T>(configureAwait);
 
 			var retryResult = (await processor.FallbackAsync(Fn, param, fallBackAsyncFunc, configureAwait, token).ConfigureAwait(configureAwait))
-									.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+									.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;

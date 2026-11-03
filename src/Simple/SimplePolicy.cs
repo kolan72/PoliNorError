@@ -47,8 +47,7 @@ namespace PoliNorError
 			var (Act, Wrapper) = WrapDelegateIfNeed(action, token);
 
 			var retryResult = _simpleProcessor.Execute(Act, token)
-							  .SetWrappedPolicyResults(Wrapper)
-							  .SetPolicyName(PolicyName);
+							  .SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -73,8 +72,7 @@ namespace PoliNorError
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = processor.Execute(Act, param, token)
-							  .SetWrappedPolicyResults(Wrapper)
-							  .SetPolicyName(PolicyName);
+							  .SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -125,8 +123,7 @@ namespace PoliNorError
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token);
 
 			var retryResult = _simpleProcessor.Execute(Fn, token)
-							  .SetWrappedPolicyResults(Wrapper)
-							  .SetPolicyName(PolicyName);
+							  .SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -181,8 +178,7 @@ namespace PoliNorError
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = processor.Execute(Fn, param, token)
-							  .SetWrappedPolicyResults(Wrapper)
-							  .SetPolicyName(PolicyName);
+							  .SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			HandlePolicyResult(retryResult, token);
 			return retryResult;
@@ -204,8 +200,7 @@ namespace PoliNorError
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			var retryResult = (await _simpleProcessor.ExecuteAsync(Fn, configureAwait, token).ConfigureAwait(configureAwait))
-									.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+									.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -243,8 +238,7 @@ namespace PoliNorError
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = (await processor.ExecuteAsync(Fn, param, configureAwait, token).ConfigureAwait(configureAwait))
-									.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+									.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -309,8 +303,7 @@ namespace PoliNorError
 			var (Fn, Wrapper) = WrapDelegateIfNeed(func, token, configureAwait);
 
 			var retryResult = (await _simpleProcessor.ExecuteAsync(Fn, configureAwait, token).ConfigureAwait(configureAwait))
-									.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+									.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
@@ -396,8 +389,7 @@ namespace PoliNorError
 			ThrowIfProcessorIsNotDefault(out SimplePolicyProcessor processor);
 
 			var retryResult = (await processor.ExecuteAsync(Fn, param, configureAwait, token).ConfigureAwait(configureAwait))
-									.SetWrappedPolicyResults(Wrapper)
-									.SetPolicyName(PolicyName);
+									.SetWrappedPolicyResults(Wrapper, PolicyName);
 
 			await HandlePolicyResultAsync(retryResult, configureAwait, token).ConfigureAwait(configureAwait);
 			return retryResult;
