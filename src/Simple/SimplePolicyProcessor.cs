@@ -85,7 +85,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{
@@ -125,7 +125,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{
@@ -182,7 +182,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{
@@ -222,7 +222,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(ae.GetCancellationException(token));
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{
@@ -289,7 +289,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{
@@ -331,7 +331,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{
@@ -401,7 +401,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{
@@ -444,7 +444,7 @@ namespace PoliNorError
 			{
 				result.SetFailedAndCanceled(oe);
 			}
-			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
+			catch (Exception ex) when (!ShouldPropagateFilterUnsatisfied(ErrorFilter.GetCanHandle(), ex, _rethrowIfErrorFilterUnsatisfied, result, out bool filterAccepted))
 			{
 				if (filterAccepted)
 				{

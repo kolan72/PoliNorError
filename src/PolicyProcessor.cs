@@ -484,16 +484,13 @@ namespace PoliNorError
 			}
 		}
 
+#pragma warning disable S1133 // Deprecated code should be removed
+		[Obsolete("Use ShouldPropagateFilterUnsatisfied(Func<Exception, bool> predicate, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted) instead.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 		internal bool ShouldPropagateFilterUnsatisfied(Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
 		{
 			var predicate = ErrorFilter.GetCanHandle();
-			var shouldPropagate = ExceptionFilter.ShouldPropagateFilterUnsatisfied(predicate, originalEx, rethrowIfErrorFilterUnsatisfied, out bool accepted, out Exception filterException);
-			filterAccepted = accepted;
-			if (!shouldPropagate && !filterAccepted)
-			{
-				result.SaveFilterCatchAndMarkFailed(originalEx, filterException);
-			}
-			return shouldPropagate;
+			return ShouldPropagateFilterUnsatisfied(predicate, originalEx, rethrowIfErrorFilterUnsatisfied, result, out filterAccepted);
 		}
 
 		internal bool ShouldPropagateFilterUnsatisfied(Func<Exception, bool> predicate, Exception originalEx, bool rethrowIfErrorFilterUnsatisfied, PolicyResult result, out bool filterAccepted)
