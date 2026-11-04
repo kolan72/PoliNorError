@@ -25,6 +25,8 @@ Heavily inspired by  [Polly](https://github.com/App-vNext/Polly).
 - [PolicyCollection](#policycollection)
 - [Policy wrap](#policy-wrap)
 - [TryCatch](#trycatch-since-version-21621)
+- [PipelineFuncBuilder](#pipelinefuncbuilder-since-version-2250)
+- [Dependency Injection](#dependency-injection)
 - [Calling Func and Action delegates in a resilient manner](#calling-func-and-action-delegates-in-a-resilient-manner)
 - [Usage recommendations](#usage-recommendations)
 - [Nuances of using the library](#nuances-of-using-the-library)
@@ -1301,6 +1303,68 @@ else
 - **Context Preservation**: Error handlers receive the input parameter for their step
 - **Fluent API**: Readable, declarative pipeline construction
 - **Cancellation Support**: Built-in cancellation token support
+
+### Dependency Injection
+Pipeline functions can be registered with and resolved from `Microsoft.Extensions.DependencyInjection` (`IServiceCollection` / `IServiceProvider`). The library only depends on `Microsoft.Extensions.DependencyInjection.Abstractions`; the application supplies the container itself.
+
+#### Registering a pipeline
+A single-step pipeline around one function:
+```csharp
+// SimplePolicy under the hood; optional third argument is the registration name:
+services.AddPipelineFunc<int, string>(i => i.ToString());
+services.AddPipelineFunc<int, string>(i => i.ToString(), "toString");
+services.AddPipelineFunc<int, string>(i => i.ToString(), new SimplePolicy().WithPolicyName("MyToString"));
+
+// Policy-convenience overloads:
+services.AddPipelineFuncWithRetry<int, string>(i => i.ToString(), retryCount: 3);
+services.AddPipelineFuncWithInfiniteRetry<int, string>(i => i.ToString());
+services.AddPipelineFuncWithFallback<int, string>(i => i.ToString(), () => "fallback");
+```
+A multi-step pipeline whose stages are defined by a builder factory — the factory runs against the service provider and the pipeline is materialized once as a singleton, so `ConfigureErrorProcessors` calls must be completed inside it (or via the chain's `configureErrorProcessors` argument) before the pipeline is built:
+```csharp
+services.AddPipelineFunc<int, int>(
+	_ => PipelineFuncBuilder
+		.StartWith<int, int>(i => i * 2)
+		.AddFuncWithRetry(i => i + 1, 2),
+	pipelineName: "doubledPlusOne");
+
+// The same shape with error processors applied to the final policy before materialization:
+services.AddPipelineFuncChain<int, int>(
+	_ => PipelineFuncBuilder
+		.StartWith<int, int>(i => i + 2)
+		.AddFunc(i => i * 10, new SimplePolicy()),
+	configureErrorProcessors: bulk => bulk.AddProcessor(myErrorProcessor),
+	pipelineName: "chain");
+```
+A pre-built pipeline can also be registered:
+```csharp
+var pipelineFunc = PipelineFuncBuilder
+	.StartWith<int, int>(i => i + 1)
+	.ToPipelineFunc("prebuilt");
+services.AddPipelineFunc(pipelineFunc);
+```
+
+#### Resolving and invoking
+```csharp
+// Default key - the name derived from the input type:
+var pipeline = serviceProvider.GetPipelineFunc<int, int>();
+
+// Named registration:
+var named = serviceProvider.GetPipelineFunc<int, int>("doubledPlusOne");
+
+// Discovery of every registered pipeline:
+List<IPipelineFunc> all = serviceProvider.GetAllPipelineFuncs();
+
+// Invocation - CancellationToken defaults to CancellationToken.None:
+PipelineResult<int> result = pipeline.Invoke(41, cancellationToken);
+Task<PipelineResult<int>> asyncResult = await pipeline.InvokeAsync(41, cancellationToken);
+```
+
+#### Naming and lifetime rules
+- A registry key is the triple *(input type, output type, name)*. Registering two pipelines with the same key throws when they are materialized; keys differ only by name are allowed for the same type pair.
+- Without an explicit name the key is derived from the input type (e.g. `Int32`), and that is what the parameterless `GetPipelineFunc<TIn,TOut>()` resolves. With an explicit `pipelineName`, the name also becomes `IPipelineFunc<TIn,TOut>.Name`; without it, `Name` is the underlying policy's name (`SimplePolicy`, `RetryPolicy`, `FallbackPolicy`).
+- Pipelines are singletons: the builder factory runs once, on first resolution, and `GetPipelineFunc` always returns the same instance. All `AddPipelineFunc` overloads register the `PipelineFuncRegistry` singleton (`TryAddSingleton`), so it never has to be wired up manually.
+- Pipelines are functionally immutable after materialization; all error-processor configuration must complete before the pipeline is built.
 
 ### Calling Func and Action delegates in a resilient manner
 There are delegate extension methods that allow aforementioned delegates to be called in a resilient manner.  

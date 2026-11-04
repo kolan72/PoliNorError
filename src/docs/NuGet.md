@@ -77,3 +77,18 @@ var fallbackResult = new RetryPolicy(3)
 	.Handle(() => 5 / random);
 
 ```
+
+Pipeline functions can be registered with and resolved from Microsoft.Extensions.DependencyInjection:
+
+```csharp
+services.AddPipelineFunc<int, string>(i => i.ToString());
+
+services.AddPipelineFuncChain<int, int>(
+	_ => PipelineFuncBuilder
+		.StartWith<int, int>(i => i * 2)
+		.AddFuncWithRetry(i => i + 1, 2),
+	pipelineName: "doubledPlusOne");
+
+var pipeline = serviceProvider.GetPipelineFunc<int, int>("doubledPlusOne");
+var result = pipeline.Invoke(10);
+```
