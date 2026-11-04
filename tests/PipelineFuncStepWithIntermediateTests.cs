@@ -218,6 +218,73 @@ namespace PoliNorError.Tests
         }
 
         [Test]
+        public void Should_ReturnLeafPolicyName_AsName()
+        {
+            // Arrange
+            PipelineResult<string> prevFunc(int input, CancellationToken _)
+            {
+                var res = PolicyResult<string>.ForSync();
+                res.SetResult(input.ToString());
+                res.SetOk();
+                return PipelineResult<string>.Success(res);
+            }
+            bool nextFunc(string _) => true;
+            var holder = new PipelineFuncStep<int, string, bool>(prevFunc, nextFunc, new SimplePolicy().WithPolicyName("LeafPolicy"));
+
+            // Assert
+            Assert.That(holder.Name, Is.EqualTo("LeafPolicy"));
+        }
+
+        [Test]
+        public void Should_KeepLeafPolicyName_When_NamedDelegateRequestedWithoutName()
+        {
+            // Arrange
+            PipelineResult<string> prevFunc(int input, CancellationToken _)
+            {
+                var res = PolicyResult<string>.ForSync();
+                res.SetResult(input.ToString());
+                res.SetOk();
+                return PipelineResult<string>.Success(res);
+            }
+            int nextFunc(string s) => s.Length;
+            var holder = new PipelineFuncStep<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
+
+            // Act
+            var pipelineDelegate = holder.GetPipelineDelegate(null);
+            var result = pipelineDelegate(42, CancellationToken.None);
+
+            // Assert
+            Assert.That(result.IsFailed, Is.False);
+            Assert.That(result.Result, Is.EqualTo(2));
+            Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo("SimplePolicy"));
+        }
+
+        [Test]
+        public void Should_StampRequestedName_When_NamedDelegateIsInvoked()
+        {
+            // Arrange
+            PipelineResult<string> prevFunc(int input, CancellationToken _)
+            {
+                var res = PolicyResult<string>.ForSync();
+                res.SetResult(input.ToString());
+                res.SetOk();
+                return PipelineResult<string>.Success(res);
+            }
+            int nextFunc(string s) => s.Length;
+            var holder = new PipelineFuncStep<int, string, int>(prevFunc, nextFunc, new SimplePolicy());
+
+            // Act
+            var pipelineDelegate = holder.GetPipelineDelegate("StampedChain");
+            var result = pipelineDelegate(42, CancellationToken.None);
+
+            // Assert
+            Assert.That(result.IsFailed, Is.False);
+            Assert.That(result.Result, Is.EqualTo(2));
+            Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo("StampedChain"));
+            Assert.That(holder.Name, Is.EqualTo("SimplePolicy"));
+        }
+
+        [Test]
         public void Should_HandleDifferentGenericTypes_Correctly()
         {
 			// Arrange

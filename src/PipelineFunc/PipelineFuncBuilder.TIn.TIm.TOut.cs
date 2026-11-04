@@ -9,7 +9,7 @@ namespace PoliNorError
 	/// <typeparam name="TIn">The input type for the pipeline.</typeparam>
 	/// <typeparam name="TIm">The intermediate type at this step.</typeparam>
 	/// <typeparam name="TOut">The output type for the pipeline.</typeparam>
-	public class PipelineFuncBuilder<TIn, TIm, TOut> : IPipelineFuncStepBuilder<TIn, TIm, TOut>
+	public class PipelineFuncBuilder<TIn, TIm, TOut> : IPipelineFuncStepBuilder<TIn, TIm, TOut>, IPipelineFuncBuilderInternals
 	{
 		private readonly IPipelineFuncStep<TIn, TOut> _delegateHolder;
 
@@ -21,6 +21,11 @@ namespace PoliNorError
 		{
 			_delegateHolder = delegateHolder;
 		}
+
+		string IPipelineFuncBuilderInternals.GetPipelineName() => _delegateHolder.Name;
+
+		void IPipelineFuncBuilderInternals.SetConfigure(Action<BulkErrorProcessor> configureProcessors)
+			=> _delegateHolder.SetConfigure(configureProcessors);
 
 		/// <inheritdoc/>
 		public IPipelineFuncBuilder<TIn, TOut> ConfigureErrorProcessors(Action<PipelineErrorProcessors<TIm>> configure)

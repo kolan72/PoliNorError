@@ -145,5 +145,62 @@ namespace PoliNorError.Tests
 			Assert.That(expectedException.Data["processed"], Is.EqualTo(true));
 			Assert.That(result.FailedPolicyResult.PolicyName, Is.EqualTo(polName));
 		}
+
+		[Test]
+		public void Should_ReturnPolicyTypeName_AsName_When_NoPolicyNameGiven()
+		{
+			var holder = new PipelineFuncStep<int, string>(i => $"value:{i}");
+
+			Assert.That(holder.Name, Is.EqualTo("SimplePolicy"));
+		}
+
+		[Test]
+		public void Should_ReturnPolicyName_AsName_When_NamedPolicySupplied()
+		{
+			var holder = new PipelineFuncStep<int, string>(i => $"value:{i}", new SimplePolicy().WithPolicyName("NamedStep"));
+
+			Assert.That(holder.Name, Is.EqualTo("NamedStep"));
+		}
+
+		[Test]
+		public void Should_KeepPolicyName_When_NamedDelegateRequestedWithoutName()
+		{
+			const string polName = "TestPolicy";
+			var holder = new PipelineFuncStep<int, string>(value => $"value:{value}", polName);
+
+			var pipelineDelegate = holder.GetPipelineDelegate(null);
+			var result = pipelineDelegate(3, CancellationToken.None);
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.Result, Is.EqualTo("value:3"));
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo(polName));
+			Assert.That(holder.Name, Is.EqualTo(polName));
+		}
+
+		[Test]
+		public void Should_StampRequestedName_When_NamedDelegateSucceeds()
+		{
+			var holder = new PipelineFuncStep<int, string>(value => $"value:{value}", new RetryPolicy(1).WithPolicyName("InnerRetry"));
+
+			var pipelineDelegate = holder.GetPipelineDelegate("StampedName");
+			var result = pipelineDelegate(3, CancellationToken.None);
+
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.SucceededPolicyResult.PolicyName, Is.EqualTo("StampedName"));
+			Assert.That(holder.Name, Is.EqualTo("InnerRetry"));
+		}
+
+		[Test]
+		public void Should_StampRequestedName_When_NamedDelegateFails()
+		{
+			var holder = new PipelineFuncStep<int, string>(_ => throw new InvalidOperationException("boom"), "FailPolicy");
+
+			var pipelineDelegate = holder.GetPipelineDelegate("StampedFail");
+			var result = pipelineDelegate(0, CancellationToken.None);
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.FailedPolicyResult.PolicyName, Is.EqualTo("StampedFail"));
+			Assert.That(holder.Name, Is.EqualTo("FailPolicy"));
+		}
 	}
 }

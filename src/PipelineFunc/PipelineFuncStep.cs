@@ -52,12 +52,42 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Gets the name of the pipeline, taken from the underlying policy's <see cref="IPolicyBase.PolicyName"/>.
+		/// </summary>
+		public string Name => _policy.PolicyName;
+
+		/// <summary>
 		/// Gets the pipeline delegate function.
 		/// </summary>
 		/// <returns>A function that processes input and returns a pipeline result.</returns>
 		public Func<TIn, CancellationToken, PipelineResult<TOut>> GetPipelineDelegate()
 		{
 			return _func.ToPipelineFunc(_policy);
+		}
+
+		/// <summary>
+		/// Gets the pipeline delegate function with an overridden pipeline name.
+		/// The returned delegate stamps the specified name onto the <see cref="PolicyResult"/>s it produces,
+		/// leaving the underlying policy untouched. When <paramref name="pipelineName"/> is null,
+		/// the result is identical to <see cref="GetPipelineDelegate()"/>.
+		/// </summary>
+		/// <param name="pipelineName">The name to stamp onto produced results.</param>
+		/// <returns>A function that processes input and returns a pipeline result.</returns>
+		public Func<TIn, CancellationToken, PipelineResult<TOut>> GetPipelineDelegate(string pipelineName)
+		{
+			var pipelineDelegate = GetPipelineDelegate();
+			if (pipelineName is null || pipelineName == Name)
+			{
+				return pipelineDelegate;
+			}
+
+			return (t, ct) =>
+			{
+				var res = pipelineDelegate(t, ct);
+				res.SucceededPolicyResult?.SetPolicyName(pipelineName);
+				res.FailedPolicyResult?.SetPolicyName(pipelineName);
+				return res;
+			};
 		}
 	}
 }

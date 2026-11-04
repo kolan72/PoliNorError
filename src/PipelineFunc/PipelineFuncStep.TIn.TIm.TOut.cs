@@ -28,12 +28,28 @@ namespace PoliNorError
 		}
 
 		/// <summary>
+		/// Gets the name of the pipeline, inherited from the leaf step's underlying policy.
+		/// </summary>
+		public string Name => _pipelineDelegate.Name;
+
+		/// <summary>
 		/// Gets the pipeline delegate function.
 		/// </summary>
 		/// <returns>A function that processes input and returns a pipeline result.</returns>
 		public Func<TIn, CancellationToken, PipelineResult<TOut>> GetPipelineDelegate()
 		{
 			return _prevFunc.Bind(_pipelineDelegate.GetPipelineDelegate());
+		}
+
+		/// <summary>
+		/// Gets the pipeline delegate function with an overridden pipeline name,
+		/// forwarded to the leaf step so that produced results carry the specified name.
+		/// </summary>
+		/// <param name="pipelineName">The name to stamp onto produced results.</param>
+		/// <returns>A function that processes input and returns a pipeline result.</returns>
+		public Func<TIn, CancellationToken, PipelineResult<TOut>> GetPipelineDelegate(string pipelineName)
+		{
+			return _prevFunc.Bind(_pipelineDelegate.GetPipelineDelegate(pipelineName));
 		}
 
 		/// <summary>
