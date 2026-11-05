@@ -204,6 +204,8 @@
     <Compile Include="TestPolicyResultHandlerSyncType.cs" />
     <Compile Include="FallbackPolicyWithTypedErrorProcessorTests.cs" />
     <Compile Include="PolicyBuildingThenTests.cs" />
+    <Compile Include="PolicyBuildingThenViaIPolicyBaseTests.cs" />
+    <Compile Include="PolicyBuildingWrapUpViaIPolicyBaseTests.cs" />
     <Compile Include="PolicyDelegateCollectionExceptionTTests.cs" />
     <Compile Include="WrappedPolicyTests.cs" />
   </ItemGroup>
