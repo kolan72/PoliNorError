@@ -100,7 +100,23 @@ var delegateResult = collection.HandleDelegate(() => DoWork());
 `WrapUp`/`Then` on the concrete type wrap the collection **as a sequence of
 policies** (collection-aware, `ThrowOnWrappedCollectionFailed`). The
 `IPolicyBase.WrapUp/Then` extensions wrap it **as a single policy** via `Handle`
-(the adapter path above). Prefer the instance methods for collections.
+(the adapter path above). Prefer the instance methods for collections; the
+extension path only binds when the collection is received as an `IPolicyBase`:
+
+```csharp
+// Instance methods — sequence semantics
+var outer1 = collection.Then(new SimplePolicy(), ThrowOnWrappedCollectionFailed.CollectionError);
+
+// Extension methods — single-policy semantics, receiver must be IPolicyBase-typed
+IPolicyBase policyBase = collection;
+var outer2 = policyBase.Then(new SimplePolicy());   // no ThrowOnWrappedCollectionFailed parameter
+```
+
+| | `collection.WrapUp` / `collection.Then` | `policyBase.WrapUp` / `policyBase.Then` |
+|---|---|---|
+| Wrapped unit | Every policy that ran — one `WrappedPolicyResults` entry each | The collection as one policy — exactly one entry, named with the adapter name |
+| Failure mode | `ThrowOnWrappedCollectionFailed`: `LastError`, `CollectionError` (`PolicyDelegateCollectionException(<T>)`), `None` rejected | Always last-error: the last policy's `UnprocessedError` (or `PolicyResultHandlerFailedException`) is rethrown; no `PolicyDelegateCollectionException` |
+| Null wrapper | `Then` → `ArgumentNullException`; `WrapUp` → fails later in `OuterPolicyRegistrar` | Both → `ArgumentNullException` |
 
 ## Creating a collection
 
@@ -297,8 +313,10 @@ Rule of thumb:
    flags false, `LastPolicyResultFailedReason.None`). A **null** delegate is
    different: `IsFailed = true`, `FailedReason = DelegateIsNull`.
 
-6. **`Then` throws `ArgumentNullException` for a null wrapper.** `WrapUp` does not
-   null-check; a null wrapper fails later inside `OuterPolicyRegistrar`.
+6. **Null wrappers throw — depending on the overload.** The instance
+   `PolicyCollection.Then` throws `ArgumentNullException`; the instance `WrapUp`
+   does not null-check and fails later inside `OuterPolicyRegistrar`. The
+   `IPolicyBase.WrapUp/Then` extensions throw `ArgumentNullException` for both.
 
 7. **Wrapped-collection failure mode is opt-in.** Default `LastError` surfaces the
    last policy's error. `CollectionError` aggregates. `None` is invalid for
