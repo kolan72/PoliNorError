@@ -868,6 +868,8 @@ var delegateResult = collection.HandleDelegate(() => DoWork());
 // delegateResult.LastPolicyResult.PolicyName == "RetryPolicy" — inner policy name
 ```
 
+The adapter reference can also take part in policy wrapping: when the collection is received as the `IPolicyBase` receiver of the `WrapUp`/`Then` extension methods, it is wrapped as a single policy — see [Policy wrap](#policy-wrap).
+
 Be careful when adding an existing `Policy` to a collection, see [Nuances of using the library](#nuances-of-using-the-library) for details.
 
 ### Policy wrap
@@ -1037,6 +1039,23 @@ var result = await PolicyCollection.Create()
 		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct), token);
 ```
 Note that if the `FailedReason` property of the last `PolicyResult` is `PolicyResultFailedReason.PolicyResultHandlerFailed`, a `PolicyResultHandlerFailedException` is thrown for both the `ThrowOnWrappedCollectionFailed.LastError` and `ThrowOnWrappedCollectionFailed.CollectionError` settings.  
+
+In addition, when a `PolicyCollection` is received as an `IPolicyBase` (the adapter role described in the [`PolicyCollection`](#policycollection) chapter), `WrapUp`/`Then` are available as extension methods that wrap it **as a single policy** rather than as a sequence:
+```csharp
+IPolicyBase policyBase = PolicyCollection.Create()
+	.WithRetry(2)
+	.WithPolicyName("MyCollection");
+
+var outerPolicy = policyBase.Then(new SimplePolicy());
+//or: policyBase.WrapUp(new SimplePolicy()).OuterPolicy
+```
+
+This path differs from the instance methods above in three ways:
+- The whole collection is wrapped via the adapter `Handle(Async)`, so the wrapper's `WrappedPolicyResults` contains exactly one entry (carrying the collection-level name), not one entry per policy.
+- There is no `ThrowOnWrappedCollectionFailed` parameter: failure handling is always the `LastError` one, so `PolicyDelegateCollectionException(<T>)` is never produced.
+- The extension `WrapUp` throws an `ArgumentNullException` for a null wrapper (the instance `PolicyCollection.WrapUp` does not null-check).
+
+Calls on a `PolicyCollection`-typed expression (`collection.Then(...)`) always bind to the instance methods, so this single-policy wrapping only occurs in code that holds the collection as `IPolicyBase` (e.g. generic or pipeline code). For wrapping a collection directly, prefer the instance methods.
 
 You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
