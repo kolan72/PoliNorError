@@ -96,6 +96,27 @@ namespace PoliNorError
 			return WithPolicy(new FallbackPolicy(funcsProvider));
 		}
 
+		/// <summary>
+		/// Adds a fallback policy built from the pre-configured <paramref name="fallbackBehavior"/> to the collection.
+		/// </summary>
+		/// <typeparam name="T">A return type of the fallback delegate.</typeparam>
+		/// <param name="fallbackBehavior">A pre-configured <see cref="FallbackBehavior{T}"/> to be added as a <see cref="FallbackPolicy"/>.</param>
+		/// <returns>The current <see cref="PolicyCollection"/> instance.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="fallbackBehavior"/> is <c>null</c>.</exception>
+		/// <exception cref="InvalidOperationException"><paramref name="fallbackBehavior"/> has no fallback delegates configured (<see cref="FallbackExecutionMode.None"/>).</exception>
+		public PolicyCollection WithFallback<T>(FallbackBehavior<T> fallbackBehavior)
+		{
+			if (fallbackBehavior == null)
+			{
+				throw new ArgumentNullException(nameof(fallbackBehavior));
+			}
+			if (fallbackBehavior.ExecutionMode == FallbackExecutionMode.None)
+			{
+				throw new InvalidOperationException($"A {nameof(FallbackBehavior<T>)} with {nameof(FallbackExecutionMode.None)} execution mode has no fallback delegates to add.");
+			}
+			return WithPolicy(fallbackBehavior.ToFallbackPolicy());
+		}
+
 		public PolicyCollection WithFallback<T>(Func<T> fallbackFunc, ErrorProcessorParam policyParams = null, CancellationType convertType = CancellationType.Precancelable)
 		{
 			return this.WithFallbackInner(fallbackFunc, policyParams, convertType);

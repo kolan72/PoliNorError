@@ -986,6 +986,70 @@ namespace PoliNorError.Tests
 			Assert.That(lastPolicy.OnlyGenericFallbackForGenericDelegate, Is.True);
 		}
 
+[Test]
+		public void Should_WithFallback_With_Sync_FallbackBehavior_Work()
+		{
+			var polCollection = PolicyCollection.Create().WithFallback(FallbackBehavior<int>.Create(() => 1));
+			ClassicAssert.AreEqual(1, polCollection.Count());
+			ClassicAssert.IsInstanceOf<FallbackPolicy>(polCollection.FirstOrDefault());
+
+			var policy = (FallbackPolicyBase)polCollection.First();
+			Assert.That(policy.HasFallbackFunc<int>(), Is.True);
+			Assert.That(policy.HasAsyncFallbackFunc<int>(), Is.False);
+		}
+
+		[Test]
+		public void Should_WithFallback_With_Async_FallbackBehavior_Work()
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithRetry(1)
+								.WithFallback(FallbackBehavior<int>.CreateAsync(42));
+			ClassicAssert.AreEqual(2, polCollection.Count());
+
+			var policy = (FallbackPolicyBase)polCollection.Last();
+			Assert.That(policy.HasAsyncFallbackFunc<int>(), Is.True);
+			Assert.That(policy.HasFallbackFunc<int>(), Is.False);
+		}
+
+		[Test]
+		public void Should_WithFallback_With_Both_FallbackBehavior_Work()
+		{
+			var polCollection = PolicyCollection.Create().WithFallback(FallbackBehavior<int>.CreateBoth(42));
+
+			var policy = (FallbackPolicyBase)polCollection.First();
+			Assert.That(policy.HasFallbackFunc<int>(), Is.True);
+			Assert.That(policy.HasAsyncFallbackFunc<int>(), Is.True);
+		}
+
+		[Test]
+		public void Should_WithFallback_With_FallbackBehavior_Handle_Fallback_Result()
+		{
+			var polCollection = PolicyCollection.Create()
+								.WithSimple().SetPolicyResultFailedIf<int>((_) => true)
+								.WithFallback(
+				FallbackBehavior<int>.Create(() => 22));
+
+			var result = polCollection.HandleDelegate<int>(() => throw new Exception("Test"));
+			Assert.That(result.Result, Is.EqualTo(22));
+		}
+
+		[Test]
+		public void Should_WithFallback_With_Null_FallbackBehavior_Throw()
+		{
+			var ex = Assert.Throws<ArgumentNullException>(() => PolicyCollection.Create().WithFallback((FallbackBehavior<int>)null));
+			Assert.That(ex.ParamName, Is.EqualTo("fallbackBehavior"));
+		}
+
+		[Test]
+		public void Should_WithFallback_With_FallbackBehavior_In_None_ExecutionMode_Throw()
+		{
+			var noneBehavior = FallbackBehavior<int>.Create((Func<int>)null);
+			Assert.That(noneBehavior.ExecutionMode, Is.EqualTo(FallbackExecutionMode.None));
+
+			var ex = Assert.Throws<InvalidOperationException>(() => PolicyCollection.Create().WithFallback(noneBehavior));
+			Assert.That(ex.Message, Does.Contain(nameof(FallbackExecutionMode.None)));
+		}
+
 		[Test]
 		public void Should_Imitate_RetryPolicy_Using_Collection_Of_SimplePolicies()
 		{
