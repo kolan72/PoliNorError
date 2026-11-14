@@ -1274,43 +1274,63 @@ The `Build()` method returns a function that produces a `PipelineResult<T>`:
 - `IsSuccess` - indicates successful completion (no failure and no cancellation)
 - `Result` - the final result if successful, or `default(T)` if failed
 
-#### Real-World Example
-Here's a complete example of processing user data through multiple validation and transformation steps:
+#### Real-World Examples
+
+**E-Commerce Order Processing with Transient Failure Handling**
+
+Process an order through inventory reservation, payment, and confirmation steps. Network calls to external services may fail transiently, so retry policies with exponential backoff are applied:
+
 ```csharp
-var userProcessingPipeline = PipelineFuncBuilder
-	.StartWith<string, User>(userId => userRepository.GetUser(userId))
+var orderPipeline = PipelineFuncBuilder
+	.StartWithRetry<OrderRequest, OrderValidation>(
+		req => ValidateOrder(req),
+		retryCount: 3,
+		retryDelay: ExponentialRetryDelay.Create(baseDelay: TimeSpan.FromMilliseconds(100)),
+		policyName: "OrderValidationRetry")
 	.OnError((ex, pi) => 
-		logger.LogError(ex, "Failed to fetch user {UserId}", pi.Param))
+		logger.LogWarning(ex, "Order validation failed for order {OrderId} (attempt {Retry})", 
+			pi.Param.OrderId, 
+			pi.GetAttemptCount()))
 	
-	.AddFunc(user => ValidateUser(user))
+	.AddFuncWithRetry(
+		validatedOrder => ReserveInventory(validatedOrder),
+		retryCount: 5,
+		retryDelay: ExponentialRetryDelay.Create(baseDelay: TimeSpan.FromSeconds(1)),
+		policyName: "InventoryReservationRetry")
 	.OnError((ex, pi) => 
-		logger.LogWarning(ex, "User validation failed for {UserName}", pi.Param.Name))
+		logger.LogWarning(ex, "Inventory reservation failed for order {OrderId} with {ItemCount} items (attempt {Retry})", 
+			pi.Param.OrderId, 
+			pi.Param.ItemCount, 
+			pi.GetAttemptCount()))
 	
-	.AddFunc(user => EnrichUserData(user))
-	.OnError(async (ex, pi) =>
-	{
-		await auditLog.LogAsync($"Enrichment failed for user {pi.Param.Id}");
-		logger.LogError(ex, "Failed to enrich user data");
-	})
-	
-	.AddFunc(user => user.ToDto())
+	.AddFuncWithRetry(
+		reservation => ProcessPayment(reservation),
+		retryCount: 3,
+		retryDelay: ExponentialRetryDelay.Create(baseDelay: TimeSpan.FromSeconds(2)),
+		policyName: "PaymentProcessingRetry")
 	.OnError((ex, pi) => 
-		logger.LogError(ex, "Failed to convert user to DTO"))
+		logger.LogWarning(ex, "Payment processing failed for amount {Amount} (attempt {Retry})", 
+			pi.Param.Amount, 
+			pi.GetAttemptCount()))
+	
+	.AddFunc(
+		paymentResult => GenerateConfirmation(paymentResult),
+		policyName: "ConfirmationGeneration")
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Failed to generate confirmation for payment {PaymentId}", 
+			pi.Param.PaymentId))
 	
 	.Build();
 
-// Use the pipeline
-var result = await Task.Run(() => 
-	userProcessingPipeline("user-123", cancellationToken));
+var result = orderPipeline(orderRequest, cancellationToken);
 
-if (result.IsSuccess)
+if (result.IsFailed)
 {
-	return Ok(result.Result);
+	logger.Error("Order processing failed: {Error}", result.Error?.Message);
+	return BadRequest("Order processing failed");
 }
-else
-{
-	return StatusCode(500, "User processing failed");
-}
+
+return Ok(result.Result.ConfirmationNumber);
 ```
 
 #### Key Benefits
