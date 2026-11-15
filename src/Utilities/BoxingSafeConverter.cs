@@ -3,6 +3,9 @@ using System.Linq.Expressions;
 
 namespace PoliNorError
 {
+#pragma warning disable S1133 // Deprecated code should be removed
+	[Obsolete("This class is obsolete.")]
+#pragma warning restore S1133 // Deprecated code should be removed
 	internal sealed class BoxingSafeConverter<TIn, TOut>
 	{
 		public static readonly BoxingSafeConverter<TIn, TOut> Instance = new BoxingSafeConverter<TIn, TOut>();

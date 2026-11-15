@@ -7,23 +7,6 @@ namespace PoliNorError.Tests
 	internal class UtilitiesTests
 	{
 		[Test]
-		public void Should_BoxingSafeConverter_Work_For_Structs()
-		{
-			var res = BoxingSafeConverter<int, int>.Instance.Convert(5);
-			var res2 = BoxingSafeConverter<double, double>.Instance.Convert(5d);
-			ClassicAssert.AreEqual(typeof(int), res.GetType());
-			ClassicAssert.AreEqual(typeof(double), res2.GetType());
-		}
-
-		[Test]
-		public void Should_BoxingSafeConverter_Work_For_Classes()
-		{
-			var cls = new TestClass();
-			var res = BoxingSafeConverter<TestClass, TestClass>.Instance.Convert(cls);
-			ClassicAssert.AreEqual(typeof(TestClass), res.GetType());
-		}
-
-		[Test]
 		[TestCase(true)]
 		[TestCase(false)]
 		public void Should_Exception_DataContainsKeyStringWithValue_Returns_CorrectBoolValue_ForAnyGenericType(bool sameType)
