@@ -209,6 +209,12 @@
     <Compile Include="PolicyBuildingWrapUpViaIPolicyBaseTests.cs" />
     <Compile Include="PolicyDelegateCollectionExceptionTTests.cs" />
     <Compile Include="WrappedPolicyTests.cs" />
+    <Compile Include="RateLimitPolicyTests.cs" />
+    <Compile Include="RateLimitPolicyCompositionTests.cs" />
+    <Compile Include="RateLimitResultTests.cs" />
+    <Compile Include="DelegateRateLimiterTests.cs" />
+    <Compile Include="FixedWindowRateLimiterTests.cs" />
+    <Compile Include="TokenBucketRateLimiterTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
