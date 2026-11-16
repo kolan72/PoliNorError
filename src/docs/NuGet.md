@@ -1,5 +1,5 @@
 ﻿PoliNorError is a library that provides error handling capabilities through Retry and Fallback policies or processors.  
-Also provides SimplePolicy and TryCatch mimicking.  
+Also provides SimplePolicy, rate limiting via RateLimitPolicy and TryCatch mimicking.  
 The library can also handle potential exceptions within the catch block and offers various configuration options.
 
 ```csharp
