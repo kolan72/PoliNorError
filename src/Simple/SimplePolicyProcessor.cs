@@ -13,6 +13,8 @@ namespace PoliNorError
 
 		private readonly bool _rethrowIfErrorFilterUnsatisfied;
 
+		private bool _failedIfError;
+
 		///<inheritdoc cref = "SimplePolicyProcessor(IBulkErrorProcessor, bool)"/>
 		public SimplePolicyProcessor(bool rethrowIfErrorFilterUnsatisfied = false) : this(null, rethrowIfErrorFilterUnsatisfied) { }
 
@@ -43,6 +45,14 @@ namespace PoliNorError
 		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
 		/// <returns></returns>
 		public static ISimplePolicyProcessor CreateDefault(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false) => new SimplePolicyProcessor(bulkErrorProcessor, rethrowIfErrorFilterUnsatisfied);
+
+		internal static SimplePolicyProcessor CreateFailingOnError()
+		{
+			return new SimplePolicyProcessor
+			{
+				_failedIfError = true
+			};
+		}
 
 		///<inheritdoc cref = "ISimplePolicyProcessor.Execute"/>
 		public PolicyResult Execute(Action action, CancellationToken token = default)
@@ -96,6 +106,10 @@ namespace PoliNorError
 						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
@@ -136,6 +150,10 @@ namespace PoliNorError
 						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
@@ -193,6 +211,10 @@ namespace PoliNorError
 						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
@@ -233,6 +255,10 @@ namespace PoliNorError
 						PolicyRule<Unit>.Default,
 						ErrorProcessingCancellationEffect.Propagate,
 						token);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
@@ -302,6 +328,10 @@ namespace PoliNorError
 						configureAwait,
 						token)
 						.ConfigureAwait(configureAwait);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
@@ -344,6 +374,10 @@ namespace PoliNorError
 						configureAwait,
 						token)
 						.ConfigureAwait(configureAwait);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
@@ -414,6 +448,10 @@ namespace PoliNorError
 						configureAwait,
 						token)
 						.ConfigureAwait(configureAwait);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
@@ -457,6 +495,10 @@ namespace PoliNorError
 						configureAwait,
 						token)
 						.ConfigureAwait(configureAwait);
+					if (_failedIfError)
+					{
+						result.SetFailedInner();
+					}
 				}
 			}
 			return result;
