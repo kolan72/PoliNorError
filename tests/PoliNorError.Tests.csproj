@@ -97,6 +97,7 @@
     <Compile Include="CancellationTests.cs" />
     <Compile Include="CatchBlockHandlersTests.cs" />
     <Compile Include="ExceptionFilterExtensionsTests.cs" />
+    <Compile Include="FallbackPolicyErrorProcessorExtensionsTests.cs" />
     <Compile Include="FallbackPolicyWithFallbackBehaviorTests.cs" />
     <Compile Include="PipelineErrorProcessorsAddForExceptionTests.cs" />
     <Compile Include="PipelineErrorProcessorsTests.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="RetryDelay.Tests\RetryDelayTests.cs" />
     <Compile Include="RetryObjectsToTest.cs" />
     <Compile Include="RetryPolicyWithTypedErrorProcessorTests.cs" />
+    <Compile Include="SimplePolicyProcessorCreateFailingOnErrorTests.cs" />
     <Compile Include="SyncErrorProcessorTParamTests.cs" />
     <Compile Include="SyncErrorProcessorTests.cs" />
     <Compile Include="SyncTypedErrorProcessorTests.cs" />
