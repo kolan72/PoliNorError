@@ -120,7 +120,7 @@ namespace PoliNorError
 		/// </summary>
 		public Exception UnprocessedError
 		{
-			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError))
+			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError || FailedReason == PolicyResultFailedReason.RateLimited))
 														? LastError
 														: null); }
 			internal set { _unprocessedError = value; }
@@ -455,7 +455,9 @@ namespace PoliNorError
 		/// <summary>
 		/// The policy passed to a pipeline is not one of the supported policy types.
 		/// </summary>
-		UnsupportedPolicy
+		UnsupportedPolicy,
+		/// <summary>The rate limit gate denied execution (see RateLimitPolicy).</summary>
+		RateLimited
 	}
 
 	internal class PolicyStatus
