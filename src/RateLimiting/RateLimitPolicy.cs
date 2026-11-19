@@ -13,8 +13,8 @@ namespace PoliNorError
 	/// <remarks>
 	/// <para>
 	/// When the gate denies execution the returned result is failed with
-	/// <see cref="PolicyResultFailedReason.RateLimited"/>. Inspect the outcome with
-	/// <see cref="RateLimitPolicyResultExtensions.IsRateLimited"/> and
+	/// <see cref="PolicyResultFailedReason.ExecutionDenied"/>. Inspect the outcome with
+	/// <see cref="RateLimitPolicyResultExtensions.IsExecutionDenied"/> and
 	/// <see cref="RateLimitPolicyResultExtensions.GetRetryAfter"/>, or observe it in registered result handlers;
 	/// the rejection is recorded as a <see cref="RateLimitException"/>.
 	/// </para>
@@ -69,7 +69,7 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="action">The action to execute when the gate permits it.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns><see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.RateLimited"/>.</returns>
+		/// <returns><see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.</returns>
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
 			if (action == null)
@@ -109,7 +109,7 @@ namespace PoliNorError
 			{
 				var rejectedResult = PolicyResult.ForSync();
 				rejectedResult.AddError(new RateLimitException(acquire.RetryAfter));
-				rejectedResult.SetFailedInner(PolicyResultFailedReason.RateLimited);
+				rejectedResult.SetFailedInner(PolicyResultFailedReason.ExecutionDenied);
 				rejectedResult.SetPolicyName(PolicyName);
 				return HandlePolicyResult(rejectedResult, token);
 			}
@@ -127,7 +127,7 @@ namespace PoliNorError
 		/// <typeparam name="T">The type of the return value of <paramref name="func"/>.</typeparam>
 		/// <param name="func">The function to execute when the gate permits it.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns><see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.RateLimited"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value.</returns>
+		/// <returns><see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value.</returns>
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			if (func == null)
@@ -167,7 +167,7 @@ namespace PoliNorError
 			{
 				var rejectedResult = PolicyResult<T>.ForSync();
 				rejectedResult.AddError(new RateLimitException(acquire.RetryAfter));
-				rejectedResult.SetFailedInner(PolicyResultFailedReason.RateLimited);
+				rejectedResult.SetFailedInner(PolicyResultFailedReason.ExecutionDenied);
 				rejectedResult.SetPolicyName(PolicyName);
 				return HandlePolicyResult(rejectedResult, token);
 			}
@@ -185,7 +185,7 @@ namespace PoliNorError
 		/// <param name="func">The asynchronous action to execute when the gate permits it.</param>
 		/// <param name="configureAwait">Whether to configure await for the async operation.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns>A task that yields a <see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.RateLimited"/>.</returns>
+		/// <returns>A task that yields a <see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.</returns>
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
@@ -225,7 +225,7 @@ namespace PoliNorError
 			{
 				var rejectedResult = PolicyResult.InitByConfigureAwait(configureAwait);
 				rejectedResult.AddError(new RateLimitException(acquire.RetryAfter));
-				rejectedResult.SetFailedInner(PolicyResultFailedReason.RateLimited);
+				rejectedResult.SetFailedInner(PolicyResultFailedReason.ExecutionDenied);
 				rejectedResult.SetPolicyName(PolicyName);
 				return await HandlePolicyResultAsync(rejectedResult, configureAwait, token).ConfigureAwait(configureAwait);
 			}
@@ -244,7 +244,7 @@ namespace PoliNorError
 		/// <param name="func">The asynchronous function to execute when the gate permits it.</param>
 		/// <param name="configureAwait">Whether to configure await for the async operation.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns>A task that yields a <see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.RateLimited"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value.</returns>
+		/// <returns>A task that yields a <see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value.</returns>
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
@@ -284,7 +284,7 @@ namespace PoliNorError
 			{
 				var rejectedResult = PolicyResult<T>.InitByConfigureAwait(configureAwait);
 				rejectedResult.AddError(new RateLimitException(acquire.RetryAfter));
-				rejectedResult.SetFailedInner(PolicyResultFailedReason.RateLimited);
+				rejectedResult.SetFailedInner(PolicyResultFailedReason.ExecutionDenied);
 				rejectedResult.SetPolicyName(PolicyName);
 				return await HandlePolicyResultAsync(rejectedResult, configureAwait, token).ConfigureAwait(configureAwait);
 			}

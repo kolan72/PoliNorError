@@ -31,7 +31,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_Return_FailedRateLimitedResult_When_Denied()
+		public void Should_Return_FailedExecutionDeniedResult_When_Denied()
 		{
 			var retryAfter = TimeSpan.FromMilliseconds(250);
 			var limiter = new DelegateRateLimiter(() => RateLimitResult.Denied(retryAfter));
@@ -45,8 +45,8 @@ namespace PoliNorError.Tests
 
 			Assert.That(ran, Is.False);
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.RateLimited));
-			Assert.That(result.IsRateLimited(), Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.ExecutionDenied));
+			Assert.That(result.IsExecutionDenied(), Is.True);
 			Assert.That(result.GetRetryAfter(), Is.EqualTo(retryAfter));
 			Assert.That(result.IsSuccess, Is.False);
 			Assert.That(result.NoError, Is.False);
@@ -74,7 +74,7 @@ namespace PoliNorError.Tests
 
 			Assert.That(ran, Is.False);
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(result.IsRateLimited(), Is.True);
+			Assert.That(result.IsExecutionDenied(), Is.True);
 			Assert.That(result.Result, Is.EqualTo(default(int)));
 		}
 
@@ -128,7 +128,7 @@ namespace PoliNorError.Tests
 				Assert.That(ran, Is.False);
 				Assert.That(result.IsCanceled, Is.True);
 				Assert.That(result.NoError, Is.True);
-				Assert.That(result.IsRateLimited(), Is.False);
+				Assert.That(result.IsExecutionDenied(), Is.False);
 				Assert.That(acquired, Is.Zero);
 			}
 		}
@@ -151,7 +151,7 @@ namespace PoliNorError.Tests
 				Assert.That(ran, Is.False);
 				Assert.That(result.IsCanceled, Is.True);
 				Assert.That(result.IsFailed, Is.False);
-				Assert.That(result.IsRateLimited(), Is.False);
+				Assert.That(result.IsExecutionDenied(), Is.False);
 			}
 		}
 
@@ -168,7 +168,7 @@ namespace PoliNorError.Tests
 			Assert.That(ran, Is.False);
 			Assert.That(result.IsFailed, Is.True);
 			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
-			Assert.That(result.IsRateLimited(), Is.False);
+			Assert.That(result.IsExecutionDenied(), Is.False);
 			Assert.That(result.LastError, Is.TypeOf<InvalidOperationException>());
 		}
 
@@ -187,7 +187,7 @@ namespace PoliNorError.Tests
 				Assert.That(result.IsFailed, Is.True);
 				Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
 				Assert.That(result.IsCanceled, Is.False);
-				Assert.That(result.IsRateLimited(), Is.False);
+				Assert.That(result.IsExecutionDenied(), Is.False);
 			}
 		}
 
@@ -216,7 +216,7 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public async Task Should_Return_FailedRateLimitedResult_Async_When_Denied()
+		public async Task Should_Return_FailedExecutionDeniedResult_Async_When_Denied()
 		{
 			var retryAfter = TimeSpan.FromMilliseconds(120);
 			var limiter = new DelegateRateLimiter(
@@ -235,8 +235,8 @@ namespace PoliNorError.Tests
 
 			Assert.That(ran, Is.False);
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.RateLimited));
-			Assert.That(result.IsRateLimited(), Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.ExecutionDenied));
+			Assert.That(result.IsExecutionDenied(), Is.True);
 			Assert.That(result.GetRetryAfter(), Is.EqualTo(retryAfter));
 			Assert.That(result.UnprocessedError, Is.TypeOf<RateLimitException>());
 			Assert.That(result.NoError, Is.False);
@@ -259,7 +259,7 @@ namespace PoliNorError.Tests
 
 			Assert.That(ran, Is.False);
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(result.IsRateLimited(), Is.True);
+			Assert.That(result.IsExecutionDenied(), Is.True);
 			Assert.That(result.Result, Is.EqualTo(default(int)));
 		}
 
@@ -316,14 +316,14 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
-		public void Should_ExposeHelpers_OnNonRateLimitedResult()
+		public void Should_ExposeHelpers_OnNonExecutionDeniedResult()
 		{
 			var limiter = new DelegateRateLimiter(() => RateLimitResult.Permitted);
 			var policy = new RateLimitPolicy(limiter);
 
 			var result = policy.Handle(() => { });
 
-			Assert.That(result.IsRateLimited(), Is.False);
+			Assert.That(result.IsExecutionDenied(), Is.False);
 			Assert.That(result.GetRetryAfter(), Is.Null);
 		}
 	}

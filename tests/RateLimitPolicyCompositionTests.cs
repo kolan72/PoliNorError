@@ -77,8 +77,8 @@ namespace PoliNorError.Tests
 
 			Assert.That(innerRan, Is.False);
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(result.IsRateLimited(), Is.True);
-			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.RateLimited));
+			Assert.That(result.IsExecutionDenied(), Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.ExecutionDenied));
 			Assert.That(result.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.None));
 		}
 
@@ -95,7 +95,7 @@ namespace PoliNorError.Tests
 
 			Assert.That(innerRan, Is.False);
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(result.IsRateLimited(), Is.True);
+			Assert.That(result.IsExecutionDenied(), Is.True);
 		}
 
 		[Test]
@@ -170,7 +170,7 @@ namespace PoliNorError.Tests
 
 			Assert.That(innerRan, Is.False);
 			Assert.That(result.IsFailed, Is.True);
-			Assert.That(result.IsRateLimited(), Is.True);
+			Assert.That(result.IsExecutionDenied(), Is.True);
 		}
 	}
 }

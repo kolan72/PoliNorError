@@ -8,12 +8,12 @@ namespace PoliNorError
 	public static class RateLimitPolicyResultExtensions
 	{
 		/// <summary>
-		/// Indicates whether the result represents a rate-limiting rejection
-		/// (<see cref="PolicyResultFailedReason.RateLimited"/>).
+		/// Indicates whether the policy declined to execute the delegate
+		/// (<see cref="PolicyResultFailedReason.ExecutionDenied"/>).
 		/// </summary>
 		/// <param name="result">The policy result to inspect.</param>
-		/// <returns><see langword="true"/> if the rate limit gate denied execution.</returns>
-		public static bool IsRateLimited(this PolicyResult result) => result?.FailedReason == PolicyResultFailedReason.RateLimited;
+		/// <returns><see langword="true"/> if the policy declined to execute the delegate.</returns>
+		public static bool IsExecutionDenied(this PolicyResult result) => result?.FailedReason == PolicyResultFailedReason.ExecutionDenied;
 
 		/// <summary>
 		/// Gets the wait time carried by the <see cref="RateLimitException"/> of a rate-limiting rejection.

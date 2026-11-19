@@ -120,7 +120,7 @@ namespace PoliNorError
 		/// </summary>
 		public Exception UnprocessedError
 		{
-			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError || FailedReason == PolicyResultFailedReason.RateLimited))
+			get { return _unprocessedError ?? ((IsFailed && (FailedReason == PolicyResultFailedReason.DelegateIsNull || FailedReason == PolicyResultFailedReason.PolicyProcessorFailed || FailedReason == PolicyResultFailedReason.UnhandledError || FailedReason == PolicyResultFailedReason.ExecutionDenied))
 														? LastError
 														: null); }
 			internal set { _unprocessedError = value; }
@@ -456,8 +456,11 @@ namespace PoliNorError
 		/// The policy passed to a pipeline is not one of the supported policy types.
 		/// </summary>
 		UnsupportedPolicy,
-		/// <summary>The rate limit gate denied execution (see RateLimitPolicy).</summary>
-		RateLimited
+		/// <summary>
+		/// The policy declined to execute the delegate (for example, no rate-limit permit was available).
+		/// The policy itself ran and returned a failed result.
+		/// </summary>
+		ExecutionDenied
 	}
 
 	internal class PolicyStatus
