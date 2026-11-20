@@ -1468,7 +1468,7 @@ For quick, one-off error handling without complex logic, a policy processor is o
 
 **Create a Resilience Strategy**
 - **Retry followed by a fallback** is common: retry a few times, then if still failing, fallback to safe defaults. You can do that via `PolicyCollection` or by wrapping one policy in another with `WrapPolicy` / `WrapUp`.
-- Another pattern is **sequential handling** with the `PolicyDelegateCollection`: if the first `PolicyDelegate` fails, move on to a next.
+- Another pattern is **sequential handling** with the `PolicyDelegateCollection`: if the first `PolicyDelegate` fails, move on to a next. A `RateLimitPolicy` rejection (`PolicyResultFailedReason.ExecutionDenied`) stops the chain instead: remaining policies are skipped.
 
 ### RetryPolicy
 
