@@ -5,13 +5,17 @@ using System.Threading.Tasks;
 namespace PoliNorError
 {
 	/// <summary>
-	/// A rate limiter driven by user-supplied delegates. Doubles as a convenient test fake.
+	/// An <see cref="IRateLimiter"/> that delegates permit acquisition to a user-supplied function.
+	/// Also convenient as a test fake.
 	/// </summary>
 	/// <remarks>
-	/// An async-only limiter (constructed with a <c>Func&lt;CancellationToken, Task&lt;RateLimitResult&gt;&gt;</c> or
-	/// <c>Func&lt;Task&lt;RateLimitResult&gt;&gt;</c> delegate) throws <see cref="NotSupportedException"/> from its
-	/// synchronous <see cref="TryAcquire"/> member. Use the asynchronous <c>HandleAsync</c> methods of
+	/// <para>
+	/// <b>Contract — an async-only limiter cannot acquire synchronously.</b> An instance constructed with a
+	/// <c>Func&lt;CancellationToken, Task&lt;RateLimitResult&gt;&gt;</c> or <c>Func&lt;Task&lt;RateLimitResult&gt;&gt;</c>
+	/// delegate throws <see cref="NotSupportedException"/> from its synchronous <see cref="TryAcquire"/> member.
+	/// This behavior is a deliberate, supported trade-off: use the asynchronous <c>HandleAsync</c> methods of
 	/// <see cref="RateLimitPolicy"/> with such a limiter — never block on the asynchronous acquisition.
+	/// </para>
 	/// </remarks>
 	public sealed class DelegateRateLimiter : IRateLimiter
 	{
