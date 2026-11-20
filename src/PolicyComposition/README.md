@@ -251,7 +251,7 @@ Results of the inner collection are exposed on the outer result via
 
 ### vs. `PolicyDelegateCollection`
 
-Both compose policies and both walk them sequentially until success/cancellation.
+Both compose policies and both walk them sequentially until success, cancellation, or an execution-denied result (`PolicyResultFailedReason.ExecutionDenied`), which stops the chain.
 The difference is **what is bound when**.
 
 | | `PolicyCollection` | `PolicyDelegateCollection(<T>)` |
