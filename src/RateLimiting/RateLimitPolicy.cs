@@ -28,7 +28,7 @@ namespace PoliNorError
 	/// Composition: use this policy as an <b>outer wrapper</b> (<c>inner.Then(rateLimit)</c>,
 	/// <c>collection.Then(rateLimit)</c>) so that a rejection prevents the wrapped delegate from running.
 	/// As an element of any sequential chain (<see cref="PolicyCollection"/> and <c>PolicyDelegateCollection</c>)
-	/// a rejection — like any failure — lets the next element run the gated delegate (bypass).
+	/// a rejection also stops the chain: subsequent elements are skipped and the gated delegate is not run.
 	/// </para>
 	/// </remarks>
 	public sealed class RateLimitPolicy : Policy, IPolicyBase, IWithErrorFilter<RateLimitPolicy>

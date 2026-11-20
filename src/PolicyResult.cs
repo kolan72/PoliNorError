@@ -459,6 +459,8 @@ namespace PoliNorError
 		/// <summary>
 		/// The policy declined to execute the delegate (for example, no rate-limit permit was available).
 		/// The policy itself ran and returned a failed result.
+		/// In sequential policy chains a result with this reason stops the chain:
+		/// remaining policies are not executed.
 		/// </summary>
 		ExecutionDenied
 	}

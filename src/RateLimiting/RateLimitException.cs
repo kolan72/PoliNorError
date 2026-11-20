@@ -5,7 +5,9 @@ namespace PoliNorError
 	/// <summary>
 	/// The error recorded in a <see cref="PolicyResult"/> when a <see cref="RateLimitPolicy"/> denies execution.
 	/// </summary>
+#pragma warning disable RCS1194 // Implement exception constructors.
 	public class RateLimitException : Exception
+#pragma warning restore RCS1194 // Implement exception constructors.
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RateLimitException"/> class.

@@ -137,10 +137,11 @@ namespace PoliNorError
 				TResult curPolResult = null;
 				do
 				{
-					// Stop once the previous result succeeded or was canceled by the policy itself.
-					// First iteration sees null here; NotFailedOrCanceled(null) is false, matching
+					// Stop once the previous result succeeded, was canceled by the policy
+					// itself, or was denied execution (ExecutionDenied gates the chain).
+					// First iteration sees null here; ShouldStopSequentialHandling(null) is false, matching
 					// the original foreach-based loops.
-					if (curPolResult.NotFailedOrCanceled())
+					if (curPolResult.ShouldStopSequentialHandling())
 						break;
 
 					if (token.IsCancellationRequested)
@@ -180,7 +181,9 @@ namespace PoliNorError
 			TResult curPolResult = null;
 			foreach (var si in policyDelegateInfos)
 			{
-				if (curPolResult.NotFailedOrCanceled())
+				// Same stop rule as the sync core: success, cancellation, or
+				// ExecutionDenied ends the chain before the next element runs.
+				if (curPolResult.ShouldStopSequentialHandling())
 					break;
 
 				if (token.IsCancellationRequested)

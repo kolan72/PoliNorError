@@ -61,9 +61,14 @@ namespace PoliNorError
 			return true;
 		}
 
-		internal static bool NotFailedOrCanceled(this PolicyResult prevResult)
+		// TRUE means "stop processing subsequent elements of a sequential chain"
+		// (success, cancellation, or an execution-denied gate result).
+		internal static bool ShouldStopSequentialHandling(this PolicyResult prevResult)
 		{
-			return prevResult != null && (prevResult.IsCanceled || !prevResult.IsFailed);
+			return prevResult != null &&
+			       (prevResult.IsCanceled ||
+			        !prevResult.IsFailed ||
+			        prevResult.FailedReason == PolicyResultFailedReason.ExecutionDenied);
 		}
 
 		internal static T SetFailedWithError<T>(this T retryResult, Exception exception, PolicyResultFailedReason failedReason = PolicyResultFailedReason.DelegateIsNull) where T : PolicyResult

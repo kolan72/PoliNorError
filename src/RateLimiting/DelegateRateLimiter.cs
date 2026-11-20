@@ -22,10 +22,10 @@ namespace PoliNorError
 		private readonly Func<CancellationToken, RateLimitResult> _sync;
 		private readonly Func<CancellationToken, Task<RateLimitResult>> _async;
 
-		private DelegateRateLimiter(Func<CancellationToken, RateLimitResult> sync, Func<CancellationToken, Task<RateLimitResult>> async)
+		private DelegateRateLimiter(Func<CancellationToken, RateLimitResult> sync, Func<CancellationToken, Task<RateLimitResult>> notsync)
 		{
 			_sync = sync;
-			_async = async;
+			_async = notsync;
 		}
 
 		/// <summary>

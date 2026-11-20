@@ -214,6 +214,7 @@
     <Compile Include="WrappedPolicyTests.cs" />
     <Compile Include="RateLimitPolicyTests.cs" />
     <Compile Include="RateLimitPolicyCompositionTests.cs" />
+    <Compile Include="RateLimitPolicyChainStopTests.cs" />
     <Compile Include="RateLimitResultTests.cs" />
     <Compile Include="DelegateRateLimiterTests.cs" />
     <Compile Include="FixedWindowRateLimiterTests.cs" />
