@@ -1,3 +1,164 @@
+## 2.25.0
+
+- **New Feature:** Introduce `PipelineFuncBuilder` static class with `StartWith<TIn, TOut>(Func<TIn, TOut>)` method.
+- Introduce `PipelineResult<T>` class.
+- Introduce `PipelineFuncBuilder<TIn, TIm, TOut>`.
+- Add `PipelineErrorProcessors<TContext>.Add(IErrorProcessor)` class for storing exception processors.
+- Cache default filter delegate in `ExceptionFilterSet.CompilePredicate`.
+- Prevented stack unwinding when the rethrow flag is set in `SimplePolicyProcessor` by implementing exception filter guards for both synchronous and asynchronous `Execute/ExecuteAsync` methods.
+- Preallocate the initial capacity of the `List<Exception>` backing `PolicyResult.Errors` for `RetryPolicy` handling: limited retries pre-allocate `RetryCount + 1` slots (the maximum number of stored errors), infinite retries pre-allocate a small fixed cap of 8 slots (`MAX_ERRORS_PREALLOC_CAPACITY`) — matching `List<T>`'s natural early growth (0 => 4 => 8) while keeping the per-call allocation negligible — avoiding `List<T>` reallocations in the common case.
+- Replace closure allocations with local functions in `DefaultRetryProcessor.RetryInternal` methods 
+- Update all 8 `RetryInternal*/RetryInternalAsync*` methods to create the filter predicate before the do/while and use it in the catch clause.
+- Eliminates per-iteration delegate allocations for PolicyRuleAsync and SaveErrorAsync.
+- Eliminates per-iteration delegate allocations for PolicyRule and SaveError.
+- Fixed `RetryCountInfo` to handle default struct initialization without throwing a `NullReferenceException`.
+- Use a simpler predicate to get the retry rule in `RetryCountInfo` when `StartTryCount` is zero.
+- Introduce internal `PolicyRule<T>` and `AsyncPolicyRule<T>` static classes with `Default` always-true policy rules in `PolicyProcessor`.
+- Introduce the `IPolicyBase.Then` extension method.
+- Updated `ThenFallback` implementations in both `SimplePolicy` and `RetryPolicy` to utilize the `Then` extension method.
+- Make `PolicyCollection` explicitly implement `IPolicyBase`.
+- Add `PolicyCollection.Then<TWrapperPolicy>` method (shorthand for `WrapUp` that returns the wrapper policy directly.
+- Make PolicyCollection explicitly implement IWithErrorFilter<PolicyCollection>.
+- Make `PolicyCollection` explicitly implement `IWithInnerErrorFilter<PolicyCollection>`
+- Flatten `PolicyCollection` result-handler registration to an allocation-free indexed loop.
+- Introduce `PolicyResult.LastError` property and use it in `UnprocessedError` fallback.
+- Thread an `errorCapacity` parameter through `PolicyResult`/`PolicyResult<T>` constructors and internal factories, `FlexSyncEnumerable<T>` and `SynchronizedList<T>` (new `SynchronizedList<T>(int capacity)` constructor).
+- Add the `UnsupportedPolicy` value to the `PolicyResultFailedReason` enum.
+- Added `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to small, frequently-called methods across `PolicyResult` and `PolicyResult<T>`.
+- Store `ServiceOperationCanceledException` in `PolicyResult.PolicyCanceledError` when linked-token cancellation occurs during synchronous task waits in `DefaultRetryProcessor.Retry` methods.
+- Use the `PolicyResult.SetFailedAndCanceled(OperationCanceledException)` overload when cancellation occurs in the `IDelayProvider.DelayAndCheckIfResultFailed` and `DelayAndCheckIfResultFailedAsync` extension methods.
+- Add new `PolicyResult<T>.SetResultBasedOnCancellation` internal method.
+- Add new `PolicyResult.SetResultBasedOnCancellation` internal method.
+- Add `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to `RetryDelay` hot-path methods.
+- Refactor `AggregateException.GetCancellationException` extension method with fast/slow path pattern.
+- Add `PolicyProcessor.TryHandleByEvaluatingRuleThenProcessExceptionAsync` method overload.
+- Use `PolicyProcessor.TryHandleByEvaluatingRuleThenProcessExceptionAsync`  method in  `DefaultRetryProcessor.RetryAsync` methods.
+- Add protected `PolicyProcessor.TryHandleByEvaluatingRuleThenProcessException` method overload and use it in `DefaultRetryProcessor.Retry` methods.
+- Add protected `PolicyProcessor.TryHandleByProcessingExceptionThenEvaluateRuleAsync` and use it in `DefaultFallbackProcessor.FallbackAsync` methods.
+- Use `TryHandleByProcessingExceptionThenEvaluateRule` in `DefaultFallbackProcessor` `Fallback` catch blocks.
+- Add fallback delegate extension methods and use them in `DefaultFallbackProcessor`.
+- Support `Func<TParam, CancellationToken, Task>` in `FallbackPolicy. HandleAsync<TParam>` method.
+- Support `Func<TParam, CancellationToken, Task>` in `FallbackFuncsProvider`.
+- Support parameterized `Action` delegate in `FallbackPolicy.Handle<TParam>` method.
+- Support parameterized `Action` fallback delegates in `FallbackFuncsProvider`.
+- Support parameterized asynchronous fallback delegates in `FallbackPolicy.HandleAsync<TParam, T>` method.
+- Support parameterized asynchronous fallback delegates in `FallbackFuncsProvider`.
+- Store `Fallback` and `FallbackAsync` delegates directly in `_syncGenericFuncsHolder` and `_asyncGenericFuncsHolder` under a `VoidType` sentinel key.
+- Support parameterized synchronous fallback delegates in `FallbackPolicy.Handle<TParam, T>` method.
+- Support parameterized sync fallback delegates in `FallbackFuncsProvider`.
+- Introduced the `FallbackPolicy.FromValue<T>` method.
+- Introduce `FallbackBehavior<T>` for configuring fallback policy for generic delegates.
+- Add `AddOrReplaceFallbackBehavior<T>` to `FallbackFuncsProvider`.
+- Add `WithFallbackBehavior<T>` fluent method to `FallbackPolicyBase` and its derived classes.
+- Add `EvaluateRuleThenProcessException` overload with default error saver and use it in `SimplePolicyProcessor.Execute` catch block.
+- Route `DefaultFallbackProcessor.Fallback` methods through `CancellationAwareInvocation.InvokeCapturingCancel`.
+- Route `SimplePolicyProcessor.Execute(Action, EmptyErrorContext, CancellationToken)` through `InvokeCapturingCancel`.
+- Route `SimplePolicyProcessor.Execute<T>` through `InvokeCapturingCancel`.
+- Add internal static `CancellationAwareInvocation.InvokeCapturingCancel<TParam>(Action<TParam> action, TParam param, CancellationToken)` -> `OperationCanceledException`, marked `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for EH-region inlining.
+- Add internal static `CancellationAwareInvocation` with `InvokeCapturingCancel(Action, CancellationToken) -> OperationCanceledException`, marked `[MethodImpl(MethodImplOptions.AggressiveInlining)]` for EH-region inlining.
+- Replace `CreateDefault(Async)ErrorSaver<T>()` calls with the cached `ErrorSaver<T>.Default` and `AsyncErrorSaver<T>.Default`, eliminating per-call delegate allocations and improving the performance of `PolicyProcessor.HandleException<T>` and `PolicyProcessor.HandleExceptionAsync<T>` when `errorSaver` is `null`.
+- Add internal static `ExceptionFilter.ShouldPropagateFilterUnsatisfied` method.
+- Add `ExceptionFilter.ShouldPropagateFilterUnsatisfied` extension method.
+- Refactor `catch (Exception)` to clarify exception filter acception in `DefaultFallbackProcessor` synchronous `Fallback` methods.
+- Broaden `Fallback` and `FallbackAsync` context parameter from `EmptyErrorContext<TParam>` to `EmptyErrorContext` in `DefaultFallbackProcessor`.
+- Broaden `Execute` and `ExecuteAsync` context parameter from `EmptyErrorContext<TParam>` to `EmptyErrorContext` in `SimplePolicyProcessor`.
+- Refactor `PolicyDelegateCollectionException` to materialize results once and remove deferred LINQ queries.
+- Eliminate double-enumeration of `Errors` in `PolicyDelegateCollectionException`.
+- Make `GetResults()` lazy in `PolicyDelegateCollectionException<T>`.
+- Refactor `PolicyProcessor.EvaluateExceptionFilter`.
+- Add parameterized `TParam` overloads to fallback policy classes and extensions.
+- Introduce `WithInnerErrorProcessor<TException>` methods accepting `DefaultInnerErrorProcessor<TException>` across `FallbackPolicy`, `FallbackPolicyBase`, `FallbackPolicyWithAction`, and `FallbackPolicyWithAsyncFunc`.
+- Introduce `IFallbackProcessor.WithInnerErrorProcessor<TException>` extension method accepting `DefaultInnerErrorProcessor<TException>`.
+- Introduce `RetryPolicy.WithInnerErrorProcessor<TException>` method accepting `DefaultInnerErrorProcessor<TException>`.
+- Introduce `IRetryProcessor.WithInnerErrorProcessor<TException>` extension method accepting `DefaultInnerErrorProcessor<TException>`.
+- Introduce `SimplePolicy.WithInnerErrorProcessor<TException>` method accepting `DefaultInnerErrorProcessor<TException>`.
+- Introduce `ISimplePolicyProcessor.WithInnerErrorProcessor<TException>` extension method accepting `DefaultInnerErrorProcessor<TException>`.
+- Inline empty-processor case in `BulkErrorProcessor` to return cached `BulkProcessResult` instead of allocating new instances.
+- Introduce `BulkErrorProcessor.WithInnerErrorProcessor<TException>` extension method accepting `DefaultInnerErrorProcessor<TException>`.
+- Add typed error processor support to `BulkErrorProcessor`.
+- Add typed error processor registration support to `FallbackPolicy`, `RetryPolicy`, `SimplePolicy`, and their corresponding policy processors.
+- Add PolicyErrorProcessorRegistration.ForTypedError.cs with corresponding extension methods on `IPolicyBase`, forwarding to the `PolicyProcessor` using the newly added `ErrorProcessorRegistration` methods.
+- Add ErrorProcessorRegistration.ForTypedError.cs with extension methods on `IPolicyProcessor` for all typed exception processor overloads.
+- Add four `WithTypedErrorProcessorOf` extension methods to `ICanAddErrorProcessorExtensions` that cover the `DefaultTypedErrorProcessor<TException>` constructors not previously exposed.
+- Add `ICanAddErrorProcessor.WithTypedErrorProcessorOf<T, TException>` extension accepting `Action<TException, ProcessingErrorInfo, CancellationToken>`.
+- Fix unused `convertType` parameter in parameterized async fallback function invocation.
+- Fix conversion of asynchronous fallback delegates to `FallbackPolicy`.
+- Support parameterized delegate execution in `DelegateInvoking` extension methods
+- Support context-dependent delegate execution in `DelegateInvoking` extension methods.
+- Introduce abstract `InnerErrorProcessor<TException>` with an overridable `Execute` method to handle inner error processing.
+- Introduce `DefaultInnerErrorProcessor<TException>` for inner exception handling.
+- Add `ICanAddErrorProcessor.WithTypedErrorProcessorOf<T, TException>` extension accepting `Action<TException, ProcessingErrorInfo>`.
+- Add `ICanAddErrorProcessor.WithTypedErrorProcessor<T, TException>` extension accepting `DefaultTypedErrorProcessor<TException>`.
+- Add `DefaultTypedErrorProcessor` constructor with `Action<TException, ProcessingErrorInfo>`.
+- Add `CancellationToken` parameter to `DefaultRetryProcessor` policy rule `Func`.
+- Add `DefaultTypedErrorProcessor` constructor with `Func<TException, ProcessingErrorInfo, CancellationToken, Task>`.
+- Add `DefaultTypedErrorProcessor` constructors with `Func<TException, ProcessingErrorInfo, Task>` and `CancellationType`.
+- Refactor `ExponentialDelayCore` to use `MaxDelayHelper.GetAdaptedMaxDelayMs`.
+- Add internal `MaxDelayHelper` and refactor delay core classes to use it for max-delay adaptation.
+- Add `DefaultTypedErrorProcessor(Action<TException, ProcessingErrorInfo>, CancellationType)` constructor.
+- Optimized retry delay hot-path methods with aggressive inlining.
+- Replace `IncrementCountAtomic` with `IncrementCount` in `DefaultRetryProcessor` to remove unnecessary `Interlocked` overhead.
+- Remove unreachable `AggregateException` catch in `DelayAndCheckIfResultFailedAsync`.
+- Eliminate redundant `_delegateContainer` field from `PolicyDelegate` hierarchy.
+- Simplify `GetMethodInfo` logic by eliminating redundant null checks and indirection for `PolicyDelegate`.
+- Replace `IEnumerable` with `IReadOnlyList<CatchBlockHandler>` in `CatchBlockHandlerCollectionWrapper.Wrap` and `TryCatch` constructor to eliminate LINQ double-enumeration and enable O(1) `Count` access.
+- Extract `TryCatch` class from ITryCatch.cs into TryCatch.cs
+- Extract DRY logic from `TryCatchResult` constructors.
+- Consolidate `CreateAndBuild` patterns in `TryCatchBuilder`.
+- Add missing tests for `DefaultErrorProcessor` constructors.
+- Fix DelegateExtensionsSimpleTests.
+- Add README.md for PolicyComposition.
+- Add XML documentation to `IPolicyBase` interface and its members.
+- Add XML documentation for all public members of `SimplePolicy`.
+- Add XML documentation for all public and key internal/private members of `PolicyProcessor`.
+- Add XML documentation to public extension methods in `ErrorProcessorRegistration`.
+- Add XML documentation to public extension methods in `PolicyErrorProcessorRegistration`.
+- Add XML summary documentation to all public and protected members of `Policy`.
+- Add XML documentation to `WithInnerErrorProcessorOf` overloads in fallback policy classes.
+- Add XML documentation for `PolicyDelegateBase` class and `SyncPolicyDelegateType` enum.
+- Add XML summary docs to `TryCatchResultBase` and `TryCatchBase`.
+- Add XML documentation to IWithErrorFilter<T> interface and its members.
+- Add XML documentation to ITryCatch<T> interface.
+- Add XML documentation to the protected constructors of TryCatchResultBase.
+- Add XML documentation to `BulkErrorProcessorRegistration` class.
+- Add XML docs to `RetryPolicy.WithInnerErrorProcessorOf` overloads.
+- Add XML docs to `SimplePolicy.WithInnerErrorProcessorOf` overloads.
+- Add XML documentation to `PolicyDelegateCollectionException` classes.
+- Add XML documentation to `ProcessingErrorContext` and `ProcessingErrorContext<T>`.
+- Add XML documentation to `PolicyAlias`.
+- Add XML summary documentation to `ProcessingErrorInfo` and `ProcessingErrorInfo<TParam>`.
+- Add XML documentation to `IErrorProcessor`.
+- Add XML documentation to `RetryProcessor`.
+- Add XML documentation to `FallbackProcessor`.
+- Document rationale for catch-all handler fluent API constraint in `TryCatchBuilder` XML docs.
+- Add Polly-Alternative and Pipeline tags to the NuGet package.
+- Move `ErrorProcessorParam` and related extension methods to the DelegateInvoking folder.
+- Move all `PolicyErrorProcessorRegistration` partial class files to `PolicyExtensions` folder.
+- Move DelegateInvoking files to DelegateInvoking folder
+- Move `PolicyCollection`-related files to the PolicyComposition folder.
+- Move ExceptionFilterExtensions.cs to the ExceptionFilter folder.
+- Move all `ErrorProcessorRegistration` partial class files and `PolicyProcessorErrorFiltering` to PolicyProcessorExtensions folder.
+- Deprecate `SimpleSyncExceptionHandler` class.
+- Deprecate `SimpleAsyncExceptionHandler` class.
+- Deprecate `IFallBackFuncHolder` and `FallBackFuncHolder<T>`.
+- Deprecate `ProcessingErrorInfo.FromRetry` method.
+- Deprecate internal `MaxDelayDelimiter` class.
+- Deprecate `FallbackFuncExecResult` and `FallbackFuncExecResult<T>`.
+- Deprecate `FallbackFuncExecResultExtensions` internal class.
+- Deprecate methods in internal `FallbackFuncExtensions`.
+- Deprecate `PolicyProcessor.GetCatchBlockSyncHandler<T>` and `GetCatchBlockAsyncHandler<T>`.
+- Deprecate `PolicyResultExtensions.WasResultSetToFailureByCatchBlock` method.
+- Deprecate `PolicyProcessor.DefaultErrorSaver` and `DefaultAsyncErrorSaver` properties.
+- Deprecate internal static `PolicyProcessor.DefaultAsyncPolicyRule` and `PolicyProcessor.DefaultPolicyRule` properties.
+- Deprecate non-generic and generic `FuncExtensions.ToAsyncFunc` methods.
+- Deprecate internal static `PolicyProcessor.CreateDefaultPolicyRule<T>`  method.
+- Deprecate `ExceptionExtensions.HasCanceledException` method.
+- Deprecate internal `PolicyProcessorCatchBlockAsyncHandler<T>`, `PolicyProcessorCatchBlockSyncHandler<T>` and `PolicyProcessorCatchBlockHandlerBase<T>`.
+- Add PipelineFuncBuilder section to "Tips and Tricks".
+- Add PipelineFuncBuilder section to README.md.
+- Add "Quick Decision Guide" table to "Tips and Tricks" README section.
+
+
 ## 2.24.30
 
 - Introduce abstract `TypedErrorProcessor<TException>` with an overridable `Execute` method for type-specific error processing.

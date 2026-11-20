@@ -868,6 +868,8 @@ var delegateResult = collection.HandleDelegate(() => DoWork());
 // delegateResult.LastPolicyResult.PolicyName == "RetryPolicy" — inner policy name
 ```
 
+The adapter reference can also take part in policy wrapping: when the collection is received as the `IPolicyBase` receiver of the `WrapUp`/`Then` extension methods, it is wrapped as a single policy — see [Policy wrap](#policy-wrap).
+
 Be careful when adding an existing `Policy` to a collection, see [Nuances of using the library](#nuances-of-using-the-library) for details.
 
 ### Policy wrap
@@ -1037,6 +1039,23 @@ var result = await PolicyCollection.Create()
 		.HandleAsync(async (ct) => await service.DoSomethingAsync(ct), token);
 ```
 Note that if the `FailedReason` property of the last `PolicyResult` is `PolicyResultFailedReason.PolicyResultHandlerFailed`, a `PolicyResultHandlerFailedException` is thrown for both the `ThrowOnWrappedCollectionFailed.LastError` and `ThrowOnWrappedCollectionFailed.CollectionError` settings.  
+
+In addition, when a `PolicyCollection` is received as an `IPolicyBase` (the adapter role described in the [`PolicyCollection`](#policycollection) chapter), `WrapUp`/`Then` are available as extension methods that wrap it **as a single policy** rather than as a sequence:
+```csharp
+IPolicyBase policyBase = PolicyCollection.Create()
+	.WithRetry(2)
+	.WithPolicyName("MyCollection");
+
+var outerPolicy = policyBase.Then(new SimplePolicy());
+//or: policyBase.WrapUp(new SimplePolicy()).OuterPolicy
+```
+
+This path differs from the instance methods above in three ways:
+- The whole collection is wrapped via the adapter `Handle(Async)`, so the wrapper's `WrappedPolicyResults` contains exactly one entry (carrying the collection-level name), not one entry per policy.
+- There is no `ThrowOnWrappedCollectionFailed` parameter: failure handling is always the `LastError` one, so `PolicyDelegateCollectionException(<T>)` is never produced.
+- The extension `WrapUp` throws an `ArgumentNullException` for a null wrapper (the instance `PolicyCollection.WrapUp` does not null-check).
+
+Calls on a `PolicyCollection`-typed expression (`collection.Then(...)`) always bind to the instance methods, so this single-policy wrapping only occurs in code that holds the collection as `IPolicyBase` (e.g. generic or pipeline code). For wrapping a collection directly, prefer the instance methods.
 
 You can reset a policy to its original state (without wrapped policy or collection inside) by using the `Policy.ResetWrap` method.
 
@@ -1255,43 +1274,63 @@ The `Build()` method returns a function that produces a `PipelineResult<T>`:
 - `IsSuccess` - indicates successful completion (no failure and no cancellation)
 - `Result` - the final result if successful, or `default(T)` if failed
 
-#### Real-World Example
-Here's a complete example of processing user data through multiple validation and transformation steps:
+#### Real-World Examples
+
+**E-Commerce Order Processing with Transient Failure Handling**
+
+Process an order through inventory reservation, payment, and confirmation steps. Network calls to external services may fail transiently, so retry policies with exponential backoff are applied:
+
 ```csharp
-var userProcessingPipeline = PipelineFuncBuilder
-	.StartWith<string, User>(userId => userRepository.GetUser(userId))
+var orderPipeline = PipelineFuncBuilder
+	.StartWithRetry<OrderRequest, OrderValidation>(
+		req => ValidateOrder(req),
+		retryCount: 3,
+		retryDelay: ExponentialRetryDelay.Create(baseDelay: TimeSpan.FromMilliseconds(100)),
+		policyName: "OrderValidationRetry")
 	.OnError((ex, pi) => 
-		logger.LogError(ex, "Failed to fetch user {UserId}", pi.Param))
+		logger.LogWarning(ex, "Order validation failed for order {OrderId} (attempt {Retry})", 
+			pi.Param.OrderId, 
+			pi.GetAttemptCount()))
 	
-	.AddFunc(user => ValidateUser(user))
+	.AddFuncWithRetry(
+		validatedOrder => ReserveInventory(validatedOrder),
+		retryCount: 5,
+		retryDelay: ExponentialRetryDelay.Create(baseDelay: TimeSpan.FromSeconds(1)),
+		policyName: "InventoryReservationRetry")
 	.OnError((ex, pi) => 
-		logger.LogWarning(ex, "User validation failed for {UserName}", pi.Param.Name))
+		logger.LogWarning(ex, "Inventory reservation failed for order {OrderId} with {ItemCount} items (attempt {Retry})", 
+			pi.Param.OrderId, 
+			pi.Param.ItemCount, 
+			pi.GetAttemptCount()))
 	
-	.AddFunc(user => EnrichUserData(user))
-	.OnError(async (ex, pi) =>
-	{
-		await auditLog.LogAsync($"Enrichment failed for user {pi.Param.Id}");
-		logger.LogError(ex, "Failed to enrich user data");
-	})
-	
-	.AddFunc(user => user.ToDto())
+	.AddFuncWithRetry(
+		reservation => ProcessPayment(reservation),
+		retryCount: 3,
+		retryDelay: ExponentialRetryDelay.Create(baseDelay: TimeSpan.FromSeconds(2)),
+		policyName: "PaymentProcessingRetry")
 	.OnError((ex, pi) => 
-		logger.LogError(ex, "Failed to convert user to DTO"))
+		logger.LogWarning(ex, "Payment processing failed for amount {Amount} (attempt {Retry})", 
+			pi.Param.Amount, 
+			pi.GetAttemptCount()))
+	
+	.AddFunc(
+		paymentResult => GenerateConfirmation(paymentResult),
+		policyName: "ConfirmationGeneration")
+	.OnError((ex, pi) => 
+		logger.LogError(ex, "Failed to generate confirmation for payment {PaymentId}", 
+			pi.Param.PaymentId))
 	
 	.Build();
 
-// Use the pipeline
-var result = await Task.Run(() => 
-	userProcessingPipeline("user-123", cancellationToken));
+var result = orderPipeline(orderRequest, cancellationToken);
 
-if (result.IsSuccess)
+if (result.IsFailed)
 {
-	return Ok(result.Result);
+	logger.Error("Order processing failed: {Error}", result.Error?.Message);
+	return BadRequest("Order processing failed");
 }
-else
-{
-	return StatusCode(500, "User processing failed");
-}
+
+return Ok(result.Result.ConfirmationNumber);
 ```
 
 #### Key Benefits
