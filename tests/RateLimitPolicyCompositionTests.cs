@@ -155,7 +155,7 @@ namespace PoliNorError.Tests
 		public async Task Should_GateOuter_NotExecuteInner_Async_When_Denied()
 		{
 			var limiter = new DelegateRateLimiter(
-				(Func<CancellationToken, Task<RateLimitResult>>)(token => Task.FromResult(RateLimitResult.Denied())));
+				_ => Task.FromResult(RateLimitResult.Denied()));
 			bool innerRan = false;
 
 			var outerPolicy = new SimplePolicy().Then(new RateLimitPolicy(limiter));
@@ -171,6 +171,49 @@ namespace PoliNorError.Tests
 			Assert.That(innerRan, Is.False);
 			Assert.That(result.IsFailed, Is.True);
 			Assert.That(result.IsExecutionDenied(), Is.True);
+		}
+
+		[Test]
+		public void Should_RetryOuter_Rerun_Delegate_When_Gate_Handled_Error()
+		{
+			int attempts = 0;
+			var limiter = new DelegateRateLimiter(() => RateLimitResult.Permitted);
+			var outerPolicy = new RateLimitPolicy(limiter).Then(new RetryPolicy(2).WithWait(TimeSpan.Zero));
+
+			var result = outerPolicy.Handle(() =>
+			{
+				attempts++;
+				throw new InvalidOperationException("boom");
+			});
+
+			Assert.That(attempts, Is.EqualTo(3));
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
+		}
+
+		[Test]
+		public void Should_Fail_GateOuter_When_Wrapped_Policy_Fails()
+		{
+			bool innerRan = false;
+			var limiter = new DelegateRateLimiter(() => RateLimitResult.Permitted);
+			var failingInner = new SimplePolicy().ExcludeError<InvalidOperationException>();
+			var outerPolicy = failingInner.Then(new RateLimitPolicy(limiter));
+
+			var result = outerPolicy.Handle(() =>
+			{
+				innerRan = true;
+				throw new InvalidOperationException("boom");
+			});
+
+			Assert.That(innerRan, Is.True);
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
+			Assert.That(result.IsExecutionDenied(), Is.False);
+			Assert.That(result.Errors.OfType<InvalidOperationException>().Any(), Is.True);
+			Assert.That(result.WrappedPolicyResults, Is.Not.Null);
+			Assert.That(result.WrappedPolicyResults.Count(), Is.EqualTo(1));
+			Assert.That(result.WrappedPolicyResults.First().Result.IsFailed, Is.True);
+			Assert.That(result.WrappedStatus, Is.EqualTo(WrappedPolicyStatus.Failed));
 		}
 	}
 }

@@ -54,6 +54,14 @@ namespace PoliNorError
 			};
 		}
 
+		internal static SimplePolicyProcessor CreateFailingOnError(IBulkErrorProcessor bulkErrorProcessor, bool rethrowIfErrorFilterUnsatisfied = false)
+		{
+			return new SimplePolicyProcessor(bulkErrorProcessor, rethrowIfErrorFilterUnsatisfied)
+			{
+				_failedIfError = true
+			};
+		}
+
 		///<inheritdoc cref = "ISimplePolicyProcessor.Execute"/>
 		public PolicyResult Execute(Action action, CancellationToken token = default)
 		{

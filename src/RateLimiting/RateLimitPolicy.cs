@@ -25,6 +25,16 @@ namespace PoliNorError
 	/// because the inner simple processor owns error processing.
 	/// </para>
 	/// <para>
+	/// On the permitted path a delegate exception that matches the configured error filter is handled by the
+	/// inner simple processor (recorded in <see cref="PolicyResult.Errors"/>, error processors ran) and the
+	/// returned result is <b>failed</b> with <see cref="PolicyResultFailedReason.PolicyProcessorFailed"/> -
+	/// not canceled and not <see cref="PolicyResultFailedReason.ExecutionDenied"/>. Sequential chains
+	/// (<see cref="PolicyCollection"/>, <c>PolicyDelegateCollection</c>) therefore continue with the next
+	/// element, and when this policy is used as a wrapped inner policy the wrapper rethrows the original
+	/// exception to the outer policy. Because of that rethrow, configure an <see cref="IBulkErrorProcessor"/>
+	/// on one side of a wrap only (this policy or the outer policy), otherwise one exception is processed twice.
+	/// </para>
+	/// <para>
 	/// Composition: use this policy as an <b>outer wrapper</b> (<c>inner.Then(rateLimit)</c>,
 	/// <c>collection.Then(rateLimit)</c>) so that a rejection prevents the wrapped delegate from running.
 	/// As an element of any sequential chain (<see cref="PolicyCollection"/> and <c>PolicyDelegateCollection</c>)
@@ -42,7 +52,7 @@ namespace PoliNorError
 		/// <param name="rateLimiter">The limiter that gates delegate execution.</param>
 		/// <exception cref="ArgumentNullException"><paramref name="rateLimiter"/> is <see langword="null"/>.</exception>
 		public RateLimitPolicy(IRateLimiter rateLimiter)
-			: this(new SimplePolicyProcessor(), rateLimiter)
+			: this(SimplePolicyProcessor.CreateFailingOnError(), rateLimiter)
 		{
 		}
 
@@ -54,7 +64,7 @@ namespace PoliNorError
 		/// <param name="rethrowIfErrorFilterUnsatisfied">Specifies whether an exception is rethrown if the error filter is unsatisfied.</param>
 		/// <exception cref="ArgumentNullException"><paramref name="rateLimiter"/> is <see langword="null"/>.</exception>
 		public RateLimitPolicy(IRateLimiter rateLimiter, IBulkErrorProcessor processor, bool rethrowIfErrorFilterUnsatisfied = false)
-			: this(new SimplePolicyProcessor(processor, rethrowIfErrorFilterUnsatisfied), rateLimiter)
+			: this(SimplePolicyProcessor.CreateFailingOnError(processor, rethrowIfErrorFilterUnsatisfied), rateLimiter)
 		{
 		}
 
@@ -69,7 +79,7 @@ namespace PoliNorError
 		/// </summary>
 		/// <param name="action">The action to execute when the gate permits it.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns><see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.</returns>
+		/// <returns><see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>; a filter-matched delegate exception is handled and failed with <see cref="PolicyResultFailedReason.PolicyProcessorFailed"/>.</returns>
 		public PolicyResult Handle(Action action, CancellationToken token = default)
 		{
 			if (action == null)
@@ -127,7 +137,7 @@ namespace PoliNorError
 		/// <typeparam name="T">The type of the return value of <paramref name="func"/>.</typeparam>
 		/// <param name="func">The function to execute when the gate permits it.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns><see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value.</returns>
+		/// <returns><see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value; a filter-matched delegate exception is handled and failed with <see cref="PolicyResultFailedReason.PolicyProcessorFailed"/>.</returns>
 		public PolicyResult<T> Handle<T>(Func<T> func, CancellationToken token = default)
 		{
 			if (func == null)
@@ -185,7 +195,7 @@ namespace PoliNorError
 		/// <param name="func">The asynchronous action to execute when the gate permits it.</param>
 		/// <param name="configureAwait">Whether to configure await for the async operation.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns>A task that yields a <see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.</returns>
+		/// <returns>A task that yields a <see cref="PolicyResult"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>; a filter-matched delegate exception is handled and failed with <see cref="PolicyResultFailedReason.PolicyProcessorFailed"/>.</returns>
 		public async Task<PolicyResult> HandleAsync(Func<CancellationToken, Task> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)
@@ -244,7 +254,7 @@ namespace PoliNorError
 		/// <param name="func">The asynchronous function to execute when the gate permits it.</param>
 		/// <param name="configureAwait">Whether to configure await for the async operation.</param>
 		/// <param name="token">The cancellation token to monitor for cancellation requests.</param>
-		/// <returns>A task that yields a <see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value.</returns>
+		/// <returns>A task that yields a <see cref="PolicyResult{T}"/>; a rejection is failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/> and leaves <see cref="PolicyResult{T}.Result"/> at its default value; a filter-matched delegate exception is handled and failed with <see cref="PolicyResultFailedReason.PolicyProcessorFailed"/>.</returns>
 		public async Task<PolicyResult<T>> HandleAsync<T>(Func<CancellationToken, Task<T>> func, bool configureAwait = false, CancellationToken token = default)
 		{
 			if (func == null)

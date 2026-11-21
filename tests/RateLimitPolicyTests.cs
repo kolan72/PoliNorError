@@ -326,5 +326,79 @@ namespace PoliNorError.Tests
 			Assert.That(result.IsExecutionDenied(), Is.False);
 			Assert.That(result.GetRetryAfter(), Is.Null);
 		}
+
+		[Test]
+		public void Should_Return_FailedPolicyProcessorResult_With_ProcessedError_When_Permitted_Delegate_Throws()
+		{
+			int processedCount = 0;
+			var limiter = new DelegateRateLimiter(() => RateLimitResult.Permitted);
+			var processor = new BulkErrorProcessor().WithErrorProcessorOf((Exception _) => processedCount++);
+			var policy = new RateLimitPolicy(limiter, processor);
+
+			var result = policy.Handle(() => throw new InvalidOperationException("boom"));
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
+			Assert.That(result.IsExecutionDenied(), Is.False);
+			Assert.That(result.IsCanceled, Is.False);
+			Assert.That(result.IsSuccess, Is.False);
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+			Assert.That(result.LastError, Is.TypeOf<InvalidOperationException>());
+			Assert.That(processedCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void Should_Return_FailedGenericResult_When_Permitted_GenericDelegate_Throws()
+		{
+			var policy = new RateLimitPolicy(new DelegateRateLimiter(() => RateLimitResult.Permitted));
+
+			var result = policy.Handle<int>(() => throw new InvalidOperationException("boom"));
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
+			Assert.That(result.IsExecutionDenied(), Is.False);
+			Assert.That(result.IsSuccess, Is.False);
+			Assert.That(result.Result, Is.EqualTo(default(int)));
+			Assert.That(result.LastError, Is.TypeOf<InvalidOperationException>());
+		}
+
+		[Test]
+		public async Task Should_Return_FailedResult_Async_When_Permitted_Delegate_Throws()
+		{
+			int processedCount = 0;
+			var limiter = new DelegateRateLimiter(
+				_ => Task.FromResult(RateLimitResult.Permitted));
+			var processor = new BulkErrorProcessor().WithErrorProcessorOf((Exception _) => processedCount++);
+			var policy = new RateLimitPolicy(limiter, processor);
+
+			Func<CancellationToken, Task> func = _ => throw new InvalidOperationException("boom");
+			var result = await policy.HandleAsync(func);
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
+			Assert.That(result.IsExecutionDenied(), Is.False);
+			Assert.That(result.IsCanceled, Is.False);
+			Assert.That(result.IsSuccess, Is.False);
+			Assert.That(result.NoError, Is.False);
+			Assert.That(result.Errors.Count(), Is.EqualTo(1));
+			Assert.That(processedCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public async Task Should_Return_FailedGenericResult_Async_When_Permitted_GenericDelegate_Throws()
+		{
+			var policy = new RateLimitPolicy(new DelegateRateLimiter(
+				_ => Task.FromResult(RateLimitResult.Permitted)));
+
+			Func<CancellationToken, Task<int>> func = _ => throw new InvalidOperationException("boom");
+			var result = await policy.HandleAsync(func);
+
+			Assert.That(result.IsFailed, Is.True);
+			Assert.That(result.FailedReason, Is.EqualTo(PolicyResultFailedReason.PolicyProcessorFailed));
+			Assert.That(result.IsSuccess, Is.False);
+			Assert.That(result.Result, Is.EqualTo(default(int)));
+			Assert.That(result.LastError, Is.TypeOf<InvalidOperationException>());
+		}
 	}
 }
