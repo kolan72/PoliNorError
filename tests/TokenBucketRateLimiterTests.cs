@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -102,5 +102,34 @@ namespace PoliNorError.Tests
 			Assert.That(limiter.TryAcquireAsync().Result.IsPermitted, Is.True);
 			Assert.That(limiter.TryAcquireAsync().Result.IsPermitted, Is.False);
 		}
+
+		[Test]
+		public void Should_RecoverFromBackwardTimeJump()
+		{
+			var limiter = new TokenBucketRateLimiter(1, 1, Timestamp);
+
+			// Empty the bucket
+			_now = 0;
+			limiter.TryAcquire(); // tokens = 0, _lastTimestamp = 0
+
+			// Time goes backward (simulating clock adjustment)
+			_now = -1000; // ← Negative!
+			var result1 = limiter.TryAcquire();
+			Assert.That(result1.IsPermitted, Is.False); // Expected: no tokens yet
+
+			// Time moves forward by 1 second from the backward point
+			_now = -1000 + Stopwatch.Frequency; // 1 second later
+			var result2 = limiter.TryAcquire();
+
+			// WITHOUT FIX: (_lastTimestamp = now) This fails!
+			// _lastTimestamp is still 0, so elapsed = (-1000 + Freq - 0) < 0
+			// No refill happens
+
+			// WITH FIX: This passes!
+			// _lastTimestamp was updated to -1000
+			// elapsed = Frequency (1 second), refills 1 token
+			Assert.That(result2.IsPermitted, Is.True);
+		}
+
 	}
 }

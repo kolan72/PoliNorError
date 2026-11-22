@@ -82,6 +82,7 @@ namespace PoliNorError
 			var elapsedSeconds = (now - _lastTimestamp) / (double)Stopwatch.Frequency;
 			if (elapsedSeconds <= 0)
 			{
+				_lastTimestamp = now;
 				return;
 			}
 			_tokens = Math.Min(_capacity, _tokens + elapsedSeconds * _refillRatePerSecond);
