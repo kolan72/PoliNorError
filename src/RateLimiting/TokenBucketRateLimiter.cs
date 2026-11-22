@@ -22,9 +22,9 @@ namespace PoliNorError
 		/// Initializes a new instance of the <see cref="TokenBucketRateLimiter"/> class.
 		/// The bucket starts full.
 		/// </summary>
-		/// <param name="capacity">The maximum number of tokens; must be at least 1.</param>
-		/// <param name="refillRatePerSecond">The number of tokens added per second; must be greater than zero.</param>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="capacity"/> is less than 1 or <paramref name="refillRatePerSecond"/> is not positive.</exception>
+		/// <param name="capacity">The maximum number of tokens; must be a finite number of at least 1.</param>
+		/// <param name="refillRatePerSecond">The number of tokens added per second; must be a finite number greater than zero.</param>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="capacity"/> is not finite or is less than 1, or <paramref name="refillRatePerSecond"/> is not finite or is not positive.</exception>
 		public TokenBucketRateLimiter(double capacity, double refillRatePerSecond)
 			: this(capacity, refillRatePerSecond, null)
 		{
@@ -32,13 +32,13 @@ namespace PoliNorError
 
 		internal TokenBucketRateLimiter(double capacity, double refillRatePerSecond, Func<long> timestampProvider)
 		{
-			if (capacity < 1)
+			if (double.IsNaN(capacity) || double.IsInfinity(capacity) || capacity < 1)
 			{
-				throw new ArgumentOutOfRangeException(nameof(capacity), capacity, $"{nameof(capacity)} must be greater than or equal to 1.");
+				throw new ArgumentOutOfRangeException(nameof(capacity), capacity, $"{nameof(capacity)} must be a finite number greater than or equal to 1.");
 			}
-			if (refillRatePerSecond <= 0)
+			if (double.IsNaN(refillRatePerSecond) || double.IsInfinity(refillRatePerSecond) || refillRatePerSecond <= 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(refillRatePerSecond), refillRatePerSecond, $"{nameof(refillRatePerSecond)} must be greater than zero.");
+				throw new ArgumentOutOfRangeException(nameof(refillRatePerSecond), refillRatePerSecond, $"{nameof(refillRatePerSecond)} must be a finite number greater than zero.");
 			}
 
 			_capacity = capacity;
@@ -54,7 +54,8 @@ namespace PoliNorError
 		/// <param name="token">A cancellation token to cancel the acquisition attempt.</param>
 		/// <returns>
 		/// A permitted <see cref="RateLimitResult"/> when at least one token is available, otherwise a denied result whose
-		/// <see cref="RateLimitResult.RetryAfter"/> is the time needed to accumulate one token.
+		/// <see cref="RateLimitResult.RetryAfter"/> is the estimated time needed to accumulate one token. The estimate is not
+		/// a reservation, and is <see langword="null"/> when it cannot be represented by a <see cref="TimeSpan"/>.
 		/// </returns>
 		/// <exception cref="OperationCanceledException"><paramref name="token"/> has been canceled.</exception>
 		public override RateLimitResult TryAcquire(CancellationToken token = default)
@@ -63,6 +64,8 @@ namespace PoliNorError
 
 			lock (_sync)
 			{
+				token.ThrowIfCancellationRequested();
+
 				var now = _timestampProvider();
 				Refill(now);
 
@@ -72,9 +75,23 @@ namespace PoliNorError
 					return RateLimitResult.Permitted;
 				}
 
-				var secondsUntilToken = (1 - _tokens) / _refillRatePerSecond;
-				return RateLimitResult.Denied(TimeSpan.FromSeconds(secondsUntilToken));
+				return RateLimitResult.Denied(GetRetryAfter());
 			}
+		}
+
+		private TimeSpan? GetRetryAfter()
+		{
+			var ticksUntilToken = ((1 - _tokens) / _refillRatePerSecond) * TimeSpan.TicksPerSecond;
+
+			// A very low refill rate can produce an infinite or unrepresentable delay.
+			// Check before converting to long so an unchecked conversion cannot create a bogus delay.
+			if (double.IsNaN(ticksUntilToken) || double.IsInfinity(ticksUntilToken) ||
+				ticksUntilToken < 0 || ticksUntilToken > TimeSpan.MaxValue.Ticks)
+			{
+				return null;
+			}
+
+			return TimeSpan.FromTicks((long)Math.Ceiling(ticksUntilToken));
 		}
 
 		private void Refill(long now)

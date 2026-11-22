@@ -1,7 +1,9 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PoliNorError.Tests
 {
@@ -94,13 +96,79 @@ namespace PoliNorError.Tests
 			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(1, -1));
 		}
 
+		[TestCase(double.NaN, 1, "capacity", TestName = "Should_RejectNaNCapacity")]
+		[TestCase(double.PositiveInfinity, 1, "capacity", TestName = "Should_RejectInfiniteCapacity")]
+		[TestCase(double.NegativeInfinity, 1, "capacity", TestName = "Should_RejectNegativeInfiniteCapacity")]
+		[TestCase(1, double.NaN, "refillRatePerSecond", TestName = "Should_RejectNaNRefillRate")]
+		[TestCase(1, double.PositiveInfinity, "refillRatePerSecond", TestName = "Should_RejectInfiniteRefillRate")]
+		[TestCase(1, double.NegativeInfinity, "refillRatePerSecond", TestName = "Should_RejectNegativeInfiniteRefillRate")]
+		public void Should_ThrowArgumentOutOfRange_When_ArgumentIsNotFinite(double capacity, double refillRatePerSecond, string parameterName)
+		{
+			var exception = Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(capacity, refillRatePerSecond));
+			Assert.That(exception.ParamName, Is.EqualTo(parameterName));
+		}
+
+		[TestCase(double.Epsilon, TestName = "Should_ReturnUnknownRetryAfter_When_InfiniteRateProducesOverflow")]
+		public void Should_ReturnUnknownRetryAfter_When_DelayCannotBeRepresented(double refillRatePerSecond)
+		{
+			var limiter = new TokenBucketRateLimiter(1, refillRatePerSecond, Timestamp);
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+
+			var denied = limiter.TryAcquire();
+
+			Assert.That(denied.IsPermitted, Is.False);
+			Assert.That(denied.RetryAfter, Is.Null);
+		}
+
 		[Test]
-		public void Should_WorkAsynchronously()
+		public void Should_ReturnOneTickRetryAfter_When_PositiveDelayRoundsBelowOneTick()
+		{
+			var limiter = new TokenBucketRateLimiter(1, TimeSpan.TicksPerSecond * 2d, Timestamp);
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+
+			var denied = limiter.TryAcquire();
+
+			Assert.That(denied.IsPermitted, Is.False);
+			Assert.That(denied.RetryAfter, Is.EqualTo(TimeSpan.FromTicks(1)));
+		}
+
+		[Test]
+		public void Should_NotOverspendTokens_UnderConcurrentAcquisition()
+		{
+			const int capacity = 5;
+			const int callers = 32;
+			var limiter = new TokenBucketRateLimiter(capacity, 1, Timestamp);
+
+			var results = new RateLimitResult[callers];
+			using (var start = new ManualResetEventSlim(false))
+			{
+				var tasks = Enumerable.Range(0, callers).Select(i => Task.Run(() =>
+				{
+					Assert.That(start.Wait(TimeSpan.FromSeconds(10)), Is.True, "Timed out waiting to start concurrent acquisition.");
+					results[i] = limiter.TryAcquire();
+				})).ToArray();
+
+				start.Set();
+				Task.WaitAll(tasks);
+			}
+
+			Assert.That(results.Count(result => result.IsPermitted), Is.EqualTo(capacity));
+			Assert.That(results.Count(result => !result.IsPermitted), Is.EqualTo(callers - capacity));
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.False);
+		}
+
+		[Test]
+		public async Task Should_WorkAsynchronously()
 		{
 			var limiter = new TokenBucketRateLimiter(1, 1, Timestamp);
 
-			Assert.That(limiter.TryAcquireAsync().Result.IsPermitted, Is.True);
-			Assert.That(limiter.TryAcquireAsync().Result.IsPermitted, Is.False);
+			var permittedTask = limiter.TryAcquireAsync();
+			Assert.That(permittedTask.IsCompleted, Is.True);
+			Assert.That((await permittedTask.ConfigureAwait(false)).IsPermitted, Is.True);
+
+			var deniedTask = limiter.TryAcquireAsync();
+			Assert.That(deniedTask.IsCompleted, Is.True);
+			Assert.That((await deniedTask.ConfigureAwait(false)).IsPermitted, Is.False);
 		}
 
 		[Test]
