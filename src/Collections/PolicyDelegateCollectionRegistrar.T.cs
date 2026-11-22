@@ -452,5 +452,18 @@ namespace PoliNorError
 		{
 			return policyDelegateCollection.WithInnerErrorProcessorOf<IPolicyDelegateCollection<T>, TException>(funcProcessor);
 		}
+
+		/// <summary>
+		/// Adds an error processor to the policy of the last element of the <see cref="PolicyDelegateCollection{T}"/> to handle an inner exception only if it has the <typeparamref name="TException"/> type.
+		/// </summary>
+		/// <typeparam name="T">A return type of handling delegate</typeparam>
+		/// <typeparam name="TException">A type of inner exception.</typeparam>
+		/// <param name="policyDelegateCollection">PolicyDelegateCollection</param>
+		/// <param name="innerErrorProcessor">The inner error processor to add.</param>
+		/// <returns><see cref="IPolicyDelegateCollection{T}"/></returns>
+		public static IPolicyDelegateCollection<T> WithInnerErrorProcessor<T, TException>(this IPolicyDelegateCollection<T> policyDelegateCollection, DefaultInnerErrorProcessor<TException> innerErrorProcessor) where TException : Exception
+		{
+			return policyDelegateCollection.WithInnerErrorProcessor<IPolicyDelegateCollection<T>, TException>(innerErrorProcessor);
+		}
 	}
 }

@@ -144,6 +144,7 @@
     <Compile Include="PipelineFuncBuilderStartWithInfiniteRetryTests.cs" />
     <Compile Include="PipelineFuncBuilderTests.cs" />
     <Compile Include="PipelineFuncExtensionsTests.cs" />
+    <Compile Include="PolicyDelegateCollectionRegistrarTWithInnerErrorProcessorTests.cs" />
     <Compile Include="PolicyDelegateCollectionRegistrarWithInnerErrorProcessorTests.cs" />
     <Compile Include="PolicyDelegateCollectionResultTests.cs" />
     <Compile Include="PipelineFuncStepTests.cs" />
