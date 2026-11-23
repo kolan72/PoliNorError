@@ -92,6 +92,14 @@ namespace PoliNorError.Tests
 			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(0, 1));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(1, 0));
 			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(1, -1));
+
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(double.NaN, 1));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(double.PositiveInfinity, 1));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(double.NegativeInfinity, 1));
+
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(1, double.NaN));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(1, double.PositiveInfinity));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new TokenBucketRateLimiter(1, double.NegativeInfinity));
 		}
 
 		[Test]

@@ -22,9 +22,9 @@ namespace PoliNorError
 		/// Initializes a new instance of the <see cref="TokenBucketRateLimiter"/> class.
 		/// The bucket starts full.
 		/// </summary>
-		/// <param name="capacity">The maximum number of tokens; must be at least 1.</param>
-		/// <param name="refillRatePerSecond">The number of tokens added per second; must be greater than zero.</param>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="capacity"/> is less than 1 or <paramref name="refillRatePerSecond"/> is not positive.</exception>
+		/// <param name="capacity">The maximum number of tokens; must be a finite number greater than or equal to 1.</param>
+		/// <param name="refillRatePerSecond">The number of tokens added per second; must be a finite number greater than zero.</param>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="capacity"/> is NaN, infinite or less than 1, or <paramref name="refillRatePerSecond"/> is NaN, infinite or not positive.</exception>
 		public TokenBucketRateLimiter(double capacity, double refillRatePerSecond)
 			: this(capacity, refillRatePerSecond, null)
 		{
@@ -32,13 +32,13 @@ namespace PoliNorError
 
 		internal TokenBucketRateLimiter(double capacity, double refillRatePerSecond, Func<long> timestampProvider)
 		{
-			if (capacity < 1)
+			if (double.IsNaN(capacity) || double.IsInfinity(capacity) || capacity < 1)
 			{
-				throw new ArgumentOutOfRangeException(nameof(capacity), capacity, $"{nameof(capacity)} must be greater than or equal to 1.");
+				throw new ArgumentOutOfRangeException(nameof(capacity), capacity, $"{nameof(capacity)} must be a finite number greater than or equal to 1.");
 			}
-			if (refillRatePerSecond <= 0)
+			if (double.IsNaN(refillRatePerSecond) || double.IsInfinity(refillRatePerSecond) || refillRatePerSecond <= 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(refillRatePerSecond), refillRatePerSecond, $"{nameof(refillRatePerSecond)} must be greater than zero.");
+				throw new ArgumentOutOfRangeException(nameof(refillRatePerSecond), refillRatePerSecond, $"{nameof(refillRatePerSecond)} must be a finite number greater than zero.");
 			}
 
 			_capacity = capacity;
