@@ -54,7 +54,8 @@ namespace PoliNorError
 		/// <param name="token">A cancellation token to cancel the acquisition attempt.</param>
 		/// <returns>
 		/// A permitted <see cref="RateLimitResult"/> when at least one token is available, otherwise a denied result whose
-		/// <see cref="RateLimitResult.RetryAfter"/> is the time needed to accumulate one token.
+		/// <see cref="RateLimitResult.RetryAfter"/> is the time needed to accumulate one token,
+		/// or <see langword="null"/> when that delay cannot be represented as a <see cref="TimeSpan"/>.
 		/// </returns>
 		/// <exception cref="OperationCanceledException"><paramref name="token"/> has been canceled.</exception>
 		public override RateLimitResult TryAcquire(CancellationToken token = default)
@@ -72,9 +73,24 @@ namespace PoliNorError
 					return RateLimitResult.Permitted;
 				}
 
-				var secondsUntilToken = (1 - _tokens) / _refillRatePerSecond;
-				return RateLimitResult.Denied(TimeSpan.FromSeconds(secondsUntilToken));
+				return RateLimitResult.Denied(GetRetryAfter());
 			}
+		}
+
+		private TimeSpan? GetRetryAfter()
+		{
+			var ticksUntilToken = (1 - _tokens) / _refillRatePerSecond * TimeSpan.TicksPerSecond;
+
+			// A very low refill rate can produce an infinite or unrepresentable delay.
+			// Check before converting to long so an unchecked conversion cannot create a bogus delay.
+			// (>= : TimeSpan.MaxValue.Ticks widens to 2^63 as double; equality must be rejected too.)
+			if (double.IsNaN(ticksUntilToken) || double.IsInfinity(ticksUntilToken) ||
+				ticksUntilToken < 0 || ticksUntilToken >= TimeSpan.MaxValue.Ticks)
+			{
+				return null;
+			}
+
+			return TimeSpan.FromTicks((long)Math.Ceiling(ticksUntilToken));
 		}
 
 		private void Refill(long now)

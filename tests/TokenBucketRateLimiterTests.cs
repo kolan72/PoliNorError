@@ -103,6 +103,30 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_Return_NullRetryAfter_When_DelayIsInfinite()
+		{
+			var limiter = new TokenBucketRateLimiter(1, double.Epsilon, Timestamp);
+
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+
+			var denied = limiter.TryAcquire();
+			Assert.That(denied.IsPermitted, Is.False);
+			Assert.That(denied.RetryAfter, Is.Null);
+		}
+
+		[Test]
+		public void Should_Return_NullRetryAfter_When_DelayExceedsTimeSpanRange()
+		{
+			var limiter = new TokenBucketRateLimiter(1, 1e-12, Timestamp);
+
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+
+			var denied = limiter.TryAcquire();
+			Assert.That(denied.IsPermitted, Is.False);
+			Assert.That(denied.RetryAfter, Is.Null);
+		}
+
+		[Test]
 		public void Should_WorkAsynchronously()
 		{
 			var limiter = new TokenBucketRateLimiter(1, 1, Timestamp);
