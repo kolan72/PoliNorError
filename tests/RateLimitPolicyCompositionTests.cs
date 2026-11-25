@@ -99,6 +99,22 @@ namespace PoliNorError.Tests
 		}
 
 		[Test]
+		public void Should_GateOuterOverCollection_ExecuteInner_When_Permitted()
+		{
+			var limiter = new DelegateRateLimiter(() => RateLimitResult.Permitted);
+			bool innerRan = false;
+
+			var collection = PolicyCollection.Create(new SimplePolicy());
+			var outerPolicy = collection.Then(new RateLimitPolicy(limiter));
+
+			var result = outerPolicy.Handle(() => innerRan = true);
+
+			Assert.That(innerRan, Is.True);
+			Assert.That(result.IsFailed, Is.False);
+			Assert.That(result.IsExecutionDenied(), Is.False);
+		}
+
+		[Test]
 		public void Should_GateOuter_RecordWrappedPolicyResults_When_Permitted()
 		{
 			var limiter = new DelegateRateLimiter(() => RateLimitResult.Permitted);
