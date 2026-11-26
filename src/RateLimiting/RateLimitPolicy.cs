@@ -309,6 +309,10 @@ namespace PoliNorError
 		/// <summary>
 		/// Includes a specific exception type with an optional predicate for filtering.
 		/// </summary>
+		/// <remarks>
+		/// Error filters apply only to exceptions thrown by the delegate when rate-limit acquisition is permitted.
+		/// Rate-limit rejections (denied execution) bypass error filters and are always failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.
+		/// </remarks>
 		/// <typeparam name="TException">The type of exception to include.</typeparam>
 		/// <param name="func">Optional predicate function to filter exceptions.</param>
 		/// <returns>The current RateLimitPolicy instance for method chaining.</returns>
@@ -317,6 +321,10 @@ namespace PoliNorError
 		/// <summary>
 		/// Includes exceptions based on a LINQ expression predicate.
 		/// </summary>
+		/// <remarks>
+		/// Error filters apply only to exceptions thrown by the delegate when rate-limit acquisition is permitted.
+		/// Rate-limit rejections (denied execution) bypass error filters and are always failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.
+		/// </remarks>
 		/// <param name="expression">The expression predicate to filter exceptions.</param>
 		/// <returns>The current RateLimitPolicy instance for method chaining.</returns>
 		public RateLimitPolicy IncludeError(Expression<Func<Exception, bool>> expression) => this.IncludeError<RateLimitPolicy>(expression);
@@ -324,6 +332,10 @@ namespace PoliNorError
 		/// <summary>
 		/// Excludes a specific exception type with an optional predicate for filtering.
 		/// </summary>
+		/// <remarks>
+		/// Error filters apply only to exceptions thrown by the delegate when rate-limit acquisition is permitted.
+		/// Rate-limit rejections (denied execution) bypass error filters and are always failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.
+		/// </remarks>
 		/// <typeparam name="TException">The type of exception to exclude.</typeparam>
 		/// <param name="func">Optional predicate function to filter exceptions.</param>
 		/// <returns>The current RateLimitPolicy instance for method chaining.</returns>
@@ -332,6 +344,10 @@ namespace PoliNorError
 		/// <summary>
 		/// Excludes exceptions based on a LINQ expression predicate.
 		/// </summary>
+		/// <remarks>
+		/// Error filters apply only to exceptions thrown by the delegate when rate-limit acquisition is permitted.
+		/// Rate-limit rejections (denied execution) bypass error filters and are always failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.
+		/// </remarks>
 		/// <param name="expression">The expression predicate to filter exceptions.</param>
 		/// <returns>The current RateLimitPolicy instance for method chaining.</returns>
 		public RateLimitPolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<RateLimitPolicy>(expression);
