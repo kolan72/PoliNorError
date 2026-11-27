@@ -41,7 +41,7 @@ namespace PoliNorError
 	/// a rejection also stops the chain: subsequent elements are skipped and the gated delegate is not run.
 	/// </para>
 	/// </remarks>
-	public sealed class RateLimitPolicy : Policy, IPolicyBase, IWithErrorFilter<RateLimitPolicy>
+	public sealed class RateLimitPolicy : Policy, IPolicyBase, IWithErrorFilter<RateLimitPolicy>, IWithInnerErrorFilter<RateLimitPolicy>
 	{
 		private readonly ISimplePolicyProcessor _simpleProcessor;
 		private readonly IRateLimiter _rateLimiter;
@@ -351,6 +351,30 @@ namespace PoliNorError
 		/// <param name="expression">The expression predicate to filter exceptions.</param>
 		/// <returns>The current RateLimitPolicy instance for method chaining.</returns>
 		public RateLimitPolicy ExcludeError(Expression<Func<Exception, bool>> expression) => this.ExcludeError<RateLimitPolicy>(expression);
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be included in the handling by the <see cref="RateLimitPolicy"/>.
+		/// </summary>
+		/// <remarks>
+		/// Inner error filters apply only to exceptions thrown by the delegate when rate-limit acquisition is permitted.
+		/// Rate-limit rejections (denied execution) bypass inner error filters and are always failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.
+		/// </remarks>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns>The current RateLimitPolicy instance for method chaining.</returns>
+		public RateLimitPolicy IncludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.IncludeInnerError<RateLimitPolicy, TInnerException>(predicate);
+
+		/// <summary>
+		/// Specifies the type- and optionally <paramref name="predicate"/> predicate-based filter condition for the inner exception of a handling exception to be excluded from the handling by the <see cref="RateLimitPolicy"/>.
+		/// </summary>
+		/// <remarks>
+		/// Inner error filters apply only to exceptions thrown by the delegate when rate-limit acquisition is permitted.
+		/// Rate-limit rejections (denied execution) bypass inner error filters and are always failed with <see cref="PolicyResultFailedReason.ExecutionDenied"/>.
+		/// </remarks>
+		/// <typeparam name="TInnerException">A type of an inner exception.</typeparam>
+		/// <param name="predicate">A predicate that an inner exception should satisfy.</param>
+		/// <returns>The current RateLimitPolicy instance for method chaining.</returns>
+		public RateLimitPolicy ExcludeInnerError<TInnerException>(Func<TInnerException, bool> predicate = null) where TInnerException : Exception => this.ExcludeInnerError<RateLimitPolicy, TInnerException>(predicate);
 
 		/// <summary>
 		/// Adds a synchronous action handler for policy results.
