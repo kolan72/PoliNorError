@@ -12,7 +12,7 @@ namespace PoliNorError
 		private readonly object _sync = new object();
 
 		private readonly int _permitLimit;
-		private readonly long _windowTicks;
+		private readonly long _windowDurationTicks;
 		private readonly Func<long> _timestampProvider;
 
 		private long _windowStart;
@@ -29,6 +29,13 @@ namespace PoliNorError
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FixedWindowRateLimiter"/> class with a custom timestamp provider.
+		/// </summary>
+		/// <param name="permitLimit">The maximum number of permits granted per window; must be greater than zero.</param>
+		/// <param name="window">The length of the window; must be greater than zero.</param>
+		/// <param name="timestampProvider">A function that returns the current timestamp in Stopwatch ticks, or null to use the default.</param>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="permitLimit"/> or <paramref name="window"/> is not positive.</exception>
 		internal FixedWindowRateLimiter(int permitLimit, TimeSpan window, Func<long> timestampProvider)
 		{
 			if (permitLimit <= 0)
@@ -41,7 +48,7 @@ namespace PoliNorError
 			}
 
 			_permitLimit = permitLimit;
-			_windowTicks = (long)(window.TotalSeconds * Stopwatch.Frequency);
+			_windowDurationTicks = (long)(window.TotalSeconds * Stopwatch.Frequency);
 			_timestampProvider = timestampProvider ?? Stopwatch.GetTimestamp;
 			_windowStart = _timestampProvider();
 		}
@@ -62,12 +69,7 @@ namespace PoliNorError
 			lock (_sync)
 			{
 				var now = _timestampProvider();
-				var elapsed = now - _windowStart;
-				if (elapsed >= _windowTicks)
-				{
-					_windowStart = now;
-					_permitCount = 0;
-				}
+				RotateWindowIfNeeded(now);
 
 				if (_permitCount < _permitLimit)
 				{
@@ -75,13 +77,39 @@ namespace PoliNorError
 					return RateLimitResult.Permitted;
 				}
 
-				var ticksUntilWindowEnd = _windowStart + _windowTicks - now;
-				if (ticksUntilWindowEnd < 0)
-				{
-					ticksUntilWindowEnd = 0;
-				}
-				return RateLimitResult.Denied(TimeSpan.FromSeconds(ticksUntilWindowEnd / (double)Stopwatch.Frequency));
+				return RateLimitResult.Denied(GetRetryAfter(now));
 			}
+		}
+
+		private void RotateWindowIfNeeded(long now)
+		{
+			var elapsed = now - _windowStart;
+			
+			// Handle backward time jumps: treat as if window just started
+			if (elapsed < 0)
+			{
+				_windowStart = now;
+				return;
+			}
+			
+			if (elapsed >= _windowDurationTicks)
+			{
+				_windowStart = now;
+				_permitCount = 0;
+			}
+		}
+
+		private TimeSpan GetRetryAfter(long now)
+		{
+			var ticksUntilWindowEnd = _windowStart + _windowDurationTicks - now;
+			
+			// Should not happen in normal operation, but be defensive
+			if (ticksUntilWindowEnd <= 0)
+			{
+				return TimeSpan.Zero;
+			}
+			
+			return TimeSpan.FromSeconds(ticksUntilWindowEnd / (double)Stopwatch.Frequency);
 		}
 	}
 }

@@ -99,5 +99,51 @@ namespace PoliNorError.Tests
 			Assert.That(limiter.TryAcquireAsync().Result.IsPermitted, Is.True);
 			Assert.That(limiter.TryAcquireAsync().Result.IsPermitted, Is.False);
 		}
+
+		[Test]
+		public void Should_RecoverFromBackwardTimeJump()
+		{
+			var limiter = new FixedWindowRateLimiter(2, TimeSpan.FromSeconds(10), Timestamp);
+
+			// Use up all permits
+			_now = 0;
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.False);
+
+			// Time goes backward (simulating clock adjustment)
+			_now = -1000; // ← Negative!
+			var result1 = limiter.TryAcquire();
+			Assert.That(result1.IsPermitted, Is.False); // Still denied, permits not reset
+
+			// Time moves forward by 10 seconds from the backward point
+#pragma warning disable S1905 // Redundant casts should not be used
+			_now = -1000 + (long)(10 * Stopwatch.Frequency);
+#pragma warning restore S1905 // Redundant casts should not be used
+			var result2 = limiter.TryAcquire();
+
+			// WITHOUT FIX: This would fail - the window would never rotate
+			// WITH FIX: The window start is updated to the backward time,
+			// so after the window duration, permits are granted again
+			Assert.That(result2.IsPermitted, Is.True);
+		}
+
+		[Test]
+		public void Should_HandleBackwardTimeJump_WithoutResettingPermits()
+		{
+			var limiter = new FixedWindowRateLimiter(3, TimeSpan.FromSeconds(5), Timestamp);
+
+			// Use one permit
+			_now = 0;
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+
+			// Time goes backward
+			_now = -100;
+			
+			// Should still have permits available (we only used 1 of 3)
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.True);
+			Assert.That(limiter.TryAcquire().IsPermitted, Is.False); // All 3 used
+		}
 	}
 }
